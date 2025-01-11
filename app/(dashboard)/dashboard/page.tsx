@@ -38,15 +38,15 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-const salesData = [
-  { name: "Sun", value: 0 },
-  { name: "Mon", value: 0 },
-  { name: "Tue", value: 0 },
-  { name: "Wed", value: 0 },
-  { name: "Thu", value: 0 },
-  { name: "Fri", value: 0 },
-  { name: "Sat", value: 0 },
-];
+// const salesData = [
+//   { name: "Sun", value: 0 },
+//   { name: "Mon", value: 0 },
+//   { name: "Tue", value: 0 },
+//   { name: "Wed", value: 0 },
+//   { name: "Thu", value: 0 },
+//   { name: "Fri", value: 0 },
+//   { name: "Sat", value: 0 },
+// ];
 
 const revenueData = [
   { name: "Jun", value: 15000000 },

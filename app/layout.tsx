@@ -11,8 +11,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { ptBR } from "@clerk/localizations";
 import { Suspense } from "react";
 
-import Footer from "@/sections/Footer";
-import Header from "@/sections/Header";
+
 
 
 const dmSans = DM_Sans({ subsets: ["latin"] });

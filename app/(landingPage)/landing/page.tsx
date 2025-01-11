@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useGetCoursesQuery } from "@/state/api";
 import { useRouter } from "next/navigation";
 import CourseCardSearch from "@/components/course/CourseCardSearch";
-import { useUser } from "@clerk/nextjs";
+
 
 const LoadingSkeleton = () => {
   return (

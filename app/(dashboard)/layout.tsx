@@ -1,7 +1,7 @@
 "use client";
 // import AppSidebar from "@/components/course/AppSidebar";
 import Loading from "@/components/course/Loading";
-import Navbar from "@/components/course/Navbar";
+
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import { useUser } from "@clerk/nextjs";
