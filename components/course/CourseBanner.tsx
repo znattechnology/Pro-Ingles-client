@@ -7,7 +7,7 @@ import Image from "next/image";
 import { useCarousel } from "@/hooks/useCarousel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGetCoursesQuery } from "@/state/api";
-import { useRouter } from "next/navigation";
+
 
 
 
