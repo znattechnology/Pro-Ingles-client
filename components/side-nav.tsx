@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-import { SIDENAV_ITEMS } from '@/constants';
+
 import { SideNavItem } from '@/types';
 import { Icon } from '@iconify/react';
 
@@ -21,11 +21,11 @@ const SideNav = () => {
           <span className="font-bold text-xl hidden md:flex">Logo</span>
         </Link>
 
-        <div className="flex flex-col text-gray-200 space-y-2  md:px-6 ">
+        {/* <div className="flex flex-col text-gray-200 space-y-2  md:px-6 ">
           {SIDENAV_ITEMS.map((item, idx) => {
             return <MenuItem key={idx} item={item} />;
           })}
-        </div>
+        </div> */}
       </div>
     </div>
   );
