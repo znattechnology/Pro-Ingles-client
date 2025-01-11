@@ -5,10 +5,10 @@ import React, { useState } from "react";
 // import CourseContentMedia from "./CourseContentMedia";
 // import Header from "../Header";
 
-import Heading from "../../../../utils/Heading";
+import Heading from "../../../utils/Heading";
 
 import Loader from "@/components/Loader";
-import { useGetCourseContentQuery } from "../../../../redux/features/courses/coursesApi";
+import { useGetCourseContentQuery } from "../../../redux/features/courses/coursesApi";
 import CourseContentList from "@/components/CourseContentList";
 import CourseContentMedia from "./CourseContentMedia";
 

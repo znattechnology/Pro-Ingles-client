@@ -6,7 +6,7 @@ import {
   useAddReplyInReviewMutation,
   useAddReviewInCourseMutation,
   useGetCourseDetailsQuery,
-} from "@/../redux/features/courses/coursesApi";
+} from "@/redux/features/courses/coursesApi";
 import Image from "next/image";
 import { format } from "timeago.js";
 import React, { useEffect, useState } from "react";
@@ -21,9 +21,9 @@ import { BiMessage } from "react-icons/bi";
 import { VscVerifiedFilled } from "react-icons/vsc";
 import { Icon } from "@iconify/react";
 import socketIO from "socket.io-client";
-import CoursePlayer from "../../../../utils/CoursePlayer";
-import { styles } from "../../../../styles/style";
-import Ratings from "../../../../utils/Ratings";
+import CoursePlayer from "../../../utils/CoursePlayer";
+import { styles } from "../../../styles/style";
+import Ratings from "../../../utils/Ratings";
 const ENDPOINT = process.env.NEXT_PUBLIC_SOCKET_SERVER_URI || "";
 const socketId = socketIO(ENDPOINT, { transports: ["websocket"] });
 
