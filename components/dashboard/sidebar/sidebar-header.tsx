@@ -19,7 +19,7 @@ function SidebarHeader({ isCoursePage }: { isCoursePage: boolean }) {
   const userRole = user?.publicMetadata?.userType as "student" | "teacher";
   const [searchQuery, setSearchQuery] = React.useState("");
   return (
-    <div className="flex h-16 items-center gap-4 border-b px-4 bg-customgreys-primarybg border-b-violet-900/30">
+    <div className={`flex h-16 items-center gap-4 border-b px-4 ${isCoursePage ? 'bg-blue-500' : 'bg-customgreys-primarybg'} border-b-violet-900/30`}>
       <SidebarTrigger className="bg-violet-800 hover:bg-violet-900 text-white hover:text-white" />
       <div className="flex-1">
         <Input
