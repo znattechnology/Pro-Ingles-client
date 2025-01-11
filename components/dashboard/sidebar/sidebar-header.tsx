@@ -14,7 +14,7 @@ import { dark } from "@clerk/themes";
 import NotificationButton from "@/components/notification-button";
 
 
-function SidebarHeader() {
+function SidebarHeader({ isCoursePage }: { isCoursePage: boolean }) {
   const { user } = useUser();
   const userRole = user?.publicMetadata?.userType as "student" | "teacher";
   const [searchQuery, setSearchQuery] = React.useState("");
