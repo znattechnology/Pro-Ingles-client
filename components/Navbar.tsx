@@ -7,11 +7,10 @@ import { navigation } from "../constants";
 import styles from '../styles';
 import { navVariants } from '../utils/motion';
 import { usePathname } from 'next/navigation';
-import { HamburgerMenu } from "./design/Header";
+// import { HamburgerMenu } from "./design/Header";
 import { disablePageScroll, enablePageScroll } from "scroll-lock";
 
-import Image from "next/image";
-import Button from "./Button";
+
 import MenuSvg from "@/public/svg/MenuSvg";
 import Login from "@/components/auth/Login";
 import SignUp from "@/components/auth/Sign-Up";
@@ -86,7 +85,7 @@ const Navbar = (props: Props) => {
             ))}
           </div>
 
-          <HamburgerMenu />
+          {/* <HamburgerMenu /> */}
         </nav>
 
         {/* <a
