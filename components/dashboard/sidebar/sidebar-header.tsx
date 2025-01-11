@@ -12,13 +12,7 @@ import { dark } from "@clerk/themes";
 
 
 import NotificationButton from "@/components/notification-button";
-const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
-};
+
 
 function SidebarHeader() {
   const { user } = useUser();
