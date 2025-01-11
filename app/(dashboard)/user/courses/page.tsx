@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { useState, useMemo } from "react";
 import Loading from "@/components/course/Loading";
-import Header from "@/components/course/Header";
+
 import Toolbar from "@/components/course/Toolbar";
 import CourseBanner from "@/components/course/CourseBanner";
 import { Button } from "@/components/ui/button";

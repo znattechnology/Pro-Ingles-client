@@ -38,7 +38,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import Logo from "@/components/logo";
+
 import Loading from "@/components/course/Loading";
 import { useClerk, useUser } from "@clerk/nextjs";
 import { usePathname } from "next/navigation";

@@ -13,7 +13,7 @@ import { useRegisterMutation } from "@/redux/features/auth/authApi";
 import toast from "react-hot-toast";
 import { Button } from "../ui/button";
 
-import { Loader2, Lock } from "lucide-react";
+import { Loader2} from "lucide-react";
 import { Input } from "../ui/input";
 
 type Props = {

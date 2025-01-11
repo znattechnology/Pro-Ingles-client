@@ -6,7 +6,7 @@ import { useSelector } from "react-redux";
 import { Icon } from '@iconify/react';
 import { Button } from "../ui/button";
 
-import { Loader2, Lock } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { Input } from "../ui/input";
 
 type Props = {

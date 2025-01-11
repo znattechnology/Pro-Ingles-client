@@ -1,16 +1,11 @@
 'use client';
-// import ArrowRight from "@/public/arrow-right.svg";
+
 import Logo from "@/public/logo/Logo_Branco.png";
-// import MenuIcon from "@/public/menu.svg";
+
 import Image from "next/image";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { useState } from "react";
-// import { usePathname } from 'next/navigation';
-// import { disablePageScroll, enablePageScroll } from "scroll-lock";
-// import Login from "@/components/auth/Login";
-// import SignUp from "@/components/auth/Sign-Up";
-// import Verification from "@/components/auth/verification";
-// import CustomModal from "@/utils/CustomModal";
+
 import { Menu ,MoveRight } from 'lucide-react';
 import { SignedIn, SignedOut, UserButton, useUser } from "@clerk/nextjs";
 import Link from "next/link";
@@ -30,23 +25,7 @@ const Header = () => {
   const [activeItem, setActiveItem] = useState(0);
   const { user } = useUser();
   const userRole = user?.publicMetadata?.userType as "student" | "teacher";
-  // const [route, setRoute] = useState("Login");
-  // const toggleNavigation = () => {
-  //   if (openNavigation) {
-  //     setOpenNavigation(false);
-  //     enablePageScroll();
-  //   } else {
-  //     setOpenNavigation(true);
-  //     disablePageScroll();
-  //   }
-  // };
 
-  // const handleClick = () => {
-  //   if (!openNavigation) return;
-
-  //   enablePageScroll();
-  //   setOpenNavigation(false);
-  // };
   return (
   
 <>

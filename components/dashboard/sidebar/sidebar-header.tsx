@@ -2,36 +2,15 @@
 import React from "react";
 
 
-import { SignedIn, SignedOut, UserButton, useUser } from "@clerk/nextjs";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {  UserButton, useUser } from "@clerk/nextjs";
+
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+
 import { dark } from "@clerk/themes";
-import {
-  SidebarFooter,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from "@/components/ui/sidebar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  BadgeCheck,
-  Bell,
-  ChevronsUpDown,
-  CreditCard,
-  LogOut,
-  Plus,
-  Sparkles,
-} from "lucide-react";
+
+
+
 import NotificationButton from "@/components/notification-button";
 const data = {
   user: {
@@ -41,7 +20,7 @@ const data = {
   },
 };
 
-function SidebarHeader({ isCoursePage }: { isCoursePage: boolean }) {
+function SidebarHeader() {
   const { user } = useUser();
   const userRole = user?.publicMetadata?.userType as "student" | "teacher";
   const [searchQuery, setSearchQuery] = React.useState("");

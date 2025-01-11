@@ -2,14 +2,14 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import Link from "next/link";
+
 import Image from "next/image";
 import { useCarousel } from "@/hooks/useCarousel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useGetCoursesQuery } from "@/state/api";
 import { useRouter } from "next/navigation";
 
-import { useUser } from "@clerk/nextjs";
+
 
 
 const LoadingSkeleton = () => {
@@ -51,15 +51,16 @@ const CourseBanner = ({ title, subtitle, rightElement }: HeaderProps) => {
 const time = now.toLocaleTimeString('pt', { hour: '2-digit', minute: '2-digit' });
 const date = (new Intl.DateTimeFormat('pt', { dateStyle: 'full' })).format(now);
 
-  const router = useRouter();
+  // const router = useRouter();
   const currentImage = useCarousel({ totalImages: 3 });
-  const { data: courses, isLoading, isError } = useGetCoursesQuery({});
+  const {  isLoading,  } = useGetCoursesQuery({});
+  // const { data: courses, isLoading, isError } = useGetCoursesQuery({});
 
-  const handleCourseClick = (courseId: string) => {
-    router.push(`/search?id=${courseId}`, {
-      scroll: false,
-    });
-  };
+  // const handleCourseClick = (courseId: string) => {
+  //   router.push(`/search?id=${courseId}`, {
+  //     scroll: false,
+  //   });
+  // };
 
   if (isLoading) return <LoadingSkeleton />;
 

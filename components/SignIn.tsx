@@ -3,11 +3,11 @@
 
 
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+
 
 import { SignIn, useUser } from "@clerk/nextjs";
 import React from "react";
-import { dark } from "@clerk/themes";
+
 import { useSearchParams } from "next/navigation";
 
 const SignInComponent = () => {
@@ -20,9 +20,9 @@ const SignInComponent = () => {
     ? `/checkout?step=1&id=${courseId}&showSignUp=true`
     : "/signup";
 
-    const { isLoaded, isSignedIn } = useUser();
+    // const { isLoaded, isSignedIn } = useUser();
 
-    const router = useRouter();
+    // const router = useRouter();
   
 
 

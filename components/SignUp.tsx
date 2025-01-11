@@ -2,7 +2,7 @@
 
 import { SignUp, useUser } from "@clerk/nextjs";
 import React from "react";
-import { dark } from "@clerk/themes";
+
 import { useSearchParams } from "next/navigation";
 
 const SignUpComponent = () => {

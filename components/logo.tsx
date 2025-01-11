@@ -6,7 +6,7 @@ import Image from "next/image";
 
 export default function Logo({
   variant = "light",
-  size = "md",
+
 }: {
   variant?: "dark" | "light";
   size?: "sm" | "md" | "lg";

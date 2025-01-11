@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 
-import styles from '@/styles';
+
 import { fadeIn } from '@/utils/motion';
 
 // Define the type for the ServiceCard props

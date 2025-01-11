@@ -1,6 +1,6 @@
 "use client";
 
-import Header from "@/components/course/Header";
+
 import Loading from "@/components/course/Loading";
 import TeacherCourseCard from "@/components/course/TeacherCourseCard";
 import Toolbar from "@/components/course/Toolbar";

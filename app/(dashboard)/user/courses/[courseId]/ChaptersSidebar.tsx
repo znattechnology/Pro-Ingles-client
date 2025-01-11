@@ -237,7 +237,7 @@ const Chapter = ({
   sectionId,
   sectionProgress,
   chapterId,
-  courseId,
+  // courseId,
   handleChapterClick,
   updateChapterProgress,
 }: {
