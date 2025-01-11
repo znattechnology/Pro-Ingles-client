@@ -15,7 +15,7 @@ interface Notification {
 }
 
 function NotificationButton() {
-  const [notifications, setNotifications] = useState<Notification[]>([
+  const [notifications, ] = useState<Notification[]>([
     { id: 1, message: "Nova mensagem recebida" },
     { id: 2, message: "A sua postagem foi curtida" },
   ])
