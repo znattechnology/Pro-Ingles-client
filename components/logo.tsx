@@ -1,5 +1,4 @@
-import { cn } from "@/lib/utils";
-import { GraduationCap } from "lucide-react";
+
 import Link from "next/link";
 import React from "react";
 import Image from "next/image";
