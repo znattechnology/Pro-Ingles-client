@@ -7,10 +7,10 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { useState } from "react";
 // import { usePathname } from 'next/navigation';
 // import { disablePageScroll, enablePageScroll } from "scroll-lock";
-import Login from "@/components/auth/Login";
-import SignUp from "@/components/auth/Sign-Up";
-import Verification from "@/components/auth/verification";
-import CustomModal from "@/utils/CustomModal";
+// import Login from "@/components/auth/Login";
+// import SignUp from "@/components/auth/Sign-Up";
+// import Verification from "@/components/auth/verification";
+// import CustomModal from "@/utils/CustomModal";
 import { Menu ,MoveRight } from 'lucide-react';
 import { SignedIn, SignedOut, UserButton, useUser } from "@clerk/nextjs";
 import Link from "next/link";
@@ -19,7 +19,7 @@ import { dark } from "@clerk/themes";
 
 
 
-const Header = ({ isCoursePage }: { isCoursePage: boolean }) => {
+const Header = () => {
 
 
 
