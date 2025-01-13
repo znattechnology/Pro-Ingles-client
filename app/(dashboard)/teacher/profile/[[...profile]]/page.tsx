@@ -6,18 +6,19 @@ import React from "react";
 const TeacherProfilePage = () => {
   return (
     <>
-    <Header title="Perfil" subtitle="Veja o seu perfil" />
-    <div
-      style={{
+      <Header title="Perfil" subtitle="Veja o seu perfil" />
+      <div
+       style={{
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
         minHeight: "calc(100vh - 100px)", // Ajusta a altura para centralizar abaixo do header
         padding: "20px",
       }}
-    >
+      
+      >
       <UserProfile
-        path="/user/profile"
+        path="/teacher/profile"
         routing="path"
         appearance={{
           baseTheme: dark,
@@ -35,8 +36,9 @@ const TeacherProfilePage = () => {
           },
         }}
       />
-    </div>
-  </>
+      </div>
+   
+    </>
   );
 };
 
