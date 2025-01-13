@@ -47,7 +47,7 @@ const Search = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="flex flex-col bg-black text-foreground h-full mx-auto w-3/4 mt-24"
+      className="flex flex-col bg-black text-foreground h-full mx-auto w-3/4 mt-36"
     >
       <h1 className="font-normal text-2xl mt-14 text-white">Lista de cursos disponíveis</h1>
       <h2 className="text-white mb-3"> {courses.length} cursos disponíveis</h2>

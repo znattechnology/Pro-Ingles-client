@@ -1,6 +1,6 @@
 'use client';
 
-import Logo from "@/public/logo/Logo_Branco.png";
+import Logo from "@/public/logo/logo.png";
 
 import Image from "next/image";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"

@@ -30,6 +30,7 @@ import "filepond/dist/filepond.min.css";
 import FilePondPluginImagePreview from "filepond-plugin-image-preview";
 import FilePondPluginImageExifOrientation from "filepond-plugin-image-exif-orientation";
 import "filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css";
+import clsx from "clsx";
 
 registerPlugin(FilePondPluginImageExifOrientation, FilePondPluginImagePreview);
 
@@ -97,7 +98,7 @@ export const CustomFormField: React.FC<FormFieldProps> = ({
             onValueChange={field.onChange}
           >
             <SelectTrigger
-              className={`w-full border-none bg-customgreys-primarybg p-4  ${inputClassName}`}
+              className={`w-full border-none bg-customgreys-primarybg p-4 text-white  ${inputClassName}`}
             >
               <SelectValue placeholder={placeholder} />
             </SelectTrigger>
@@ -121,7 +122,13 @@ export const CustomFormField: React.FC<FormFieldProps> = ({
               checked={field.value}
               onCheckedChange={field.onChange}
               id={name}
-              className={`text-customgreys-dirtyGrey ${inputClassName}`}
+              className={clsx(
+                "rounded-full p-1 transition-colors duration-200",
+                field.value
+                  ? "bg-violet-800 border-violet-800" // Cor do switch ativo
+                  : "bg-gray-400 border-gray-400", // Cor do switch inativo
+                inputClassName
+              )}
             />
             <FormLabel htmlFor={name} className={labelClassName}>
               {label}

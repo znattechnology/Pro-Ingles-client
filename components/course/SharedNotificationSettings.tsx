@@ -55,7 +55,7 @@ const SharedNotificationSettings = ({
     }
   };
 
-  if (!user) return <div>Please sign in to manage your settings.</div>;
+  if (!user) return <div>Por favor, inicie sessão para gerir as suas configurações.</div>;
 
   return (
     <div className="space-y-4">
@@ -70,16 +70,20 @@ const SharedNotificationSettings = ({
               name="courseNotifications"
               label="Notificações de curso"
               type="switch"
+               className="text-white"
+               inputClassName="bg-white"
             />
             <CustomFormField
               name="emailAlerts"
               label="Alertas por e-mail"
               type="switch"
+              className="text-white"
             />
             <CustomFormField
               name="smsAlerts"
               label="Alertas SMS"
               type="switch"
+               className="text-white"
             />
 
             <CustomFormField

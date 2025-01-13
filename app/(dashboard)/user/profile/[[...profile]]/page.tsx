@@ -7,23 +7,38 @@ const UserProfilePage = () => {
   return (
     <>
       <Header title="Perfil" subtitle="Veja o seu perfil" />
-      <UserProfile
-        path="/user/profile"
-        routing="path"
-        appearance={{
-          baseTheme: dark,
-          elements: {
-            scrollBox: "bg-customgreys-darkGrey",
-            navbar: {
-              "& > div:nth-child(1)": {
-                background: "none",
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "calc(100vh - 100px)", // Ajusta a altura para centralizar abaixo do header
+          padding: "20px",
+        }}
+      >
+        <UserProfile
+          path="/user/profile"
+          routing="path"
+          appearance={{
+            baseTheme: dark,
+            elements: {
+              scrollBox: "bg-customgreys-darkGrey",
+              navbar: {
+                "& > div:nth-child(1)": {
+                  background: "none",
+                },
+              },
+              card: {
+                boxShadow: "none",
+                 // Remove a sombra do card
               },
             },
-          },
-        }}
-      />
+          }}
+        />
+      </div>
     </>
   );
 };
 
 export default UserProfilePage;
+

@@ -6,9 +6,18 @@ import React from "react";
 const TeacherProfilePage = () => {
   return (
     <>
-      <Header title="Perfil" subtitle="Veja o seu perfil" />
+    <Header title="Perfil" subtitle="Veja o seu perfil" />
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        minHeight: "calc(100vh - 100px)", // Ajusta a altura para centralizar abaixo do header
+        padding: "20px",
+      }}
+    >
       <UserProfile
-        path="/teacher/profile"
+        path="/user/profile"
         routing="path"
         appearance={{
           baseTheme: dark,
@@ -19,10 +28,15 @@ const TeacherProfilePage = () => {
                 background: "none",
               },
             },
+            card: {
+              boxShadow: "none",
+               // Remove a sombra do card
+            },
           },
         }}
       />
-    </>
+    </div>
+  </>
   );
 };
 

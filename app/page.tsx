@@ -44,10 +44,10 @@ export default function Home() {
         <div className="gradient-03  z-0" />
         <Courses />
       </div>
-      <div className="relative">
+      {/* <div className="relative">
         <div className="gradient-03  z-0" />
         <Pricing />
-      </div>
+      </div> */}
       {/* <div className="relative">
         <div className="gradient-03  z-0" />
         <Testimonials />

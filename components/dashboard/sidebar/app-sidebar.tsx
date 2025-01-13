@@ -17,7 +17,7 @@ import {
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import LogoTipo from "@/public/logo/Logo_Branco.png";
+import LogoTipo from "@/public/logo/logo.png";
 
 import {
 
@@ -79,7 +79,7 @@ const navLinks = {
       isActive: true,
       items: [
         {
-          title: "Pagamentos",
+          title: "Perfil",
           url: "/user/profile",
         },
       ],
@@ -131,7 +131,7 @@ const navLinks = {
       isActive: true,
       items: [
         {
-          title: "Pagamentos",
+          title: "Perfil",
           url: "/teacher/profile",
         },
       ],

@@ -29,7 +29,7 @@ const CheckoutWizard = () => {
   };
 
   return (
-    <div className="w-full px-4 h-full flex flex-col items-center py-12 mt-24">
+    <div className="w-full px-4 h-full flex flex-col items-center py-12 mt-36">
       <WizardStepper currentStep={checkoutStep} />
       <div className="w-full max-w-screen-lg flex flex-col items-center mt-10">{renderStep()}</div>
     </div>
