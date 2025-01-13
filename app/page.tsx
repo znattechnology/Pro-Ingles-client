@@ -7,7 +7,7 @@ import Footer from "@/sections/Footer";
 import Header from "@/sections/Header";
 import Hero from "@/sections/Hero";
 import LogoTicker from "@/sections/LogoTicker";
-import Pricing from "@/sections/Pricing";
+// import Pricing from "@/sections/Pricing";
 
 import React from "react";
 
