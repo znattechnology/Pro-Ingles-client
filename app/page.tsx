@@ -9,7 +9,7 @@ import Hero from "@/sections/Hero";
 import LogoTicker from "@/sections/LogoTicker";
 // import Pricing from "@/sections/Pricing";
 
-import React from "react";
+
 
 export default function Home() {
   return (
