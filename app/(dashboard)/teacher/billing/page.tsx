@@ -18,15 +18,15 @@ import {
 } from "@/components/ui/table";
 import { formatPrice } from "@/lib/utils";
 import { useGetTransactionsQuery } from "@/state/api";
-import { useUser } from "@clerk/nextjs";
+import { useDjangoAuth } from "@/hooks/useDjangoAuth";
 import React, { useState } from "react";
 
 const TeacherBilling = () => {
   const [paymentType, setPaymentType] = useState("all");
-  const { user, isLoaded } = useUser();
+  const { user, isAuthenticated, isLoading: authLoading } = useDjangoAuth();
   const { data: transactions, isLoading: isLoadingTransactions } =
     useGetTransactionsQuery(user?.id || "", {
-      skip: !isLoaded || !user,
+      skip: !isAuthenticated || !user,
     });
 
   const filteredData =
@@ -36,7 +36,7 @@ const TeacherBilling = () => {
       return matchesTypes;
     }) || [];
 
-  if (!isLoaded) return <Loading />;
+  if (authLoading) return <Loading />;
   if (!user) return <div>Faça login para visualizar as suas informações de faturação.</div>;
 
   return (

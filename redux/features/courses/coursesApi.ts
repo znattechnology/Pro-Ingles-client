@@ -1,132 +1,182 @@
-import { apiSlice } from "../api/apiSlice";
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
+// Types - Match the global Course interface
+export interface Course {
+  id: string;
+  courseId: string;
+  title: string;
+  description?: string;
+  category: string;
+  price?: number;
+  level: 'Beginner' | 'Intermediate' | 'Advanced';
+  status: 'Draft' | 'Published' | 'Archived';
+  teacher: string;
+  teacherId: string;
+  teacherName: string;
+  image?: string;
+  created_at: string;
+  updated_at: string;
+  sections?: any[];
+  createdAt?: string;
+  updatedAt?: string;
+}
 
-export const courseApi = apiSlice.injectEndpoints({
-    endpoints: (builder) => ({
-        createCourse: builder.mutation({
-            query:( data ) => (
-                {
-                    url: "http://localhost:8000/api/v1/create-course",
-                    method: "POST",
-                    body:data ,
-                    credentials:"include" as const,
-                   
-                }
-            ),
-        }),
-        getAllCourses:builder.query({
-            query:() => ({
-                url:"http://localhost:8000/api/v1/get-admin-courses",
-                method: "GET",
-                credentials: "include" as const
-            })
-        }),
-        deleteCourse: builder.mutation({
-            query:(id)=>({
-                url:`http://localhost:8000/api/v1/delete-course/${id}`,
-                method:"DELETE",
-                credentials:"include" as const
-            })
-        }),
-        editCourse: builder.mutation({
-            query:({id, data})=>({
-                url:`http://localhost:8000/api/v1/edit-course/${id}`,
-                body:data,
-                method:"PUT",
-                credentials:"include" as const
-            })
-        }),
-        getUsersAllCourses:builder.query({
-            query:() => ({
-                url:"http://localhost:8000/api/v1/get-courses",
-                method: "GET",
-                credentials: "include" as const
-            })
-        }),
-        getCourseDetails:builder.query({
-            query:(id) => ({
-                url:`http://localhost:8000/api/v1/get-course/${id}`,
-                method: "GET",
-                credentials: "include" as const
-            })
-        }),
-        getCourseContent: builder.query({
-            query: (id) => ({
-              url: `http://localhost:8000/api/v1/get-course-content/${id}`,
-              method: "GET",
-              credentials: "include" as const,
-            }),
-          }),
-          addNewQuestion: builder.mutation({
-            query: ({ question, courseId, contentId }) => ({
-              url: "http://localhost:8000/api/v1/add-question",
-              body: {
-                question,
-                courseId,
-                contentId,
-              },
-              method: "PUT",
-              credentials: "include" as const,
-            }),
-          }),
-          addAnswerInQuestion: builder.mutation({
-            query: ({ answer, courseId, contentId, questionId }) => ({
-              url: "http://localhost:8000/api/v1/add-answer",
-              body: {
-                answer,
-                courseId,
-                contentId,
-                questionId,
-              },
-              method: "PUT",
-              credentials: "include" as const,
-            }),
-          }),
-          addReviewInCourse: builder.mutation({
-            query: ({ review, rating, courseId }: any) => ({
-              url: `http://localhost:8000/api/v1/add-review/${courseId}`,
-              body: {
-                review,
-                rating,
-              },
-              method: "PUT",
-              credentials: "include" as const,
-            }),
-          }),
-          addReplyInReview: builder.mutation({
-            query: ({ comment, courseId, reviewId }: any) => ({
-              url: `http://localhost:8000/api/v1/add-replay`,
-              body: {
-                comment, courseId, reviewId
-              },
-              method: "PUT",
-              credentials: "include" as const,
-            }),
+export interface CourseCreateData {
+  title?: string;
+  description?: string;
+  category?: string;
+  price?: number;
+  level?: 'Beginner' | 'Intermediate' | 'Advanced';
+  status?: 'Draft' | 'Published' | 'Archived';
+}
 
-            
-          }),
-          getStreamVideoToken: builder.query({
-            query: () => ({
-              url: `http://localhost:8000/api/v1/getStreamToken`,
-              method: "GET",
-              credentials: "include" as const,
-            }),
-          }),
+export const courseApi = createApi({
+  reducerPath: 'courseApi',
+  baseQuery: fetchBaseQuery({
+    baseUrl: `${process.env.NEXT_PUBLIC_DJANGO_API_URL}/courses/`,
+    prepareHeaders: (headers) => {
+      const token = localStorage.getItem('access_token');
+      if (token) {
+        headers.set('Authorization', `Bearer ${token}`);
+      }
+      headers.set('Content-Type', 'application/json');
+      return headers;
+    },
+  }),
+  tagTypes: ['Course'],
+  endpoints: (builder) => ({
+    createCourse: builder.mutation<Course, Partial<CourseCreateData>>({
+      query: (data = {}) => ({
+        url: '',
+        method: 'POST',
+        body: data,
+      }),
+      transformResponse: (response: { message: string; data: Course }) => {
+        const course = response.data;
+        // Ensure backward compatibility by setting courseId to id
+        return {
+          ...course,
+          courseId: course.id,
+          createdAt: course.created_at,
+          updatedAt: course.updated_at,
+          sections: course.sections || []
+        };
+      },
+      invalidatesTags: ['Course'],
+    }),
+    getAllCourses: builder.query<Course[], { category?: string }>({
+      query: (params = {}) => {
+        const searchParams = new URLSearchParams();
+        
+        if (params.category && params.category !== 'all') {
+          searchParams.append('category', params.category);
+        }
+        
+        const queryString = searchParams.toString() ? `?${searchParams.toString()}` : '';
+        return {
+          url: queryString,
+          method: 'GET',
+        };
+      },
+      transformResponse: (response: { message: string; data: Course[] }) => {
+        const courses = response.data || [];
+        // Ensure backward compatibility by setting courseId to id
+        return courses.map(course => ({
+          ...course,
+          courseId: course.id,
+          createdAt: course.created_at,
+          updatedAt: course.updated_at,
+          sections: course.sections || []
+        }));
+      },
+      providesTags: ['Course'],
+    }),
+    deleteCourse: builder.mutation<{ message: string }, string>({
+      query: (id) => ({
+        url: `${id}/`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Course'],
+    }),
+    updateCourse: builder.mutation<Course, { id: string; data: Partial<Course> }>({
+      query: ({ id, data }) => ({
+        url: `${id}/`,
+        body: data,
+        method: 'PUT',
+      }),
+      transformResponse: (response: { message: string; data: Course }) => {
+        return response.data;
+      },
+      invalidatesTags: ['Course'],
+    }),
+    getCourseDetails: builder.query<Course, string>({
+      query: (id) => ({
+        url: `${id}/`,
+        method: 'GET',
+      }),
+      transformResponse: (response: { message: string; data: Course }) => {
+        return response.data;
+      },
+      providesTags: (result, error, id) => [{ type: 'Course', id }],
+    }),
+    // Legacy endpoints - these will need to be updated when Django backend implements them
+    getCourseContent: builder.query({
+      query: (id) => ({
+        url: `${id}/content/`,
+        method: 'GET',
+      }),
+    }),
+    // Note: The following endpoints need to be implemented in Django backend
+    // For now keeping them as placeholders
+    addNewQuestion: builder.mutation({
+      query: ({ question, courseId, contentId }) => ({
+        url: `${courseId}/questions/`,
+        body: { question, contentId },
+        method: 'POST',
+      }),
+    }),
+    addAnswerInQuestion: builder.mutation({
+      query: ({ answer, courseId, contentId, questionId }) => ({
+        url: `${courseId}/questions/${questionId}/answers/`,
+        body: { answer, contentId },
+        method: 'POST',
+      }),
+    }),
+    addReviewInCourse: builder.mutation({
+      query: ({ review, rating, courseId }: any) => ({
+        url: `${courseId}/reviews/`,
+        body: { review, rating },
+        method: 'POST',
+      }),
+    }),
+    addReplyInReview: builder.mutation({
+      query: ({ comment, courseId, reviewId }: any) => ({
+        url: `${courseId}/reviews/${reviewId}/replies/`,
+        body: { comment },
+        method: 'POST',
+      }),
+    }),
+    getStreamVideoToken: builder.query({
+      query: () => ({
+        url: 'stream-token/',
+        method: 'GET',
+      }),
+    }),
        
     
     }),
 });
 
-export const {useCreateCourseMutation,
-     useDeleteCourseMutation,
-     useGetAllCoursesQuery,
-     useEditCourseMutation,
-     useGetUsersAllCoursesQuery,
-     useGetCourseDetailsQuery,
-     useGetCourseContentQuery,
-     useAddNewQuestionMutation,
-     useAddAnswerInQuestionMutation,
-     useAddReviewInCourseMutation,
-     useAddReplyInReviewMutation,
-     useGetStreamVideoTokenQuery,
-    } = courseApi;
+export const {
+  useCreateCourseMutation,
+  useDeleteCourseMutation,
+  useGetAllCoursesQuery,
+  useUpdateCourseMutation,
+  useGetCourseDetailsQuery,
+  useGetCourseContentQuery,
+  useAddNewQuestionMutation,
+  useAddAnswerInQuestionMutation,
+  useAddReviewInCourseMutation,
+  useAddReplyInReviewMutation,
+  useGetStreamVideoTokenQuery,
+} = courseApi;

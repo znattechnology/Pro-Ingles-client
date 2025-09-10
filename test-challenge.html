@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Challenge Progress</title>
+</head>
+<body>
+    <h1>Test Challenge Progress Endpoint</h1>
+    <button onclick="testCorrect()">Test Correct Answer</button>
+    <button onclick="testIncorrect()">Test Incorrect Answer</button>
+    <div id="result"></div>
+
+    <script>
+        async function testChallenge(optionId, isCorrect) {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                document.getElementById('result').innerHTML = 'No access token found. Please login first.';
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:8000/api/v1/practice/challenge-progress/', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        challenge: '92138fc9-2ec4-45e9-bd5b-67117d7d084a',
+                        selected_option: optionId
+                    })
+                });
+
+                const data = await response.json();
+                document.getElementById('result').innerHTML = `
+                    <h3>${isCorrect ? 'Correct' : 'Incorrect'} Answer Test:</h3>
+                    <p>Status: ${response.status}</p>
+                    <p>Expected Correct: ${isCorrect}</p>
+                    <p>Actually Correct: ${data.correct}</p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                document.getElementById('result').innerHTML = `Error: ${error.message}`;
+            }
+        }
+
+        function testCorrect() {
+            // Correct option: "Hello"
+            testChallenge('f468ec8d-710e-4c2b-92bb-ebafe71d3695', true);
+        }
+
+        function testIncorrect() {
+            // Incorrect option: "Goodbye" 
+            testChallenge('05e24cd1-d63a-4af6-9720-083165798368', false);
+        }
+    </script>
+</body>
+</html>

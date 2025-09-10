@@ -8,27 +8,32 @@ import { Button } from "@/components/ui/button";
 import {
   useCreateCourseMutation,
   useDeleteCourseMutation,
-  useGetCoursesQuery,
-} from "@/state/api";
-import { useUser } from "@clerk/nextjs";
+  useGetAllCoursesQuery,
+} from "@/redux/features/courses/coursesApi";
+import { Course } from "@/redux/features/courses/coursesApi";
+import { useDjangoAuth } from "@/hooks/useDjangoAuth";
 import { useRouter } from "next/navigation";
 import React, { useMemo, useState } from "react";
 import CourseBanner from "@/components/course/CourseBanner";
 
 const Courses = () => {
   const router = useRouter();
-  const { user } = useUser();
+  const { user, isAuthenticated } = useDjangoAuth();
   const {
     data: courses,
     isLoading,
     isError,
-  } = useGetCoursesQuery({ category: "all" });
+  } = useGetAllCoursesQuery({ category: "all" });
 
   const [createCourse] = useCreateCourseMutation();
   const [deleteCourse] = useDeleteCourseMutation();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+
+  // Debug logs
+  console.log('Teacher Courses Page - User:', user);
+  console.log('Teacher Courses Page - isAuthenticated:', isAuthenticated);
 
   const filteredCourses = useMemo(() => {
     if (!courses) return [];
@@ -44,27 +49,51 @@ const Courses = () => {
   }, [courses, searchTerm, selectedCategory]);
 
   const handleEdit = (course: Course) => {
-    router.push(`/teacher/courses/${course.courseId}`, {
+    router.push(`/teacher/courses/${course.id}`, {
       scroll: false,
     });
   };
 
   const handleDelete = async (course: Course) => {
     if (window.confirm("Tem a certeza de que pretende eliminar este curso?")) {
-      await deleteCourse(course.courseId).unwrap();
+      await deleteCourse(course.id).unwrap();
     }
   };
 
   const handleCreateCourse = async () => {
-    if (!user) return;
+    alert('Botão clicado! Verificando usuário...');
+    console.log('handleCreateCourse called');
+    console.log('User:', user);
+    
+    if (!user) {
+      console.log('No user found, cannot create course');
+      alert('Usuário não encontrado. Por favor, faça login novamente.');
+      return;
+    }
 
-    const result = await createCourse({
-      teacherId: user.id,
-      teacherName: user.fullName || "Professor Desconhecido",
-    }).unwrap();
-    router.push(`/teacher/courses/${result.courseId}`, {
-      scroll: false,
-    });
+    try {
+      console.log('Creating course with data:', {});
+      
+      const result = await createCourse({}).unwrap();
+      
+      console.log('Course created successfully:', result);
+      console.log('Result ID:', result.id);
+      console.log('Result courseId:', result.courseId);
+      
+      // Usar courseId ou id, dependendo do que estiver disponível
+      const courseId = result.id || result.courseId;
+      if (courseId) {
+        router.push(`/teacher/courses/${courseId}`, {
+          scroll: false,
+        });
+      } else {
+        alert('Curso criado com sucesso! Redirecionando para a lista de cursos...');
+        window.location.reload(); // Recarregar para ver o novo curso na lista
+      }
+    } catch (error) {
+      console.error('Error creating course:', error);
+      alert('Erro ao criar curso: ' + JSON.stringify(error));
+    }
   };
 
   if (isLoading) return <Loading />;
@@ -80,7 +109,8 @@ const Courses = () => {
        <CourseBanner title="Cursos" subtitle="Navegue pelos seus cursos"  rightElement={
           <Button
             onClick={handleCreateCourse}
-            className="bg-violet-800 hover:bg-violet-900"
+            className="bg-violet-800 hover:bg-violet-900 cursor-pointer z-10"
+            type="button"
           >
             Criar curso
           </Button>
@@ -91,7 +121,7 @@ const Courses = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-7 mt-6 w-full">
         {filteredCourses.map((course) => (
           <TeacherCourseCard
-            key={course.courseId}
+            key={course.id}
             course={course}
             onEdit={handleEdit}
             onDelete={handleDelete}

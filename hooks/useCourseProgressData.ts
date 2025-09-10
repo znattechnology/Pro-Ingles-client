@@ -5,11 +5,11 @@ import {
   useGetUserCourseProgressQuery,
   useUpdateUserCourseProgressMutation,
 } from "@/state/api";
-import { useUser } from "@clerk/nextjs";
+import { useDjangoAuth } from "@/hooks/useDjangoAuth";
 
 export const useCourseProgressData = () => {
   const { courseId, chapterId } = useParams();
-  const { user, isLoaded } = useUser();
+  const { user, isAuthenticated, isLoading: authLoading } = useDjangoAuth();
   const [hasMarkedComplete, setHasMarkedComplete] = useState(false);
   const [updateProgress] = useUpdateUserCourseProgressMutation();
 
@@ -27,11 +27,11 @@ export const useCourseProgressData = () => {
         courseId: (courseId as string) ?? "",
       },
       {
-        skip: !isLoaded || !user || !courseId,
+        skip: !isAuthenticated || !user || !courseId,
       }
     );
 
-  const isLoading = !isLoaded || courseLoading || progressLoading;
+  const isLoading = authLoading || courseLoading || progressLoading;
 
   const currentSection = course?.sections.find((s) =>
     s.chapters.some((c) => c.chapterId === chapterId)

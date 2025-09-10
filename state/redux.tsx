@@ -7,11 +7,19 @@ import { Provider } from "react-redux";
 import { setupListeners } from "@reduxjs/toolkit/query";
 import globalReducer from "@/state";
 import { api } from "@/state/api";
+import authSlice from "@/redux/features/auth/authSlice";
+import { apiSlice } from "@/redux/features/api/apiSlice";
+import { adminApi } from "@/redux/features/admin/adminApi";
+import { courseApi } from "@/redux/features/courses/coursesApi";
 
 /* REDUX STORE */
 const rootReducer = combineReducers({
   global: globalReducer,
+  auth: authSlice,
   [api.reducerPath]: api.reducer,
+  [apiSlice.reducerPath]: apiSlice.reducer,
+  [adminApi.reducerPath]: adminApi.reducer,
+  [courseApi.reducerPath]: courseApi.reducer,
 });
 
 export const makeStore = () => {
@@ -22,8 +30,11 @@ export const makeStore = () => {
         serializableCheck: {
           ignoredActions: [
             "api/executeMutation/pending",
-            "api/executeMutation/fulfilled",
+            "api/executeMutation/fulfilled", 
             "api/executeMutation/rejected",
+            "apiSlice/executeMutation/pending",
+            "apiSlice/executeMutation/fulfilled",
+            "apiSlice/executeMutation/rejected",
           ],
           ignoredActionPaths: [
             "meta.arg.originalArgs.file",
@@ -39,7 +50,7 @@ export const makeStore = () => {
             "meta.baseQueryMeta.response",
           ],
         },
-      }).concat(api.middleware),
+      }).concat(api.middleware, apiSlice.middleware, adminApi.middleware, courseApi.middleware),
   });
 };
 

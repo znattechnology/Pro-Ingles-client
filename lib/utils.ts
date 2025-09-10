@@ -349,6 +349,42 @@ export const uploadAllVideos = async (
   return updatedSections;
 };
 
+// Upload course image to Django S3
+export const uploadCourseImage = async (
+  courseId: string,
+  imageFile: File
+): Promise<string> => {
+  try {
+    const formData = new FormData();
+    formData.append('image', imageFile);
+
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_DJANGO_API_URL}/courses/${courseId}/upload-image/`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+        },
+        body: formData,
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Erro no upload da imagem');
+    }
+
+    const result = await response.json();
+    toast.success(result.message || 'Imagem do curso atualizada com sucesso');
+    
+    return result.data.imageUrl;
+  } catch (error: any) {
+    console.error('Erro ao fazer upload da imagem:', error);
+    toast.error(error.message || 'Erro ao fazer upload da imagem');
+    throw error;
+  }
+};
+
 async function uploadVideo(
   chapter: Chapter,
   courseId: string,

@@ -36,17 +36,21 @@ declare global {
   }
 
   interface Course {
-    courseId: string;
+    id: string;
+    courseId: string; // Keep for backward compatibility
     teacherId: string;
     teacherName: string;
+    teacher: string; // Django field
     title: string;
     description?: string;
     category: string;
     image?: string;
     price?: number; // Stored in cents (e.g., 4999 for $49.99)
     level: "Beginner" | "Intermediate" | "Advanced";
-    status: "Draft" | "Published";
+    status: "Draft" | "Published" | "Archived";
     sections: Section[];
+    created_at: string; // Django field
+    updated_at: string; // Django field
     enrollments?: Array<{
       userId: string;
     }>;

@@ -8,7 +8,7 @@ import {
 } from "@stripe/react-stripe-js";
 import { useCheckoutNavigation } from "@/hooks/useCheckoutNavigation";
 import { useCurrentCourse } from "@/hooks/useCurrentCourse";
-import { useClerk, useUser } from "@clerk/nextjs";
+import { useDjangoAuth } from "@/hooks/useDjangoAuth";
 import CoursePreview from "@/components/course/CoursePreview";
 import { CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -21,8 +21,7 @@ const PaymentPageContent = () => {
   const [createTransaction] = useCreateTransactionMutation();
   const { navigateToStep } = useCheckoutNavigation();
   const { course, courseId } = useCurrentCourse();
-  const { user } = useUser();
-  const { signOut } = useClerk();
+  const { user, logout } = useDjangoAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,7 +73,7 @@ const PaymentPageContent = () => {
 
   // Função para deslogar e navegar para o início do checkout
   const handleSignOutAndNavigate = async () => {
-    await signOut();
+    await logout();
     navigateToStep(1);
   };
 
@@ -216,7 +215,7 @@ export default PaymentPage;
 //   };
 
 //   const handleSignOutAndNavigate = async () => {
-//     await signOut();
+//     await logout();
 //     navigateToStep(1);
 //   };
 

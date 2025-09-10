@@ -89,9 +89,7 @@ const date = (new Intl.DateTimeFormat('pt', { dateStyle: 'full' })).format(now);
        <span  className="text-white" > {time}</span>
       </p>
       <div className="w-fit mx-auto md:mx-0">
-        <div className="bg-violet-800 hover:bg-violet-900 px-4 py-2 mb-2 rounded-md">
-          {rightElement && <div>{rightElement}</div>}
-        </div>
+        {rightElement}
       </div>
     </div>
     <div className="basis-full md:basis-1/2 h-full relative overflow-hidden px-4 md:px-8 py-4 md:py-6 rounded-lg bg-customgreys-primarybg">

@@ -1,23 +1,38 @@
 "use client";
 import React from "react";
 
-
-import {  UserButton, useUser } from "@clerk/nextjs";
-
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Input } from "@/components/ui/input";
-
-import { dark } from "@clerk/themes";
-
-
-
+import { Button } from "@/components/ui/button";
+import { User, ChevronDown, LogOut } from "lucide-react";
+import { useDjangoAuth } from "@/hooks/useDjangoAuth";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import NotificationButton from "@/components/notification-button";
+import { useRouter } from "next/navigation";
 
 
 function SidebarHeader({ isCoursePage }: { isCoursePage: boolean }) {
-  const { user } = useUser();
-  const userRole = user?.publicMetadata?.userType as "student" | "teacher";
+  const { user, logout } = useDjangoAuth();
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = React.useState("");
+
+  const handleProfileClick = () => {
+    const profileUrl = user?.role === "teacher" ? "/teacher/profile" : 
+                      user?.role === "admin" ? "/admin/profile" : 
+                      "/user/profile";
+    router.push(profileUrl);
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    router.push('/');
+  };
+
   return (
     <div className={`flex h-16 items-center gap-4 border-b px-4 ${isCoursePage ? 'bg-customgreys-primarybg' : 'bg-customgreys-primarybg'} border-b-violet-900/30`}>
       <SidebarTrigger className="bg-violet-800 hover:bg-violet-900 text-white hover:text-white" />
@@ -40,37 +55,39 @@ function SidebarHeader({ isCoursePage }: { isCoursePage: boolean }) {
 
       <NotificationButton/>
 
- 
-        <UserButton
-            appearance={{
-              baseTheme: dark,
-              elements: {
-                card: "bg-black w-full shadow-none", 
-                userButtonOuterIdentifier: "text-white",
-                userButtonBox: " text-white",
-                userButtonTrigger: "border-white",
-                userButtonPopoverCard: "bg-black border border-violet-900",
-                userPreviewTextContainer: "text-white",
-                userPreviewMainIdentifier: "text-white",
-               
-                userButtonPopoverFooter: "border-t border-white bg-black",
-                userButtonPopoverActions: "text-white",
-                footer: {
-                  background: "black",
-                  padding: "0rem 2.5rem",
-                  "& > div > div:nth-child(1)": {
-                    background: "black",
-                  },
-                },
-              },
-              
-            }}
-            showName={true}
-            userProfileMode="navigation"
-            userProfileUrl={
-              userRole === "teacher" ? "/teacher/profile" : "/user/profile"
-            }
-          />
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button 
+            variant="ghost" 
+            className="flex items-center gap-2 text-white hover:bg-violet-800 border border-violet-900/30"
+          >
+            <div className="flex items-center justify-center w-8 h-8 bg-violet-800 rounded-full">
+              <User className="w-4 h-4" />
+            </div>
+            <span className="hidden md:block">{user?.name || 'Usuário'}</span>
+            <ChevronDown className="w-4 h-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent 
+          align="end" 
+          className="w-48 bg-black border border-violet-900 text-white"
+        >
+          <DropdownMenuItem 
+            onClick={handleProfileClick}
+            className="cursor-pointer hover:bg-violet-800"
+          >
+            <User className="w-4 h-4 mr-2" />
+            Perfil
+          </DropdownMenuItem>
+          <DropdownMenuItem 
+            onClick={handleLogout}
+            className="cursor-pointer hover:bg-violet-800"
+          >
+            <LogOut className="w-4 h-4 mr-2" />
+            Sair
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 }

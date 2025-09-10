@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useMemo } from "react";
 import {
   Sidebar,
   SidebarContent,
@@ -30,6 +30,8 @@ import {
   Briefcase,
   User,
   Settings,
+  FlaskConical,
+  TrendingUp,
 
 } from "lucide-react";
 
@@ -40,14 +42,25 @@ import {
 } from "@/components/ui/collapsible";
 
 import Loading from "@/components/course/Loading";
-import { useClerk, useUser } from "@clerk/nextjs";
+import { useDjangoAuth } from "@/hooks/useDjangoAuth";
 import { usePathname } from "next/navigation";
 
 
 
 const navLinks = {
   student: [
-
+    {
+      title: "Dashboard",
+      url: "/user/dashboard", 
+      icon: TrendingUp,
+      isActive: true,
+      items: [
+        {
+          title: "Visão Geral",
+          url: "/user/dashboard",
+        },
+      ],
+    },
     {
       title: "Cursos",
       url: "/user/courses",
@@ -81,6 +94,34 @@ const navLinks = {
         {
           title: "Perfil",
           url: "/user/profile",
+        },
+      ],
+    },
+    {
+      title: "Laboratório",
+      url: "/user/learn",
+      icon: FlaskConical,
+      isActive: true,
+      items: [
+        {
+          title: "Aprender",
+          url: "/user/learn/courses",
+        },
+        {
+          title: "Praticar",
+          url: "/user/learn",
+        },
+        {
+          title: "Classificações", 
+          url: "/user/leaderboard",
+        },
+        {
+          title: "Conquistas",
+          url: "/user/achievements",
+        },
+        {
+          title: "Loja",
+          url: "/user/learn/shop",
         },
       ],
     },
@@ -137,6 +178,38 @@ const navLinks = {
       ],
     },
     {
+      title: "Laboratório",
+      url: "/teacher/laboratory",
+      icon: FlaskConical,
+      isActive: true,
+      items: [
+        {
+          title: "Dashboard",
+          url: "/teacher/laboratory",
+        },
+        {
+          title: "Criar Curso",
+          url: "/teacher/laboratory/create-course",
+        },
+        {
+          title: "Gerenciar Cursos",
+          url: "/teacher/laboratory/manage-courses",
+        },
+        {
+          title: "Construtor de Lições",
+          url: "/teacher/laboratory/lesson-constructor",
+        },
+        {
+          title: "Construtor de Desafios",
+          url: "/teacher/laboratory/challenge-constructor",
+        },
+        {
+          title: "Analytics",
+          url: "/teacher/laboratory/analytics",
+        },
+      ],
+    },
+    {
       title: "Configurações",
       url: "/teacher/settings",
       icon:  Settings,
@@ -149,23 +222,60 @@ const navLinks = {
       ],
     },
   ],
-
-
+  admin: [
+    {
+      title: "Dashboard",
+      url: "/admin/dashboard",
+      icon: BookOpen,
+      isActive: true,
+      items: [
+        {
+          title: "Dashboard",
+          url: "/admin/dashboard",
+        },
+      ],
+    },
+    {
+      title: "Usuários",
+      url: "/admin/users",
+      icon: User,
+      isActive: true,
+      items: [
+        {
+          title: "Ver todos",
+          url: "/admin/users",
+        },
+      ],
+    },
+    {
+      title: "Cursos",
+      url: "/admin/courses",
+      icon: BookOpen,
+      isActive: true,
+      items: [
+        {
+          title: "Ver todos",
+          url: "/admin/courses",
+        },
+      ],
+    },
+  ],
 };
 
-function AppSidebar() {
-  const { user, isLoaded } = useUser();
-  const { signOut } = useClerk();
+const AppSidebar = React.memo(() => {
+  const { user, isAuthenticated, isLoading, logout } = useDjangoAuth();
   const pathname = usePathname();
 
-  if (!isLoaded) return <Loading />;
-  if (!user) return <div>User not found</div>;
+  // Compute userType and currentNavLinks before early returns to satisfy hooks rules
+  const userType = user?.role as "student" | "teacher" | "admin";
+  const currentNavLinks = useMemo(() => 
+    userType && navLinks[userType] ? navLinks[userType] : navLinks.student, 
+    [userType]
+  );
 
-  const userType =
-    (user.publicMetadata.role as "student" | "teacher") || "student";
-  const currentNavLinks = navLinks[userType];
+  if (isLoading) return <Loading />;
+  if (!isAuthenticated || !user) return <div>User not found</div>;
 
-  console.log(user.publicMetadata.userType)
 
 
 
@@ -174,7 +284,14 @@ function AppSidebar() {
     <Sidebar collapsible="icon" className="border-r-[0.5px]  border-r-violet-900/30">
       <SidebarHeader>
       <Link href={"/"}>
-            <Image src={LogoTipo} alt="Logo" height={100} width={100} />
+            <Image 
+              src={LogoTipo} 
+              alt="Logo" 
+              height={100} 
+              width={100} 
+              priority
+              style={{ height: 'auto', width: 'auto' }}
+            />
             </Link>
       </SidebarHeader>
       <SidebarContent>
@@ -229,7 +346,7 @@ function AppSidebar() {
           <SidebarMenuItem>
           <SidebarMenuButton asChild>
               <button
-                onClick={() => signOut()}
+                onClick={() => logout()}
                 className="text-white pl-8 hover:text-violet-800"
               >
                 <LogOut className="mr-2 h-6 w-6" />
@@ -243,6 +360,8 @@ function AppSidebar() {
       <SidebarRail />
     </Sidebar>
   );
-}
+});
+
+AppSidebar.displayName = 'AppSidebar';
 
 export default AppSidebar;

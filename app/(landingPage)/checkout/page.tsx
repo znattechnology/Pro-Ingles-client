@@ -3,17 +3,17 @@
 import Loading from "@/components/course/Loading";
 import WizardStepper from "@/components/course/WizardStepper";
 import { useCheckoutNavigation } from "@/hooks/useCheckoutNavigation";
-import { useUser } from "@clerk/nextjs";
+import { useDjangoAuth } from "@/hooks/useDjangoAuth";
 import React from "react";
 import CheckoutDetailsPage from "./details";
 import PaymentPage from "./payment";
 import CompletionPage from "./completion";
 
 const CheckoutWizard = () => {
-  const { isLoaded } = useUser();
+  const { isAuthenticated, isLoading } = useDjangoAuth();
   const { checkoutStep } = useCheckoutNavigation();
 
-  if (!isLoaded) return <Loading />;
+  if (isLoading) return <Loading />;
 
   const renderStep = () => {
     switch (checkoutStep) {

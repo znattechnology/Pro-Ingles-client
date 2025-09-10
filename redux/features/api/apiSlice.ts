@@ -1,33 +1,45 @@
 import {createApi, fetchBaseQuery} from "@reduxjs/toolkit/query/react";
 import { userLoggedIn } from "../auth/authSlice";
 
-export const apiSlice = createApi({
-    reducerPath:"api",
-    baseQuery: fetchBaseQuery({
-        baseUrl:process.env.NEXT_PUBLIC_SERVER_URI,
-    }),
-    endpoints: (builder)=> ({
-        refreshToken:builder.query({
-            query:(data)=>({
-                url:"http://localhost:8000/api/v1/refresh",
-                method: "GET",
-                credentials: "include" as const
-            })
-        }),
+const DJANGO_BASE_URL = process.env.NEXT_PUBLIC_DJANGO_API_URL || 'http://localhost:8000/api/v1';
 
+export const apiSlice = createApi({
+    reducerPath:"apiSlice",
+    baseQuery: fetchBaseQuery({
+        baseUrl: DJANGO_BASE_URL,
+        prepareHeaders: (headers) => {
+            const token = localStorage.getItem('access_token');
+            if (token) {
+                headers.set('Authorization', `Bearer ${token}`);
+            }
+            return headers;
+        },
+    }),
+    tagTypes: [
+        'User', 
+        'Course', 
+        'Auth', 
+        'UserProgress', 
+        'CourseUnits', 
+        'CourseUnitsWithProgress',
+        'LessonDetail',
+        'LessonPercentage'
+    ],
+    endpoints: (builder)=> ({
         loadUser:builder.query({
-            query:(data)=>({
-                url:"http://localhost:8000/api/v1/me",
-                method: "GET",
-                credentials: "include" as const
+            query:()=>({
+                url:"/users/profile/",
+                method: "GET"
             }),
-            async onQueryStarted(arg, {queryFulfilled, dispatch}){
+            providesTags: ['User'],
+            async onQueryStarted(_, {queryFulfilled, dispatch}){
                 try {
                     const result = await queryFulfilled;
                     dispatch(
                         userLoggedIn({
-                            accessToken: result.data.activationToken,
-                            user: result.data.user,
+                            accessToken: localStorage.getItem('access_token') || '',
+                            refreshToken: localStorage.getItem('refresh_token') || '',
+                            user: result.data,
                         })
                     )
                 } catch (error:any) {
@@ -38,4 +50,4 @@ export const apiSlice = createApi({
     }),
 });
 
-export const {useRefreshTokenQuery, useLoadUserQuery} = apiSlice;
+export const {useLoadUserQuery} = apiSlice;
