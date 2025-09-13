@@ -26,18 +26,18 @@ export const LaboratoryHeader = ({ title }: Props) => {
   };
 
   return (
-    <div className="sticky top-0 bg-white pb-3 lg:pt-[28px] lg:mt-[-28px] flex items-center justify-between border-b-2 mb-5 text-neutral-400 lg:z-50">
+    <div className="sticky top-0 bg-customgreys-primarybg pb-3 lg:pt-[28px] lg:mt-[-28px] flex items-center justify-between border-b-2 border-customgreys-darkerGrey mb-5 text-white lg:z-50">
       <Button 
         variant="ghost" 
         size="sm"
-        className="text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 transition-all"
+        className="text-customgreys-dirtyGrey hover:text-white hover:bg-customgreys-secondarybg transition-all"
         title="Voltar aos cursos"
         onClick={handleBackToCourses}
       >
         <ArrowLeft className="h-4 w-4 stroke-2" />
         <span className="ml-2 text-sm">Cursos</span>
       </Button>
-      <h1 className="font-bold text-lg text-neutral-400">{title}</h1>
+      <h1 className="font-bold text-lg text-white">{title}</h1>
       <div />
     </div>
   );

@@ -7,7 +7,7 @@
  * Includes leagues, weekly competitions, and friend comparisons.
  */
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -30,197 +30,40 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Loading from '@/components/course/Loading';
+import { 
+  useGetGlobalLeaderboardQuery,
+  useGetLeaguesInfoQuery,
+  useGetActiveCompetitionsQuery,
+  type LeaderboardEntry,
+  type League,
+  type Competition
+} from '@/redux/features/leaderboard/leaderboardApi';
 
-interface LeaderboardEntry {
-  id: string;
-  rank: number;
-  username: string;
-  avatar?: string;
-  points: number;
-  streak: number;
-  league: 'bronze' | 'silver' | 'gold' | 'diamond';
-  change: 'up' | 'down' | 'same' | 'new';
-  changeAmount?: number;
-  isCurrentUser?: boolean;
-}
-
-interface League {
-  id: string;
-  name: string;
-  icon: string;
-  color: string;
-  minPoints: number;
-  maxPoints?: number;
-  participants: number;
-}
-
-interface Competition {
-  id: string;
-  title: string;
-  description: string;
-  type: 'weekly' | 'monthly' | 'special';
-  startDate: string;
-  endDate: string;
-  participants: number;
-  currentPosition: number;
-  prize: string;
-}
 
 export default function LeaderboardPage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
-  const [currentUser, setCurrentUser] = useState<LeaderboardEntry | null>(null);
-  const [leagues, setLeagues] = useState<League[]>([]);
-  const [competitions, setCompetitions] = useState<Competition[]>([]);
   const [activeTab, setActiveTab] = useState('global');
 
-  useEffect(() => {
-    loadLeaderboardData();
-  }, []);
+  // RTK Query hooks for real data
+  const { 
+    data: leaderboardData, 
+    isLoading: leaderboardLoading 
+  } = useGetGlobalLeaderboardQuery();
+  
+  const { 
+    data: leagues = [], 
+    isLoading: leaguesLoading 
+  } = useGetLeaguesInfoQuery();
+  
+  const { 
+    data: competitions = [], 
+    isLoading: competitionsLoading 
+  } = useGetActiveCompetitionsQuery();
 
-  const loadLeaderboardData = async () => {
-    try {
-      setLoading(true);
-      
-      // Mock data - replace with real API calls
-      const mockLeaderboard: LeaderboardEntry[] = [
-        {
-          id: '1',
-          rank: 1,
-          username: 'Alexandre_Pro',
-          points: 2850,
-          streak: 45,
-          league: 'diamond',
-          change: 'same'
-        },
-        {
-          id: '2', 
-          rank: 2,
-          username: 'Maria_Study',
-          points: 2720,
-          streak: 32,
-          league: 'diamond',
-          change: 'up',
-          changeAmount: 1
-        },
-        {
-          id: '3',
-          rank: 3,
-          username: 'João_English',
-          points: 2680,
-          streak: 28,
-          league: 'diamond',
-          change: 'down',
-          changeAmount: 1
-        },
-        {
-          id: '4',
-          rank: 4,
-          username: 'Ana_Learning',
-          points: 2450,
-          streak: 21,
-          league: 'gold',
-          change: 'up',
-          changeAmount: 2
-        },
-        {
-          id: '5',
-          rank: 5,
-          username: 'Pedro_Fast',
-          points: 2380,
-          streak: 19,
-          league: 'gold',
-          change: 'same'
-        },
-        // Current user
-        {
-          id: 'current',
-          rank: 15,
-          username: 'Você',
-          points: 1890,
-          streak: 7,
-          league: 'gold',
-          change: 'up',
-          changeAmount: 3,
-          isCurrentUser: true
-        }
-      ];
+  const isLoading = leaderboardLoading || leaguesLoading || competitionsLoading;
+  const leaderboard = leaderboardData?.leaderboard || [];
+  const currentUser = leaderboardData?.currentUser || null;
 
-      const mockLeagues: League[] = [
-        {
-          id: 'bronze',
-          name: 'Liga Bronze',
-          icon: '🥉',
-          color: 'text-amber-600',
-          minPoints: 0,
-          maxPoints: 999,
-          participants: 1240
-        },
-        {
-          id: 'silver',
-          name: 'Liga Prata',
-          icon: '🥈',
-          color: 'text-gray-400',
-          minPoints: 1000,
-          maxPoints: 1999,
-          participants: 890
-        },
-        {
-          id: 'gold',
-          name: 'Liga Ouro',
-          icon: '🥇',
-          color: 'text-yellow-400',
-          minPoints: 2000,
-          maxPoints: 2999,
-          participants: 320
-        },
-        {
-          id: 'diamond',
-          name: 'Liga Diamante',
-          icon: '💎',
-          color: 'text-blue-400',
-          minPoints: 3000,
-          participants: 85
-        }
-      ];
-
-      const mockCompetitions: Competition[] = [
-        {
-          id: '1',
-          title: 'Desafio Semanal',
-          description: 'Complete o máximo de lições esta semana',
-          type: 'weekly',
-          startDate: '2 dias atrás',
-          endDate: 'em 5 dias',
-          participants: 342,
-          currentPosition: 23,
-          prize: 'Badge especial + 100 pontos'
-        },
-        {
-          id: '2',
-          title: 'Maratona de Streak',
-          description: 'Maior sequência consecutiva vence',
-          type: 'monthly',
-          startDate: '1 semana atrás',
-          endDate: 'em 3 semanas',
-          participants: 156,
-          currentPosition: 8,
-          prize: 'Título exclusivo + 300 pontos'
-        }
-      ];
-
-      setLeaderboard(mockLeaderboard);
-      setCurrentUser(mockLeaderboard.find(entry => entry.isCurrentUser) || null);
-      setLeagues(mockLeagues);
-      setCompetitions(mockCompetitions);
-      
-    } catch (error) {
-      console.error('Error loading leaderboard data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const getChangeIcon = (change: string, amount?: number) => {
     switch (change) {
@@ -239,7 +82,7 @@ export default function LeaderboardPage() {
     return leagues.find(l => l.id === league) || leagues[0];
   };
 
-  if (loading) {
+  if (isLoading) {
     return <Loading />;
   }
 
@@ -280,7 +123,7 @@ export default function LeaderboardPage() {
                     <h3 className="text-white font-bold text-lg">
                       Sua Posição: #{currentUser.rank}
                     </h3>
-                    <p className="text-violet-200 text-sm">
+                    <p className="text-gray-200 text-sm">
                       Liga {getLeagueInfo(currentUser.league).name}
                     </p>
                   </div>

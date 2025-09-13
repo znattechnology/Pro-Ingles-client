@@ -1,13 +1,16 @@
 
 import About from "@/sections/About";
 import CallToAction from "@/sections/CallToAction";
-import Courses from "@/sections/Courses";
 import Explore from "@/sections/Explore";
+import Features from "@/sections/Features";
 import Footer from "@/sections/Footer";
 import Header from "@/sections/Header";
 import Hero from "@/sections/Hero";
 import LogoTicker from "@/sections/LogoTicker";
-// import Pricing from "@/sections/Pricing";
+import PracticeLab from "@/sections/PracticeLab";
+import Pricing from "@/sections/Pricing";
+import Testimonials from "@/sections/Testimonials";
+import Chatbot from "@/components/Chatbot";
 
 
 
@@ -41,17 +44,21 @@ export default function Home() {
         <Explore />
       </div>
       <div className="relative">
-        <div className="gradient-03  z-0" />
-        <Courses />
+        <div className="gradient-01  z-0" />
+        <Features />
       </div>
-      {/* <div className="relative">
+      <div className="relative">
         <div className="gradient-03  z-0" />
+        <PracticeLab />
+      </div>
+      <div className="relative">
+        <div className="gradient-01  z-0" />
         <Pricing />
-      </div> */}
-      {/* <div className="relative">
+      </div>
+      <div className="relative">
         <div className="gradient-03  z-0" />
         <Testimonials />
-      </div> */}
+      </div>
       <div className="relative">
         <div className="gradient-01  z-0" />
         <CallToAction />
@@ -60,6 +67,9 @@ export default function Home() {
         <div className="gradient-01  z-0" />
         <Footer />
       </div>
+
+      {/* Chatbot */}
+      <Chatbot />
  
     </>
   );

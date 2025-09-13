@@ -9,16 +9,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Eye, EyeOff } from "lucide-react";
 import { toast } from "react-hot-toast";
 import Link from "next/link";
+import Logo from "@/components/ui/Logo";
 
 const DjangoSignUp = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { isLoading, pendingVerification } = useSelector((state: RootState) => state.auth);
+  const { pendingVerification } = useSelector((state: RootState) => state.auth);
   
   const isCheckoutPage = searchParams.get("showSignUp") !== null;
   const courseId = searchParams.get("id");
@@ -28,7 +27,7 @@ const DjangoSignUp = () => {
     email: '',
     password: '',
     password_confirm: '',
-    role: 'student' as 'student' | 'teacher'
+    role: 'student' as 'student'
   });
   
   const [showPassword, setShowPassword] = useState(false);
@@ -90,9 +89,7 @@ const DjangoSignUp = () => {
     }
   };
 
-  const handleRoleChange = (value: 'student' | 'teacher') => {
-    setFormData(prev => ({ ...prev, role: value }));
-  };
+  // Role is always student - no need for role change handler
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -136,82 +133,100 @@ const DjangoSignUp = () => {
     : "/signin";
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center p-4">
-      <Card className="w-full max-w-md bg-gray-900 border-gray-800">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl text-white mb-2">
-            Criar Conta
-          </CardTitle>
-          <p className="text-gray-400 text-sm">
-            Preencha os dados abaixo para criar sua conta
-          </p>
+    <Card className="w-full bg-gray-900/80 backdrop-blur-xl border border-gray-800/50 shadow-2xl relative animate-in fade-in-0 zoom-in-95 duration-300">
+        <CardHeader className="text-center space-y-4">
+          {/* ProEnglish Logo */}
+          <div className="mb-2">
+            <Logo 
+              size="lg"
+              variant="white"
+              linkToHome={true}
+              className="mx-auto"
+            />
+          </div>
+          
+          <div>
+            <CardTitle className="text-3xl font-bold text-white mb-2">
+              Começar jornada
+            </CardTitle>
+            <p className="text-gray-400 text-sm">
+              Crie sua conta gratuita e comece a aprender inglês hoje
+            </p>
+          </div>
         </CardHeader>
 
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Name Field */}
             <div className="space-y-2">
-              <Label htmlFor="name" className="text-white font-normal">
+              <Label htmlFor="name" className="text-gray-200 font-medium">
                 Nome Completo
               </Label>
-              <Input
-                id="name"
-                name="name"
-                type="text"
-                value={formData.name}
-                onChange={handleInputChange}
-                placeholder="Seu nome completo"
-                className="bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-violet-500"
-                disabled={isRegistering}
-              />
+              <div className="relative">
+                <Input
+                  id="name"
+                  name="name"
+                  type="text"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  placeholder="Seu nome completo"
+                  className="bg-gray-800/50 border-gray-700/50 text-white placeholder-gray-400 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 transition-all duration-200 h-12 pl-4"
+                  disabled={isRegistering}
+                />
+                <div className="absolute inset-0 rounded-md bg-gradient-to-r from-violet-500/0 via-violet-500/0 to-violet-500/0 focus-within:from-violet-500/10 focus-within:via-transparent focus-within:to-violet-500/10 pointer-events-none transition-all duration-300" />
+              </div>
               {errors.name && (
-                <p className="text-red-400 text-xs">{errors.name}</p>
+                <p className="text-red-400 text-xs flex items-center gap-1">
+                  <span className="w-1 h-1 bg-red-400 rounded-full" />
+                  {errors.name}
+                </p>
               )}
             </div>
 
             {/* Email Field */}
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-white font-normal">
+              <Label htmlFor="email" className="text-gray-200 font-medium">
                 Email
               </Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                placeholder="seu@email.com"
-                className="bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-violet-500"
-                disabled={isRegistering}
-              />
+              <div className="relative">
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  placeholder="seu@email.com"
+                  className="bg-gray-800/50 border-gray-700/50 text-white placeholder-gray-400 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 transition-all duration-200 h-12 pl-4"
+                  disabled={isRegistering}
+                />
+                <div className="absolute inset-0 rounded-md bg-gradient-to-r from-violet-500/0 via-violet-500/0 to-violet-500/0 focus-within:from-violet-500/10 focus-within:via-transparent focus-within:to-violet-500/10 pointer-events-none transition-all duration-300" />
+              </div>
               {errors.email && (
-                <p className="text-red-400 text-xs">{errors.email}</p>
+                <p className="text-red-400 text-xs flex items-center gap-1">
+                  <span className="w-1 h-1 bg-red-400 rounded-full" />
+                  {errors.email}
+                </p>
               )}
             </div>
 
-            {/* Role Field */}
-            <div className="space-y-2">
-              <Label className="text-white font-normal">
-                Tipo de Conta
-              </Label>
-              <Select value={formData.role} onValueChange={handleRoleChange} disabled={isRegistering}>
-                <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-700">
-                  <SelectItem value="student" className="text-white hover:bg-gray-700">
-                    Estudante
-                  </SelectItem>
-                  <SelectItem value="teacher" className="text-white hover:bg-gray-700">
-                    Professor
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+            {/* Student Account Info */}
+            <div className="bg-violet-950/30 border border-violet-500/20 rounded-lg p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-purple-600 rounded-lg flex items-center justify-center">
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  </svg>
+                </div>
+                <div>
+                  <h4 className="text-white font-medium">Conta de Estudante</h4>
+                  <p className="text-gray-400 text-sm">Acesso completo a cursos e laboratório de prática</p>
+                </div>
+              </div>
             </div>
 
             {/* Password Field */}
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-white font-normal">
+              <Label htmlFor="password" className="text-gray-200 font-medium">
                 Senha
               </Label>
               <div className="relative">
@@ -222,26 +237,30 @@ const DjangoSignUp = () => {
                   value={formData.password}
                   onChange={handleInputChange}
                   placeholder="Mínimo 8 caracteres"
-                  className="bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-violet-500 pr-10"
+                  className="bg-gray-800/50 border-gray-700/50 text-white placeholder-gray-400 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 transition-all duration-200 h-12 pl-4 pr-12"
                   disabled={isRegistering}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors duration-200 p-1"
                   disabled={isRegistering}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
+                <div className="absolute inset-0 rounded-md bg-gradient-to-r from-violet-500/0 via-violet-500/0 to-violet-500/0 focus-within:from-violet-500/10 focus-within:via-transparent focus-within:to-violet-500/10 pointer-events-none transition-all duration-300" />
               </div>
               {errors.password && (
-                <p className="text-red-400 text-xs">{errors.password}</p>
+                <p className="text-red-400 text-xs flex items-center gap-1">
+                  <span className="w-1 h-1 bg-red-400 rounded-full" />
+                  {errors.password}
+                </p>
               )}
             </div>
 
             {/* Password Confirmation Field */}
             <div className="space-y-2">
-              <Label htmlFor="password_confirm" className="text-white font-normal">
+              <Label htmlFor="password_confirm" className="text-gray-200 font-medium">
                 Confirmar Senha
               </Label>
               <div className="relative">
@@ -252,55 +271,71 @@ const DjangoSignUp = () => {
                   value={formData.password_confirm}
                   onChange={handleInputChange}
                   placeholder="Confirme sua senha"
-                  className="bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-violet-500 pr-10"
+                  className="bg-gray-800/50 border-gray-700/50 text-white placeholder-gray-400 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 transition-all duration-200 h-12 pl-4 pr-12"
                   disabled={isRegistering}
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors duration-200 p-1"
                   disabled={isRegistering}
                 >
                   {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
+                <div className="absolute inset-0 rounded-md bg-gradient-to-r from-violet-500/0 via-violet-500/0 to-violet-500/0 focus-within:from-violet-500/10 focus-within:via-transparent focus-within:to-violet-500/10 pointer-events-none transition-all duration-300" />
               </div>
               {errors.password_confirm && (
-                <p className="text-red-400 text-xs">{errors.password_confirm}</p>
+                <p className="text-red-400 text-xs flex items-center gap-1">
+                  <span className="w-1 h-1 bg-red-400 rounded-full" />
+                  {errors.password_confirm}
+                </p>
               )}
             </div>
 
             {/* Submit Button */}
             <Button
               type="submit"
-              className="w-full bg-violet-800 hover:bg-violet-900 text-white"
+              className="w-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white h-12 font-semibold shadow-lg hover:shadow-violet-500/25 transition-all duration-200 transform hover:scale-[1.02]"
               disabled={isRegistering}
             >
               {isRegistering ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                   Criando conta...
                 </>
               ) : (
-                'Criar Conta'
+                'Criar conta gratuita'
               )}
             </Button>
           </form>
 
-          {/* Sign In Link */}
-          <div className="mt-6 text-center">
-            <p className="text-gray-400 text-sm">
-              Já tem uma conta?{" "}
-              <Link 
-                href={signInUrl}
-                className="text-white hover:text-violet-400 font-medium"
-              >
-                Fazer login
-              </Link>
+          {/* Terms and Sign In Link */}
+          <div className="mt-6 space-y-4">
+            <p className="text-xs text-gray-500 text-center">
+              Ao criar uma conta, você concorda com nossos{" "}
+              <a href="#" className="text-violet-400 hover:text-violet-300 underline">
+                Termos de Uso
+              </a>{" "}
+              e{" "}
+              <a href="#" className="text-violet-400 hover:text-violet-300 underline">
+                Política de Privacidade
+              </a>
             </p>
+            
+            <div className="text-center p-4 bg-gray-800/30 rounded-lg border border-gray-700/30">
+              <p className="text-gray-400 text-sm">
+                Já tem uma conta?{" "}
+                <Link 
+                  href={signInUrl}
+                  className="text-violet-400 hover:text-violet-300 font-semibold transition-colors duration-200 underline decoration-violet-400/30 hover:decoration-violet-400"
+                >
+                  Fazer login
+                </Link>
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>
-    </div>
   );
 };
 

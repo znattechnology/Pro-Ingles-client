@@ -186,39 +186,84 @@ export const Quiz = ({
       </div>
       
       <Confetti
-      width={width}
-      height={height}
-      recycle={false}
-      numberOfPieces={500}
-      tweenDuration={10000}
-      
-      
+        width={width}
+        height={height}
+        recycle={false}
+        numberOfPieces={800}
+        tweenDuration={8000}
+        colors={['#8B5CF6', '#A855F7', '#EC4899', '#F59E0B', '#10B981', '#3B82F6']}
       />
-        <div className="flex flex-col h-full items-center justify-center bg-background text-foreground bg-customgreys-secondarybg mt-36">
-          <div className="text-center">
-            <div className="mb-4 rounded-full bg-green-500 p-3 inline-flex items-center justify-center">
-              <Check className="w-16 h-16" />
+      
+      <div className="flex flex-col h-screen bg-gradient-to-br from-customgreys-secondarybg via-violet-950/20 to-purple-950/30">
+        {/* Background Effects */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(139,92,246,0.1),transparent_70%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(168,85,247,0.08),transparent_70%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,rgba(236,72,153,0.06),transparent_70%)]" />
+        
+        <div className="flex-1 flex items-center justify-center px-6 py-12">
+          <div className="text-center space-y-8 max-w-2xl mx-auto">
+            {/* Success Icon */}
+            <div className="relative mb-8">
+              <div className="absolute inset-0 bg-gradient-to-r from-green-400/20 to-emerald-400/20 rounded-full blur-2xl animate-pulse" />
+              <div className="relative bg-gradient-to-br from-green-500 to-emerald-600 p-6 rounded-full inline-flex items-center justify-center shadow-2xl shadow-green-500/20 animate-bounce">
+                <Check className="w-20 h-20 text-white" />
+                <div className="absolute -top-2 -right-2 w-6 h-6 bg-yellow-400 rounded-full animate-ping" />
+                <div className="absolute -bottom-2 -left-2 w-4 h-4 bg-blue-400 rounded-full animate-bounce delay-100" />
+              </div>
             </div>
-            <h1 className="text-4xl font-bold mb-3 text-white">CONCLUÍDO</h1>
-            <p className="mb-1 text-white/70">
-              🎉 Você finalizou a sua lição com sucesso! 🎉
-            </p>
-            <div className="flex items-center gap-x-4 w-full">
-                <ResultCard variant="points" value={challenges.length * 10}/>
-                <ResultCard variant="hearts" value={hearts}/>
+            
+            {/* Success Message */}
+            <div className="space-y-4">
+              <h1 className="text-5xl lg:text-6xl font-black bg-gradient-to-r from-green-400 via-emerald-400 to-green-500 bg-clip-text text-transparent animate-pulse">
+                CONCLUÍDO!
+              </h1>
+              <div className="bg-gradient-to-r from-violet-500/10 to-purple-500/10 backdrop-blur-sm rounded-2xl border border-violet-500/20 p-6 shadow-lg">
+                <p className="text-xl text-white/90 font-medium mb-2">
+                  🎉 Parabéns! Lição finalizada com sucesso! 🎉
+                </p>
+                <p className="text-customgreys-dirtyGrey">
+                  Você está progredindo muito bem no seu aprendizado de inglês!
+                </p>
+              </div>
+            </div>
+
+            {/* Achievement Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+              <ResultCard variant="points" value={challenges.length * 10}/>
+              <ResultCard variant="hearts" value={hearts}/>
+            </div>
+
+            {/* Progress Celebration */}
+            <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 backdrop-blur-sm rounded-2xl border border-yellow-500/20 p-6 shadow-lg">
+              <div className="flex items-center justify-center gap-3 mb-3">
+                <div className="w-3 h-3 bg-yellow-400 rounded-full animate-pulse" />
+                <span className="text-yellow-300 font-semibold">Estatísticas da Lição</span>
+                <div className="w-3 h-3 bg-yellow-400 rounded-full animate-pulse delay-75" />
+              </div>
+              <div className="grid grid-cols-3 gap-4 text-center">
+                <div>
+                  <p className="text-2xl font-bold text-white">{challenges.length}</p>
+                  <p className="text-xs text-customgreys-dirtyGrey">Questões</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-green-400">100%</p>
+                  <p className="text-xs text-customgreys-dirtyGrey">Completo</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-purple-400">{challenges.length * 10}</p>
+                  <p className="text-xs text-customgreys-dirtyGrey">XP Ganho</p>
+                </div>
+              </div>
             </div>
           </div>
-        
-         
         </div>
+        
         <Footer
           lessonId={lessonId}
           status="completed"
           onCheck={() => router.push("/user/learn")}
-          
-          />
-        
-     
+        />
+      </div>
       </>
     );
   }
@@ -235,24 +280,28 @@ export const Quiz = ({
         percentage={percentage}
         hasActiveSubscription={!!userSubscription?.isActive}
       />
-      <div className="flex-1 ">
+      <div className="flex-1 transition-all duration-500 ease-in-out">
         <div className="h-full flex items-center justify-center">
-          <div className="lg:min-h-[350px] lg:w-[600px] w-full px-6 lg:px-0 flex flex-col gap-y-12">
-            <h1 className="text-lg lg:text-3xl text-center lg:text-start font-bold text-white pt-20">
+          <div className="lg:min-h-[350px] lg:w-[600px] w-full px-6 lg:px-0 flex flex-col gap-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <h1 className="text-lg lg:text-3xl text-center lg:text-start font-bold text-white pt-20 animate-in fade-in slide-in-from-top-2 duration-700 delay-100">
               {title}
             </h1>
-            <div>
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-200">
               {challenge.type === "ASSIST" && (
-                <QuestionBubble question={challenge.question} />
+                <div className="animate-in fade-in zoom-in-95 duration-300 delay-300">
+                  <QuestionBubble question={challenge.question} />
+                </div>
               )}
-              <Challenge
-                options={options}
-                onSelect={onSelect}
-                status={status}
-                selectedOption={selectedOptions}
-                disabled={pending}
-                type={challenge.type}
-              />
+              <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 delay-400">
+                <Challenge
+                  options={options}
+                  onSelect={onSelect}
+                  status={status}
+                  selectedOption={selectedOptions}
+                  disabled={pending}
+                  type={challenge.type}
+                />
+              </div>
             </div>
           </div>
         </div>

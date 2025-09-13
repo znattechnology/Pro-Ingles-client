@@ -50,13 +50,13 @@ const UserBilling = () => {
             </SelectTrigger>
 
             <SelectContent className="bg-customgreys-primarybg">
-              <SelectItem className="text-white hover:!bg-white-50 hover:!text-customgreys-primarybg cursor-pointer " value="all">
+              <SelectItem className="text-white hover:!bg-violet-600/20 hover:!text-white cursor-pointer " value="all">
               Todos os tipos
               </SelectItem>
-              <SelectItem className="hover:!bg-white-50 hover:!text-customgreys-primarybg cursor-pointer" value="stripe">
+              <SelectItem className="text-white hover:!bg-violet-600/20 hover:!text-white cursor-pointer" value="stripe">
                 Stripe
               </SelectItem>
-              <SelectItem className="hover:!bg-white-50 hover:!text-customgreys-primarybg cursor-pointer" value="paypal">
+              <SelectItem className="text-white hover:!bg-violet-600/20 hover:!text-white cursor-pointer" value="paypal">
                 Paypal
               </SelectItem>
             </SelectContent>

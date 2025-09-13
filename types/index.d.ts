@@ -111,6 +111,38 @@ declare global {
     video?: string | File;
     freePreview?: boolean;
     type: "Text" | "Quiz" | "Video";
+    
+    // 🆕 PHASE 1 BRIDGE - Novos campos opcionais
+    transcript?: string;
+    quiz_enabled?: boolean;
+    resources_data?: ChapterResource[];
+    practice_lesson?: string; // ID da lição do Practice Lab
+  }
+
+  // 🆕 PHASE 1 BRIDGE - Novos tipos para recursos
+  interface ChapterResource {
+    id?: string;
+    title: string;
+    description?: string;
+    resource_type: "PDF" | "LINK" | "VIDEO" | "CODE" | "WORKSHEET" | "AUDIO" | "IMAGE";
+    file?: File | string;
+    external_url?: string;
+    order?: number;
+    is_featured?: boolean;
+  }
+
+  // 🆕 PHASE 1 BRIDGE - Tipo para quiz do capítulo
+  interface ChapterQuiz {
+    id?: string;
+    title: string;
+    description?: string;
+    practice_lesson: string; // ID da lição do Practice Lab
+    points_reward?: number;
+    hearts_cost?: number;
+    passing_score?: number;
+    time_limit?: number;
+    max_attempts?: number;
+    is_active?: boolean;
   }
 
   interface ChapterProgress {

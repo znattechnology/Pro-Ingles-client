@@ -14,25 +14,41 @@ import {
   SidebarRail,
   SidebarFooter,
 } from "@/components/ui/sidebar";
-import Image from "next/image";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import LogoTipo from "@/public/logo/logo.png";
+import Logo from "@/components/ui/Logo";
 
 import {
-
   BookOpen,
-
   ChevronRight,
-
   LogOut,
-
-  Briefcase,
   User,
   Settings,
   FlaskConical,
+  Trophy,
+  Target,
+  Users,
+  Award,
+  Zap,
+  BarChart3,
+  PlusCircle,
+  FolderOpen,
+  Wrench,
+  CreditCard,
+  LayoutDashboard,
+  Mic,
+  MessageCircle,
+  Volume2,
   TrendingUp,
-
+  Headphones,
+  PenTool,
+  Crown,
+  ArrowUp,
+  Receipt,
+  Globe,
+  DollarSign,
+  FileText,
+  Edit
 } from "lucide-react";
 
 import {
@@ -52,7 +68,7 @@ const navLinks = {
     {
       title: "Dashboard",
       url: "/user/dashboard", 
-      icon: TrendingUp,
+      icon: LayoutDashboard,
       isActive: true,
       items: [
         {
@@ -64,23 +80,45 @@ const navLinks = {
     {
       title: "Cursos",
       url: "/user/courses",
-      icon:  BookOpen,
+      icon: BookOpen,
       isActive: true,
       items: [
         {
-          title: "Ver todos",
+          title: "Meus Cursos",
           url: "/user/courses",
+        },
+        {
+          title: "Explorar Cursos",
+          url: "/user/courses/explore",
+        },
+      ],
+    },
+    {
+      title: "Assinatura",
+      url: "/user/subscription",
+      icon: Crown,
+      isActive: true,
+      items: [
+        {
+          title: "Meu Plano",
+          url: "/user/subscription",
+          icon: Crown
+        },
+        {
+          title: "Fazer Upgrade",
+          url: "/user/upgrade",
+          icon: ArrowUp
         },
       ],
     },
     {
       title: "Pagamentos",
       url: "/user/billing",
-      icon:  Briefcase,
+      icon: CreditCard,
       isActive: true,
       items: [
         {
-          title: "Pagamentos",
+          title: "Faturas",
           url: "/user/billing",
         },
       ],
@@ -98,30 +136,99 @@ const navLinks = {
       ],
     },
     {
-      title: "Laboratório",
+      title: "Aprendizado",
       url: "/user/learn",
-      icon: FlaskConical,
+      icon: Target,
       isActive: true,
       items: [
         {
-          title: "Aprender",
-          url: "/user/learn/courses",
-        },
-        {
           title: "Praticar",
           url: "/user/learn",
+          icon: Target,
         },
         {
           title: "Classificações", 
           url: "/user/leaderboard",
+          icon: Trophy,
         },
         {
           title: "Conquistas",
           url: "/user/achievements",
+          icon: Award,
         },
         {
           title: "Loja",
           url: "/user/learn/shop",
+          icon: Zap,
+        },
+      ],
+    },
+    {
+      title: "Speaking Practice",
+      url: "/user/speaking",
+      icon: Mic,
+      isActive: true,
+      items: [
+        {
+          title: "Praticar Conversação",
+          url: "/user/speaking/practice",
+          icon: MessageCircle,
+        },
+        {
+          title: "Exercícios de Pronúncia", 
+          url: "/user/speaking/pronunciation",
+          icon: Volume2,
+        },
+        {
+          title: "Meu Progresso",
+          url: "/user/speaking/progress",
+          icon: TrendingUp,
+        },
+        {
+          title: "Conquistas",
+          url: "/user/speaking/achievements", 
+          icon: Award,
+        },
+      ],
+    },
+    {
+      title: "Listening Practice",
+      url: "/user/listening",
+      icon: Headphones,
+      isActive: true,
+      items: [
+        {
+          title: "Compreensão Auditiva",
+          url: "/user/listening/practice",
+          icon: Headphones,
+        },
+        {
+          title: "Ditado",
+          url: "/user/listening/dictation",
+          icon: PenTool,
+        },
+        {
+          title: "Sotaques",
+          url: "/user/listening/accents",
+          icon: Globe,
+        },
+        {
+          title: "Meu Progresso",
+          url: "/user/listening/progress",
+          icon: TrendingUp,
+        },
+      ],
+    },
+    {
+      title: "Laboratório",
+      url: "/user/laboratory",
+      icon: FlaskConical,
+      isActive: true,
+      items: [
+        {
+          title: "Exercícios",
+          url: "/user/laboratory",
+          icon: FlaskConical,
         },
       ],
     },
@@ -142,25 +249,37 @@ const navLinks = {
   ],
   teacher: [
     {
-      title: "Cursos",
+      title: "Dashboard",
       url: "/teacher/courses",
-      icon:  BookOpen,
+      icon: LayoutDashboard,
       isActive: true,
       items: [
         {
-          title: "Ver todos",
+          title: "Visão Geral",
           url: "/teacher/courses",
         },
       ],
     },
     {
-      title: "Pagamentos",
-      url: "/teacher/billing",
-      icon:  Briefcase,
+      title: "Cursos",
+      url: "/teacher/courses",
+      icon: BookOpen,
       isActive: true,
       items: [
         {
-          title: "Pagamentos",
+          title: "Meus Cursos",
+          url: "/teacher/courses",
+        },
+      ],
+    },
+    {
+      title: "Faturamento",
+      url: "/teacher/billing",
+      icon: CreditCard,
+      isActive: true,
+      items: [
+        {
+          title: "Receitas",
           url: "/teacher/billing",
         },
       ],
@@ -184,28 +303,34 @@ const navLinks = {
       isActive: true,
       items: [
         {
-          title: "Dashboard",
+          title: "Painel",
           url: "/teacher/laboratory",
+          icon: LayoutDashboard,
         },
         {
           title: "Criar Curso",
           url: "/teacher/laboratory/create-course",
+          icon: PlusCircle,
         },
         {
           title: "Gerenciar Cursos",
           url: "/teacher/laboratory/manage-courses",
+          icon: FolderOpen,
         },
         {
           title: "Construtor de Lições",
           url: "/teacher/laboratory/lesson-constructor",
+          icon: Wrench,
         },
         {
           title: "Construtor de Desafios",
           url: "/teacher/laboratory/challenge-constructor",
+          icon: Target,
         },
         {
           title: "Analytics",
           url: "/teacher/laboratory/analytics",
+          icon: BarChart3,
         },
       ],
     },
@@ -226,11 +351,11 @@ const navLinks = {
     {
       title: "Dashboard",
       url: "/admin/dashboard",
-      icon: BookOpen,
+      icon: LayoutDashboard,
       isActive: true,
       items: [
         {
-          title: "Dashboard",
+          title: "Painel Geral",
           url: "/admin/dashboard",
         },
       ],
@@ -238,11 +363,11 @@ const navLinks = {
     {
       title: "Usuários",
       url: "/admin/users",
-      icon: User,
+      icon: Users,
       isActive: true,
       items: [
         {
-          title: "Ver todos",
+          title: "Gerenciar Usuários",
           url: "/admin/users",
         },
       ],
@@ -254,8 +379,54 @@ const navLinks = {
       isActive: true,
       items: [
         {
-          title: "Ver todos",
+          title: "Gerenciar Cursos",
           url: "/admin/courses",
+        },
+      ],
+    },
+    {
+      title: "Assinaturas",
+      url: "/admin/subscriptions",
+      icon: Crown,
+      isActive: true,
+      items: [
+        {
+          title: "Planos",
+          url: "/admin/subscriptions/plans",
+          icon: Crown,
+        },
+        {
+          title: "Usuários Assinantes",
+          url: "/admin/subscriptions/users",
+          icon: Users,
+        },
+        {
+          title: "Relatórios",
+          url: "/admin/subscriptions/reports",
+          icon: BarChart3,
+        },
+        {
+          title: "Códigos Promocionais",
+          url: "/admin/subscriptions/promo-codes",
+          icon: Receipt,
+        },
+      ],
+    },
+    {
+      title: "CMS",
+      url: "/admin/cms",
+      icon: FileText,
+      isActive: true,
+      items: [
+        {
+          title: "Gerenciar Conteúdo",
+          url: "/admin/cms",
+          icon: Edit,
+        },
+        {
+          title: "Landing Page",
+          url: "/admin/cms/landing",
+          icon: Globe,
         },
       ],
     },
@@ -281,18 +452,15 @@ const AppSidebar = React.memo(() => {
 
 
   return (
-    <Sidebar collapsible="icon" className="border-r-[0.5px]  border-r-violet-900/30">
-      <SidebarHeader>
-      <Link href={"/"}>
-            <Image 
-              src={LogoTipo} 
-              alt="Logo" 
-              height={100} 
-              width={100} 
-              priority
-              style={{ height: 'auto', width: 'auto' }}
-            />
-            </Link>
+    <Sidebar collapsible="icon" className="border-r border-violet-900/20 bg-gradient-to-b from-customgreys-primarybg to-customgreys-darkGrey">
+      <SidebarHeader className="border-b border-violet-900/20 p-4">
+        <Link href={"/"} className="flex items-center justify-center group">
+          <Logo 
+            size="md"
+            variant="white"
+            className="transition-transform group-hover:scale-105 duration-200"
+          />
+        </Link>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
@@ -307,27 +475,34 @@ const AppSidebar = React.memo(() => {
               >
                 <SidebarMenuItem>
                   <CollapsibleTrigger asChild>
-                    <SidebarMenuButton className="text-white hover:text-violet-800" tooltip={item.title}>
-                      {item.icon && <item.icon />}
-                      <span className="text-white hover:text-violet-800">{item.title}</span>
-                      <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 text-white" />
+                    <SidebarMenuButton 
+                      className="text-gray-300 hover:text-white hover:bg-violet-800/20 transition-all duration-200 rounded-lg mx-2 my-1" 
+                      tooltip={item.title}
+                    >
+                      {item.icon && <item.icon className="w-5 h-5" />}
+                      <span className="font-medium">{item.title}</span>
+                      <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 w-4 h-4" />
                     </SidebarMenuButton>
                   </CollapsibleTrigger>
                   <CollapsibleContent>
-                    <SidebarMenuSub className="text-violet-800">
+                    <SidebarMenuSub className="ml-4 border-l border-violet-900/20">
                       {item.items?.map((subItem) => {
                          const isActive = pathname.startsWith(subItem.url);
                           return (
-                            <SidebarMenuSubItem key={subItem.title} className="text-white">
-                              <SidebarMenuSubButton asChild     className={cn(
-                                                      "text-white",
-                                                      isActive ? "text-white bg-violet-800 hover:bg-violet-900" : "text-gray-500"
-                                                    )}>
-                                <Link href={subItem.url} className="text-white ">
-                                  <span  className={cn(
-                                                      "text-white/55",
-                                                      isActive ? "text-white " : "text-gray-500"
-                                                    )}>{subItem.title}</span>
+                            <SidebarMenuSubItem key={subItem.title} className="pl-4 py-1">
+                              <SidebarMenuSubButton 
+                                asChild 
+                                className={cn(
+                                  "w-full rounded-md transition-all duration-200 flex items-center gap-3 py-2 px-3",
+                                  isActive 
+                                    ? "bg-violet-800 text-white shadow-md" 
+                                    : "text-gray-400 hover:text-white hover:bg-violet-800/10"
+                                )}
+                              >
+                                <Link href={subItem.url} className="flex items-center gap-3 w-full">
+                                  {(subItem as any).icon && React.createElement((subItem as any).icon, { className: "w-4 h-4" })}
+                                  <span className="font-medium text-sm">{subItem.title}</span>
+                                  {isActive && <div className="ml-auto w-2 h-2 bg-white rounded-full" />}
                                 </Link>
                               </SidebarMenuSubButton>
                             </SidebarMenuSubItem>
@@ -341,19 +516,32 @@ const AppSidebar = React.memo(() => {
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter>
+      <SidebarFooter className="border-t border-violet-900/20 p-4">
         <SidebarMenu>
           <SidebarMenuItem>
-          <SidebarMenuButton asChild>
+            <SidebarMenuButton asChild>
               <button
                 onClick={() => logout()}
-                className="text-white pl-8 hover:text-violet-800"
+                className="w-full flex items-center gap-3 text-gray-300 hover:text-white hover:bg-red-800/20 transition-all duration-200 rounded-lg p-3 group"
               >
-                <LogOut className="mr-2 h-6 w-6" />
-                <span>Sair</span>
+                <LogOut className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                <span className="font-medium">Sair</span>
               </button>
             </SidebarMenuButton>
           </SidebarMenuItem>
+          
+          {/* User info */}
+          <div className="mt-3 pt-3 border-t border-violet-900/20">
+            <div className="flex items-center gap-3 px-3 py-2">
+              <div className="w-8 h-8 bg-violet-800 rounded-full flex items-center justify-center">
+                <User className="w-4 h-4 text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-white truncate">{user?.name || 'Usuário'}</p>
+                <p className="text-xs text-gray-400 truncate capitalize">{user?.role}</p>
+              </div>
+            </div>
+          </div>
         </SidebarMenu>
       </SidebarFooter>
 

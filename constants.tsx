@@ -79,32 +79,62 @@ export const exploreWorlds = [
   {
     id: 'world-1',
     imgUrl: '/service-2.jpg',
-    title: 'Inglês Geral',
-    description: 'Desenvolva habilidades essenciais de leitura, escrita, audição e fala, do básico ao avançado.'
+    title: 'Inglês para Petróleo & Gás',
+    description: 'Especializado para Sonangol, Total Angola e Chevron. Aprenda terminologia técnica, protocolos de segurança e comunicação internacional específica do setor energético angolano.',
+    icon: '🛢️',
+    companies: ['Sonangol', 'Total Angola', 'Chevron'],
+    students: '2.5K+',
+    level: 'Técnico-Professional',
+    duration: '3-6 meses',
+    certification: 'Certificado Internacional'
   },
   {
     id: 'world-2',
     imgUrl: '/service-3.jpg',
-    title: 'Inglês para Negócios',
-    description: 'Aprenda a se comunicar com confiança em ambientes corporativos e negociações internacionais.'
+    title: 'Inglês Bancário',
+    description: 'Desenvolvido para BAI, BFA e Standard Bank. Domine transações internacionais, análise de crédito, compliance e atendimento a clientes internacionais.',
+    icon: '🏦',
+    companies: ['BAI', 'BFA', 'Standard Bank'],
+    students: '1.8K+',
+    level: 'Professional-Executivo',
+    duration: '2-4 meses',
+    certification: 'Certificado Bancário'
   },
   {
     id: 'world-3',
     imgUrl: '/service-4.jpg',
-    title: 'Inglês para Tecnologia',
-    description: 'Domine o vocabulário técnico e a fluência necessária para o setor de TI e inovação.'
+    title: 'Inglês para TI & Telecomunicações',
+    description: 'Criado para Unitel, MS Telecom e startups tech. Vocabulário de programação, metodologias ágeis, cloud computing e liderança de equipes remotas.',
+    icon: '💻',
+    companies: ['Unitel', 'MS Telecom', 'Angola Telecom'],
+    students: '1.2K+',
+    level: 'Técnico-Avançado',
+    duration: '2-5 meses',
+    certification: 'Certificado Tech'
   },
   {
     id: 'world-4',
     imgUrl: '/service-5.jpg',
-    title: 'Inglês para o Setor Bancário',
-    description: 'Especialize-se em terminologias financeiras e comunicações claras no setor bancário global.'
+    title: 'Inglês Executivo',
+    description: 'Para C-Level e gestores sênior. Liderança internacional, negociações estratégicas, apresentações executivas e networking global com foco no mercado angolano.',
+    icon: '👔',
+    companies: ['Multinacionais', 'Governo', 'ONGs'],
+    students: '950+',
+    level: 'Executivo-CEO',
+    duration: '4-8 meses',
+    certification: 'Certificado Executivo'
   },
   {
     id: 'world-5',
     imgUrl: '/service-6.jpg',
-    title: 'Inglês para o Setor Petrolífero',
-    description: 'Aprenda inglês técnico para operações, segurança e comunicação no setor de petróleo e gás.'
+    title: 'Inglês com IA Personal Tutor',
+    description: 'Nossa tecnologia exclusiva! Correção de pronunciação em tempo real, feedback personalizado para sotaque angolano e aprendizado adaptativo com inteligência artificial.',
+    icon: '🤖',
+    companies: ['Exclusivo ProEnglish'],
+    students: '3.2K+',
+    level: 'Todos os níveis',
+    duration: 'Contínuo',
+    certification: 'Certificado IA-Enhanced'
   },
 ];
 

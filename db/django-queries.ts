@@ -14,7 +14,17 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/a
  */
 const getAuthToken = () => {
     if (typeof window === 'undefined') return null;
-    return localStorage.getItem('access_token');
+    
+    const token = localStorage.getItem('access_token');
+    
+    // If no token, try to redirect to login
+    if (!token) {
+        console.warn('No auth token found, user might need to login');
+        // Optional: Force redirect to login
+        // window.location.href = '/auth/signin';
+    }
+    
+    return token;
 };
 
 /**
@@ -25,7 +35,12 @@ const getAuthToken = () => {
 export const getUserProgress = async () => {
     try {
         const token = getAuthToken();
-        if (!token) return null;
+        if (!token) {
+            console.warn('No auth token available for getUserProgress');
+            return null;
+        }
+
+        console.log('Fetching user progress with token:', token.substring(0, 20) + '...');
 
         const response = await fetch(`${API_BASE_URL}/practice/user-progress/`, {
             headers: {
@@ -34,12 +49,21 @@ export const getUserProgress = async () => {
             },
         });
 
+        console.log('User progress response status:', response.status);
+
         if (!response.ok) {
-            if (response.status === 401) return null;
-            throw new Error('Failed to fetch user progress');
+            if (response.status === 401) {
+                console.warn('Unauthorized: Token might be invalid or expired');
+                return null;
+            }
+            const errorText = await response.text();
+            console.error('User progress API error:', errorText);
+            throw new Error(`Failed to fetch user progress: ${response.status}`);
         }
 
-        return await response.json();
+        const data = await response.json();
+        console.log('User progress data:', data);
+        return data;
     } catch (error) {
         console.error('Error fetching user progress:', error);
         return null;
@@ -96,10 +120,18 @@ export const getCourseById = async (courseId: string) => {
  */
 export const getUnits = async (courseId?: string) => {
     try {
-        if (!courseId) return [];
+        if (!courseId) {
+            console.warn('No courseId provided to getUnits');
+            return [];
+        }
         
         const token = getAuthToken();
-        if (!token) return [];
+        if (!token) {
+            console.warn('No auth token available for getUnits');
+            return [];
+        }
+
+        console.log('Fetching units for course:', courseId);
 
         const response = await fetch(`${API_BASE_URL}/practice/courses/${courseId}/units-with-progress/`, {
             headers: {
@@ -108,11 +140,17 @@ export const getUnits = async (courseId?: string) => {
             },
         });
 
+        console.log('Units response status:', response.status);
+
         if (!response.ok) {
-            throw new Error('Failed to fetch units');
+            const errorText = await response.text();
+            console.error('Units API error:', errorText);
+            throw new Error(`Failed to fetch units: ${response.status}`);
         }
 
-        return await response.json();
+        const data = await response.json();
+        console.log('Units data:', data);
+        return data;
     } catch (error) {
         console.error('Error fetching units:', error);
         return [];

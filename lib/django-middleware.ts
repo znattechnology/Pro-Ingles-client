@@ -58,8 +58,7 @@ const ROUTE_CONFIG = {
 
   // Admin routes
   admin: [
-    '/admin',
-    '/admin/dashboard' // Admin dashboard
+    '/admin*'  // All admin routes with wildcard
   ],
 
   // Routes accessible by authenticated users (any role)

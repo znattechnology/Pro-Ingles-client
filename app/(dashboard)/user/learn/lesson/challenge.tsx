@@ -30,6 +30,16 @@ export const Challenge =({options,onSelect,status,selectedOption,disabled,type}:
     const [selectedPairs, setSelectedPairs] = useState<{[key: string]: string}>({});
     const [currentSelection, setCurrentSelection] = useState<{type: 'english' | 'portuguese', id: string, text: string} | null>(null);
     
+    // Shuffle function to randomize word order
+    const shuffleArray = <T,>(array: T[]): T[] => {
+        const shuffled = [...array];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        return shuffled;
+    };
+    
     // Handle text input submission for TRANSLATION and FILL_BLANK
     const handleTextSubmit = () => {
         if (textInput.trim()) {
@@ -243,50 +253,113 @@ export const Challenge =({options,onSelect,status,selectedOption,disabled,type}:
             );
             
         case "MATCH_PAIRS":
+            // Create shuffled lists for English and Portuguese words
+            const englishWords = shuffleArray(options.map(option => ({
+                id: option.id,
+                text: option.text.split(' - ')[0],
+                originalOption: option
+            })));
+            
+            const portugueseWords = shuffleArray(options.map(option => ({
+                id: option.id + '_pt',
+                text: option.text.split(' - ')[1],
+                originalId: option.id,
+                originalOption: option
+            })));
+            
             return (
-                <div className="space-y-4">
-                    <div className="text-center text-sm text-gray-400">Match the pairs by clicking them in order:</div>
-                    <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-6">
+                    <div className="text-center text-sm text-gray-400">
+                        Clique primeiro na palavra em inglês, depois na tradução em português
+                    </div>
+                    
+                    {/* Current selection indicator */}
+                    {currentSelection && (
+                        <div className="bg-blue-600/20 border border-blue-500 rounded-lg p-3 text-center">
+                            <span className="text-blue-400 text-sm">Selecionado: </span>
+                            <span className="text-white font-semibold">{currentSelection.text}</span>
+                            <span className="text-gray-400 text-sm ml-2">
+                                ({currentSelection.type === 'english' ? 'Inglês' : 'Português'})
+                            </span>
+                        </div>
+                    )}
+                    
+                    {/* Show formed pairs */}
+                    {Object.keys(selectedPairs).length > 0 && (
+                        <div className="bg-green-600/10 border border-green-500 rounded-lg p-4">
+                            <div className="text-green-400 text-sm mb-2">Pares formados:</div>
+                            {Object.values(selectedPairs).map((pair, index) => (
+                                <div key={index} className="text-white text-sm">✓ {pair}</div>
+                            ))}
+                        </div>
+                    )}
+                    
+                    <div className="grid grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <div className="text-sm text-gray-400 text-center">English</div>
-                            {options.map((option, i) => {
-                                const [english] = option.text.split(' - ');
+                            <div className="text-sm text-gray-400 text-center font-semibold">🇺🇸 English</div>
+                            {englishWords.map((word) => {
+                                const isCurrentSelection = currentSelection?.type === 'english' && currentSelection?.id === word.id;
+                                const isAlreadyPaired = Object.keys(selectedPairs).includes(word.id);
+                                
                                 return (
                                     <div
-                                        key={`en-${option.id}`}
+                                        key={`en-${word.id}`}
                                         className={cn(
-                                            "bg-customgreys-primarybg border border-violet-800 rounded-lg p-3 cursor-pointer hover:bg-violet-600/20",
-                                            selectedOption === option.id && "border-blue-500 bg-blue-600/20"
+                                            "bg-customgreys-primarybg border rounded-lg p-3 cursor-pointer transition-all duration-200",
+                                            isCurrentSelection && "border-blue-500 bg-blue-600/20 ring-2 ring-blue-400",
+                                            isAlreadyPaired && "border-green-500 bg-green-600/20 opacity-75",
+                                            !isCurrentSelection && !isAlreadyPaired && "border-violet-800 hover:bg-violet-600/20 hover:border-violet-600",
+                                            disabled && "pointer-events-none opacity-50"
                                         )}
-                                        onClick={() => onSelect(option.id)}
+                                        onClick={() => handlePairSelection('english', word.id, word.text)}
                                     >
-                                        <div className="text-white text-center">{english}</div>
+                                        <div className="text-white text-center font-medium">
+                                            {isAlreadyPaired && "✓ "}{word.text}
+                                        </div>
                                     </div>
                                 );
                             })}
                         </div>
+                        
                         <div className="space-y-2">
-                            <div className="text-sm text-gray-400 text-center">Português</div>
-                            {options.map((option, i) => {
-                                const [, portuguese] = option.text.split(' - ');
+                            <div className="text-sm text-gray-400 text-center font-semibold">🇧🇷 Português</div>
+                            {portugueseWords.map((word) => {
+                                const isCurrentSelection = currentSelection?.type === 'portuguese' && currentSelection?.text === word.text;
+                                const isAlreadyPaired = Object.values(selectedPairs).some(pair => pair.includes(word.text));
+                                
                                 return (
                                     <div
-                                        key={`pt-${option.id}`}
-                                        className="bg-customgreys-primarybg border border-violet-800 rounded-lg p-3"
+                                        key={`pt-${word.id}`}
+                                        className={cn(
+                                            "bg-customgreys-primarybg border rounded-lg p-3 cursor-pointer transition-all duration-200",
+                                            isCurrentSelection && "border-blue-500 bg-blue-600/20 ring-2 ring-blue-400",
+                                            isAlreadyPaired && "border-green-500 bg-green-600/20 opacity-75",
+                                            !isCurrentSelection && !isAlreadyPaired && "border-violet-800 hover:bg-violet-600/20 hover:border-violet-600",
+                                            disabled && "pointer-events-none opacity-50"
+                                        )}
+                                        onClick={() => handlePairSelection('portuguese', word.originalId, word.text)}
                                     >
-                                        <div className="text-white text-center">{portuguese}</div>
+                                        <div className="text-white text-center font-medium">
+                                            {isAlreadyPaired && "✓ "}{word.text}
+                                        </div>
                                     </div>
                                 );
                             })}
                         </div>
                     </div>
+                    
                     <div className="text-center">
                         <Button 
-                            onClick={() => options[0] && onSelect(options[0].id)}
-                            disabled={disabled || !selectedOption}
-                            className="bg-green-600 hover:bg-green-700"
+                            onClick={handlePairsSubmit}
+                            disabled={disabled || Object.keys(selectedPairs).length !== options.length}
+                            className={cn(
+                                "px-8 py-3 font-semibold",
+                                Object.keys(selectedPairs).length === options.length 
+                                    ? "bg-green-600 hover:bg-green-700" 
+                                    : "bg-gray-600 cursor-not-allowed"
+                            )}
                         >
-                            Confirm Matches
+                            Confirmar Pares ({Object.keys(selectedPairs).length}/{options.length})
                         </Button>
                     </div>
                 </div>

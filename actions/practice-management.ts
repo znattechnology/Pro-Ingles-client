@@ -123,6 +123,7 @@ export const createPracticeCourse = async (courseData: {
     description: string;
     category: string;
     level: string;
+    template?: string;
 }) => {
     try {
         console.log('Creating course with data:', courseData);

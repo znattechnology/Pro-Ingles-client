@@ -10,10 +10,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Mail, Lock, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { toast } from "react-hot-toast";
 import Link from "next/link";
+import Logo from "@/components/ui/Logo";
 
 type Step = 'request' | 'verify';
 
@@ -141,27 +141,37 @@ const PasswordReset = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center p-4">
-      <Card className="w-full max-w-md bg-gray-900 border-gray-800">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-4 p-3 bg-violet-900/20 rounded-full w-fit">
+    <Card className="w-full bg-gray-900/80 backdrop-blur-xl border border-gray-800/50 shadow-2xl relative animate-in fade-in-0 zoom-in-95 duration-300">
+        <CardHeader className="text-center space-y-4">
+          <div className="mb-2">
+            <Logo 
+              size="lg"
+              variant="white"
+              linkToHome={true}
+              className="mx-auto"
+            />
+          </div>
+          
+          <div className="mx-auto w-12 h-12 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl flex items-center justify-center">
             {step === 'request' ? (
-              <Mail className="w-8 h-8 text-violet-400" />
+              <Mail className="w-6 h-6 text-white" />
             ) : (
-              <Lock className="w-8 h-8 text-violet-400" />
+              <Lock className="w-6 h-6 text-white" />
             )}
           </div>
           
-          <CardTitle className="text-2xl text-white">
-            {step === 'request' ? 'Recuperar Senha' : 'Nova Senha'}
-          </CardTitle>
-          
-          <CardDescription className="text-gray-400">
-            {step === 'request' 
-              ? 'Digite seu email para receber o código de verificação'
-              : 'Digite o código enviado para seu email e sua nova senha'
-            }
-          </CardDescription>
+          <div>
+            <CardTitle className="text-3xl font-bold text-white mb-2">
+              {step === 'request' ? 'Recuperar Senha' : 'Nova Senha'}
+            </CardTitle>
+            
+            <CardDescription className="text-gray-400">
+              {step === 'request' 
+                ? 'Digite seu email para receber o código de verificação'
+                : 'Digite o código enviado para seu email e sua nova senha'
+              }
+            </CardDescription>
+          </div>
         </CardHeader>
 
         <CardContent className="space-y-6">
@@ -169,32 +179,38 @@ const PasswordReset = () => {
             // Step 1: Request Reset Form
             <form onSubmit={handleRequestReset} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-white font-normal">
+                <Label htmlFor="email" className="text-gray-200 font-medium">
                   Email
                 </Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  value={email}
-                  onChange={handleInputChange}
-                  placeholder="seu@email.com"
-                  className="bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-violet-500"
-                  disabled={isRequesting}
-                />
+                <div className="relative">
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    value={email}
+                    onChange={handleInputChange}
+                    placeholder="seu@email.com"
+                    className="bg-gray-800/50 border-gray-700/50 text-white placeholder-gray-400 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 transition-all duration-200 h-12 pl-4"
+                    disabled={isRequesting}
+                  />
+                  <div className="absolute inset-0 rounded-md bg-gradient-to-r from-violet-500/0 via-violet-500/0 to-violet-500/0 focus-within:from-violet-500/10 focus-within:via-transparent focus-within:to-violet-500/10 pointer-events-none transition-all duration-300" />
+                </div>
                 {errors.email && (
-                  <p className="text-red-400 text-xs">{errors.email}</p>
+                  <p className="text-red-400 text-xs flex items-center gap-1">
+                    <span className="w-1 h-1 bg-red-400 rounded-full" />
+                    {errors.email}
+                  </p>
                 )}
               </div>
 
               <Button
                 type="submit"
-                className="w-full bg-violet-800 hover:bg-violet-900 text-white"
+                className="w-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white h-12 font-semibold shadow-lg hover:shadow-violet-500/25 transition-all duration-200 transform hover:scale-[1.02]"
                 disabled={isRequesting}
               >
                 {isRequesting ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                     Enviando...
                   </>
                 ) : (
@@ -213,28 +229,34 @@ const PasswordReset = () => {
 
               {/* Verification Code */}
               <div className="space-y-2">
-                <Label htmlFor="code" className="text-white font-normal">
+                <Label htmlFor="code" className="text-gray-200 font-medium">
                   Código de Verificação
                 </Label>
-                <Input
-                  id="code"
-                  name="code"
-                  type="text"
-                  placeholder="000000"
-                  value={formData.code}
-                  onChange={handleCodeChange}
-                  className="text-center text-2xl tracking-widest bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-violet-500"
-                  maxLength={6}
-                  disabled={isConfirming}
-                />
+                <div className="relative">
+                  <Input
+                    id="code"
+                    name="code"
+                    type="text"
+                    placeholder="000000"
+                    value={formData.code}
+                    onChange={handleCodeChange}
+                    className="text-center text-2xl tracking-widest bg-gray-800/50 border-gray-700/50 text-white placeholder-gray-400 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 transition-all duration-200 h-12"
+                    maxLength={6}
+                    disabled={isConfirming}
+                  />
+                  <div className="absolute inset-0 rounded-md bg-gradient-to-r from-violet-500/0 via-violet-500/0 to-violet-500/0 focus-within:from-violet-500/10 focus-within:via-transparent focus-within:to-violet-500/10 pointer-events-none transition-all duration-300" />
+                </div>
                 {errors.code && (
-                  <p className="text-red-400 text-xs">{errors.code}</p>
+                  <p className="text-red-400 text-xs flex items-center gap-1">
+                    <span className="w-1 h-1 bg-red-400 rounded-full" />
+                    {errors.code}
+                  </p>
                 )}
               </div>
 
               {/* New Password */}
               <div className="space-y-2">
-                <Label htmlFor="newPassword" className="text-white font-normal">
+                <Label htmlFor="newPassword" className="text-gray-200 font-medium">
                   Nova Senha
                 </Label>
                 <div className="relative">
@@ -245,26 +267,30 @@ const PasswordReset = () => {
                     value={formData.newPassword}
                     onChange={handleInputChange}
                     placeholder="Mínimo 8 caracteres"
-                    className="bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-violet-500 pr-10"
+                    className="bg-gray-800/50 border-gray-700/50 text-white placeholder-gray-400 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 transition-all duration-200 h-12 pl-4 pr-12"
                     disabled={isConfirming}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors duration-200 p-1"
                     disabled={isConfirming}
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
+                  <div className="absolute inset-0 rounded-md bg-gradient-to-r from-violet-500/0 via-violet-500/0 to-violet-500/0 focus-within:from-violet-500/10 focus-within:via-transparent focus-within:to-violet-500/10 pointer-events-none transition-all duration-300" />
                 </div>
                 {errors.newPassword && (
-                  <p className="text-red-400 text-xs">{errors.newPassword}</p>
+                  <p className="text-red-400 text-xs flex items-center gap-1">
+                    <span className="w-1 h-1 bg-red-400 rounded-full" />
+                    {errors.newPassword}
+                  </p>
                 )}
               </div>
 
               {/* Confirm Password */}
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="text-white font-normal">
+                <Label htmlFor="confirmPassword" className="text-gray-200 font-medium">
                   Confirmar Nova Senha
                 </Label>
                 <div className="relative">
@@ -275,31 +301,35 @@ const PasswordReset = () => {
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
                     placeholder="Confirme sua nova senha"
-                    className="bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-violet-500 pr-10"
+                    className="bg-gray-800/50 border-gray-700/50 text-white placeholder-gray-400 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 transition-all duration-200 h-12 pl-4 pr-12"
                     disabled={isConfirming}
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors duration-200 p-1"
                     disabled={isConfirming}
                   >
                     {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
+                  <div className="absolute inset-0 rounded-md bg-gradient-to-r from-violet-500/0 via-violet-500/0 to-violet-500/0 focus-within:from-violet-500/10 focus-within:via-transparent focus-within:to-violet-500/10 pointer-events-none transition-all duration-300" />
                 </div>
                 {errors.confirmPassword && (
-                  <p className="text-red-400 text-xs">{errors.confirmPassword}</p>
+                  <p className="text-red-400 text-xs flex items-center gap-1">
+                    <span className="w-1 h-1 bg-red-400 rounded-full" />
+                    {errors.confirmPassword}
+                  </p>
                 )}
               </div>
 
               <Button
                 type="submit"
-                className="w-full bg-violet-800 hover:bg-violet-900 text-white"
+                className="w-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white h-12 font-semibold shadow-lg hover:shadow-violet-500/25 transition-all duration-200 transform hover:scale-[1.02]"
                 disabled={isConfirming}
               >
                 {isConfirming ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                     Alterando...
                   </>
                 ) : (
@@ -310,29 +340,30 @@ const PasswordReset = () => {
           )}
 
           {/* Back Links */}
-          <div className="text-center space-y-2">
+          <div className="text-center space-y-4">
             {step === 'verify' && (
               <Button
                 variant="outline"
                 onClick={() => setStep('request')}
-                className="w-full bg-transparent border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white mb-2"
+                className="w-full bg-gray-800/50 border-gray-700/50 text-gray-300 hover:bg-gray-700/50 hover:text-white hover:border-violet-500/50 transition-all duration-200 h-12"
                 disabled={isConfirming}
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Voltar
+                Voltar para email
               </Button>
             )}
             
-            <Link 
-              href="/signin"
-              className="inline-flex items-center text-gray-400 hover:text-white text-sm"
-            >
-              ← Voltar ao login
-            </Link>
+            <div className="p-4 bg-gray-800/30 rounded-lg border border-gray-700/30">
+              <Link 
+                href="/signin"
+                className="text-violet-400 hover:text-violet-300 font-semibold transition-colors duration-200 underline decoration-violet-400/30 hover:decoration-violet-400"
+              >
+                ← Voltar ao login
+              </Link>
+            </div>
           </div>
         </CardContent>
       </Card>
-    </div>
   );
 };
 

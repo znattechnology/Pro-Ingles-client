@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useParams } from "next/navigation";
 import {
-  useGetCourseQuery,
+  useGetCourseByIdQuery,
   useGetUserCourseProgressQuery,
   useUpdateUserCourseProgressMutation,
-} from "@/state/api";
+} from "@/redux/features/api/coursesApiSlice";
 import { useDjangoAuth } from "@/hooks/useDjangoAuth";
 
 export const useCourseProgressData = () => {
@@ -13,14 +13,16 @@ export const useCourseProgressData = () => {
   const [hasMarkedComplete, setHasMarkedComplete] = useState(false);
   const [updateProgress] = useUpdateUserCourseProgressMutation();
 
-  const { data: course, isLoading: courseLoading } = useGetCourseQuery(
+  const { data: courseResponse, isLoading: courseLoading } = useGetCourseByIdQuery(
     (courseId as string) ?? "",
     {
       skip: !courseId,
     }
   );
 
-  const { data: userProgress, isLoading: progressLoading } =
+  const course = courseResponse?.data;
+
+  const { data: userProgressResponse, isLoading: progressLoading } =
     useGetUserCourseProgressQuery(
       {
         userId: user?.id ?? "",
@@ -31,13 +33,15 @@ export const useCourseProgressData = () => {
       }
     );
 
+  const userProgress = userProgressResponse?.data;
+
   const isLoading = authLoading || courseLoading || progressLoading;
 
-  const currentSection = course?.sections.find((s) =>
-    s.chapters.some((c) => c.chapterId === chapterId)
+  const currentSection = course?.sections?.find((s) =>
+    s.chapters?.some((c) => c.chapterId === chapterId)
   );
 
-  const currentChapter = currentSection?.chapters.find(
+  const currentChapter = currentSection?.chapters?.find(
     (c) => c.chapterId === chapterId
   );
 
@@ -77,7 +81,7 @@ export const useCourseProgressData = () => {
     updateProgress({
       userId: user.id,
       courseId: (courseId as string) ?? "",
-      progressData: {
+      data: {
         sections: updatedSections,
       },
     });

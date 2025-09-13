@@ -26,7 +26,8 @@ const CreateCoursePage = () => {
         title: courseData.title,
         description: courseData.description,
         category: courseData.category,
-        level: courseData.level
+        level: courseData.level,
+        template: courseData.template?.id || 'general'
       };
 
       console.log('API Data:', apiData);

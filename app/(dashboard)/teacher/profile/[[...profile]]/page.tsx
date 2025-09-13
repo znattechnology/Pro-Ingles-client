@@ -7,17 +7,44 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
 import React, { useState, useEffect } from "react";
 import Loading from "@/components/course/Loading";
 import { toast } from "react-hot-toast";
+import { 
+  User, 
+  Mail, 
+  Shield, 
+  Calendar, 
+  MapPin, 
+  Phone, 
+  Edit3, 
+  Camera, 
+  Settings, 
+  BookOpen, 
+  Target,
+  GraduationCap,
+  Users,
+  BarChart3,
+  Award
+} from "lucide-react";
 
 const TeacherProfilePage = () => {
   const { user, isAuthenticated, isLoading } = useDjangoAuth();
   const [updateProfile, { isLoading: isUpdating }] = useUpdateProfileMutation();
+  const [isEditing, setIsEditing] = useState(false);
+  const [activeTab, setActiveTab] = useState("profile");
   
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    phone: '',
+    bio: '',
+    location: '',
+    specialization: '',
+    experience: '',
   });
 
   useEffect(() => {
@@ -25,6 +52,11 @@ const TeacherProfilePage = () => {
       setFormData({
         name: user.name || '',
         email: user.email || '',
+        phone: (user as any).phone || '',
+        bio: (user as any).bio || '',
+        location: (user as any).location || '',
+        specialization: (user as any).specialization || '',
+        experience: (user as any).experience || '',
       });
     }
   }, [user]);
@@ -43,78 +75,389 @@ const TeacherProfilePage = () => {
     try {
       await updateProfile(formData).unwrap();
       toast.success('Perfil atualizado com sucesso!');
+      setIsEditing(false);
     } catch (error: any) {
       toast.error(error?.data?.message || 'Erro ao atualizar perfil');
     }
   };
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  const joinDate = new Date().toLocaleDateString('pt-BR', {
+    year: 'numeric',
+    month: 'long'
+  });
 
   if (isLoading) return <Loading />;
   if (!isAuthenticated || !user) return <div>Faça login para visualizar o seu perfil.</div>;
 
   return (
     <>
-      <Header title="Perfil do Professor" subtitle="Gerencie o seu perfil de professor" />
-      <div className="flex justify-center items-start min-h-[calc(100vh-100px)] p-5">
-        <Card className="w-full max-w-2xl bg-customgreys-darkGrey border-violet-900/30">
-          <CardHeader>
-            <CardTitle className="text-white text-2xl">Informações do Professor</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name" className="text-white">Nome</Label>
-                <Input
-                  id="name"
-                  name="name"
-                  type="text"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  className="bg-customgreys-primarybg border-violet-900/30 text-white"
-                  required
-                />
+      <Header title="Perfil do Professor" subtitle="Gerencie suas informações profissionais e configurações" />
+      <div className="max-w-6xl mx-auto p-4 md:p-6 space-y-8">
+        {/* Profile Header Card */}
+        <Card className="bg-gradient-to-r from-emerald-900/20 via-teal-900/20 to-emerald-900/20 border-emerald-900/30 backdrop-blur-sm">
+          <CardContent className="p-6">
+            <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
+              {/* Avatar Section */}
+              <div className="relative group">
+                <Avatar className="w-24 h-24 md:w-32 md:h-32 border-4 border-emerald-500/50 shadow-xl">
+                  <AvatarImage src={user?.avatar} alt={user?.name} />
+                  <AvatarFallback className="bg-gradient-to-br from-emerald-600 to-teal-600 text-white text-2xl font-bold">
+                    {getInitials(user?.name || 'P')}
+                  </AvatarFallback>
+                </Avatar>
+                <button className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+                  <Camera className="w-6 h-6 text-white" />
+                </button>
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-white">Email</Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  className="bg-customgreys-primarybg border-violet-900/30 text-white"
-                  required
-                  disabled
-                />
-                <p className="text-sm text-gray-400">O email não pode ser alterado</p>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-white">Tipo de conta</Label>
-                <div className="px-3 py-2 bg-customgreys-primarybg border border-violet-900/30 rounded-md text-white capitalize">
-                  {user.role === 'student' ? 'Estudante' : 
-                   user.role === 'teacher' ? 'Professor' : 
-                   user.role === 'admin' ? 'Administrador' : user.role}
+              
+              {/* User Info */}
+              <div className="flex-1 text-center md:text-left">
+                <div className="flex flex-col md:flex-row md:items-center gap-4 mb-4">
+                  <div className="flex items-center gap-3">
+                    <h1 className="text-2xl md:text-3xl font-bold text-white">{user?.name}</h1>
+                    <div className="px-3 py-1 bg-emerald-900/30 border border-emerald-500/30 rounded-full text-emerald-400 text-sm font-medium">
+                      ✅ Professor Ativo
+                    </div>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsEditing(!isEditing)}
+                    className="border-emerald-500 text-emerald-400 hover:bg-emerald-500 hover:text-white transition-colors"
+                  >
+                    <Edit3 className="w-4 h-4 mr-2" />
+                    {isEditing ? 'Cancelar' : 'Editar Perfil'}
+                  </Button>
+                </div>
+                
+                <div className="flex flex-wrap justify-center md:justify-start gap-4 text-gray-300">
+                  <div className="flex items-center gap-2">
+                    <Mail className="w-4 h-4 text-emerald-400" />
+                    <span className="text-sm">{user?.email}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <GraduationCap className="w-4 h-4 text-emerald-400" />
+                    <span className="text-sm">Professor de Inglês</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-emerald-400" />
+                    <span className="text-sm">Membro desde {joinDate}</span>
+                  </div>
                 </div>
               </div>
-
-              <div className="space-y-2">
-                <Label className="text-white">Status</Label>
-                <div className="px-3 py-2 bg-green-900/20 border border-green-500/30 rounded-md text-green-400">
-                  ✅ Professor Ativo
-                </div>
-              </div>
-
-              <Button
-                type="submit"
-                disabled={isUpdating}
-                className="w-full bg-violet-800 hover:bg-violet-900 text-white"
-              >
-                {isUpdating ? 'Atualizando...' : 'Atualizar Perfil'}
-              </Button>
-            </form>
+            </div>
           </CardContent>
         </Card>
+
+        {/* Main Content Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4 bg-customgreys-darkGrey border border-emerald-900/30">
+            <TabsTrigger value="profile" className="data-[state=active]:bg-emerald-900/50 text-white">
+              <User className="w-4 h-4 mr-2" />
+              Perfil
+            </TabsTrigger>
+            <TabsTrigger value="teaching" className="data-[state=active]:bg-emerald-900/50 text-white">
+              <GraduationCap className="w-4 h-4 mr-2" />
+              Ensino
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="data-[state=active]:bg-emerald-900/50 text-white">
+              <BarChart3 className="w-4 h-4 mr-2" />
+              Analytics
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="data-[state=active]:bg-emerald-900/50 text-white">
+              <Settings className="w-4 h-4 mr-2" />
+              Configurações
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Profile Tab */}
+          <TabsContent value="profile" className="space-y-6">
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Personal Information */}
+              <Card className="bg-customgreys-darkGrey border-emerald-900/30">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <User className="w-5 h-5 text-emerald-400" />
+                    Informações Pessoais
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {isEditing ? (
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="name" className="text-white">Nome Completo</Label>
+                        <Input
+                          id="name"
+                          name="name"
+                          value={formData.name}
+                          onChange={handleInputChange}
+                          className="bg-customgreys-primarybg border-emerald-900/30 text-white"
+                          required
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="phone" className="text-white">Telefone</Label>
+                        <Input
+                          id="phone"
+                          name="phone"
+                          value={formData.phone}
+                          onChange={handleInputChange}
+                          className="bg-customgreys-primarybg border-emerald-900/30 text-white"
+                          placeholder="(11) 99999-9999"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="location" className="text-white">Localização</Label>
+                        <Input
+                          id="location"
+                          name="location"
+                          value={formData.location}
+                          onChange={handleInputChange}
+                          className="bg-customgreys-primarybg border-emerald-900/30 text-white"
+                          placeholder="Cidade, Estado"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="specialization" className="text-white">Especialização</Label>
+                        <Input
+                          id="specialization"
+                          name="specialization"
+                          value={formData.specialization}
+                          onChange={handleInputChange}
+                          className="bg-customgreys-primarybg border-emerald-900/30 text-white"
+                          placeholder="Ex: Inglês Avançado, Business English"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="experience" className="text-white">Experiência</Label>
+                        <Input
+                          id="experience"
+                          name="experience"
+                          value={formData.experience}
+                          onChange={handleInputChange}
+                          className="bg-customgreys-primarybg border-emerald-900/30 text-white"
+                          placeholder="Ex: 5 anos ensinando inglês"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="bio" className="text-white">Biografia</Label>
+                        <textarea
+                          id="bio"
+                          name="bio"
+                          value={formData.bio}
+                          onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
+                          className="w-full min-h-[100px] p-3 bg-customgreys-primarybg border border-emerald-900/30 rounded-md text-white placeholder:text-gray-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                          placeholder="Conte sobre sua experiência como professor..."
+                        />
+                      </div>
+                      
+                      <div className="flex gap-2">
+                        <Button
+                          type="submit"
+                          disabled={isUpdating}
+                          className="flex-1 bg-emerald-800 hover:bg-emerald-900 text-white"
+                        >
+                          {isUpdating ? 'Salvando...' : 'Salvar Alterações'}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => setIsEditing(false)}
+                          className="border-gray-600 text-gray-400 hover:bg-gray-800"
+                        >
+                          Cancelar
+                        </Button>
+                      </div>
+                    </form>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3 text-gray-300">
+                        <User className="w-4 h-4 text-emerald-400" />
+                        <span>{formData.name || 'Não informado'}</span>
+                      </div>
+                      <div className="flex items-center gap-3 text-gray-300">
+                        <Phone className="w-4 h-4 text-emerald-400" />
+                        <span>{formData.phone || 'Não informado'}</span>
+                      </div>
+                      <div className="flex items-center gap-3 text-gray-300">
+                        <MapPin className="w-4 h-4 text-emerald-400" />
+                        <span>{formData.location || 'Não informado'}</span>
+                      </div>
+                      <div className="flex items-center gap-3 text-gray-300">
+                        <GraduationCap className="w-4 h-4 text-emerald-400" />
+                        <span>{formData.specialization || 'Não informado'}</span>
+                      </div>
+                      <div className="flex items-center gap-3 text-gray-300">
+                        <Award className="w-4 h-4 text-emerald-400" />
+                        <span>{formData.experience || 'Não informado'}</span>
+                      </div>
+                      {formData.bio && (
+                        <div className="space-y-2">
+                          <Label className="text-white">Biografia</Label>
+                          <p className="text-gray-300 text-sm leading-relaxed">
+                            {formData.bio}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Account Information */}
+              <Card className="bg-customgreys-darkGrey border-emerald-900/30">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <Shield className="w-5 h-5 text-emerald-400" />
+                    Informações da Conta
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Mail className="w-4 h-4 text-emerald-400" />
+                        <div>
+                          <p className="text-white text-sm font-medium">Email</p>
+                          <p className="text-gray-400 text-xs">{user?.email}</p>
+                        </div>
+                      </div>
+                      <span className="text-xs text-gray-500">Verificado</span>
+                    </div>
+                    
+                    <Separator className="bg-emerald-900/30" />
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <GraduationCap className="w-4 h-4 text-emerald-400" />
+                        <div>
+                          <p className="text-white text-sm font-medium">Tipo de Conta</p>
+                          <p className="text-gray-400 text-xs">Professor</p>
+                        </div>
+                      </div>
+                      <div className="px-2 py-1 bg-emerald-900/20 border border-emerald-500/30 rounded text-emerald-400 text-xs">
+                        ✅ Ativo
+                      </div>
+                    </div>
+                    
+                    <Separator className="bg-emerald-900/30" />
+                    
+                    <div className="flex items-center gap-3">
+                      <Calendar className="w-4 h-4 text-emerald-400" />
+                      <div>
+                        <p className="text-white text-sm font-medium">Professor desde</p>
+                        <p className="text-gray-400 text-xs">{joinDate}</p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* Teaching Tab */}
+          <TabsContent value="teaching" className="space-y-6">
+            <div className="grid md:grid-cols-3 gap-6">
+              <Card className="bg-customgreys-darkGrey border-emerald-900/30">
+                <CardContent className="p-6 text-center">
+                  <BookOpen className="w-12 h-12 text-emerald-400 mx-auto mb-4" />
+                  <h3 className="text-xl font-bold text-white mb-2">0</h3>
+                  <p className="text-gray-400 text-sm">Cursos Criados</p>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-customgreys-darkGrey border-emerald-900/30">
+                <CardContent className="p-6 text-center">
+                  <Users className="w-12 h-12 text-blue-400 mx-auto mb-4" />
+                  <h3 className="text-xl font-bold text-white mb-2">0</h3>
+                  <p className="text-gray-400 text-sm">Estudantes Ativos</p>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-customgreys-darkGrey border-emerald-900/30">
+                <CardContent className="p-6 text-center">
+                  <Target className="w-12 h-12 text-purple-400 mx-auto mb-4" />
+                  <h3 className="text-xl font-bold text-white mb-2">0</h3>
+                  <p className="text-gray-400 text-sm">Lições Ministradas</p>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* Analytics Tab */}
+          <TabsContent value="analytics" className="space-y-6">
+            <Card className="bg-customgreys-darkGrey border-emerald-900/30">
+              <CardContent className="p-6 text-center">
+                <BarChart3 className="w-16 h-16 text-blue-400 mx-auto mb-4" />
+                <h3 className="text-xl font-bold text-white mb-2">Analytics em Desenvolvimento</h3>
+                <p className="text-gray-400">Visualize o desempenho dos seus cursos e estudantes em breve!</p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Settings Tab */}
+          <TabsContent value="settings" className="space-y-6">
+            <Card className="bg-customgreys-darkGrey border-emerald-900/30">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <Settings className="w-5 h-5 text-emerald-400" />
+                  Configurações de Professor
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-white font-medium">Notificações de Estudantes</p>
+                      <p className="text-gray-400 text-sm">Receber notificações sobre progresso dos alunos</p>
+                    </div>
+                    <Button variant="outline" size="sm" className="border-emerald-500 text-emerald-400">
+                      Configurar
+                    </Button>
+                  </div>
+                  
+                  <Separator className="bg-emerald-900/30" />
+                  
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-white font-medium">Perfil Público</p>
+                      <p className="text-gray-400 text-sm">Permitir que estudantes vejam seu perfil</p>
+                    </div>
+                    <Button variant="outline" size="sm" className="border-emerald-500 text-emerald-400">
+                      Gerenciar
+                    </Button>
+                  </div>
+                  
+                  <Separator className="bg-emerald-900/30" />
+                  
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-white font-medium">Solicitar Desativação</p>
+                      <p className="text-gray-400 text-sm">Desativar temporariamente conta de professor</p>
+                    </div>
+                    <Button variant="destructive" size="sm">
+                      Solicitar
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </>
   );

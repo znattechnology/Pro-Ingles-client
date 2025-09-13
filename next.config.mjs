@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+    experimental: {
+      optimizeCss: false,
+    },
     images:{
       domains:["images.pexels.com",'res.cloudinary.com',]
   },

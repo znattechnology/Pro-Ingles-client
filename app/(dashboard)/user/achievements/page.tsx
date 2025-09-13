@@ -7,7 +7,7 @@
  * Provides motivation through visual rewards and progress tracking.
  */
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -30,155 +30,31 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Loading from '@/components/course/Loading';
+import { 
+  useGetUserAchievementsQuery,
+  useGetAchievementStatsQuery,
+  type Achievement,
+  type AchievementStats
+} from '@/redux/features/achievements/achievementsApi';
 
-interface Achievement {
-  id: string;
-  title: string;
-  description: string;
-  icon: string;
-  category: 'learning' | 'streak' | 'social' | 'milestone' | 'special';
-  rarity: 'common' | 'rare' | 'epic' | 'legendary';
-  points: number;
-  isUnlocked: boolean;
-  unlockedAt?: string;
-  progress?: {
-    current: number;
-    target: number;
-    unit: string;
-  };
-}
-
-interface AchievementStats {
-  totalUnlocked: number;
-  totalAvailable: number;
-  totalPoints: number;
-  rareAchievements: number;
-  recentUnlocked: number;
-}
 
 export default function AchievementsPage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [achievements, setAchievements] = useState<Achievement[]>([]);
-  const [stats, setStats] = useState<AchievementStats | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
-  useEffect(() => {
-    loadAchievements();
-  }, []);
+  // RTK Query hooks for real data
+  const { 
+    data: achievements = [], 
+    isLoading: achievementsLoading 
+  } = useGetUserAchievementsQuery();
+  
+  const { 
+    data: stats, 
+    isLoading: statsLoading 
+  } = useGetAchievementStatsQuery();
 
-  const loadAchievements = async () => {
-    try {
-      setLoading(true);
-      
-      // Mock data - replace with real API calls
-      const mockAchievements: Achievement[] = [
-        {
-          id: '1',
-          title: 'Primeiro Passo',
-          description: 'Complete sua primeira lição',
-          icon: '🎯',
-          category: 'learning',
-          rarity: 'common',
-          points: 10,
-          isUnlocked: true,
-          unlockedAt: '2 dias atrás'
-        },
-        {
-          id: '2',
-          title: 'Sequência de Ferro',
-          description: 'Mantenha uma sequência de 7 dias',
-          icon: '🔥',
-          category: 'streak',
-          rarity: 'rare',
-          points: 50,
-          isUnlocked: true,
-          unlockedAt: '1 dia atrás'
-        },
-        {
-          id: '3',
-          title: 'Perfeccionista',
-          description: 'Obtenha 100% de acerto em 5 lições consecutivas',
-          icon: '⭐',
-          category: 'learning',
-          rarity: 'epic',
-          points: 100,
-          isUnlocked: false,
-          progress: { current: 3, target: 5, unit: 'lições' }
-        },
-        {
-          id: '4',
-          title: 'Maratona de Aprendizado',
-          description: 'Complete 50 lições no total',
-          icon: '🏃',
-          category: 'milestone',
-          rarity: 'rare',
-          points: 75,
-          isUnlocked: false,
-          progress: { current: 32, target: 50, unit: 'lições' }
-        },
-        {
-          id: '5',
-          title: 'Mestre das Palavras',
-          description: 'Aprenda 500 palavras novas',
-          icon: '📚',
-          category: 'learning',
-          rarity: 'epic',
-          points: 150,
-          isUnlocked: false,
-          progress: { current: 347, target: 500, unit: 'palavras' }
-        },
-        {
-          id: '6',
-          title: 'Lenda Dourada',
-          description: 'Mantenha uma sequência de 30 dias',
-          icon: '👑',
-          category: 'streak',
-          rarity: 'legendary',
-          points: 300,
-          isUnlocked: false,
-          progress: { current: 7, target: 30, unit: 'dias' }
-        },
-        {
-          id: '7',
-          title: 'Competidor',
-          description: 'Entre no top 10 do ranking semanal',
-          icon: '🏆',
-          category: 'social',
-          rarity: 'rare',
-          points: 80,
-          isUnlocked: false
-        },
-        {
-          id: '8',
-          title: 'Noturno Dedicado',
-          description: 'Complete lições após 22h por 5 dias',
-          icon: '🌙',
-          category: 'special',
-          rarity: 'epic',
-          points: 120,
-          isUnlocked: false,
-          progress: { current: 2, target: 5, unit: 'dias' }
-        }
-      ];
+  const isLoading = achievementsLoading || statsLoading;
 
-      const mockStats: AchievementStats = {
-        totalUnlocked: mockAchievements.filter(a => a.isUnlocked).length,
-        totalAvailable: mockAchievements.length,
-        totalPoints: mockAchievements.filter(a => a.isUnlocked).reduce((sum, a) => sum + a.points, 0),
-        rareAchievements: mockAchievements.filter(a => a.isUnlocked && ['rare', 'epic', 'legendary'].includes(a.rarity)).length,
-        recentUnlocked: mockAchievements.filter(a => a.isUnlocked && a.unlockedAt?.includes('dia')).length
-      };
-
-      setAchievements(mockAchievements);
-      setStats(mockStats);
-      
-    } catch (error) {
-      console.error('Error loading achievements:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const categories = [
     { id: 'all', name: 'Todas', icon: Trophy },
@@ -200,7 +76,7 @@ export default function AchievementsPage() {
     ? achievements 
     : achievements.filter(a => a.category === selectedCategory);
 
-  if (loading) {
+  if (isLoading) {
     return <Loading />;
   }
 
@@ -405,13 +281,13 @@ export default function AchievementsPage() {
                     <span className="text-2xl">{achievement.icon}</span>
                     <div className="flex-1">
                       <h4 className="text-white font-medium">{achievement.title}</h4>
-                      <p className="text-violet-200 text-sm">{achievement.description}</p>
+                      <p className="text-gray-200 text-sm">{achievement.description}</p>
                     </div>
                   </div>
                   {achievement.progress && (
                     <div className="space-y-2">
                       <div className="flex justify-between text-xs">
-                        <span className="text-violet-200">Progresso</span>
+                        <span className="text-gray-200">Progresso</span>
                         <span className="text-white">
                           {achievement.progress.current}/{achievement.progress.target} {achievement.progress.unit}
                         </span>

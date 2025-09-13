@@ -23,7 +23,15 @@ export const apiSlice = createApi({
         'CourseUnits', 
         'CourseUnitsWithProgress',
         'LessonDetail',
-        'LessonPercentage'
+        'LessonPercentage',
+        'Leaderboard',
+        'Leagues',
+        'Competitions',
+        'UserPosition',
+        'Achievements',
+        'AchievementStats',
+        'AchievementCategories',
+        'AchievementNotifications'
     ],
     endpoints: (builder)=> ({
         loadUser:builder.query({
