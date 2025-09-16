@@ -227,7 +227,45 @@ export const coursesApiSlice = apiSlice.injectEndpoints({
         method: 'PUT',
         body: data,
       }),
-      invalidatesTags: ['UserProgress'],
+      async onQueryStarted({userId, courseId, data}, {dispatch, queryFulfilled}) {
+        // Optimistic update
+        const patchResult = dispatch(
+          coursesApiSlice.util.updateQueryData('getUserCourseProgress', {userId, courseId}, (draft) => {
+            // Update the sections data optimistically
+            if (data.sections && draft.data) {
+              data.sections.forEach((sectionUpdate: any) => {
+                const existingSection = draft.data.sections.find((s: any) => s.sectionId === sectionUpdate.sectionId);
+                if (existingSection && sectionUpdate.chapters) {
+                  sectionUpdate.chapters.forEach((chapterUpdate: any) => {
+                    const existingChapter = existingSection.chapters.find((c: any) => c.chapterId === chapterUpdate.chapterId);
+                    if (existingChapter) {
+                      existingChapter.completed = chapterUpdate.completed;
+                    } else {
+                      // Add new chapter progress if it doesn't exist
+                      existingSection.chapters.push({
+                        chapterId: chapterUpdate.chapterId,
+                        completed: chapterUpdate.completed
+                      });
+                    }
+                  });
+                }
+              });
+            }
+          })
+        );
+
+        try {
+          await queryFulfilled;
+        } catch {
+          // Revert optimistic update on error
+          patchResult.undo();
+        }
+      },
+      invalidatesTags: (_result, _error, {courseId}) => [
+        'UserProgress',
+        { type: 'Course', id: courseId },
+        'Course'
+      ],
     }),
 
     // Create course enrollment (purchase)
@@ -341,6 +379,43 @@ export const coursesApiSlice = apiSlice.injectEndpoints({
       query: (chapterId) => `/courses/chapters/${chapterId}/quiz/summary/`,
       providesTags: (_result, _error, chapterId) => [{ type: 'QuizSummary', id: chapterId }],
     }),
+
+    // 📹 VIDEO UPLOAD - Get presigned S3 URL from Django
+    getVideoUploadUrl: builder.mutation<
+      {message: string, data: {uploadUrl: string, videoUrl: string}}, 
+      {courseId: string, sectionId: string, chapterId: string, fileName: string, fileType: string}
+    >({
+      query: ({courseId, sectionId, chapterId, fileName, fileType}) => ({
+        url: `/courses/${courseId}/sections/${sectionId}/chapters/${chapterId}/get-upload-url/`,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fileName: fileName,
+          fileType: fileType
+        }),
+      }),
+    }),
+
+    // 🔄 UPDATE COURSE - Update course with sections and chapters
+    updateCourse: builder.mutation<
+      {message: string, data: Course}, 
+      {courseId: string, courseData: any}
+    >({
+      query: ({courseId, courseData}) => ({
+        url: `/courses/${courseId}/`,
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(courseData),
+      }),
+      invalidatesTags: (_result, _error, {courseId}) => [
+        { type: 'Course', id: courseId },
+        'Course'
+      ],
+    }),
   }),
 });
 
@@ -366,4 +441,10 @@ export const {
   useGetQuizAttemptsQuery,
   useCreateQuizAttemptMutation,
   useGetQuizSummaryQuery,
+  
+  // 📹 VIDEO UPLOAD hooks
+  useGetVideoUploadUrlMutation,
+  
+  // 🔄 COURSE UPDATE hooks
+  useUpdateCourseMutation,
 } = coursesApiSlice;

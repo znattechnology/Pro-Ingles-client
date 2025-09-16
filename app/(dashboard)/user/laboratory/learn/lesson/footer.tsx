@@ -73,7 +73,7 @@ export const Footer = ({onCheck,status,disabled,lessonId}:Props) => {
                     <Button 
                         variant="outline" 
                         size={isMobile ? "sm":"lg"} 
-                        onClick={() => window.location.href=`/user/learn/lesson/${lessonId}`}
+                        onClick={() => window.location.href=`/user/laboratory/learn/lesson/${lessonId}`}
                         className="group bg-violet-500/10 border-violet-500/30 text-violet-300 hover:bg-violet-500/20 hover:border-violet-400/50 transition-all duration-300"
                     >
                         <RotateCcw className="h-4 w-4 mr-2 group-hover:rotate-180 transition-transform duration-300" />

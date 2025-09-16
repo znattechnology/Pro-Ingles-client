@@ -1,4 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { createApi } from '@reduxjs/toolkit/query/react';
+import { createBaseQueryWithReauth } from '../api/baseQueryWithReauth';
 
 // Types - Match the global Course interface
 export interface Course {
@@ -32,17 +33,7 @@ export interface CourseCreateData {
 
 export const courseApi = createApi({
   reducerPath: 'courseApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${process.env.NEXT_PUBLIC_DJANGO_API_URL}/courses/`,
-    prepareHeaders: (headers) => {
-      const token = localStorage.getItem('access_token');
-      if (token) {
-        headers.set('Authorization', `Bearer ${token}`);
-      }
-      headers.set('Content-Type', 'application/json');
-      return headers;
-    },
-  }),
+  baseQuery: createBaseQueryWithReauth(`${process.env.NEXT_PUBLIC_DJANGO_API_URL}/courses/`),
   tagTypes: ['Course'],
   endpoints: (builder) => ({
     createCourse: builder.mutation<Course, Partial<CourseCreateData>>({
@@ -53,10 +44,10 @@ export const courseApi = createApi({
       }),
       transformResponse: (response: { message: string; data: Course }) => {
         const course = response.data;
-        // Ensure backward compatibility by setting courseId to id
+        // Ensure backward compatibility by setting id to courseId (since API returns courseId)
         return {
           ...course,
-          courseId: course.id,
+          id: course.courseId, // Set id from courseId for compatibility
           createdAt: course.created_at,
           updatedAt: course.updated_at,
           sections: course.sections || []
@@ -67,6 +58,9 @@ export const courseApi = createApi({
     getAllCourses: builder.query<Course[], { category?: string }>({
       query: (params = {}) => {
         const searchParams = new URLSearchParams();
+        
+        // Add view_mode=teacher_courses to get only teacher's own courses
+        searchParams.append('view_mode', 'teacher_courses');
         
         if (params.category && params.category !== 'all') {
           searchParams.append('category', params.category);
@@ -80,10 +74,10 @@ export const courseApi = createApi({
       },
       transformResponse: (response: { message: string; data: Course[] }) => {
         const courses = response.data || [];
-        // Ensure backward compatibility by setting courseId to id
+        // Ensure backward compatibility by setting id to courseId (since API returns courseId)
         return courses.map(course => ({
           ...course,
-          courseId: course.id,
+          id: course.courseId, // Set id from courseId for compatibility
           createdAt: course.created_at,
           updatedAt: course.updated_at,
           sections: course.sections || []
@@ -117,7 +111,7 @@ export const courseApi = createApi({
       transformResponse: (response: { message: string; data: Course }) => {
         return response.data;
       },
-      providesTags: (result, error, id) => [{ type: 'Course', id }],
+      providesTags: (_result, _error, id) => [{ type: 'Course', id }],
     }),
     // Legacy endpoints - these will need to be updated when Django backend implements them
     getCourseContent: builder.query({

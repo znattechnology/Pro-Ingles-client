@@ -23,7 +23,7 @@ const LessonPage = () => {
         ]);
 
         if (!lessonData || !userProgressData) {
-          router.push("/user/learn");
+          router.push("/user/laboratory/learn");
           return;
         }
 
@@ -31,7 +31,7 @@ const LessonPage = () => {
         setUserProgress(userProgressData);
       } catch (error) {
         console.error("Error fetching lesson data:", error);
-        router.push("/user/learn");
+        router.push("/user/laboratory/learn");
       } finally {
         setIsLoading(false);
       }

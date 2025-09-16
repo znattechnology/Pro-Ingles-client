@@ -1,8 +1,8 @@
 "use client";
 
-import { useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,9 +24,11 @@ import {
   Heart,
   Star,
   CheckCircle2,
+  CheckCircle,
   Trophy,
   Target,
-  TrendingUp
+  TrendingUp,
+  Zap
 } from "lucide-react";
 
 const Course = () => {
@@ -45,6 +47,17 @@ const Course = () => {
 
   const [quizStarted, setQuizStarted] = useState(false);
   const [selectedTab, setSelectedTab] = useState<string>("Notes");
+  const [isMarkingComplete, setIsMarkingComplete] = useState(false);
+  
+  // Check if chapter is already completed and update local state
+  const chapterCompleted = isChapterCompleted();
+  
+  // Sync hasMarkedComplete with actual completion status
+  React.useEffect(() => {
+    if (chapterCompleted && !hasMarkedComplete) {
+      setHasMarkedComplete(true);
+    }
+  }, [chapterCompleted, hasMarkedComplete, setHasMarkedComplete]);
 
   // Load chapter resources
   const { 
@@ -98,6 +111,41 @@ const Course = () => {
 
   const playerRef = useRef<ReactPlayer>(null);
 
+  // Function to mark chapter as completed using the hook's mutation
+  const markChapterAsCompleted = async () => {
+    if (!user || !currentChapter || !currentSection || hasMarkedComplete) return;
+    
+    setIsMarkingComplete(true);
+    
+    try {
+      console.log('Marking chapter as completed:', {
+        sectionId: currentSection.sectionId,
+        chapterId: currentChapter.chapterId
+      });
+      
+      // Use the hook's updateChapterProgress function which handles RTK Query mutation
+      await updateChapterProgress(
+        currentSection.sectionId,
+        currentChapter.chapterId,
+        true
+      );
+      
+      // Update local state
+      setHasMarkedComplete(true);
+      
+      console.log('Chapter marked as completed successfully!');
+      
+      // Optional: Show toast notification
+      // toast.success('Capítulo concluído!');
+      
+    } catch (error) {
+      console.error('Error marking chapter as completed:', error);
+      // toast.error('Erro ao marcar capítulo como concluído');
+    } finally {
+      setIsMarkingComplete(false);
+    }
+  };
+
   // Determine active tabs based on chapter content
   const getAvailableTabs = () => {
     const tabs = ['Notes']; // Always show notes
@@ -147,104 +195,90 @@ const Course = () => {
   if (!course || !userProgress) return <div>Error loading course</div>;
 
   return (
-    <div className="flex h-[100vh]">
-      <div className="flex-grow mx-auto">
-        <div className="mb-6">
-          {/* Breadcrumb */}
-          <div className="text-customgreys-dirtyGrey text-sm mb-2">
-            {course.title} / {currentSection?.sectionTitle} /{" "}
-            <span className="text-gray-400">
-              {currentChapter?.title}
-            </span>
+    <div className="min-h-screen bg-customgreys-primarybg">
+      {/* Compact Header Section */}
+      <div className="relative bg-gradient-to-r from-customgreys-secondarybg to-customgreys-primarybg border-b border-violet-900/30">
+        <div className="absolute inset-0 bg-gradient-to-r from-violet-500/5 to-purple-500/5" />
+        
+        <div className="relative max-w-7xl mx-auto px-6 py-4">
+          {/* Compact Breadcrumb */}
+          <div className="flex items-center gap-2 text-xs mb-3">
+            <span className="text-violet-300">{course.title}</span>
+            <span className="text-violet-900/60">•</span>
+            <span className="text-gray-300">{currentSection?.sectionTitle}</span>
+            <span className="text-violet-900/60">•</span>
+            <span className="text-white">{currentChapter?.title}</span>
           </div>
           
-          {/* Chapter Title & Teacher Info */}
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
-            <div>
-              <div className="flex items-start gap-3">
-                <div className="flex-1">
-                  <h2 className="text-white font-semibold text-3xl mb-2">{currentChapter?.title}</h2>
-                  <div className="flex items-center gap-2">
-                    <Avatar className="w-6 h-6">
-                      <AvatarImage alt={course.teacherName} />
-                      <AvatarFallback className="bg-customgreys-primarybg text-white">
-                        {course.teacherName[0]}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="text-customgreys-dirtyGrey text-sm font-[500]">
-                      {course.teacherName}
-                    </span>
-                  </div>
-                </div>
-                
-                {/* 🎮 PRACTICE AVAILABLE INDICATOR */}
-                {currentChapter?.practice_lesson && (
-                  <div className="bg-gradient-to-r from-emerald-500/20 to-green-500/20 border border-emerald-500/30 rounded-lg px-3 py-2 flex items-center gap-2">
-                    <Target className="w-4 h-4 text-emerald-400" />
-                    <span className="text-emerald-300 text-sm font-medium">Prática Disponível</span>
-                  </div>
-                )}
+          {/* Compact Chapter Header */}
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <Avatar className="w-6 h-6 border border-violet-400/30 flex-shrink-0">
+                <AvatarImage alt={course.teacherName} />
+                <AvatarFallback className="bg-violet-600 text-white text-xs font-semibold">
+                  {course.teacherName[0]}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <h1 className="text-xl font-bold text-white truncate">
+                  {currentChapter?.title}
+                </h1>
+                <div className="text-violet-300 text-xs">{course.teacherName}</div>
               </div>
+              
+              {/* Practice Badge */}
+              {currentChapter?.practice_lesson && (
+                <div className="bg-emerald-500/20 border border-emerald-500/30 rounded-lg px-2 py-1 flex items-center gap-1 flex-shrink-0">
+                  <Target className="w-3 h-3 text-emerald-400" />
+                  <span className="text-emerald-300 text-xs font-medium">Prática</span>
+                </div>
+              )}
             </div>
             
-            {/* 🎮 GAMIFICATION PANEL */}
-            <div className="flex items-center gap-3 bg-gradient-to-r from-violet-900/20 to-blue-900/20 rounded-lg p-3 border border-violet-500/20">
-              {/* Progress Indicator */}
-              <div className="text-center">
-                <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-500/20 border border-blue-500/30 mb-1">
-                  <TrendingUp className="w-5 h-5 text-blue-400" />
-                </div>
-                <div className="text-xs text-blue-300">
-                  {Math.round((userProgress?.overallProgress || 0) * 100)}%
-                </div>
-                <div className="text-xs text-gray-400">Progresso</div>
+            {/* Compact Progress Panel */}
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1 text-blue-400">
+                <TrendingUp className="w-4 h-4" />
+                <span className="text-sm font-medium">
+                  {(() => {
+                    const progress = userProgress?.overallProgress || 0;
+                    // Se o progresso já está acima de 1, provavelmente já é porcentagem
+                    const percentage = progress > 1 ? Math.round(progress) : Math.round(progress * 100);
+                    // Garante que não passe de 100%
+                    return Math.min(percentage, 100);
+                  })()}%
+                </span>
               </div>
               
-              {/* Hearts (if quiz chapter) */}
               {currentChapter?.quiz_enabled && quiz && (
-                <div className="text-center">
-                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-red-500/20 border border-red-500/30 mb-1">
-                    <Heart className="w-5 h-5 text-red-400" />
+                <>
+                  <div className="flex items-center gap-1 text-red-400">
+                    <Heart className="w-4 h-4" />
+                    <span className="text-sm font-medium">5</span>
                   </div>
-                  <div className="text-xs text-red-300">5</div>
-                  <div className="text-xs text-gray-400">Corações</div>
-                </div>
+                  <div className="flex items-center gap-1 text-yellow-400">
+                    <Star className="w-4 h-4" />
+                    <span className="text-sm font-medium">{quiz.points_reward || 15}</span>
+                  </div>
+                </>
               )}
               
-              {/* Points Available */}
-              {currentChapter?.quiz_enabled && quiz && (
-                <div className="text-center">
-                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-yellow-500/20 border border-yellow-500/30 mb-1">
-                    <Star className="w-5 h-5 text-yellow-400" />
-                  </div>
-                  <div className="text-xs text-yellow-300">{quiz.points_reward || 15}</div>
-                  <div className="text-xs text-gray-400">Pontos</div>
-                </div>
-              )}
-              
-              {/* Completion Status */}
-              <div className="text-center">
-                <div className={`flex items-center justify-center w-10 h-10 rounded-full border mb-1 ${
-                  isChapterCompleted() 
-                    ? 'bg-green-500/20 border-green-500/30' 
-                    : 'bg-gray-500/20 border-gray-500/30'
-                }`}>
-                  {isChapterCompleted() ? (
-                    <CheckCircle2 className="w-5 h-5 text-green-400" />
-                  ) : (
-                    <Target className="w-5 h-5 text-gray-400" />
-                  )}
-                </div>
-                <div className={`text-xs ${
-                  isChapterCompleted() ? 'text-green-300' : 'text-gray-300'
-                }`}>
+              <div className={`flex items-center gap-1 ${
+                isChapterCompleted() ? 'text-green-400' : 'text-gray-400'
+              }`}>
+                {isChapterCompleted() ? (
+                  <CheckCircle2 className="w-4 h-4" />
+                ) : (
+                  <Target className="w-4 h-4" />
+                )}
+                <span className="text-sm font-medium">
                   {isChapterCompleted() ? 'Feito' : 'Meta'}
-                </div>
-                <div className="text-xs text-gray-400">Status</div>
+                </span>
               </div>
             </div>
           </div>
         </div>
+      </div>
 
         {/* 🏆 ACHIEVEMENT NOTIFICATION */}
         {/* TODO: Show reward notification when chapter is completed */}
@@ -260,10 +294,12 @@ const Course = () => {
           </div>
         )}
 
-        {/* 🎯 DYNAMIC CONTENT AREA - Adapts based on chapter type */}
-        <Card className="mb-6 !border-none">
-          <CardContent className="h-[50vh] flex justify-center items-center p-0 m-0">
-            {/* 🎥 VIDEO CHAPTER - Enhanced video player */}
+      {/* Main Content Area */}
+      <div className="max-w-7xl mx-auto px-6 pt-6 pb-8">
+        {/* Enhanced Content Card */}
+        <div className="bg-customgreys-primarybg/40 backdrop-blur-sm rounded-xl border border-violet-900/30 mb-8">
+          <div className="aspect-video w-full relative overflow-hidden rounded-xl">
+            {/* Enhanced Video Player */}
             {currentChapter?.video && currentChapter.video.trim() !== "" ? (
               <div className="w-full h-full relative">
                 <ReactPlayer
@@ -281,13 +317,13 @@ const Course = () => {
                     },
                   }}
                 />
-                {/* Video Controls Overlay */}
-                <div className="absolute bottom-4 right-4 flex gap-2">
+                {/* Modern Video Controls Overlay */}
+                <div className="absolute bottom-4 right-4 flex gap-3">
                   {currentChapter?.transcript && (
                     <Button
                       variant="outline"
                       size="sm"
-                      className="bg-black/50 text-white border-white/30 hover:bg-black/70"
+                      className="bg-customgreys-darkGrey/80 backdrop-blur-sm text-white border-violet-500/30 hover:bg-violet-600/80 transition-all duration-200"
                       onClick={() => setSelectedTab('Notes')}
                     >
                       <FileText className="w-4 h-4 mr-2" />
@@ -295,171 +331,188 @@ const Course = () => {
                     </Button>
                   )}
                   
-                  {/* Chapter difficulty indicator */}
-                  <Badge className={`bg-black/50 ${getDifficultyColor(getChapterDifficulty())}`}>
+                  <Badge className={`bg-customgreys-darkGrey/80 backdrop-blur-sm border ${getDifficultyColor(getChapterDifficulty())}`}>
                     {getChapterDifficulty()}
                   </Badge>
                 </div>
               </div>
             ) : currentChapter?.quiz_enabled && quiz ? (
-              /* 🧠 QUIZ CHAPTER - Enhanced quiz preview */
-              <div className="text-center p-8 w-full">
-                <div className="bg-gradient-to-r from-violet-900/40 to-blue-900/40 rounded-lg p-8 max-w-lg mx-auto border border-violet-500/20">
-                  <Brain className="w-16 h-16 text-violet-400 mx-auto mb-4" />
-                  <h3 className="text-white font-bold text-xl mb-2">
-                    {quiz?.title || 'Quiz Interativo'}
-                  </h3>
-                  <p className="text-gray-300 mb-4">
-                    {quiz?.description || 'Complete este quiz para ganhar pontos e continuar seu progresso!'}
-                  </p>
+              /* Enhanced Quiz Preview */
+              <div className="flex items-center justify-center p-8 w-full">
+                <div className="bg-gradient-to-br from-violet-900/40 via-purple-900/30 to-blue-900/40 backdrop-blur-sm rounded-xl p-8 max-w-lg mx-auto border border-violet-500/30 shadow-2xl">
+                  <div className="text-center">
+                    <div className="w-20 h-20 bg-gradient-to-br from-violet-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                      <Brain className="w-10 h-10 text-white" />
+                    </div>
+                    <h3 className="text-white font-bold text-2xl mb-3">
+                      {quiz?.title || 'Quiz Interativo'}
+                    </h3>
+                    <p className="text-gray-300 mb-6 leading-relaxed">
+                      {quiz?.description || 'Complete este quiz para ganhar pontos e continuar seu progresso!'}
+                    </p>
                   
-                  <div className="flex items-center justify-center gap-4 mb-6 text-sm">
-                    <div className="flex items-center gap-1 text-yellow-400">
-                      <Star className="w-4 h-4" />
-                      <span>{quiz?.points_reward || 15} pontos</span>
-                    </div>
-                    <div className="flex items-center gap-1 text-red-400">
-                      <Heart className="w-4 h-4" />
-                      <span>{quiz?.hearts_cost || 1} coração por erro</span>
-                    </div>
-                    {quiz?.time_limit && (
-                      <div className="flex items-center gap-1 text-blue-400">
-                        <Clock className="w-4 h-4" />
-                        <span>{Math.round(quiz.time_limit / 60)} min</span>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+                      <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-lg p-3 text-center">
+                        <Star className="w-5 h-5 text-yellow-400 mx-auto mb-1" />
+                        <div className="text-yellow-300 font-semibold">{quiz?.points_reward || 15}</div>
+                        <div className="text-xs text-gray-400">pontos</div>
                       </div>
-                    )}
-                  </div>
+                      <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-3 text-center">
+                        <Heart className="w-5 h-5 text-red-400 mx-auto mb-1" />
+                        <div className="text-red-300 font-semibold">{quiz?.hearts_cost || 1}</div>
+                        <div className="text-xs text-gray-400">por erro</div>
+                      </div>
+                      {quiz?.time_limit && (
+                        <div className="bg-blue-500/20 border border-blue-500/30 rounded-lg p-3 text-center">
+                          <Clock className="w-5 h-5 text-blue-400 mx-auto mb-1" />
+                          <div className="text-blue-300 font-semibold">{Math.round(quiz.time_limit / 60)}</div>
+                          <div className="text-xs text-gray-400">minutos</div>
+                        </div>
+                      )}
+                    </div>
                   
-                  <Button
-                    className="bg-violet-600 hover:bg-violet-700 text-white"
-                    size="lg"
-                    onClick={() => {
-                      setQuizStarted(true);
-                      setSelectedTab('Quiz');
-                    }}
-                  >
-                    <Play className="w-5 h-5 mr-2" />
-                    Começar Quiz
-                  </Button>
+                    <Button
+                      className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+                      size="lg"
+                      onClick={() => {
+                        setQuizStarted(true);
+                        setSelectedTab('Quiz');
+                      }}
+                    >
+                      <Play className="w-5 h-5 mr-2" />
+                      Começar Quiz
+                    </Button>
+                  </div>
                 </div>
               </div>
             ) : (
-              /* TEXT/OTHER CHAPTER - Show content preview */
-              <div className="text-center p-8 w-full">
-                <div className="bg-customgreys-secondarybg/60 rounded-lg p-8 max-w-lg mx-auto border border-gray-600/30">
-                  <BookOpen className="w-16 h-16 text-blue-400 mx-auto mb-4" />
-                  <h3 className="text-white font-bold text-xl mb-2">
-                    {currentChapter?.type === 'Text' ? 'Capítulo de Leitura' : 'Conteúdo Textual'}
-                  </h3>
-                  <p className="text-gray-300 mb-4">
-                    Este capítulo contém conteúdo educacional importante. 
-                    Explore as abas abaixo para acessar todo o material.
-                  </p>
-                  
-                  <div className="flex items-center justify-center gap-2 text-sm text-gray-400">
-                    <span>Disponível em:</span>
-                    {getAvailableTabs().map((tab, index) => (
-                      <Badge key={tab} variant="outline" className="text-xs">
-                        {tab === 'Notes' ? '📝 Notas' : 
-                         tab === 'Resources' ? '📁 Recursos' : 
-                         '❓ Quiz'}
-                      </Badge>
-                    ))}
+              /* Enhanced Text Content Preview */
+              <div className="flex items-center justify-center p-8 w-full">
+                <div className="bg-gradient-to-br from-customgreys-secondarybg via-customgreys-darkGrey/50 to-customgreys-secondarybg backdrop-blur-sm rounded-xl p-8 max-w-lg mx-auto border border-violet-900/30 shadow-2xl">
+                  <div className="text-center">
+                    <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                      <BookOpen className="w-10 h-10 text-white" />
+                    </div>
+                    <h3 className="text-white font-bold text-2xl mb-3">
+                      {currentChapter?.type === 'Text' ? 'Capítulo de Leitura' : 'Conteúdo Textual'}
+                    </h3>
+                    <p className="text-gray-300 mb-6 leading-relaxed">
+                      Este capítulo contém conteúdo educacional importante. 
+                      Explore as abas abaixo para acessar todo o material.
+                    </p>
+                    
+                    <div className="flex flex-wrap items-center justify-center gap-2">
+                      <span className="text-gray-400 text-sm mb-2">Disponível em:</span>
+                      <div className="flex gap-2">
+                        {getAvailableTabs().map((tab) => (
+                          <Badge key={tab} variant="outline" className="border-violet-500/30 text-violet-300">
+                            {tab === 'Notes' ? '📝 Notas' : 
+                             tab === 'Resources' ? '📁 Recursos' : 
+                             '❓ Quiz'}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <div className="mt-5 ">
+        {/* Enhanced Tabs Section */}
+        <div className="bg-customgreys-primarybg/40 backdrop-blur-sm rounded-xl border border-violet-900/30 p-6">
           <Tabs 
             value={selectedTab} 
             onValueChange={setSelectedTab}
             defaultValue={getDefaultTab()} 
-            className="w-full md:w-2/3"
+            className="w-full"
           >
-            <TabsList className="flex justify-start gap-4 bg-violet-900/40 text-white p-1">
-              {/* Always show Notes tab */}
-              <TabsTrigger className="text-md px-4 py-2 flex items-center gap-2" value="Notes">
+            <TabsList className="bg-customgreys-darkGrey/50 border border-violet-900/30 rounded-lg p-1 mb-6">
+              {/* Enhanced Notes Tab */}
+              <TabsTrigger className="data-[state=active]:bg-violet-600 data-[state=active]:text-white text-gray-300 hover:text-white transition-all duration-200 px-6 py-3 rounded-lg flex items-center gap-2 font-medium" value="Notes">
                 <BookOpen className="w-4 h-4" />
                 Notas
                 {currentChapter?.transcript && (
-                  <Badge variant="secondary" className="ml-1 text-xs bg-blue-500/20 text-blue-300">
+                  <Badge variant="secondary" className="ml-1 text-xs bg-blue-500/20 text-blue-300 border-none">
                     +Transcrição
                   </Badge>
                 )}
               </TabsTrigger>
               
-              {/* Show Resources tab only if chapter has resources */}
+              {/* Enhanced Resources Tab */}
               {resources && resources.length > 0 && (
-                <TabsTrigger className="text-md px-4 py-2 flex items-center gap-2" value="Resources">
+                <TabsTrigger className="data-[state=active]:bg-violet-600 data-[state=active]:text-white text-gray-300 hover:text-white transition-all duration-200 px-6 py-3 rounded-lg flex items-center gap-2 font-medium" value="Resources">
                   <FileText className="w-4 h-4" />
                   Recursos
-                  <Badge variant="secondary" className="ml-1 text-xs bg-green-500/20 text-green-300">
+                  <Badge variant="secondary" className="ml-1 text-xs bg-green-500/20 text-green-300 border-none">
                     {resources.length}
                   </Badge>
                 </TabsTrigger>
               )}
               
-              {/* Show Quiz tab only if quiz is enabled and exists */}
+              {/* Enhanced Quiz Tab */}
               {currentChapter?.quiz_enabled && quiz && (
-                <TabsTrigger className="text-md px-4 py-2 flex items-center gap-2" value="Quiz">
+                <TabsTrigger className="data-[state=active]:bg-violet-600 data-[state=active]:text-white text-gray-300 hover:text-white transition-all duration-200 px-6 py-3 rounded-lg flex items-center gap-2 font-medium" value="Quiz">
                   <Brain className="w-4 h-4" />
                   Quiz
-                  <Badge variant="secondary" className="ml-1 text-xs bg-violet-500/20 text-violet-300">
+                  <Badge variant="secondary" className="ml-1 text-xs bg-violet-500/20 text-violet-300 border-none">
                     {quiz.points_reward || 15} pts
                   </Badge>
                 </TabsTrigger>
               )}
             </TabsList>
 
-            {/* 📝 NOTES TAB - Always available */}
-            <TabsContent className="mt-5" value="Notes">
-              <Card className="!border-none shadow-none bg-customgreys-secondarybg/40">
-                <CardHeader className="p-4">
-                  <CardTitle className="text-white flex items-center gap-2">
-                    <BookOpen className="w-5 h-5" />
+            {/* Enhanced Notes Tab Content */}
+            <TabsContent value="Notes">
+              <div className="bg-customgreys-secondarybg border-customgreys-darkerGrey rounded-lg">
+                <div className="p-6 border-b border-violet-900/20">
+                  <h3 className="text-2xl font-bold text-white flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
+                      <BookOpen className="w-5 h-5 text-white" />
+                    </div>
                     Conteúdo do Capítulo
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-4 text-white/80">
+                  </h3>
+                </div>
+                <div className="p-6 text-white/90">
                   <div className="prose prose-invert max-w-none">
-                    <p className="leading-relaxed text-base mb-4">
+                    <p className="leading-relaxed text-lg mb-6">
                       {currentChapter?.content}
                     </p>
                     
-                    {/* Show transcript if available */}
+                    {/* Enhanced Transcript Section */}
                     {currentChapter?.transcript && (
-                      <div className="mt-6 p-4 bg-blue-900/20 rounded-lg border border-blue-600/30">
-                        <h4 className="text-blue-300 font-medium mb-3 flex items-center gap-2">
-                          <FileText className="w-4 h-4" />
+                      <div className="mt-8 p-6 bg-blue-900/20 backdrop-blur-sm rounded-lg border border-blue-600/30">
+                        <h4 className="text-blue-300 font-semibold mb-4 flex items-center gap-2">
+                          <FileText className="w-5 h-5" />
                           Transcrição do Vídeo
                         </h4>
-                        <div className="text-sm text-blue-100 leading-relaxed whitespace-pre-line">
+                        <div className="text-blue-100 leading-relaxed whitespace-pre-line">
                           {currentChapter.transcript}
                         </div>
                       </div>
                     )}
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             </TabsContent>
 
-            {/* 📁 RESOURCES TAB - Only show if resources exist */}
+            {/* Enhanced Resources Tab Content */}
             {resources && resources.length > 0 && (
-              <TabsContent className="mt-5" value="Resources">
-                <Card className="!border-none shadow-none bg-customgreys-secondarybg/40">
-                  <CardHeader className="p-4">
-                    <CardTitle className="text-white flex items-center gap-2">
-                      <FileText className="w-5 h-5" />
+              <TabsContent value="Resources">
+                <div className="bg-customgreys-secondarybg border-customgreys-darkerGrey rounded-lg">
+                  <div className="p-6 border-b border-violet-900/20">
+                    <h3 className="text-2xl font-bold text-white flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center">
+                        <FileText className="w-5 h-5 text-white" />
+                      </div>
                       Recursos do Capítulo
-                      <Badge variant="outline" className="ml-2 text-xs">
+                      <Badge variant="outline" className="ml-3 border-emerald-500/50 text-emerald-300">
                         {resources.length} {resources.length === 1 ? 'recurso' : 'recursos'}
                       </Badge>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-4">
+                    </h3>
+                  </div>
+                  <div className="p-6">
                     {resourcesLoading ? (
                       <div className="text-center py-8">
                         <div className="animate-spin w-6 h-6 border-2 border-violet-500 border-t-transparent rounded-full mx-auto mb-2"></div>
@@ -559,28 +612,30 @@ const Course = () => {
                         })}
                       </div>
                     )}
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               </TabsContent>
             )}
 
-            {/* 🧠 QUIZ TAB - Only show if quiz is enabled and exists */}
+            {/* Enhanced Quiz Tab Content */}
             {currentChapter?.quiz_enabled && quiz && (
-              <TabsContent className="mt-5" value="Quiz">
-                <Card className="!border-none shadow-none bg-customgreys-secondarybg/40">
-                  <CardHeader className="p-4">
-                    <CardTitle className="text-white flex items-center gap-2">
-                      <Brain className="w-5 h-5" />
+              <TabsContent value="Quiz">
+                <div className="bg-customgreys-secondarybg border-customgreys-darkerGrey rounded-lg">
+                  <div className="p-6 border-b border-violet-900/20">
+                    <h3 className="text-2xl font-bold text-white flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-purple-600 rounded-lg flex items-center justify-center">
+                        <Brain className="w-5 h-5 text-white" />
+                      </div>
                       {quiz.title || 'Quiz Interativo'}
                       {isChapterCompleted() && (
                         <Badge className="bg-green-500/20 text-green-300 border-green-500/30">
-                          <CheckCircle2 className="w-3 h-3 mr-1" />
+                          <CheckCircle2 className="w-4 h-4 mr-1" />
                           Concluído
                         </Badge>
                       )}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-4">
+                    </h3>
+                  </div>
+                  <div className="p-6">
                     {quizLoading ? (
                       <div className="text-center py-8">
                         <div className="animate-spin w-6 h-6 border-2 border-violet-500 border-t-transparent rounded-full mx-auto mb-2"></div>
@@ -709,11 +764,81 @@ const Course = () => {
                         </div>
                       </div>
                     )}
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               </TabsContent>
             )}
           </Tabs>
+
+          {/* Mark as Completed Button */}
+          {!hasMarkedComplete && !currentChapter?.quiz_enabled && (
+            <div className="mt-6">
+              <Card className="bg-gradient-to-r from-customgreys-secondarybg via-customgreys-darkGrey/50 to-customgreys-secondarybg border-violet-900/30 hover:border-violet-500/50 transition-all duration-300">
+                <CardContent className="p-4">
+                  <div className="text-center">
+                    <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-full p-2 w-10 h-10 mx-auto mb-3 flex items-center justify-center shadow-lg">
+                      <CheckCircle className="w-5 h-5 text-white" />
+                    </div>
+                    <h3 className="text-white font-bold text-lg mb-2">
+                      Finalizar Capítulo
+                    </h3>
+                    <p className="text-gray-300 text-sm mb-4 max-w-sm mx-auto">
+                      Marque como concluído para atualizar seu progresso.
+                    </p>
+                    <Button
+                      onClick={markChapterAsCompleted}
+                      disabled={isMarkingComplete}
+                      className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+                      size="default"
+                    >
+                      {isMarkingComplete ? (
+                        <>
+                          <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"></div>
+                          Marcando...
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className="w-4 h-4 mr-2" />
+                          Marcar como Concluído
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Completed State */}
+          {hasMarkedComplete && (
+            <div className="mt-8">
+              <Card className="bg-gradient-to-r from-green-500/20 via-emerald-500/15 to-green-500/10 border-green-500/30">
+                <CardContent className="p-6">
+                  <div className="text-center">
+                    <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center shadow-lg">
+                      <CheckCircle2 className="w-8 h-8 text-white" />
+                    </div>
+                    <h3 className="text-green-400 font-bold text-xl mb-2">
+                      ✅ Capítulo Concluído!
+                    </h3>
+                    <p className="text-gray-300 mb-4">
+                      Parabéns! Você completou este capítulo com sucesso.
+                    </p>
+                    <div className="flex items-center justify-center gap-4 text-sm text-gray-400">
+                      <div className="flex items-center gap-1">
+                        <Trophy className="w-4 h-4 text-yellow-400" />
+                        <span>Progresso atualizado</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Target className="w-4 h-4 text-green-400" />
+                        <span>XP ganho</span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
           {/* 🎮 PHASE 3: PRACTICE LAB INTEGRATION */}
           {currentChapter?.practice_lesson && (
@@ -779,31 +904,6 @@ const Course = () => {
             </Card>
           )}
 
-          {/* <Card className="w-1/3 h-min border-none bg-white-50/5 p-10 bg-customgreys-secondarybg mt-4">
-            <CardContent className="flex flex-col items-start p-0 px-4">
-              <div className="flex items-center gap-3 flex-shrink-0 mb-7">
-                <Avatar className="w-10 h-10">
-                  <AvatarImage alt={course.teacherName} />
-                  <AvatarFallback className="bg-customgreys-primarybg text-white">
-                    {course.teacherName[0]}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex flex-col items-start">
-                  <h4 className="text-customgreys-dirtyGrey text-sm font-[500]">
-                    {course.teacherName}
-                  </h4>
-                  <p className="text-sm">Senior UX Designer</p>
-                </div>
-              </div>
-              <div className="text-sm">
-                <p>
-                  A seasoned Senior UX Designer with over 15 years of experience
-                  in creating intuitive and engaging digital experiences.
-                  Expertise in leading UX design projects.
-                </p>
-              </div>
-            </CardContent>
-          </Card> */}
         </div>
       </div>
     </div>

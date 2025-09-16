@@ -103,12 +103,12 @@ export default function ListeningExercisePage() {
     
     // For now, just log and redirect
     setTimeout(() => {
-      router.push("/user/listening");
+      router.push("/user/laboratory/listening");
     }, 3000);
   };
 
   const handleExit = () => {
-    router.push("/user/listening");
+    router.push("/user/laboratory/listening");
   };
 
   if (isLoading) {

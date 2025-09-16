@@ -189,7 +189,7 @@ export default function SpeakingProgressDashboard() {
           </div>
           
           <Button 
-            onClick={() => router.push("/user/speaking/practice")}
+            onClick={() => router.push("/user/laboratory/speaking/practice")}
             className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700"
           >
             <Mic className="w-4 h-4 mr-2" />

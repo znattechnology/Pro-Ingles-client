@@ -50,7 +50,7 @@ const mockExerciseCategories = [
     exerciseCount: 15,
     icon: Headphones,
     color: 'bg-blue-500',
-    route: '/user/listening/practice'
+    route: '/user/laboratory/listening/practice'
   },
   {
     id: 'dictation',
@@ -59,7 +59,7 @@ const mockExerciseCategories = [
     exerciseCount: 10,
     icon: PenTool,
     color: 'bg-green-500',
-    route: '/user/listening/dictation'
+    route: '/user/laboratory/listening/dictation'
   },
   {
     id: 'accents',
@@ -68,7 +68,7 @@ const mockExerciseCategories = [
     exerciseCount: 8,
     icon: Globe,
     color: 'bg-purple-500',
-    route: '/user/listening/accents'
+    route: '/user/laboratory/listening/accents'
   },
   {
     id: 'conversation',
@@ -77,7 +77,7 @@ const mockExerciseCategories = [
     exerciseCount: 12,
     icon: MessageCircle,
     color: 'bg-orange-500',
-    route: '/user/listening/conversation'
+    route: '/user/laboratory/listening/conversation'
   },
   {
     id: 'stories',
@@ -86,7 +86,7 @@ const mockExerciseCategories = [
     exerciseCount: 6,
     icon: BookOpen,
     color: 'bg-indigo-500',
-    route: '/user/listening/stories'
+    route: '/user/laboratory/listening/stories'
   },
   {
     id: 'news',
@@ -95,7 +95,7 @@ const mockExerciseCategories = [
     exerciseCount: 9,
     icon: Volume2,
     color: 'bg-red-500',
-    route: '/user/listening/news'
+    route: '/user/laboratory/listening/news'
   }
 ];
 
@@ -106,7 +106,7 @@ export default function ListeningPracticeHub() {
   const handleStartExercise = (exerciseId: string) => {
     setIsLoading(true);
     // Navigate to listening practice
-    router.push(`/user/listening/exercise/${exerciseId}`);
+    router.push(`/user/laboratory/listening/exercise/${exerciseId}`);
   };
 
   const handleCategoryExplore = (route: string) => {
@@ -264,7 +264,7 @@ export default function ListeningPracticeHub() {
           <div className="flex flex-wrap justify-center gap-4">
             <Button 
               variant="ghost" 
-              onClick={() => router.push("/user/listening/progress")}
+              onClick={() => router.push("/user/laboratory/listening/progress")}
               className="text-gray-300 hover:text-white hover:bg-customgreys-darkGrey"
             >
               <TrendingUp className="w-4 h-4 mr-2" />
@@ -272,7 +272,7 @@ export default function ListeningPracticeHub() {
             </Button>
             <Button 
               variant="ghost" 
-              onClick={() => router.push("/user/listening/achievements")}
+              onClick={() => router.push("/user/laboratory/listening/achievements")}
               className="text-gray-300 hover:text-white hover:bg-customgreys-darkGrey"
             >
               <Star className="w-4 h-4 mr-2" />
@@ -280,7 +280,7 @@ export default function ListeningPracticeHub() {
             </Button>
             <Button 
               variant="ghost" 
-              onClick={() => router.push("/user/listening/statistics")}
+              onClick={() => router.push("/user/laboratory/listening/statistics")}
               className="text-gray-300 hover:text-white hover:bg-customgreys-darkGrey"
             >
               <Target className="w-4 h-4 mr-2" />

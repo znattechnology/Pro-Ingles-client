@@ -296,7 +296,6 @@ export const createCourseFormData = (
   formData.append("title", data.courseTitle);
   formData.append("description", data.courseDescription);
   formData.append("category", data.courseCategory);
-  formData.append("price", data.coursePrice.toString());
   formData.append("status", data.courseStatus ? "Published" : "Draft");
 
   const sectionsWithVideos = sections.map((section) => ({

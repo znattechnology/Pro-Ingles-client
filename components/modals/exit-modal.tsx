@@ -44,7 +44,7 @@ export const ExitModal = () => {
             <Button variant="secondary" className="w-full" size="lg" onClick={close}>CONTINUAR APRENDENDO</Button>
             <Button variant="destructive" className="w-full" size="lg" onClick={() => {
                 close();
-                router.push("/user/learn")
+                router.push("/user/laboratory/learn")
             }}>SAIR DA LIÇÃO</Button>
           </div>
         </DialogFooter>

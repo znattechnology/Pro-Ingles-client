@@ -125,7 +125,7 @@ const navLinks = {
     },
     {
       title: "Perfil",
-      url: "Perfil",
+      url: "/user/profile",
       icon:  User,
       isActive: true,
       items: [
@@ -136,85 +136,85 @@ const navLinks = {
       ],
     },
     {
-      title: "Aprendizado",
-      url: "/user/learn",
+      title: "Practice Lab",
+      url: "/user/laboratory/learn",
       icon: Target,
       isActive: true,
       items: [
         {
           title: "Praticar",
-          url: "/user/learn",
+          url: "/user/laboratory/learn/courses",
           icon: Target,
         },
         {
           title: "Classificações", 
-          url: "/user/leaderboard",
+          url: "/user/laboratory/leaderboard",
           icon: Trophy,
         },
         {
           title: "Conquistas",
-          url: "/user/achievements",
+          url: "/user/laboratory/achievements",
           icon: Award,
         },
         {
           title: "Loja",
-          url: "/user/learn/shop",
+          url: "/user/laboratory/learn/shop",
           icon: Zap,
         },
       ],
     },
     {
       title: "Speaking Practice",
-      url: "/user/speaking",
+      url: "/user/laboratory/speaking",
       icon: Mic,
       isActive: true,
       items: [
         {
           title: "Praticar Conversação",
-          url: "/user/speaking/practice",
+          url: "/user/laboratory/speaking/practice",
           icon: MessageCircle,
         },
         {
           title: "Exercícios de Pronúncia", 
-          url: "/user/speaking/pronunciation",
+          url: "/user/laboratory/speaking/pronunciation",
           icon: Volume2,
         },
         {
           title: "Meu Progresso",
-          url: "/user/speaking/progress",
+          url: "/user/laboratory/speaking/progress",
           icon: TrendingUp,
         },
         {
           title: "Conquistas",
-          url: "/user/speaking/achievements", 
+          url: "/user/laboratory/speaking/achievements", 
           icon: Award,
         },
       ],
     },
     {
       title: "Listening Practice",
-      url: "/user/listening",
+      url: "/user/laboratory/listening",
       icon: Headphones,
       isActive: true,
       items: [
         {
           title: "Compreensão Auditiva",
-          url: "/user/listening/practice",
+          url: "/user/laboratory/listening/practice",
           icon: Headphones,
         },
         {
           title: "Ditado",
-          url: "/user/listening/dictation",
+          url: "/user/laboratory/listening/dictation",
           icon: PenTool,
         },
         {
           title: "Sotaques",
-          url: "/user/listening/accents",
+          url: "/user/laboratory/listening/accents",
           icon: Globe,
         },
         {
           title: "Meu Progresso",
-          url: "/user/listening/progress",
+          url: "/user/laboratory/listening/progress",
           icon: TrendingUp,
         },
       ],
@@ -250,13 +250,13 @@ const navLinks = {
   teacher: [
     {
       title: "Dashboard",
-      url: "/teacher/courses",
+      url: "/teacher/dashboard",
       icon: LayoutDashboard,
       isActive: true,
       items: [
         {
           title: "Visão Geral",
-          url: "/teacher/courses",
+          url: "/teacher/dashboard",
         },
       ],
     },
@@ -286,7 +286,7 @@ const navLinks = {
     },
     {
       title: "Perfil",
-      url: "Perfil",
+      url: "/teacher/profile",
       icon:  User,
       isActive: true,
       items: [
@@ -433,6 +433,72 @@ const navLinks = {
   ],
 };
 
+// Função utilitária para determinar se um link está ativo
+const isLinkActive = (currentPath: string, linkUrl: string): boolean => {
+  // 1. Match exato sempre tem prioridade máxima
+  if (currentPath === linkUrl) return true;
+  
+  // 2. URLs específicas primeiro (mais específico vence)
+  // Ordenar por especificidade (URLs mais longas primeiro)
+  const specificRoutes = [
+    "/user/courses/explore",
+    "/user/laboratory/learn/shop",
+    "/user/laboratory/speaking/practice",
+    "/user/laboratory/speaking/pronunciation", 
+    "/user/laboratory/speaking/progress",
+    "/user/laboratory/speaking/achievements",
+    "/user/laboratory/listening/practice",
+    "/user/laboratory/listening/dictation",
+    "/user/laboratory/listening/accents",
+    "/user/laboratory/listening/progress",
+    "/teacher/laboratory/create-course",
+    "/teacher/laboratory/manage-courses",
+    "/teacher/laboratory/lesson-constructor",
+    "/teacher/laboratory/challenge-constructor",
+    "/teacher/laboratory/analytics",
+    "/admin/subscriptions/plans",
+    "/admin/subscriptions/users",
+    "/admin/subscriptions/reports",
+    "/admin/subscriptions/promo-codes",
+    "/admin/cms/landing"
+  ];
+  
+  // Verificar rotas específicas primeiro
+  for (const route of specificRoutes) {
+    if (linkUrl === route && currentPath === route) {
+      return true;
+    }
+  }
+  
+  // 3. Rotas que permitem sub-paths (menos específicas)
+  const parentRoutes = [
+    "/user/courses",
+    "/teacher/courses",
+    "/admin/courses", 
+    "/user/laboratory/learn",
+    "/teacher/laboratory",
+    "/admin/users",
+    "/admin/subscriptions",
+    "/admin/cms",
+    "/user/laboratory/speaking",
+    "/user/laboratory/listening",
+    "/user/laboratory"
+  ];
+  
+  // Verificar se é uma rota pai que deve ativar com sub-paths
+  if (parentRoutes.includes(linkUrl)) {
+    // Exclusões específicas
+    if (linkUrl === "/user/courses" && currentPath.includes("/explore")) return false;
+    if (linkUrl === "/teacher/courses" && currentPath.includes("/explore")) return false;
+    
+    // Ativar se o path atual começa com o URL do link + "/"
+    if (currentPath.startsWith(linkUrl + "/")) return true;
+  }
+  
+  // 4. Para todos os outros, apenas match exato
+  return false;
+};
+
 const AppSidebar = React.memo(() => {
   const { user, isAuthenticated, isLoading, logout } = useDjangoAuth();
   const pathname = usePathname();
@@ -486,8 +552,38 @@ const AppSidebar = React.memo(() => {
                   </CollapsibleTrigger>
                   <CollapsibleContent>
                     <SidebarMenuSub className="ml-4 border-l border-violet-900/20">
-                      {item.items?.map((subItem) => {
-                         const isActive = pathname.startsWith(subItem.url);
+                      {item.items?.map((subItem, index) => {
+                         // Calcular se este link deve estar ativo
+                         const isActive = (() => {
+                           // Se todos os outros links da mesma seção não são ativos, verificar este
+                           const allLinksInSection = item.items || [];
+                           
+                           // Encontrar o melhor match (mais específico primeiro)
+                           let bestMatch = null;
+                           let bestMatchLength = 0;
+                           
+                           for (const link of allLinksInSection) {
+                             if (pathname === link.url) {
+                               // Match exato tem prioridade máxima
+                               bestMatch = link;
+                               break;
+                             } else if (pathname.startsWith(link.url + "/")) {
+                               // Match com sub-path, o mais longo vence
+                               if (link.url.length > bestMatchLength) {
+                                 bestMatch = link;
+                                 bestMatchLength = link.url.length;
+                               }
+                             }
+                           }
+                           
+                           return bestMatch?.url === subItem.url;
+                         })();
+                         
+                         // Debug temporário
+                         if (process.env.NODE_ENV === 'development') {
+                           console.log(`Link: ${subItem.title} (${subItem.url}) | Current: ${pathname} | Active: ${isActive}`);
+                         }
+                         
                           return (
                             <SidebarMenuSubItem key={subItem.title} className="pl-4 py-1">
                               <SidebarMenuSubButton 

@@ -30,7 +30,7 @@ export const CoursesList = ({ courses, activeCourseId }: Props) => {
 
     if (courseId === activeCourseId) {
       // If clicking on the already active course, go to practice
-      return router.push("/user/laboratory");
+      return router.push("/user/laboratory/learn");
     }
 
     // Update user's active course
@@ -41,7 +41,7 @@ export const CoursesList = ({ courses, activeCourseId }: Props) => {
         .unwrap()
         .then(() => {
           toast.success("Course selected successfully!");
-          router.push("/user/laboratory");
+          router.push("/user/laboratory/learn");
         })
         .catch(() => {
           toast.error("Failed to select course. Please try again.");

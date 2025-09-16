@@ -145,7 +145,7 @@ function getDefaultRedirect(role: string): string {
       return '/teacher/courses';
     case 'student':
     default:
-      return '/user/learn';
+      return '/user/courses/explore';
   }
 }
 

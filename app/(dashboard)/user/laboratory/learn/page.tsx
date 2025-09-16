@@ -68,13 +68,13 @@ const LearnPage = () => {
         
         if (!userProgressData) {
           console.warn('No user progress data, redirecting to courses');
-          router.push("/user/learn/courses");
+          router.push("/user/laboratory/learn/courses");
           return;
         }
 
         if (!userProgressData.active_course) {
           console.warn('No active course, redirecting to courses');
-          router.push("/user/learn/courses");
+          router.push("/user/laboratory/learn/courses");
           return;
         }
 
@@ -115,7 +115,7 @@ const LearnPage = () => {
         } else {
           console.warn('General error, redirecting to courses');
           setError('Failed to load course data. Redirecting to courses...');
-          setTimeout(() => router.push("/user/learn/courses"), 2000);
+          setTimeout(() => router.push("/user/laboratory/learn/courses"), 2000);
         }
       } finally {
         setIsLoading(false);
@@ -362,7 +362,7 @@ const LearnPage = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => router.push('/user/learn/shop')}
+                    onClick={() => router.push('/user/laboratory/learn/shop')}
                     className="w-full justify-start text-customgreys-dirtyGrey hover:text-white hover:bg-red-500/10 hover:border-red-500/20 border border-transparent transition-all duration-200 group"
                   >
                     <div className="bg-red-500/20 rounded-lg p-1 mr-3 group-hover:bg-red-500/30 transition-colors duration-200">
@@ -373,7 +373,7 @@ const LearnPage = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => router.push('/user/achievements')}
+                    onClick={() => router.push('/user/laboratory/achievements')}
                     className="w-full justify-start text-customgreys-dirtyGrey hover:text-white hover:bg-yellow-500/10 hover:border-yellow-500/20 border border-transparent transition-all duration-200 group"
                   >
                     <div className="bg-yellow-500/20 rounded-lg p-1 mr-3 group-hover:bg-yellow-500/30 transition-colors duration-200">
@@ -384,7 +384,7 @@ const LearnPage = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => router.push('/user/leaderboard')}
+                    onClick={() => router.push('/user/laboratory/leaderboard')}
                     className="w-full justify-start text-customgreys-dirtyGrey hover:text-white hover:bg-purple-500/10 hover:border-purple-500/20 border border-transparent transition-all duration-200 group"
                   >
                     <div className="bg-purple-500/20 rounded-lg p-1 mr-3 group-hover:bg-purple-500/30 transition-colors duration-200">
@@ -482,7 +482,7 @@ const LearnPage = () => {
                   
                   <div className="flex flex-col sm:flex-row gap-3">
                     <Button
-                      onClick={() => router.push('/user/learn/courses')}
+                      onClick={() => router.push('/user/laboratory/learn/courses')}
                       className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
                     >
                       <BookOpen className="w-4 h-4 mr-2" />

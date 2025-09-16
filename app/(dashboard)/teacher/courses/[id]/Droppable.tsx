@@ -116,11 +116,11 @@ export default function DroppableComponent() {
                           })
                         )
                       }
-                      className="border-none text-violet-800 group"
+                      className="group bg-customgreys-darkGrey/50 hover:bg-violet-600 border border-violet-900/30 hover:border-violet-500 text-gray-300 hover:text-white font-medium rounded-lg transition-all duration-200 px-4 py-2 flex items-center gap-2"
                     >
-                      <Plus className="mr-1 h-4 w-4 text-violet-800" />
-                      <span className="text-violet-800">
-                      Adicionar capítulo
+                      <Plus className="h-4 w-4 group-hover:rotate-90 transition-transform duration-200" />
+                      <span className="text-sm">
+                        Adicionar capítulo
                       </span>
                     </Button>
                   </div>
@@ -154,24 +154,26 @@ const SectionHeader = ({
             <GripVertical className="h-6 w-6 mb-1 text-violet-800" />
             <h3 className="text-lg font-medium text-white">{section.sectionTitle}</h3>
           </div>
-          <div className="flex items-center gap-[1px]">
+          <div className="flex items-center gap-2">
             <Button
               type="button"
               variant="ghost"
               size="sm"
-              className="p-0 text-white"
+              className="w-8 h-8 bg-customgreys-darkGrey/50 hover:bg-violet-600 border border-violet-900/30 hover:border-violet-500 text-gray-300 hover:text-white rounded-lg transition-all duration-200 flex items-center justify-center"
               onClick={() => dispatch(openSectionModal({ sectionIndex }))}
+              title="Editar seção"
             >
-              <Edit className="h-5 w-5" />
+              <Edit className="h-4 w-4" />
             </Button>
             <Button
               type="button"
               variant="ghost"
               size="sm"
-              className="p-0 text-white"
+              className="w-8 h-8 bg-customgreys-darkGrey/50 hover:bg-red-600 border border-violet-900/30 hover:border-red-500 text-gray-300 hover:text-white rounded-lg transition-all duration-200 flex items-center justify-center"
               onClick={() => dispatch(deleteSection(sectionIndex))}
+              title="Deletar seção"
             >
-              <Trash2 className="h-5 w-5" />
+              <Trash2 className="h-4 w-4" />
             </Button>
           </div>
         </div>
@@ -213,12 +215,12 @@ const ChapterItem = ({
         <GripVertical className="h-4 w-4 mb-[2px] text-white" />
         <p className="text-sm text-white">{`${chapterIndex + 1}. ${chapter.title}`}</p>
       </div>
-      <div className="flex items-center gap-[1px]">
+      <div className="flex items-center gap-2">
         <Button
           type="button"
           variant="ghost"
           size="sm"
-          className="p-1 text-white"
+          className="w-7 h-7 bg-customgreys-darkGrey/50 hover:bg-violet-600 border border-violet-900/30 hover:border-violet-500 text-gray-300 hover:text-white rounded-lg transition-all duration-200 flex items-center justify-center"
           onClick={() =>
             dispatch(
               openChapterModal({
@@ -227,14 +229,15 @@ const ChapterItem = ({
               })
             )
           }
+          title="Editar capítulo"
         >
-          <Edit className="h-4 w-4" />
+          <Edit className="h-3 w-3" />
         </Button>
         <Button
           type="button"
           variant="ghost"
           size="sm"
-          className="p-1 text-white"
+          className="w-7 h-7 bg-customgreys-darkGrey/50 hover:bg-red-600 border border-violet-900/30 hover:border-red-500 text-gray-300 hover:text-white rounded-lg transition-all duration-200 flex items-center justify-center"
           onClick={() =>
             dispatch(
               deleteChapter({
@@ -243,8 +246,9 @@ const ChapterItem = ({
               })
             )
           }
+          title="Deletar capítulo"
         >
-          <Trash2 className="h-4 w-4 " />
+          <Trash2 className="h-3 w-3" />
         </Button>
       </div>
     </div>

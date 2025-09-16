@@ -23,18 +23,24 @@ import {
   useGetChapterQuizQuery,
   useCreateChapterQuizMutation,
   useDeleteChapterQuizMutation,
+  useGetVideoUploadUrlMutation,
 } from "@/redux/features/api/coursesApiSlice";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { X, BookOpen, FileText, Brain, Plus, Trash2, ExternalLink, Upload } from "lucide-react";
+import { X, BookOpen, FileText, Brain, Plus, Trash2, ExternalLink, Upload, Zap, Target, CheckCircle, Save } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
+import { useParams } from "next/navigation";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 
 const ChapterModal = () => {
   const dispatch = useAppDispatch();
+  const params = useParams();
+  const courseId = params.id as string;
   const [activeTab, setActiveTab] = useState("basic");
   const [isLoadingExistingData, setIsLoadingExistingData] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   
   const {
     isChapterModalOpen,
@@ -68,6 +74,7 @@ const ChapterModal = () => {
   const [createResource] = useCreateChapterResourceMutation();
   const [createQuiz] = useCreateChapterQuizMutation();
   const [deleteQuiz] = useDeleteChapterQuizMutation();
+  const [getVideoUploadUrl] = useGetVideoUploadUrlMutation();
 
   const methods = useForm<ChapterFormData>({
     resolver: zodResolver(chapterSchema),
@@ -178,12 +185,47 @@ const ChapterModal = () => {
   };
 
   const onSubmit = async (data: ChapterFormData) => {
+    console.log('🔥 Form submitted with data:', data);
     if (selectedSectionIndex === null) return;
 
+    setIsSubmitting(true);
+    setUploadProgress(0);
+
     try {
+      // Filter out empty resources before processing
+      const filteredResources = data.resources_data?.filter(resource => 
+        resource.title && resource.title.trim() !== ""
+      ) || [];
+      
+      data.resources_data = filteredResources;
+
+      // Clear quiz data if quiz is not enabled
+      if (!data.quiz_enabled) {
+        data.quiz_data = undefined;
+        data.practice_lesson = "";
+      }
+
+      // Handle video upload if there's a new video file
+      let finalVideoUrl = data.video;
+      if (data.video instanceof File && selectedSectionIndex !== null) {
+        const currentSection = sections[selectedSectionIndex];
+        const sectionId = currentSection?.sectionId;
+        const chapterId = chapter?.chapterId || uuidv4();
+        
+        if (courseId && sectionId) {
+          try {
+            finalVideoUrl = await uploadVideoToS3(data.video, courseId, sectionId, chapterId);
+          } catch (error) {
+            // If video upload fails, we still create the chapter but without video
+            console.error('Video upload failed, creating chapter without video:', error);
+            finalVideoUrl = undefined;
+          }
+        }
+      }
+
       // Determine chapter type based on content
       let chapterType: "Text" | "Quiz" | "Video" = "Text";
-      if (data.video) chapterType = "Video";
+      if (finalVideoUrl) chapterType = "Video";
       if (data.quiz_enabled) chapterType = "Quiz";
 
       const newChapter: Chapter = {
@@ -191,7 +233,7 @@ const ChapterModal = () => {
         title: data.title,
         content: data.content,
         type: chapterType,
-        video: data.video,
+        video: finalVideoUrl,
         
         // 🆕 PHASE 1 BRIDGE - Include new fields
         transcript: data.transcript,
@@ -286,20 +328,91 @@ const ChapterModal = () => {
         }
       }
 
-      // Success message
+      // Success message with better feedback
       const resourcesText = data.resources_data && data.resources_data.length > 0 
         ? `e ${data.resources_data.length} recurso(s) ` 
         : '';
       const quizText = data.quiz_enabled ? 'com quiz interativo ' : '';
       
       toast.success(
-        `Capítulo ${quizText}${resourcesText}${chapter ? 'atualizado' : 'criado'} com sucesso!`
+        `Capítulo ${quizText}${resourcesText}${chapter ? 'atualizado' : 'criado'} com sucesso! Não esqueça de guardar o curso.`
       );
       
+      // Small delay for better UX
+      await new Promise(resolve => setTimeout(resolve, 300));
       onClose();
     } catch (error) {
       console.error('Error saving chapter:', error);
-      toast.error('Erro ao salvar capítulo');
+      toast.error('Erro ao salvar capítulo. Tente novamente.');
+    } finally {
+      setIsSubmitting(false);
+      setUploadProgress(0);
+    }
+  };
+
+  const onError = (errors: any) => {
+    console.log('🚨 Form validation errors:', errors);
+    toast.error('Por favor, corrija os erros no formulário');
+  };
+
+  // Helper function to upload video to S3
+  const uploadVideoToS3 = async (videoFile: File, courseId: string, sectionId: string, chapterId: string): Promise<string> => {
+    try {
+      console.log('🎬 Starting video upload...', { videoFile: videoFile.name });
+      setUploadProgress(10);
+      
+      const uploadPayload = {
+        courseId,
+        sectionId, 
+        chapterId,
+        fileName: videoFile.name,
+        fileType: videoFile.type
+      };
+      
+      console.log('📤 Sending payload:', uploadPayload);
+      
+      // Get presigned URL from Django backend
+      const uploadResponse = await getVideoUploadUrl(uploadPayload).unwrap();
+
+      console.log('✅ Got presigned URL:', uploadResponse);
+      console.log('📍 Request details:', {
+        courseId, sectionId, chapterId, 
+        fileName: videoFile.name, 
+        fileType: videoFile.type
+      });
+
+      const { uploadUrl, videoUrl } = uploadResponse.data;
+      setUploadProgress(30);
+
+      // Upload file to S3 using presigned URL
+      setUploadProgress(50);
+      const uploadToS3Response = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': videoFile.type,
+        },
+        body: videoFile,
+      });
+      setUploadProgress(80);
+
+      if (!uploadToS3Response.ok) {
+        throw new Error(`Upload failed with status: ${uploadToS3Response.status}`);
+      }
+
+      console.log('✅ Video uploaded to S3 successfully');
+      setUploadProgress(100);
+      toast.success(`Vídeo "${videoFile.name}" enviado com sucesso!`);
+
+      return videoUrl;
+    } catch (error: any) {
+      console.error('❌ Video upload failed:', error);
+      console.error('🔍 Error details:', {
+        status: error?.status,
+        data: error?.data,
+        message: error?.data?.message
+      });
+      toast.error(`Erro ao fazer upload do vídeo: ${error?.data?.message || error?.message || 'Erro desconhecido'}`);
+      throw error;
     }
   };
 
@@ -316,60 +429,135 @@ const ChapterModal = () => {
 
   return (
     <CustomModal isOpen={isChapterModalOpen} onClose={onClose}>
-      <div className="flex flex-col max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-white">
-            {chapter ? 'Editar Capítulo' : 'Criar Capítulo'}
-            {(isLoadingExistingData || resourcesLoading || quizLoading) && (
-              <span className="ml-2 text-sm text-gray-400 animate-pulse">
-                Carregando dados...
-              </span>
-            )}
-          </h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
-            <X className="w-6 h-6" />
-          </button>
+      <div className="flex flex-col max-w-4xl mx-auto relative bg-customgreys-secondarybg border-customgreys-darkerGrey rounded-lg overflow-hidden">
+        {/* Modern Header */}
+        <div className="relative bg-customgreys-primarybg/40 backdrop-blur-sm border-b border-violet-900/30 p-6">
+          {/* Background Effects */}
+          <div className="absolute inset-0 bg-gradient-to-r from-violet-500/5 to-purple-500/5" />
+          <div className="absolute inset-0 opacity-[0.02] pointer-events-none">
+            <div className="h-full w-full bg-[linear-gradient(rgba(139,92,246,.1)_1px,transparent_1px),linear-gradient(90deg,rgba(139,92,246,.1)_1px,transparent_1px)] bg-[size:4rem_4rem]" />
+          </div>
+          
+          <div className="relative flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                {chapter ? (
+                  <BookOpen className="w-5 h-5 text-white" />
+                ) : (
+                  <Plus className="w-5 h-5 text-white" />
+                )}
+              </div>
+              <div>
+                <h2 className="text-xl lg:text-2xl font-bold bg-gradient-to-r from-white via-purple-200 to-cyan-200 bg-clip-text text-transparent">
+                  {chapter ? '✏️ Editar Capítulo' : '🎆 Criar Capítulo'}
+                </h2>
+                <div className="flex items-center gap-2 text-sm text-white/60">
+                  <span className="hidden sm:block">Configure conteúdo, recursos e quizzes</span>
+                  <span className="sm:hidden">Configure capítulo</span>
+                  {(isLoadingExistingData || resourcesLoading || quizLoading) && (
+                    <>
+                      <span className="w-1 h-1 bg-violet-400 rounded-full animate-pulse"></span>
+                      <span className="animate-pulse">Carregando...</span>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+            
+            <button 
+              onClick={onClose} 
+              disabled={isSubmitting}
+              className="group w-10 h-10 bg-white/10 hover:bg-red-500/20 border border-white/20 hover:border-red-400/50 rounded-lg flex items-center justify-center transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <X className="w-5 h-5 text-white/70 group-hover:text-red-400 transition-colors duration-300" />
+            </button>
+          </div>
         </div>
 
-        <Form {...methods}>
-          <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-6">
+        {/* Loading State Overlay */}
+        {isSubmitting && (
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center rounded-lg">
+            <div className="bg-customgreys-secondarybg border border-violet-900/30 rounded-lg p-6 max-w-sm mx-4">
+              <div className="text-center space-y-4">
+                <div className="w-12 h-12 bg-violet-600 rounded-full flex items-center justify-center mx-auto">
+                  <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                </div>
+                <div>
+                  <h3 className="text-white font-medium mb-1">
+                    {uploadProgress > 0 ? 'Fazendo upload do vídeo...' : 'Salvando capítulo...'}
+                  </h3>
+                  <p className="text-gray-400 text-sm">
+                    {uploadProgress > 0 ? 'Aguarde enquanto processamos o vídeo' : 'Configurando recursos e quizzes'}
+                  </p>
+                </div>
+                {uploadProgress > 0 && (
+                  <div className="space-y-2">
+                    <div className="w-full bg-violet-900/30 rounded-full h-2">
+                      <div 
+                        className="bg-violet-500 h-2 rounded-full transition-all duration-500" 
+                        style={{width: `${uploadProgress}%`}}
+                      ></div>
+                    </div>
+                    <p className="text-xs text-violet-400">{uploadProgress}% concluído</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Main Content */}
+        <div className="p-4 lg:p-6 bg-customgreys-primarybg/40 backdrop-blur-sm">
+          <Form {...methods}>
+            <form onSubmit={methods.handleSubmit(onSubmit, onError)} className="space-y-4 lg:space-y-6">
             
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-4 bg-customgreys-darkGrey">
-                <TabsTrigger value="basic" className="flex items-center gap-2 text-white data-[state=active]:bg-violet-600">
-                  <BookOpen className="w-4 h-4" />
-                  Básico
-                </TabsTrigger>
-                <TabsTrigger value="resources" className="flex items-center gap-2 text-white data-[state=active]:bg-violet-600">
-                  <FileText className="w-4 h-4" />
-                  Recursos
-                  {resourceFields.length > 0 && (
-                    <span className="ml-1 bg-violet-500 text-xs px-2 py-0.5 rounded-full">
-                      {resourceFields.length}
-                    </span>
-                  )}
-                </TabsTrigger>
-                <TabsTrigger value="quiz" className="flex items-center gap-2 text-white data-[state=active]:bg-violet-600">
-                  <Brain className="w-4 h-4" />
-                  Quiz Interativo
-                  {methods.watch("quiz_enabled") && (
-                    <span className="ml-1 bg-green-500 text-xs px-2 py-0.5 rounded-full">
-                      ✓
-                    </span>
-                  )}
-                </TabsTrigger>
-                
-                {/* 🎮 PHASE 3: PRACTICE LAB TAB */}
-                <TabsTrigger value="practice" className="flex items-center gap-2 text-white data-[state=active]:bg-emerald-600">
-                  <Zap className="w-4 h-4" />
-                  Prática Lab
-                  {chapter?.practice_lesson && (
-                    <span className="ml-1 bg-emerald-500 text-xs px-2 py-0.5 rounded-full">
-                      ✓
-                    </span>
-                  )}
-                </TabsTrigger>
-              </TabsList>
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <TabsList className="grid w-full grid-cols-4 bg-customgreys-darkGrey/50 border border-violet-900/30 rounded-lg p-1">
+                  <TabsTrigger 
+                    value="basic" 
+                    className="flex items-center gap-1 lg:gap-2 text-gray-400 data-[state=active]:bg-violet-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:text-white transition-all duration-200 rounded-lg text-xs lg:text-sm"
+                  >
+                    <BookOpen className="w-3 h-3 lg:w-4 lg:h-4" />
+                    <span className="hidden sm:inline">Básico</span>
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="resources" 
+                    className="flex items-center gap-1 lg:gap-2 text-gray-400 data-[state=active]:bg-violet-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:text-white transition-all duration-200 rounded-lg text-xs lg:text-sm"
+                  >
+                    <FileText className="w-3 h-3 lg:w-4 lg:h-4" />
+                    <span className="hidden sm:inline">Recursos</span>
+                    {resourceFields.length > 0 && (
+                      <span className="ml-1 bg-blue-400 text-xs px-1.5 py-0.5 rounded-full min-w-[16px] h-4 flex items-center justify-center text-white font-bold">
+                        {resourceFields.length}
+                      </span>
+                    )}
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="quiz" 
+                    className="flex items-center gap-1 lg:gap-2 text-gray-400 data-[state=active]:bg-violet-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:text-white transition-all duration-200 rounded-lg text-xs lg:text-sm"
+                  >
+                    <Brain className="w-3 h-3 lg:w-4 lg:h-4" />
+                    <span className="hidden sm:inline">Quiz</span>
+                    {methods.watch("quiz_enabled") && (
+                      <span className="ml-1 bg-emerald-400 text-xs px-1.5 py-0.5 rounded-full w-4 h-4 flex items-center justify-center text-white font-bold">
+                        ✓
+                      </span>
+                    )}
+                  </TabsTrigger>
+                  
+                  <TabsTrigger 
+                    value="practice" 
+                    className="flex items-center gap-1 lg:gap-2 text-gray-400 data-[state=active]:bg-violet-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:text-white transition-all duration-200 rounded-lg text-xs lg:text-sm"
+                  >
+                    <Zap className="w-3 h-3 lg:w-4 lg:h-4" />
+                    <span className="hidden sm:inline">Lab</span>
+                    {chapter?.practice_lesson && (
+                      <span className="ml-1 bg-amber-400 text-xs px-1.5 py-0.5 rounded-full w-4 h-4 flex items-center justify-center text-white font-bold">
+                        ✓
+                      </span>
+                    )}
+                  </TabsTrigger>
+                </TabsList>
 
               {/* Tab Content - Básico */}
               <TabsContent value="basic" className="space-y-4">
@@ -876,19 +1064,44 @@ const ChapterModal = () => {
               </TabsContent>
             </Tabs>
 
-            <div className="flex justify-end space-x-3 mt-8 pt-6 border-t border-gray-600">
-              <Button type="button" variant="outline" onClick={onClose} className="text-white border-gray-600">
-                Cancelar
-              </Button>
-              <Button 
-                type="submit" 
-                className="bg-violet-600 hover:bg-violet-700 text-white"
-              >
-                {chapter ? 'Atualizar Capítulo' : 'Criar Capítulo'}
-              </Button>
-            </div>
-          </form>
-        </Form>
+              {/* Modern Action Buttons */}
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pt-4 lg:pt-6 border-t border-violet-900/30 mt-6 lg:mt-8 gap-4">
+                <div className="px-3 py-2 bg-customgreys-darkGrey/50 border border-violet-900/30 rounded-lg">
+                  <p className="text-white/60 text-xs lg:text-sm font-medium">
+                    {chapter ? '✏️ Alterações no capítulo existente' : '🎆 Novo capítulo na seção'}
+                  </p>
+                </div>
+                
+                <div className="flex items-center space-x-3 w-full sm:w-auto">
+                  <Button 
+                    type="button" 
+                    onClick={onClose}
+                    disabled={isSubmitting}
+                    className="w-12 h-12 bg-customgreys-darkGrey/50 hover:bg-customgreys-darkGrey border border-violet-900/30 hover:border-violet-500 text-gray-300 hover:text-white font-semibold rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                    title="Cancelar"
+                  >
+                    <X className="w-5 h-5" />
+                  </Button>
+                  
+                  <Button 
+                    type="submit" 
+                    disabled={isSubmitting}
+                    className="w-12 h-12 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                    title={chapter ? 'Atualizar Capítulo' : 'Criar Capítulo'}
+                  >
+                    {isSubmitting ? (
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    ) : chapter ? (
+                      <Save className="w-5 h-5" />
+                    ) : (
+                      <Plus className="w-5 h-5" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </form>
+          </Form>
+        </div>
       </div>
     </CustomModal>
   );

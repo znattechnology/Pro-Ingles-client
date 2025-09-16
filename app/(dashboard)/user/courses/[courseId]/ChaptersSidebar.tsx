@@ -52,27 +52,32 @@ const ChaptersSidebar = () => {
   };
 
   return (
-    <div ref={sidebarRef} className="bg-customgreys-secondarybg  text-white/70 border-x border-gray-700 overflow-y-auto transition-all duration-500 ease-in-out animate-in fade-in slide-in-from-left flex-shrink-0">
-      <div className="text-white">
+    <div ref={sidebarRef} className="bg-customgreys-secondarybg text-white/70 border-x border-gray-700 transition-all duration-500 ease-in-out animate-in fade-in slide-in-from-left flex-shrink-0 h-screen flex flex-col">
+      {/* Fixed Header */}
+      <div className="text-white flex-shrink-0">
         <h2 className="text-lg font-bold pt-9 pb-6 px-8">{course.title}</h2>
-        <hr className=" border-gray-700" />
+        <hr className="border-gray-700" />
       </div>
-      {course.sections.map((section, index) => (
-        <Section
-          key={section.sectionId}
-          section={section}
-          index={index}
-          sectionProgress={userProgress.sections.find(
-            (s) => s.sectionId === section.sectionId
-          )}
-          chapterId={chapterId as string}
-          courseId={courseId as string}
-          expandedSections={expandedSections}
-          toggleSection={toggleSection}
-          handleChapterClick={handleChapterClick}
-          updateChapterProgress={updateChapterProgress}
-        />
-      ))}
+      
+      {/* Scrollable Content */}
+      <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin">
+        {course.sections?.map((section, index) => (
+          <Section
+            key={section.sectionId}
+            section={section}
+            index={index}
+            sectionProgress={userProgress.sections.find(
+              (s) => s.sectionId === section.sectionId
+            )}
+            chapterId={chapterId as string}
+            courseId={courseId as string}
+            expandedSections={expandedSections}
+            toggleSection={toggleSection}
+            handleChapterClick={handleChapterClick}
+            updateChapterProgress={updateChapterProgress}
+          />
+        ))}
+      </div>
     </div>
   );
 };
@@ -111,7 +116,7 @@ const Section = ({
     <div className="min-w-[300px]">
       <div
         onClick={() => toggleSection(section.sectionTitle)}
-        className="cursor-pointer px-8 py-6 hover:bg-gray-700/50"
+        className="cursor-pointer px-8 py-3 hover:bg-gray-700/50"
       >
         <div className="flex justify-between items-center">
           <p className="text-white/70 text-sm">
@@ -130,7 +135,7 @@ const Section = ({
       <hr className="border-gray-700" />
 
       {isExpanded && (
-        <div className="pt-8 pb-8 bg-customgreys-primarybg">
+        <div className="pt-4 pb-4 bg-customgreys-primarybg">
           <ProgressVisuals
             section={section}
             sectionProgress={sectionProgress}
@@ -268,7 +273,7 @@ const Chapter = ({
 
   return (
     <li
-      className={cn("flex gap-3 items-center px-7 py-4 text-gray-300 cursor-pointer hover:bg-gray-700/20", {
+      className={cn("flex gap-3 items-center px-7 py-2 text-gray-300 cursor-pointer hover:bg-gray-700/20", {
         "bg-gray-700/50": isCurrentChapter,
       })}
       onClick={() => handleChapterClick(sectionId, chapter.chapterId)}

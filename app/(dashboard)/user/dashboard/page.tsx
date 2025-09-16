@@ -291,7 +291,7 @@ export default function StudentDashboard() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => router.push('/user/learn/courses')}
+                  onClick={() => router.push('/user/laboratory/learn/courses')}
                   className="text-violet-400 hover:text-violet-300"
                 >
                   Ver todos
@@ -304,7 +304,7 @@ export default function StudentDashboard() {
                 <div 
                   key={course.id}
                   className="bg-customgreys-primarybg rounded-lg p-4 border border-customgreys-darkerGrey hover:border-violet-500/50 transition-colors cursor-pointer"
-                  onClick={() => router.push('/user/learn')}
+                  onClick={() => router.push('/user/laboratory/learn')}
                 >
                   <div className="flex items-center justify-between mb-3">
                     <div>
@@ -379,7 +379,7 @@ export default function StudentDashboard() {
             </CardHeader>
             <CardContent className="space-y-3">
               <Button
-                onClick={() => router.push('/user/learn')}
+                onClick={() => router.push('/user/laboratory/learn')}
                 className="w-full bg-violet-600 hover:bg-violet-700 text-white justify-start h-12"
               >
                 <PlayCircle className="w-5 h-5 mr-3" />
@@ -387,7 +387,7 @@ export default function StudentDashboard() {
               </Button>
               
               <Button
-                onClick={() => router.push('/user/learn/shop')}
+                onClick={() => router.push('/user/laboratory/learn/shop')}
                 variant="outline"
                 className="w-full bg-customgreys-primarybg border-customgreys-darkerGrey text-white hover:bg-customgreys-darkerGrey justify-start h-12"
               >
@@ -396,7 +396,7 @@ export default function StudentDashboard() {
               </Button>
               
               <Button
-                onClick={() => router.push('/user/achievements')}
+                onClick={() => router.push('/user/laboratory/achievements')}
                 variant="outline"
                 className="w-full bg-customgreys-primarybg border-customgreys-darkerGrey text-white hover:bg-customgreys-darkerGrey justify-start h-12"
               >
@@ -405,7 +405,7 @@ export default function StudentDashboard() {
               </Button>
               
               <Button
-                onClick={() => router.push('/user/leaderboard')}
+                onClick={() => router.push('/user/laboratory/leaderboard')}
                 variant="outline"
                 className="w-full bg-customgreys-primarybg border-customgreys-darkerGrey text-white hover:bg-customgreys-darkerGrey justify-start h-12"
               >
@@ -429,7 +429,7 @@ export default function StudentDashboard() {
                   Continue sua sequência hoje para ganhar pontos extras
                 </p>
                 <Button
-                  onClick={() => router.push('/user/learn')}
+                  onClick={() => router.push('/user/laboratory/learn')}
                   className="bg-orange-500 hover:bg-orange-600 text-white"
                 >
                   <Zap className="w-4 h-4 mr-2" />
@@ -503,7 +503,7 @@ export default function StudentDashboard() {
                   Você está em #{userStats?.rank} de {userStats?.totalUsers} estudantes
                 </p>
                 <Button
-                  onClick={() => router.push('/user/leaderboard')}
+                  onClick={() => router.push('/user/laboratory/leaderboard')}
                   variant="outline"
                   className="bg-purple-500/20 border-purple-500 text-purple-300 hover:bg-purple-500/30"
                 >

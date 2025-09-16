@@ -127,7 +127,7 @@ export default function ConversationPractice() {
     setIsSessionActive(false);
     setIsRecording(false);
     // Show session summary or redirect
-    router.push('/user/speaking/progress');
+    router.push('/user/laboratory/speaking/progress');
   };
 
   const handleStartRecording = () => {

@@ -15,26 +15,13 @@ import { useDjangoAuth } from '@/hooks/useDjangoAuth';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   Search, 
-  Filter, 
   Trophy, 
-  ArrowLeft,
-  Globe,
-  Briefcase,
-  Code,
-  Stethoscope,
-  Scale,
-  PlayCircle,
-  Users,
-  Star,
-  TrendingUp,
-  BookOpen,
-  Clock,
-  DollarSign,
-  SortAsc,
   Grid3X3,
-  List as ListIcon
+  List as ListIcon,
+  Filter
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -103,11 +90,6 @@ const LearnCourse = () => {
     return filtered;
   }, [courses, searchTerm, selectedLevel, selectedTemplate, sortBy]);
 
-  const courseStats = {
-    total: courses.length,
-    completed: 0, // TODO: Get from user progress API
-    available: courses.filter((course: any) => course.status === 'Published').length
-  };
 
 
   if (isLoading) {
@@ -143,133 +125,57 @@ const LearnCourse = () => {
           <div className="h-full w-full bg-[linear-gradient(rgba(139,92,246,.1)_1px,transparent_1px),linear-gradient(90deg,rgba(139,92,246,.1)_1px,transparent_1px)] bg-[size:4rem_4rem]" />
         </div>
         
-        <div className='relative max-w-7xl mx-auto px-6 py-12'>
-          <div className='flex items-center gap-4 mb-8'>
-            <Button
-              variant="ghost"
-              onClick={() => router.push('/user/courses')}
-              className="text-gray-400 hover:text-white hover:bg-violet-800/20 transition-all duration-200 rounded-lg"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Meus Cursos
-            </Button>
-            <div className="h-4 w-px bg-violet-900/30" />
-            <span className="text-gray-400 text-sm">Explorar Cursos</span>
-          </div>
+        <div className='relative max-w-7xl mx-auto px-6 py-8'>
           
-          <div className='text-center mb-8'>
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <div className="bg-gradient-to-r from-violet-500 to-purple-600 rounded-xl p-3 shadow-lg">
-                <PlayCircle className="w-8 h-8 text-white" />
-              </div>
-              <h1 className='text-4xl md:text-5xl font-bold bg-gradient-to-r from-white via-gray-200 to-gray-300 bg-clip-text text-transparent'>
-                Explorar Cursos
-              </h1>
+          {/* Compact Search and Filters */}
+          <div className='bg-customgreys-primarybg/40 backdrop-blur-sm rounded-lg border border-violet-900/30 p-4 mb-4'>
+            {/* Search Bar */}
+            <div className='relative mb-3'>
+              <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400' />
+              <Input
+                type="text"
+                placeholder="Pesquisar cursos..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className='pl-10 h-10 bg-customgreys-darkGrey/50 border-violet-900/30 text-white placeholder:text-gray-400 focus:border-violet-500 focus:ring-1 focus:ring-violet-500/20 transition-all duration-200 rounded-md text-sm'
+              />
             </div>
-            <p className='text-gray-300 text-lg max-w-2xl mx-auto leading-relaxed'>
-              Descubra nosso catálogo completo de cursos em vídeo. Inscreva-se e comece sua 
-              jornada de aprendizado com professores especializados.
-            </p>
-          </div>
-          
-          {/* Enhanced Course Stats */}
-          <div className='grid grid-cols-1 md:grid-cols-4 gap-6 mb-8'>
-            <Card className='bg-customgreys-primarybg/60 backdrop-blur-sm border-violet-900/30 hover:border-blue-500/50 transition-all duration-300 group'>
-              <CardContent className='p-6 text-center'>
-                <div className='bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-3 w-fit mx-auto mb-4 group-hover:scale-110 transition-transform duration-200 shadow-lg'>
-                  <PlayCircle className='h-6 w-6 text-white' />
-                </div>
-                <p className='text-sm text-gray-400 mb-1'>Cursos Disponíveis</p>
-                <p className='text-3xl font-bold text-white'>{courseStats.available}</p>
-              </CardContent>
-            </Card>
             
-            <Card className='bg-customgreys-primarybg/60 backdrop-blur-sm border-violet-900/30 hover:border-green-500/50 transition-all duration-300 group'>
-              <CardContent className='p-6 text-center'>
-                <div className='bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl p-3 w-fit mx-auto mb-4 group-hover:scale-110 transition-transform duration-200 shadow-lg'>
-                  <Users className='h-6 w-6 text-white' />
-                </div>
-                <p className='text-sm text-gray-400 mb-1'>Estudantes Ativos</p>
-                <p className='text-3xl font-bold text-white'>2.5k+</p>
-              </CardContent>
-            </Card>
-            
-            <Card className='bg-customgreys-primarybg/60 backdrop-blur-sm border-violet-900/30 hover:border-yellow-500/50 transition-all duration-300 group'>
-              <CardContent className='p-6 text-center'>
-                <div className='bg-gradient-to-br from-yellow-500 to-orange-600 rounded-xl p-3 w-fit mx-auto mb-4 group-hover:scale-110 transition-transform duration-200 shadow-lg'>
-                  <Star className='h-6 w-6 text-white' />
-                </div>
-                <p className='text-sm text-gray-400 mb-1'>Avaliação Média</p>
-                <p className='text-3xl font-bold text-white'>4.8</p>
-              </CardContent>
-            </Card>
-            
-            <Card className='bg-customgreys-primarybg/60 backdrop-blur-sm border-violet-900/30 hover:border-purple-500/50 transition-all duration-300 group'>
-              <CardContent className='p-6 text-center'>
-                <div className='bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl p-3 w-fit mx-auto mb-4 group-hover:scale-110 transition-transform duration-200 shadow-lg'>
-                  <TrendingUp className='h-6 w-6 text-white' />
-                </div>
-                <p className='text-sm text-gray-400 mb-1'>Taxa de Conclusão</p>
-                <p className='text-3xl font-bold text-white'>87%</p>
-              </CardContent>
-            </Card>
-          </div>
-          
-          {/* Enhanced Search and Filters */}
-          <div className='bg-customgreys-primarybg/40 backdrop-blur-sm rounded-xl border border-violet-900/30 p-6 mb-6'>
-            <div className='flex flex-col lg:flex-row gap-4'>
-              {/* Enhanced Search */}
-              <div className='flex-1 relative'>
-                <Search className='absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400' />
-                <Input
-                  type="text"
-                  placeholder="Pesquisar cursos por nome, nível ou especialidade..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className='pl-12 h-12 bg-customgreys-darkGrey/50 border-violet-900/30 text-white placeholder:text-gray-400 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 transition-all duration-200 rounded-lg text-base'
-                />
-              </div>
-            
-              {/* Level Filter Pills */}
-              <div className='flex flex-wrap gap-2'>
-                <span className='text-sm text-gray-400 flex items-center mr-2'>Nível:</span>
-                {['all', 'Beginner', 'Intermediate', 'Advanced'].map((level) => (
-                  <Button
-                    key={level}
-                    variant={selectedLevel === level ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setSelectedLevel(level)}
-                    className={selectedLevel === level 
-                      ? "bg-gradient-to-r from-violet-600 to-purple-600 text-white border-none shadow-lg" 
-                      : "bg-customgreys-darkGrey/50 border-violet-900/30 text-gray-300 hover:text-white hover:border-violet-500 hover:bg-violet-800/20 transition-all duration-200"
-                    }
-                  >
-                    {level === 'all' ? 'Todos' : level}
-                  </Button>
-                ))}
+            {/* Dropdown Filters */}
+            <div className='flex flex-wrap items-center gap-4 text-sm'>
+              {/* Level Filter Dropdown */}
+              <div className='flex items-center gap-2'>
+                <Filter className='w-4 h-4 text-gray-400' />
+                <span className='text-gray-400'>Nível:</span>
+                <Select value={selectedLevel} onValueChange={setSelectedLevel}>
+                  <SelectTrigger className="w-[140px] h-8 bg-customgreys-darkGrey/50 border-violet-900/30 text-white focus:border-violet-500 focus:ring-1 focus:ring-violet-500/20">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-customgreys-secondarybg border-violet-900/30">
+                    <SelectItem value="all" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20">Todos os Níveis</SelectItem>
+                    <SelectItem value="Beginner" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20">Beginner</SelectItem>
+                    <SelectItem value="Intermediate" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20">Intermediate</SelectItem>
+                    <SelectItem value="Advanced" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20">Advanced</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               
-              {/* Template Filter Pills */}
-              <div className='flex flex-wrap gap-2'>
-                <span className='text-sm text-gray-400 flex items-center mr-2'>Área:</span>
-                {[{id: 'all', name: 'Todas', icon: Filter}, {id: 'general', name: 'Geral', icon: Globe}, {id: 'business', name: 'Negócios', icon: Briefcase}, {id: 'technology', name: 'Tecnologia', icon: Code}, {id: 'medical', name: 'Médico', icon: Stethoscope}, {id: 'legal', name: 'Jurídico', icon: Scale}].map((template) => {
-                  const IconComponent = template.icon;
-                  return (
-                    <Button
-                      key={template.id}
-                      variant={selectedTemplate === template.id ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setSelectedTemplate(template.id)}
-                      className={selectedTemplate === template.id 
-                        ? "bg-gradient-to-r from-violet-600 to-purple-600 text-white border-none shadow-lg" 
-                        : "bg-customgreys-darkGrey/50 border-violet-900/30 text-gray-300 hover:text-white hover:border-violet-500 hover:bg-violet-800/20 transition-all duration-200"
-                      }
-                    >
-                      <IconComponent className='h-3 w-3 mr-1' />
-                      {template.name}
-                    </Button>
-                  );
-                })}
+              {/* Area Filter Dropdown */}
+              <div className='flex items-center gap-2'>
+                <span className='text-gray-400'>Área:</span>
+                <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
+                  <SelectTrigger className="w-[140px] h-8 bg-customgreys-darkGrey/50 border-violet-900/30 text-white focus:border-violet-500 focus:ring-1 focus:ring-violet-500/20">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-customgreys-secondarybg border-violet-900/30">
+                    <SelectItem value="all" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20">Todas as Áreas</SelectItem>
+                    <SelectItem value="general" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20">Inglês Geral</SelectItem>
+                    <SelectItem value="business" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20">Negócios</SelectItem>
+                    <SelectItem value="technology" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20">Tecnologia</SelectItem>
+                    <SelectItem value="medical" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20">Médico</SelectItem>
+                    <SelectItem value="legal" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20">Jurídico</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>

@@ -1,20 +1,12 @@
-import {createApi, fetchBaseQuery} from "@reduxjs/toolkit/query/react";
+import {createApi} from "@reduxjs/toolkit/query/react";
 import { userLoggedIn } from "../auth/authSlice";
+import { createBaseQueryWithReauth } from './baseQueryWithReauth';
 
 const DJANGO_BASE_URL = process.env.NEXT_PUBLIC_DJANGO_API_URL || 'http://localhost:8000/api/v1';
 
 export const apiSlice = createApi({
     reducerPath:"apiSlice",
-    baseQuery: fetchBaseQuery({
-        baseUrl: DJANGO_BASE_URL,
-        prepareHeaders: (headers) => {
-            const token = localStorage.getItem('access_token');
-            if (token) {
-                headers.set('Authorization', `Bearer ${token}`);
-            }
-            return headers;
-        },
-    }),
+    baseQuery: createBaseQueryWithReauth(DJANGO_BASE_URL),
     tagTypes: [
         'User', 
         'Course', 

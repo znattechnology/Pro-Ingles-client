@@ -180,9 +180,9 @@ export const Quiz = ({
       
       {/* Audio elements - always render */}
       <div style={{ position: 'absolute', left: '-9999px' }}>
-        <audio ref={correctAudioRef} src="/success.ogg" preload="auto" />
-        <audio ref={incorrectAudioRef} src="/error.ogg" preload="auto" />
-        <audio ref={completedAudioRef} src="/completed.wav" preload="auto" />
+        <audio ref={correctAudioRef} src="/laboratory/success.ogg" preload="auto" />
+        <audio ref={incorrectAudioRef} src="/laboratory/error.ogg" preload="auto" />
+        <audio ref={completedAudioRef} src="/laboratory/completed.wav" preload="auto" />
       </div>
       
       <Confetti
@@ -261,7 +261,7 @@ export const Quiz = ({
         <Footer
           lessonId={lessonId}
           status="completed"
-          onCheck={() => router.push("/user/learn")}
+          onCheck={() => router.push("/user/laboratory/learn")}
         />
       </div>
       </>
@@ -314,9 +314,9 @@ export const Quiz = ({
       
       {/* Audio elements - always render */}
       <div style={{ position: 'absolute', left: '-9999px' }}>
-        <audio ref={correctAudioRef} src="/success.ogg" preload="auto" />
-        <audio ref={incorrectAudioRef} src="/error.ogg" preload="auto" />
-        <audio ref={completedAudioRef} src="/completed.wav" preload="auto" />
+        <audio ref={correctAudioRef} src="/laboratory/success.ogg" preload="auto" />
+        <audio ref={incorrectAudioRef} src="/laboratory/error.ogg" preload="auto" />
+        <audio ref={completedAudioRef} src="/laboratory/completed.wav" preload="auto" />
       </div>
     </>
   );

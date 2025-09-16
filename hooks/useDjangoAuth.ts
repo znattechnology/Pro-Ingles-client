@@ -143,7 +143,7 @@ export function useDjangoAuth(): AuthHookReturn {
         return '/teacher/courses';
       case 'student':
       default:
-        return '/user/learn';
+        return '/user/courses/explore';
     }
   };
 
@@ -232,7 +232,7 @@ export function useLoginRedirect() {
         break;
       case 'student':
       default:
-        router.push('/user/learn');
+        router.push('/user/courses/explore');
         break;
     }
   };

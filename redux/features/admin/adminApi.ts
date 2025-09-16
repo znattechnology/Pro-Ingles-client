@@ -5,8 +5,8 @@
  * including listing, filtering, role changes, and user details
  */
 
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { RootState } from '../../../state/redux';
+import { createApi } from '@reduxjs/toolkit/query/react';
+import { createBaseQueryWithReauth } from '../api/baseQueryWithReauth';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
 
@@ -76,17 +76,7 @@ export interface UsersListParams {
 
 export const adminApi = createApi({
   reducerPath: 'adminApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: `${BASE_URL}/api/v1/users/admin/`,
-    prepareHeaders: (headers, { getState }) => {
-      const token = (getState() as RootState).auth.accessToken;
-      if (token) {
-        headers.set('authorization', `Bearer ${token}`);
-      }
-      headers.set('content-type', 'application/json');
-      return headers;
-    },
-  }),
+  baseQuery: createBaseQueryWithReauth(`${BASE_URL}/api/v1/users/admin/`),
   tagTypes: ['User', 'UsersList', 'UserStats'],
   endpoints: (builder) => ({
     // List all users with pagination and filtering

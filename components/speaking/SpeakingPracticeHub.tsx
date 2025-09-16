@@ -72,11 +72,11 @@ export default function SpeakingPracticeHub() {
   const handleStartExercise = (exerciseId: string) => {
     setIsLoading(true);
     // Navigate to conversation practice
-    router.push(`/user/speaking/practice/${exerciseId}`);
+    router.push(`/user/laboratory/speaking/practice/${exerciseId}`);
   };
 
   const handleCategoryExplore = (categoryId: string) => {
-    router.push(`/user/speaking/${categoryId}`);
+    router.push(`/user/laboratory/speaking/${categoryId}`);
   };
 
   return (
@@ -227,7 +227,7 @@ export default function SpeakingPracticeHub() {
           <div className="flex flex-wrap justify-center gap-4">
             <Button 
               variant="ghost" 
-              onClick={() => router.push("/user/speaking/progress")}
+              onClick={() => router.push("/user/laboratory/speaking/progress")}
               className="text-gray-300 hover:text-white hover:bg-customgreys-darkGrey"
             >
               <TrendingUp className="w-4 h-4 mr-2" />
@@ -235,7 +235,7 @@ export default function SpeakingPracticeHub() {
             </Button>
             <Button 
               variant="ghost" 
-              onClick={() => router.push("/user/speaking/achievements")}
+              onClick={() => router.push("/user/laboratory/speaking/achievements")}
               className="text-gray-300 hover:text-white hover:bg-customgreys-darkGrey"
             >
               <Star className="w-4 h-4 mr-2" />

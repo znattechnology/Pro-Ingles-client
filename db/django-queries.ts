@@ -99,6 +99,43 @@ export const getCourses = async () => {
 };
 
 /**
+ * Get laboratory courses (practice courses only)
+ * Now the Django API filters courses that have practice_units (Course → PracticeUnit → PracticeLesson → PracticeChallenge)
+ * Django API: GET /api/v1/practice/courses/ (filtered by practice_units existence)
+ */
+export const getLaboratoryCourses = async () => {
+    try {
+        const token = getAuthToken();
+        if (!token) return [];
+
+        const response = await fetch(`${API_BASE_URL}/practice/courses/`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch laboratory courses');
+        }
+
+        const laboratoryCourses = await response.json();
+        
+        console.log('Laboratory courses found:', laboratoryCourses.length);
+        console.log('Laboratory courses:', laboratoryCourses.map((c: any) => ({
+            title: c.title, 
+            template: c.template,
+            category: c.category
+        })));
+
+        return laboratoryCourses;
+    } catch (error) {
+        console.error('Error fetching laboratory courses:', error);
+        return [];
+    }
+};
+
+/**
  * Get course by ID
  * Replaces: getCourseById() from client project  
  * Django API: GET /api/v1/practice/courses/ (then filter)

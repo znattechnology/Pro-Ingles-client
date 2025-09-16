@@ -59,7 +59,7 @@ export const useCourseProgressData = () => {
     );
   };
 
-  const updateChapterProgress = (
+  const updateChapterProgress = async (
     sectionId: string,
     chapterId: string,
     completed: boolean
@@ -78,13 +78,18 @@ export const useCourseProgressData = () => {
       },
     ];
 
-    updateProgress({
-      userId: user.id,
-      courseId: (courseId as string) ?? "",
-      data: {
-        sections: updatedSections,
-      },
-    });
+    try {
+      await updateProgress({
+        userId: user.id,
+        courseId: (courseId as string) ?? "",
+        data: {
+          sections: updatedSections,
+        },
+      }).unwrap();
+    } catch (error) {
+      console.error('Error updating chapter progress:', error);
+      throw error;
+    }
   };
 
   return {

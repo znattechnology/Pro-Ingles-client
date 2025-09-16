@@ -21,14 +21,14 @@ const ShopPage = () => {
                 const userProgressData = await getUserProgress();
                 
                 if (!userProgressData || !userProgressData.active_course) {
-                    router.push("/user/learn/courses");
+                    router.push("/user/laboratory/learn/courses");
                     return;
                 }
                 
                 setUserProgress(userProgressData);
             } catch (error) {
                 console.error("Error fetching user progress:", error);
-                router.push("/user/learn/courses");
+                router.push("/user/laboratory/learn/courses");
             } finally {
                 setIsLoading(false);
             }

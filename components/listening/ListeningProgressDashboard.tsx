@@ -256,7 +256,7 @@ export default function ListeningProgressDashboard() {
           </div>
           
           <Button 
-            onClick={() => router.push("/user/listening/practice")}
+            onClick={() => router.push("/user/laboratory/listening/practice")}
             className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700"
           >
             <Headphones className="w-4 h-4 mr-2" />

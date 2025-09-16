@@ -4,28 +4,20 @@ import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useRouter } from 'next/navigation';
 import { 
   BookOpen, 
-  ArrowLeft, 
   Search,
-  TrendingUp,
-  CheckCircle,
-  PlayCircle,
   Plus,
   Filter,
-  Globe,
-  Briefcase,
-  Code,
-  Stethoscope,
-  Scale,
   Grid3X3,
   List as ListIcon
 } from 'lucide-react';
 import { useDjangoAuth } from '@/hooks/useDjangoAuth';
 import Loading from '@/components/course/Loading';
 import { EnrolledList } from './enrolled-list';
-import { useGetUserEnrolledCoursesQuery, useGetCoursesQuery, useGetCoursesWithEnrollmentsQuery } from '@/redux/features/api/coursesApiSlice';
+import { useGetUserEnrolledCoursesQuery, useGetCoursesQuery, useGetCoursesWithEnrollmentsQuery, useGetUserCourseProgressQuery } from '@/redux/features/api/coursesApiSlice';
 
 const MyCoursesPage = () => {
   const router = useRouter();
@@ -88,7 +80,7 @@ const MyCoursesPage = () => {
 
   const coursesLoading = enrolledCoursesLoading || allCoursesLoading || detailedCoursesLoading;
 
-  // Transform API data to match component expectations
+  // Transform API data to match component expectations with real progress
   const enrolledCourses = React.useMemo(() => {
     if (!finalEnrolledCoursesData?.data) return [];
     
@@ -98,9 +90,9 @@ const MyCoursesPage = () => {
       description: course.description || '',
       thumbnail: course.image || '/laboratory/challenges/english-1.jpg',
       instructor: course.teacherName,
-      progress: Math.random() * 100, // TODO: Get from progress API
+      progress: 0, // Will be updated with real progress
       totalLessons: course.total_chapters || 0,
-      completedLessons: Math.floor((course.total_chapters || 0) * Math.random()),
+      completedLessons: 0, // Will be updated with real progress
       duration: '8 semanas', // TODO: Calculate from course data
       level: course.level,
       category: course.category,
@@ -113,9 +105,86 @@ const MyCoursesPage = () => {
     }));
   }, [finalEnrolledCoursesData]);
 
+  // Hook customizado para buscar progresso de cada curso
+  const [coursesWithProgress, setCoursesWithProgress] = React.useState(enrolledCourses);
+
+  React.useEffect(() => {
+    const fetchProgressForCourses = async () => {
+      if (!user?.id || enrolledCourses.length === 0) return;
+
+      const coursesWithRealProgress = await Promise.all(
+        enrolledCourses.map(async (course) => {
+          try {
+            const apiUrl = `http://localhost:8000/api/v1/courses/users/${user.id}/progress/${course.id}/`;
+            console.log(`Fetching progress from: ${apiUrl}`);
+            
+            // Buscar progresso real da API Django
+            const response = await fetch(apiUrl, {
+              headers: {
+                'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+                'Content-Type': 'application/json',
+              },
+            });
+
+            if (response.ok) {
+              const progressData = await response.json();
+              const progress = progressData.data;
+              
+              // Calcular progresso baseado na estrutura real da API Django
+              const totalChapters = course.totalLessons;
+              
+              // Contar capítulos completados da estrutura sections
+              let completedChapters = 0;
+              if (progress.sections && Array.isArray(progress.sections)) {
+                completedChapters = progress.sections.reduce((total: number, section: any) => {
+                  if (section.chapters && Array.isArray(section.chapters)) {
+                    return total + section.chapters.filter((chapter: any) => chapter.completed === true).length;
+                  }
+                  return total;
+                }, 0);
+              }
+              
+              // Usar overallProgress da API se disponível, senão calcular
+              let progressPercentage;
+              if (typeof progress.overallProgress === 'number') {
+                progressPercentage = Math.round(progress.overallProgress);
+              } else {
+                progressPercentage = totalChapters > 0 ? Math.round((completedChapters / totalChapters) * 100) : 0;
+              }
+              
+              // Debug logs
+              console.log(`Course: ${course.title}`);
+              console.log(`Total chapters: ${totalChapters}, Completed: ${completedChapters}, Progress: ${progressPercentage}%`);
+              console.log('Progress data from API:', progress);
+              
+              return {
+                ...course,
+                progress: progressPercentage,
+                completedLessons: completedChapters,
+                status: progressPercentage >= 100 ? 'completed' : 'active'
+              };
+            } else {
+              console.error(`Failed to fetch progress for course ${course.id}:`, response.status, response.statusText);
+              const errorText = await response.text();
+              console.error('Error response:', errorText);
+              return course; // Retorna curso sem progresso atualizado
+            }
+          } catch (error) {
+            console.error(`Error fetching progress for course ${course.id}:`, error);
+            return course; // Retorna curso sem progresso atualizado
+          }
+        })
+      );
+
+      setCoursesWithProgress(coursesWithRealProgress);
+    };
+
+    fetchProgressForCourses();
+  }, [enrolledCourses, user?.id]);
+
   // Filter and sort courses with advanced logic like explore page
   const filteredAndSortedCourses = React.useMemo(() => {
-    let filtered = enrolledCourses.filter((course: any) => {
+    let filtered = coursesWithProgress.filter((course: any) => {
       const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            course.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            course.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -144,14 +213,8 @@ const MyCoursesPage = () => {
     });
 
     return filtered;
-  }, [enrolledCourses, searchTerm, filterStatus, selectedLevel, selectedTemplate, sortBy]);
+  }, [coursesWithProgress, searchTerm, filterStatus, selectedLevel, selectedTemplate, sortBy]);
 
-  const stats = {
-    total: enrolledCourses.length,
-    active: enrolledCourses.filter(c => c.status === 'active').length,
-    completed: enrolledCourses.filter(c => c.status === 'completed').length,
-    totalProgress: Math.round(enrolledCourses.reduce((acc, course) => acc + course.progress, 0) / enrolledCourses.length)
-  };
 
 
   if (isLoading || coursesLoading) return <Loading />;
@@ -176,168 +239,88 @@ const MyCoursesPage = () => {
           <div className="h-full w-full bg-[linear-gradient(rgba(139,92,246,.1)_1px,transparent_1px),linear-gradient(90deg,rgba(139,92,246,.1)_1px,transparent_1px)] bg-[size:4rem_4rem]" />
         </div>
         
-        <div className="relative max-w-7xl mx-auto px-6 py-12">
-          <div className="flex items-center gap-4 mb-8">
-            <Button
-              variant="ghost"
-              onClick={() => router.push('/user/dashboard')}
-              className="text-gray-400 hover:text-white hover:bg-violet-800/20 transition-all duration-200 rounded-lg"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Dashboard
-            </Button>
-            <div className="h-4 w-px bg-violet-900/30" />
-            <span className="text-gray-400 text-sm">Meus Cursos</span>
-          </div>
+        <div className="relative max-w-7xl mx-auto px-6 py-8">
           
-          <div className="text-center mb-8">
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <div className="bg-gradient-to-r from-violet-500 to-purple-600 rounded-xl p-3 shadow-lg">
-                <BookOpen className="w-8 h-8 text-white" />
-              </div>
-              <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-white via-gray-200 to-gray-300 bg-clip-text text-transparent">
-                Meus Cursos
-              </h1>
-            </div>
-            <p className="text-gray-300 text-lg max-w-2xl mx-auto leading-relaxed">
-              Acompanhe seu progresso e continue aprendendo com os cursos em que você se inscreveu.
-            </p>
-          </div>
-
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <Card className="bg-customgreys-primarybg/60 backdrop-blur-sm border-violet-900/30 hover:border-blue-500/50 transition-all duration-300">
-              <CardContent className="p-6 text-center">
-                <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-3 w-fit mx-auto mb-4 shadow-lg">
-                  <BookOpen className="h-6 w-6 text-white" />
-                </div>
-                <p className="text-sm text-gray-400 mb-1">Total de Cursos</p>
-                <p className="text-3xl font-bold text-white">{stats.total}</p>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-customgreys-primarybg/60 backdrop-blur-sm border-violet-900/30 hover:border-green-500/50 transition-all duration-300">
-              <CardContent className="p-6 text-center">
-                <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl p-3 w-fit mx-auto mb-4 shadow-lg">
-                  <PlayCircle className="h-6 w-6 text-white" />
-                </div>
-                <p className="text-sm text-gray-400 mb-1">Em Andamento</p>
-                <p className="text-3xl font-bold text-white">{stats.active}</p>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-customgreys-primarybg/60 backdrop-blur-sm border-violet-900/30 hover:border-yellow-500/50 transition-all duration-300">
-              <CardContent className="p-6 text-center">
-                <div className="bg-gradient-to-br from-yellow-500 to-orange-600 rounded-xl p-3 w-fit mx-auto mb-4 shadow-lg">
-                  <CheckCircle className="h-6 w-6 text-white" />
-                </div>
-                <p className="text-sm text-gray-400 mb-1">Concluídos</p>
-                <p className="text-3xl font-bold text-white">{stats.completed}</p>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-customgreys-primarybg/60 backdrop-blur-sm border-violet-900/30 hover:border-purple-500/50 transition-all duration-300">
-              <CardContent className="p-6 text-center">
-                <div className="bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl p-3 w-fit mx-auto mb-4 shadow-lg">
-                  <TrendingUp className="h-6 w-6 text-white" />
-                </div>
-                <p className="text-sm text-gray-400 mb-1">Progresso Médio</p>
-                <p className="text-3xl font-bold text-white">{stats.totalProgress}%</p>
-              </CardContent>
-            </Card>
-          </div>
         </div>
       </div>
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Enhanced Search and Filters */}
-        <div className="bg-customgreys-primarybg/40 backdrop-blur-sm rounded-xl border border-violet-900/30 p-6 mb-6">
-          <div className="flex flex-col lg:flex-row gap-4">
-            {/* Enhanced Search */}
-            <div className="flex-1 relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <Input
-                type="text"
-                placeholder="Pesquisar cursos por nome, instrutor ou especialidade..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-12 h-12 bg-customgreys-darkGrey/50 border-violet-900/30 text-white placeholder:text-gray-400 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 transition-all duration-200 rounded-lg text-base"
-              />
-            </div>
+        <div className="bg-customgreys-primarybg/40 backdrop-blur-sm rounded-lg border border-violet-900/30 p-4 mb-4">
+          {/* Search Bar */}
+          <div className="relative mb-3">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              type="text"
+              placeholder="Pesquisar meus cursos..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 h-10 bg-customgreys-darkGrey/50 border-violet-900/30 text-white placeholder:text-gray-400 focus:border-violet-500 focus:ring-1 focus:ring-violet-500/20 transition-all duration-200 rounded-md text-sm"
+            />
+          </div>
           
-            {/* Status Filter Pills */}
-            <div className="flex flex-wrap gap-2">
-              <span className="text-sm text-gray-400 flex items-center mr-2">Status:</span>
-              {[
-                { id: 'all', name: 'Todos' },
-                { id: 'active', name: 'Em Andamento' },
-                { id: 'completed', name: 'Concluídos' }
-              ].map((filter) => (
-                <Button
-                  key={filter.id}
-                  variant={filterStatus === filter.id ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setFilterStatus(filter.id)}
-                  className={filterStatus === filter.id 
-                    ? "bg-gradient-to-r from-violet-600 to-purple-600 text-white border-none shadow-lg" 
-                    : "bg-customgreys-darkGrey/50 border-violet-900/30 text-gray-300 hover:text-white hover:border-violet-500 hover:bg-violet-800/20 transition-all duration-200"
-                  }
-                >
-                  {filter.name}
-                </Button>
-              ))}
+          {/* Dropdown Filters */}
+          <div className="flex flex-wrap items-center gap-4 text-sm">
+          
+            {/* Status Filter Dropdown */}
+            <div className="flex items-center gap-2">
+              <Filter className="w-4 h-4 text-gray-400" />
+              <span className="text-gray-400">Status:</span>
+              <Select value={filterStatus} onValueChange={setFilterStatus}>
+                <SelectTrigger className="w-[120px] h-8 bg-customgreys-darkGrey/50 border-violet-900/30 text-white focus:border-violet-500 focus:ring-1 focus:ring-violet-500/20">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-customgreys-secondarybg border-violet-900/30">
+                  <SelectItem value="all" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20">Todos</SelectItem>
+                  <SelectItem value="active" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20">Em Progresso</SelectItem>
+                  <SelectItem value="completed" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20">Concluídos</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             
-            {/* Level Filter Pills */}
-            <div className="flex flex-wrap gap-2">
-              <span className="text-sm text-gray-400 flex items-center mr-2">Nível:</span>
-              {['all', 'Beginner', 'Intermediate', 'Advanced'].map((level) => (
-                <Button
-                  key={level}
-                  variant={selectedLevel === level ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedLevel(level)}
-                  className={selectedLevel === level 
-                    ? "bg-gradient-to-r from-violet-600 to-purple-600 text-white border-none shadow-lg" 
-                    : "bg-customgreys-darkGrey/50 border-violet-900/30 text-gray-300 hover:text-white hover:border-violet-500 hover:bg-violet-800/20 transition-all duration-200"
-                  }
-                >
-                  {level === 'all' ? 'Todos' : level}
-                </Button>
-              ))}
+            {/* Level Filter Dropdown */}
+            <div className="flex items-center gap-2">
+              <span className="text-gray-400">Nível:</span>
+              <Select value={selectedLevel} onValueChange={setSelectedLevel}>
+                <SelectTrigger className="w-[140px] h-8 bg-customgreys-darkGrey/50 border-violet-900/30 text-white focus:border-violet-500 focus:ring-1 focus:ring-violet-500/20">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-customgreys-secondarybg border-violet-900/30">
+                  <SelectItem value="all" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20">Todos os Níveis</SelectItem>
+                  <SelectItem value="Beginner" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20">Beginner</SelectItem>
+                  <SelectItem value="Intermediate" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20">Intermediate</SelectItem>
+                  <SelectItem value="Advanced" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20">Advanced</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             
-            {/* Template Filter Pills */}
-            <div className="flex flex-wrap gap-2">
-              <span className="text-sm text-gray-400 flex items-center mr-2">Área:</span>
-              {[{id: 'all', name: 'Todas', icon: Filter}, {id: 'general', name: 'Geral', icon: Globe}, {id: 'business', name: 'Negócios', icon: Briefcase}, {id: 'technology', name: 'Tecnologia', icon: Code}, {id: 'medical', name: 'Médico', icon: Stethoscope}, {id: 'legal', name: 'Jurídico', icon: Scale}].map((template) => {
-                const IconComponent = template.icon;
-                return (
-                  <Button
-                    key={template.id}
-                    variant={selectedTemplate === template.id ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setSelectedTemplate(template.id)}
-                    className={selectedTemplate === template.id 
-                      ? "bg-gradient-to-r from-violet-600 to-purple-600 text-white border-none shadow-lg" 
-                      : "bg-customgreys-darkGrey/50 border-violet-900/30 text-gray-300 hover:text-white hover:border-violet-500 hover:bg-violet-800/20 transition-all duration-200"
-                    }
-                  >
-                    <IconComponent className="h-3 w-3 mr-1" />
-                    {template.name}
-                  </Button>
-                );
-              })}
+            {/* Area Filter Dropdown */}
+            <div className="flex items-center gap-2">
+              <span className="text-gray-400">Área:</span>
+              <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
+                <SelectTrigger className="w-[140px] h-8 bg-customgreys-darkGrey/50 border-violet-900/30 text-white focus:border-violet-500 focus:ring-1 focus:ring-violet-500/20">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-customgreys-secondarybg border-violet-900/30">
+                  <SelectItem value="all" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20">Todas as Áreas</SelectItem>
+                  <SelectItem value="general" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20">Inglês Geral</SelectItem>
+                  <SelectItem value="business" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20">Negócios</SelectItem>
+                  <SelectItem value="technology" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20">Tecnologia</SelectItem>
+                  <SelectItem value="medical" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20">Médico</SelectItem>
+                  <SelectItem value="legal" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20">Jurídico</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
+            
             
             {/* Explore Button */}
             <Button
               onClick={() => router.push('/user/courses/explore')}
-              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg"
+              className="h-7 px-3 text-xs bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
             >
-              <Plus className="w-4 h-4 mr-2" />
-              Explorar Novos Cursos
+              <Plus className="w-3 h-3 mr-1" />
+              Explorar
             </Button>
           </div>
         </div>

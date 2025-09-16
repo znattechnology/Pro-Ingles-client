@@ -233,7 +233,7 @@ class DjangoAuthService {
       case 'admin':
         return '/admin/dashboard';
       default:
-        return '/user/learn';
+        return '/user/courses/explore';
     }
   }
 }

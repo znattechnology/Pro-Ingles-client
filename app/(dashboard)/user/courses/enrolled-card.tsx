@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { Check, Globe, Briefcase, Code, Stethoscope, Scale, Clock, BookOpen, Play, ArrowRight, Star, Eye, Bookmark } from "lucide-react";
+import { Check, Globe, Briefcase, Code, Stethoscope, Scale, Clock, BookOpen, Play, ArrowRight, Star, Bookmark } from "lucide-react";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -110,8 +110,25 @@ const statusConfig = {
 export const EnrolledCard = ({title, id, imageSrc, template, description, category, level, instructor, progress = 0, totalLessons, completedLessons, duration, status = 'active', rating, nextLesson, onClick, disabled, active, viewMode = 'grid'}:Props) => {
     const config = templateConfig[template as keyof typeof templateConfig] || templateConfig.general;
     const levelInfo = levelConfig[level as keyof typeof levelConfig] || levelConfig.Beginner;
-    const statusInfo = statusConfig[status as keyof typeof statusConfig] || statusConfig.active;
+    
+    // Melhorar cálculo do progresso e status
+    const progressPercentage = (() => {
+        // Se temos dados específicos de lições, usar eles
+        if (totalLessons && completedLessons !== undefined) {
+            const calculated = (completedLessons / totalLessons) * 100;
+            return Math.round(calculated); // Sem casas decimais
+        }
+        // Senão, usar o progresso fornecido e arredondar
+        return Math.round(progress);
+    })();
+    
+    // Determinar status real baseado no progresso
+    const actualStatus = progressPercentage >= 100 ? 'completed' : status;
+    const statusInfo = statusConfig[actualStatus as keyof typeof statusConfig] || statusConfig.active;
     const IconComponent = config.icon;
+    
+    // Verificar se curso está realmente completo
+    const isCompleted = progressPercentage >= 100;
     
     // List view layout
     if (viewMode === 'list') {
@@ -143,9 +160,9 @@ export const EnrolledCard = ({title, id, imageSrc, template, description, catego
                             {statusInfo.text}
                         </Badge>
                     </div>
-                    {status === 'active' && (
+                    {!isCompleted && (
                         <div className="absolute bottom-2 left-2 right-2">
-                            <Progress value={progress} className="h-1" />
+                            <Progress value={progressPercentage} className="h-1" />
                         </div>
                     )}
                 </div>
@@ -186,13 +203,13 @@ export const EnrolledCard = ({title, id, imageSrc, template, description, catego
                         </p>
                     )}
                     
-                    {status === 'active' && (
+                    {!isCompleted ? (
                         <div className="mb-3">
                             <div className="flex items-center justify-between text-xs text-gray-400 mb-1">
                                 <span>Progresso</span>
-                                <span>{progress}%</span>
+                                <span>{progressPercentage}%</span>
                             </div>
-                            {totalLessons && completedLessons && (
+                            {totalLessons && completedLessons !== undefined && (
                                 <p className="text-xs text-gray-500">
                                     {completedLessons} de {totalLessons} lições concluídas
                                 </p>
@@ -200,6 +217,18 @@ export const EnrolledCard = ({title, id, imageSrc, template, description, catego
                             {nextLesson && (
                                 <p className="text-xs text-violet-400 mt-1">
                                     Próxima: {nextLesson}
+                                </p>
+                            )}
+                        </div>
+                    ) : (
+                        <div className="mb-3">
+                            <div className="flex items-center gap-2 text-sm text-green-400">
+                                <Check className="h-4 w-4" />
+                                <span>Curso Concluído!</span>
+                            </div>
+                            {totalLessons && (
+                                <p className="text-xs text-gray-500 mt-1">
+                                    Todas as {totalLessons} lições foram completadas
                                 </p>
                             )}
                         </div>
@@ -238,12 +267,12 @@ export const EnrolledCard = ({title, id, imageSrc, template, description, catego
                         size="sm"
                     >
                         <span className={cn("text-sm font-medium", config.textColor)}>
-                            {status === 'active' ? 'Continuar' : 'Revisar'}
+                            {isCompleted ? 'Concluído' : 'Continuar'}
                         </span>
-                        {status === 'active' ? (
-                            <Play className={cn("h-4 w-4", config.textColor)} />
+                        {isCompleted ? (
+                            <Check className={cn("h-4 w-4", config.textColor)} />
                         ) : (
-                            <Eye className={cn("h-4 w-4", config.textColor)} />
+                            <Play className={cn("h-4 w-4", config.textColor)} />
                         )}
                     </Button>
                     <Button
@@ -304,24 +333,43 @@ export const EnrolledCard = ({title, id, imageSrc, template, description, catego
                     </div>
                     
                     {/* Progress Bar for Active Courses */}
-                    {status === 'active' && (
+                    {!isCompleted && (
                         <div className="absolute bottom-3 left-3 right-3 z-20">
-                            <Progress value={progress} className="h-2" />
+                            <Progress value={progressPercentage} className="h-2" />
                             <p className="text-white text-xs mt-1 text-center">
-                                {progress}% concluído
+                                {progressPercentage}% concluído
                             </p>
                         </div>
                     )}
                     
-                    {/* Hover overlay for active courses */}
-                    {status === 'active' && (
-                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center z-30">
-                            <Button className="bg-white/20 hover:bg-white/30 text-white backdrop-blur-sm border border-white/30">
-                                <Play className="w-4 h-4 mr-2" />
-                                Continuar Assistindo
-                            </Button>
+                    {/* Completion Badge for Completed Courses */}
+                    {isCompleted && (
+                        <div className="absolute bottom-3 left-3 right-3 z-20">
+                            <div className="bg-green-500/20 backdrop-blur-sm border border-green-500/30 rounded-lg p-2 text-center">
+                                <div className="flex items-center justify-center gap-2 text-green-400">
+                                    <Check className="h-4 w-4" />
+                                    <span className="text-xs font-medium">Curso Concluído</span>
+                                </div>
+                            </div>
                         </div>
                     )}
+                    
+                    {/* Hover overlay */}
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center z-30">
+                        <Button className="bg-white/20 hover:bg-white/30 text-white backdrop-blur-sm border border-white/30">
+                            {isCompleted ? (
+                                <>
+                                    <Check className="w-4 h-4 mr-2" />
+                                    Revisar Curso
+                                </>
+                            ) : (
+                                <>
+                                    <Play className="w-4 h-4 mr-2" />
+                                    Continuar Assistindo
+                                </>
+                            )}
+                        </Button>
+                    </div>
                 </div>
             </div>
             
@@ -373,20 +421,34 @@ export const EnrolledCard = ({title, id, imageSrc, template, description, catego
                     </div>
                 </div>
                 
-                {/* Progress Section for Active Courses */}
-                {status === 'active' && totalLessons && completedLessons && (
+                {/* Progress Section */}
+                {totalLessons && completedLessons !== undefined && (
                     <div className="mb-4">
-                        <div className="flex items-center justify-between text-sm text-gray-400 mb-2">
-                            <span>Progresso</span>
-                            <span>{progress}%</span>
-                        </div>
-                        <p className="text-xs text-gray-500 mb-2">
-                            {completedLessons} de {totalLessons} lições concluídas
-                        </p>
-                        {nextLesson && (
-                            <p className="text-xs text-violet-400">
-                                Próxima: {nextLesson}
-                            </p>
+                        {!isCompleted ? (
+                            <>
+                                <div className="flex items-center justify-between text-sm text-gray-400 mb-2">
+                                    <span>Progresso</span>
+                                    <span>{progressPercentage}%</span>
+                                </div>
+                                <p className="text-xs text-gray-500 mb-2">
+                                    {completedLessons} de {totalLessons} lições concluídas
+                                </p>
+                                {nextLesson && (
+                                    <p className="text-xs text-violet-400">
+                                        Próxima: {nextLesson}
+                                    </p>
+                                )}
+                            </>
+                        ) : (
+                            <div className="text-center">
+                                <div className="flex items-center justify-center gap-2 text-green-400 mb-2">
+                                    <Check className="h-5 w-5" />
+                                    <span className="font-semibold">Curso Concluído!</span>
+                                </div>
+                                <p className="text-xs text-gray-500">
+                                    Todas as {totalLessons} lições foram completadas
+                                </p>
+                            </div>
                         )}
                     </div>
                 )}
@@ -405,18 +467,23 @@ export const EnrolledCard = ({title, id, imageSrc, template, description, catego
                     {/* Action Buttons */}
                     <div className="flex gap-2">
                         <Button
-                            className="flex-1 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white"
+                            className={cn(
+                                "flex-1 text-white transition-all duration-200",
+                                isCompleted 
+                                    ? "bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700" 
+                                    : "bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700"
+                            )}
                             size="sm"
                         >
-                            {status === 'active' ? (
+                            {isCompleted ? (
                                 <>
-                                    <Play className="w-4 h-4 mr-2" />
-                                    Continuar
+                                    <Check className="w-4 h-4 mr-2" />
+                                    Concluído
                                 </>
                             ) : (
                                 <>
-                                    <Eye className="w-4 h-4 mr-2" />
-                                    Revisar
+                                    <Play className="w-4 h-4 mr-2" />
+                                    Continuar
                                 </>
                             )}
                         </Button>
