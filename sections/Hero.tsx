@@ -5,28 +5,13 @@ import { motion } from "framer-motion";
 import { Play, Star, Sparkles } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useState, useRef } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import AITutorDemo from "@/components/AITutorDemo";
 
 const Hero = () => {
-  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
-
   const handlePlayDemo = () => {
-    setIsVideoPlaying(true);
-    if (videoRef.current) {
-      videoRef.current.play();
-    }
+    console.log("Demo button clicked");
   };
-
-  const companies = [
-    { name: "Sonangol", logo: "/logo-sonangol.png" },
-    { name: "BAI", logo: "/logo-bai.png" }, 
-    { name: "Unitel", logo: "/logo-unitel.png" },
-    { name: "BFA", logo: "/logo-bfa.png" }
-  ];
 
   const stats = [
     { value: "10K+", label: "Angolanos aprendendo" },
@@ -78,16 +63,17 @@ const Hero = () => {
             </motion.div>
 
             {/* Description */}
-            <motion.p
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className="text-xl lg:text-2xl text-gray-300 leading-relaxed max-w-2xl"
             >
+              <p className="text-xl lg:text-2xl text-gray-300 leading-relaxed max-w-2xl">
               A única plataforma que combina <strong className="text-white">IA Personal Tutor</strong> com 
               <strong className="text-violet-300"> Practice Lab exclusivo</strong> para setores como petróleo, bancos e TI. 
               Preços em AOA, conteúdo adaptado para Angola.
-            </motion.p>
+              </p>
+            </motion.div>
 
             {/* CTA Buttons */}
             <motion.div

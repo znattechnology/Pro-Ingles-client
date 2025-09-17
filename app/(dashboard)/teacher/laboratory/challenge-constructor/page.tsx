@@ -12,9 +12,10 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Target, Plus, Search } from 'lucide-react';
+import { ArrowLeft, Target, Plus, Search, Brain, Sparkles, Zap, Users, TrendingUp, Wand2, Layers, Trophy } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
+import { motion } from 'framer-motion';
 import ChallengeConstructor from '@/components/laboratory/ChallengeConstructor';
 import { getPracticeCourses } from '@/actions/practice-management';
 
@@ -78,196 +79,592 @@ export default function ChallengeConstructorPage() {
 
   // Course selection interface
   return (
-    <div className="min-h-screen bg-customgreys-primarybg p-6">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center gap-4 mb-4">
-          <Button
-            variant="outline"
-            onClick={handleBackToLaboratory}
-            className="bg-customgreys-secondarybg border-customgreys-darkerGrey text-white hover:bg-customgreys-darkerGrey"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Laboratório
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold text-white">
-              Construtor de Desafios
-            </h1>
-            <p className="text-customgreys-dirtyGrey">
-              Selecione um curso para começar a criar exercícios
-            </p>
-          </div>
+    <div className="min-h-screen bg-customgreys-primarybg text-white">
+      {/* Header Section */}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="relative px-6 py-8"
+      >
+        {/* Enhanced Background Effects */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-orange-600/10 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute -bottom-20 -left-40 w-80 h-80 bg-red-600/10 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-yellow-500/5 rounded-full blur-3xl" />
+          {/* Floating particles */}
+          <div className="absolute top-20 left-20 w-2 h-2 bg-orange-400/30 rounded-full animate-bounce" style={{animationDelay: '0s'}} />
+          <div className="absolute top-40 right-32 w-1 h-1 bg-red-400/40 rounded-full animate-bounce" style={{animationDelay: '1s'}} />
+          <div className="absolute bottom-32 left-1/3 w-1.5 h-1.5 bg-yellow-400/30 rounded-full animate-bounce" style={{animationDelay: '2s'}} />
+          <div className="absolute bottom-20 right-20 w-2 h-2 bg-orange-300/20 rounded-full animate-bounce" style={{animationDelay: '3s'}} />
         </div>
 
-        {/* Search */}
-        <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-customgreys-dirtyGrey w-4 h-4" />
-          <Input
-            placeholder="Buscar curso por título, categoria ou nível..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 bg-customgreys-secondarybg border-customgreys-darkerGrey text-white"
-          />
+        <div className="relative max-w-7xl mx-auto">
+          <div className="flex items-center justify-between mb-8">
+            <motion.div
+              initial={{ x: -20, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.2 }}
+            >
+              <Button 
+                variant="ghost"
+                onClick={handleBackToLaboratory}
+                className="text-gray-400 hover:text-white hover:bg-orange-600/20 transition-all"
+              >
+                <ArrowLeft className="h-5 w-5 mr-2" />
+                Voltar ao Laboratório
+              </Button>
+            </motion.div>
+          </div>
+
+          <div className="text-center">
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+              className="inline-flex items-center gap-3 bg-gradient-to-r from-orange-500/10 via-red-500/10 to-yellow-500/10 border border-orange-500/30 rounded-full px-8 py-3 mb-8 backdrop-blur-sm shadow-lg shadow-orange-500/10"
+            >
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+              >
+                <Target className="w-6 h-6 text-orange-400" />
+              </motion.div>
+              <span className="text-orange-300 font-semibold text-lg">Construtor de Desafios</span>
+              <motion.div
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                <Zap className="w-4 h-4 text-red-400" />
+              </motion.div>
+            </motion.div>
+            
+            <motion.h1 
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.3, duration: 0.6 }}
+              className="text-5xl md:text-7xl font-extrabold mb-6 leading-tight"
+            >
+              Crie{' '}
+              <motion.span 
+                className="bg-gradient-to-r from-orange-400 via-red-400 to-yellow-400 bg-clip-text text-transparent"
+                animate={{ 
+                  backgroundPosition: ['0% 50%', '100% 50%', '0% 50%']
+                }}
+                transition={{ duration: 3, repeat: Infinity }}
+                style={{ backgroundSize: '200% 200%' }}
+              >
+                Desafios
+              </motion.span>
+              <motion.span
+                animate={{ rotate: [0, 10, -10, 0] }}
+                transition={{ duration: 2, repeat: Infinity, delay: 1 }}
+                className="inline-block ml-2"
+              >
+                🎯
+              </motion.span>
+            </motion.h1>
+            
+            <motion.p 
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.4, duration: 0.6 }}
+              className="text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed mb-12 font-light"
+            >
+              Selecione um curso e desenvolva <motion.span className="text-orange-400 font-medium" whileHover={{ scale: 1.05 }}>exercícios interativos</motion.span> que{' '}
+              <motion.span className="text-red-400 font-medium" whileHover={{ scale: 1.05 }}>desafiam</motion.span> e{' '}
+              <motion.span className="text-yellow-400 font-medium" whileHover={{ scale: 1.05 }}>motivam</motion.span>
+            </motion.p>
+            
+            {/* Stats Pills */}
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.6, duration: 0.6 }}
+              className="flex flex-wrap justify-center gap-4 mb-8"
+            >
+              {[
+                { icon: Trophy, label: 'Tipos de Exercícios', count: '8+' },
+                { icon: Users, label: 'Desafios Criados', count: '1.2k+' },
+                { icon: TrendingUp, label: 'Engajamento', count: '96%' }
+              ].map((stat, index) => (
+                <motion.div
+                  key={stat.label}
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.8 + index * 0.1, type: 'spring', stiffness: 200 }}
+                  whileHover={{ y: -2, scale: 1.05 }}
+                  className="flex items-center gap-2 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full px-4 py-2"
+                >
+                  <stat.icon className="w-4 h-4 text-orange-400" />
+                  <span className="text-sm font-medium text-white">{stat.count}</span>
+                  <span className="text-xs text-gray-400">{stat.label}</span>
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
         </div>
-      </div>
+      </motion.div>
+
+      {/* Search Section */}
+      <motion.div
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.5, duration: 0.6 }}
+        className="px-6 mb-8"
+      >
+        <div className="max-w-7xl mx-auto">
+          <div className="relative max-w-xl mx-auto">
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileFocus={{ scale: 1.02 }}
+              className="relative"
+            >
+              <div className="absolute left-4 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
+                <motion.div
+                  animate={{ rotate: searchTerm ? 0 : 360 }}
+                  transition={{ duration: 2, repeat: searchTerm ? 0 : Infinity, ease: "linear" }}
+                >
+                  <Search className="text-orange-400 w-5 h-5" />
+                </motion.div>
+              </div>
+              <Input
+                placeholder="Buscar curso por título, categoria ou nível..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-14 pr-4 bg-customgreys-secondarybg/30 backdrop-blur-md border-2 border-orange-500/30 text-white placeholder:text-gray-400 focus:border-orange-400 focus:ring-4 focus:ring-orange-500/20 transition-all duration-300 h-14 rounded-2xl text-lg shadow-lg shadow-orange-500/10 hover:shadow-orange-500/20"
+              />
+              {searchTerm && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2"
+                >
+                  <div className="bg-orange-500/20 text-orange-300 text-xs px-2 py-1 rounded-full">
+                    {filteredCourses.length} resultado{filteredCourses.length !== 1 ? 's' : ''}
+                  </div>
+                </motion.div>
+              )}
+            </motion.div>
+          </div>
+        </div>
+      </motion.div>
 
       {/* Course Selection */}
-      {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <Card key={i} className="bg-customgreys-secondarybg border-customgreys-darkerGrey animate-pulse">
-              <CardHeader>
-                <div className="h-4 bg-customgreys-darkerGrey rounded w-3/4"></div>
-                <div className="h-3 bg-customgreys-darkerGrey rounded w-1/2"></div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="h-3 bg-customgreys-darkerGrey rounded"></div>
-                  <div className="h-3 bg-customgreys-darkerGrey rounded w-2/3"></div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      ) : filteredCourses.length === 0 ? (
-        <Card className="bg-customgreys-secondarybg border-customgreys-darkerGrey">
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <Target className="w-16 h-16 text-customgreys-dirtyGrey mb-4" />
-            <h3 className="text-xl font-semibold text-white mb-2">
-              {searchTerm ? 'Nenhum curso encontrado' : 'Nenhum curso disponível'}
-            </h3>
-            <p className="text-customgreys-dirtyGrey text-center mb-6 max-w-md">
-              {searchTerm 
-                ? `Não encontramos cursos que correspondam a "${searchTerm}". Tente ajustar sua busca.`
-                : 'Você precisa criar um curso e lições antes de poder adicionar exercícios. Comece criando seu primeiro curso no laboratório.'
-              }
-            </p>
-            {!searchTerm && (
-              <div className="flex gap-4">
-                <Button
-                  onClick={() => router.push('/teacher/laboratory/create-course')}
-                  className="bg-violet-600 hover:bg-violet-700"
+      <motion.div
+        initial={{ y: 40, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.6, duration: 0.6 }}
+        className="px-6 pb-12"
+      >
+        <div className="max-w-7xl mx-auto">
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ 
+                    delay: i * 0.1, 
+                    duration: 0.5,
+                    type: "spring",
+                    stiffness: 100
+                  }}
                 >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Criar Curso
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => router.push('/teacher/laboratory/lesson-constructor')}
-                  className="bg-customgreys-primarybg border-customgreys-darkerGrey text-white hover:bg-customgreys-darkerGrey"
-                >
-                  Criar Lições
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredCourses.map((course) => (
-            <Card
-              key={course.id}
-              className="bg-customgreys-secondarybg border-customgreys-darkerGrey hover:shadow-xl hover:border-violet-500/50 transition-all duration-200 cursor-pointer group"
-              onClick={() => setSelectedCourse(course)}
+                  <Card className="bg-gradient-to-br from-customgreys-secondarybg/40 via-customgreys-secondarybg/60 to-customgreys-secondarybg/40 backdrop-blur-md border-orange-500/20 shadow-2xl shadow-orange-500/5 overflow-hidden relative group">
+                    {/* Shimmer effect */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                    
+                    <CardHeader className="relative">
+                      <div className="flex items-center justify-between mb-3">
+                        <motion.div 
+                          className="h-6 bg-gradient-to-r from-orange-500/30 via-red-500/30 to-orange-500/30 rounded-full w-20"
+                          animate={{ opacity: [0.5, 1, 0.5] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                        />
+                        <motion.div 
+                          className="p-3 bg-gradient-to-br from-orange-500/20 to-red-500/20 rounded-xl"
+                          animate={{ scale: [1, 1.1, 1] }}
+                          transition={{ duration: 2, repeat: Infinity, delay: i * 0.2 }}
+                        >
+                          <div className="w-6 h-6 bg-orange-400/50 rounded" />
+                        </motion.div>
+                      </div>
+                      <motion.div 
+                        className="h-7 bg-gradient-to-r from-orange-500/20 via-red-500/20 to-orange-500/20 rounded-lg w-full mb-2"
+                        animate={{ opacity: [0.6, 1, 0.6] }}
+                        transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.3 }}
+                      />
+                    </CardHeader>
+                    <CardContent className="relative space-y-4">
+                      <div className="space-y-3">
+                        <motion.div 
+                          className="h-4 bg-gradient-to-r from-orange-500/15 via-red-500/15 to-orange-500/15 rounded w-full"
+                          animate={{ opacity: [0.4, 0.8, 0.4] }}
+                          transition={{ duration: 2, repeat: Infinity, delay: i * 0.1 }}
+                        />
+                        <motion.div 
+                          className="h-4 bg-gradient-to-r from-red-500/15 via-yellow-500/15 to-red-500/15 rounded w-3/4"
+                          animate={{ opacity: [0.4, 0.8, 0.4] }}
+                          transition={{ duration: 2, repeat: Infinity, delay: i * 0.15 }}
+                        />
+                      </div>
+                      <div className="flex items-center justify-between pt-4">
+                        <div className="flex gap-2">
+                          <motion.div 
+                            className="h-6 bg-orange-500/20 rounded-full w-16"
+                            animate={{ opacity: [0.5, 1, 0.5] }}
+                            transition={{ duration: 1.8, repeat: Infinity }}
+                          />
+                          <motion.div 
+                            className="h-6 bg-red-500/20 rounded-full w-16"
+                            animate={{ opacity: [0.5, 1, 0.5] }}
+                            transition={{ duration: 1.8, repeat: Infinity, delay: 0.5 }}
+                          />
+                        </div>
+                        <motion.div 
+                          className="flex items-center gap-1"
+                          animate={{ x: [0, 4, 0] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                        >
+                          <div className="h-4 bg-orange-400/30 rounded w-20" />
+                          <div className="text-orange-400">→</div>
+                        </motion.div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          ) : filteredCourses.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5 }}
             >
-              <CardHeader>
-                <div className="flex items-center justify-between mb-2">
-                  <Badge 
-                    variant="outline" 
-                    className={`text-xs ${
-                      course.status === 'Published' 
-                        ? 'border-green-500 text-green-400' 
-                        : 'border-yellow-500 text-yellow-400'
-                    }`}
+              <Card className="bg-customgreys-secondarybg/50 backdrop-blur-sm border-orange-500/20">
+                <CardContent className="flex flex-col items-center justify-center py-16">
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+                    className="p-4 bg-orange-500/10 rounded-full mb-6"
                   >
-                    {course.status === 'Published' ? 'Publicado' : 'Rascunho'}
-                  </Badge>
-                  <div className="p-2 bg-customgreys-darkGrey rounded-lg group-hover:bg-violet-600/20 transition-colors">
-                    <Target className="w-4 h-4 text-violet-400" />
-                  </div>
-                </div>
-                <CardTitle className="text-lg text-white group-hover:text-violet-300 transition-colors">
-                  {course.title}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-customgreys-dirtyGrey text-sm mb-4 line-clamp-2">
-                  {course.description}
-                </p>
-                <div className="flex items-center justify-between">
-                  <div className="flex gap-2">
-                    <Badge variant="secondary" className="text-xs bg-customgreys-darkGrey text-customgreys-dirtyGrey">
-                      {course.category}
-                    </Badge>
-                    <Badge variant="secondary" className="text-xs bg-customgreys-darkGrey text-customgreys-dirtyGrey">
-                      {course.level}
-                    </Badge>
-                  </div>
-                  <div className="text-xs text-customgreys-dirtyGrey group-hover:text-violet-400 transition-colors">
-                    Criar exercícios →
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                    <Target className="w-16 h-16 text-orange-400" />
+                  </motion.div>
+                  <motion.h3 
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.3 }}
+                    className="text-2xl font-semibold text-white mb-4"
+                  >
+                    {searchTerm ? 'Nenhum curso encontrado' : 'Nenhum curso disponível'}
+                  </motion.h3>
+                  <motion.p 
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.4 }}
+                    className="text-gray-400 text-center mb-8 max-w-md leading-relaxed"
+                  >
+                    {searchTerm 
+                      ? `Não encontramos cursos que correspondam a "${searchTerm}". Tente ajustar sua busca.`
+                      : 'Você precisa criar um curso e lições antes de poder adicionar exercícios. Comece criando seu primeiro curso no laboratório.'
+                    }
+                  </motion.p>
+                  {!searchTerm && (
+                    <motion.div
+                      initial={{ y: 20, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{ delay: 0.5 }}
+                      className="flex gap-4"
+                    >
+                      <Button
+                        onClick={() => router.push('/teacher/laboratory/create-course')}
+                        className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 shadow-lg shadow-orange-500/25 transition-all duration-200 hover:shadow-orange-500/40 hover:scale-105"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Criar Curso
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => router.push('/teacher/laboratory/lesson-constructor')}
+                        className="bg-customgreys-primarybg/50 border-orange-500/30 text-white hover:bg-orange-500/10 hover:border-orange-500/50 transition-all duration-200"
+                      >
+                        Criar Lições
+                      </Button>
+                    </motion.div>
+                  )}
+                </CardContent>
+              </Card>
+            </motion.div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {filteredCourses.map((course, index) => (
+                <motion.div
+                  key={course.id}
+                  initial={{ opacity: 0, y: 30, scale: 0.9 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ 
+                    delay: index * 0.1, 
+                    duration: 0.6,
+                    type: "spring",
+                    stiffness: 100,
+                    damping: 15
+                  }}
+                  whileHover={{ 
+                    y: -8, 
+                    scale: 1.03,
+                    rotateY: 5,
+                    rotateX: 5,
+                    transition: { duration: 0.3 }
+                  }}
+                  whileTap={{ scale: 0.98 }}
+                  className="cursor-pointer perspective-1000"
+                  onClick={() => setSelectedCourse(course)}
+                  style={{
+                    transformStyle: 'preserve-3d'
+                  }}
+                >
+                  <Card className="bg-gradient-to-br from-customgreys-secondarybg/40 via-customgreys-secondarybg/60 to-customgreys-secondarybg/40 backdrop-blur-md border-2 border-orange-500/20 hover:border-orange-400/60 shadow-2xl shadow-orange-500/10 hover:shadow-orange-500/25 hover:shadow-2xl transition-all duration-500 group overflow-hidden relative">
+                    {/* Enhanced gradient overlays */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 via-transparent to-red-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    
+                    {/* Shimmer effect on hover */}
+                    <motion.div
+                      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full"
+                      whileHover={{ translateX: '100%' }}
+                      transition={{ duration: 0.6, ease: "easeInOut" }}
+                    />
+                    
+                    <CardHeader className="relative">
+                      <div className="flex items-center justify-between mb-3">
+                        <Badge 
+                          variant="outline" 
+                          className={`text-xs font-medium ${
+                            course.status === 'Published' 
+                              ? 'border-emerald-500/50 text-emerald-400 bg-emerald-500/10' 
+                              : 'border-amber-500/50 text-amber-400 bg-amber-500/10'
+                          }`}
+                        >
+                          {course.status === 'Published' ? 'Publicado' : 'Rascunho'}
+                        </Badge>
+                        <motion.div
+                          whileHover={{ rotate: 15, scale: 1.2 }}
+                          whileTap={{ scale: 0.95 }}
+                          className="relative p-3 bg-gradient-to-br from-orange-500/10 to-red-500/20 rounded-xl group-hover:from-orange-500/20 group-hover:to-red-500/30 transition-all duration-300 shadow-lg shadow-orange-500/10"
+                        >
+                          <Target className="w-6 h-6 text-orange-400 relative z-10" />
+                          <motion.div
+                            className="absolute inset-0 bg-gradient-to-br from-orange-400/20 to-red-400/20 rounded-xl"
+                            initial={{ scale: 0, opacity: 0 }}
+                            whileHover={{ scale: 1, opacity: 1 }}
+                            transition={{ duration: 0.2 }}
+                          />
+                        </motion.div>
+                      </div>
+                      <motion.div
+                        whileHover={{ x: 4 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <CardTitle className="text-xl text-white group-hover:text-orange-300 transition-all duration-300 leading-tight font-bold">
+                          {course.title}
+                        </CardTitle>
+                      </motion.div>
+                    </CardHeader>
+                    <CardContent className="relative">
+                      <p className="text-gray-400 text-sm mb-6 line-clamp-2 leading-relaxed">
+                        {course.description}
+                      </p>
+                      <div className="flex items-center justify-between">
+                        <div className="flex gap-2">
+                          <motion.div whileHover={{ scale: 1.05 }}>
+                            <Badge variant="secondary" className="text-xs bg-gradient-to-r from-orange-500/10 to-orange-500/20 text-orange-300 border-orange-500/30 shadow-sm">
+                              {course.category}
+                            </Badge>
+                          </motion.div>
+                          <motion.div whileHover={{ scale: 1.05 }}>
+                            <Badge variant="secondary" className="text-xs bg-gradient-to-r from-red-500/10 to-red-500/20 text-red-300 border-red-500/30 shadow-sm">
+                              {course.level}
+                            </Badge>
+                          </motion.div>
+                        </div>
+                        <motion.div 
+                          className="text-sm text-gray-400 group-hover:text-orange-400 transition-colors flex items-center gap-2 font-medium"
+                          whileHover={{ x: 6 }}
+                        >
+                          <Zap className="w-4 h-4" />
+                          <span>Criar exercícios</span>
+                          <motion.span
+                            animate={{ 
+                              x: [0, 6, 0],
+                              scale: [1, 1.2, 1]
+                            }}
+                            transition={{ 
+                              duration: 2, 
+                              repeat: Infinity,
+                              ease: "easeInOut"
+                            }}
+                            className="text-orange-400"
+                          >
+                            🎯
+                          </motion.span>
+                        </motion.div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </div>
-      )}
+      </motion.div>
 
       {/* Challenge Types Preview */}
-      <Card className="mt-12 bg-customgreys-secondarybg border-customgreys-darkerGrey">
-        <CardHeader>
-          <CardTitle className="text-white">Tipos de Desafios Disponíveis</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {[
-              { name: 'Múltipla Escolha', icon: '⚪', desc: 'Selecionar resposta correta' },
-              { name: 'Completar Lacuna', icon: '📝', desc: 'Preencher palavras que faltam' },
-              { name: 'Tradução', icon: '🌐', desc: 'Traduzir entre idiomas' },
-              { name: 'Compreensão Auditiva', icon: '🔊', desc: 'Ouvir e responder' },
-              { name: 'Pronúncia', icon: '🎤', desc: 'Falar e ser avaliado' },
-              { name: 'Combinar Pares', icon: '🔗', desc: 'Conectar elementos relacionados' },
-              { name: 'Ordenar Frase', icon: '📐', desc: 'Organizar palavras corretamente' },
-              { name: 'E mais...', icon: '✨', desc: 'Novos tipos em desenvolvimento' }
-            ].map((type, index) => (
-              <div key={index} className="bg-customgreys-primarybg rounded-lg p-4 border border-customgreys-darkerGrey">
-                <div className="text-2xl mb-2">{type.icon}</div>
-                <h4 className="text-white font-medium text-sm mb-1">{type.name}</h4>
-                <p className="text-customgreys-dirtyGrey text-xs">{type.desc}</p>
+      <motion.div
+        initial={{ y: 40, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.7, duration: 0.6 }}
+        className="px-6 pb-8"
+      >
+        <div className="max-w-7xl mx-auto">
+          <Card className="bg-customgreys-secondarybg/50 backdrop-blur-sm border-orange-500/20 shadow-lg shadow-orange-500/5">
+            <CardHeader>
+              <motion.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.8 }}
+              >
+                <CardTitle className="text-2xl font-bold text-white mb-2">
+                  Tipos de <span className="bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent">Desafios</span> Disponíveis
+                </CardTitle>
+                <p className="text-gray-400">Escolha entre diversos formatos para criar exercícios envolventes</p>
+              </motion.div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {[
+                  { name: 'Múltipla Escolha', icon: '⚪', desc: 'Selecionar resposta correta', color: 'orange' },
+                  { name: 'Completar Lacuna', icon: '📝', desc: 'Preencher palavras que faltam', color: 'red' },
+                  { name: 'Tradução', icon: '🌐', desc: 'Traduzir entre idiomas', color: 'yellow' },
+                  { name: 'Compreensão Auditiva', icon: '🔊', desc: 'Ouvir e responder', color: 'orange' },
+                  { name: 'Pronúncia', icon: '🎤', desc: 'Falar e ser avaliado', color: 'red' },
+                  { name: 'Combinar Pares', icon: '🔗', desc: 'Conectar elementos relacionados', color: 'yellow' },
+                  { name: 'Ordenar Frase', icon: '📐', desc: 'Organizar palavras corretamente', color: 'orange' },
+                  { name: 'E mais...', icon: '✨', desc: 'Novos tipos em desenvolvimento', color: 'red' }
+                ].map((type, index) => (
+                  <motion.div 
+                    key={index}
+                    initial={{ opacity: 0, y: 20, scale: 0.8 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{ delay: 0.9 + index * 0.1, type: "spring", stiffness: 200 }}
+                    whileHover={{ 
+                      y: -4, 
+                      scale: 1.05,
+                      transition: { duration: 0.2 }
+                    }}
+                    className={`bg-gradient-to-br from-customgreys-primarybg/60 to-customgreys-primarybg/80 rounded-xl p-6 border border-${type.color}-500/20 hover:border-${type.color}-400/50 transition-all duration-300 cursor-pointer group shadow-lg hover:shadow-${type.color}-500/20`}
+                  >
+                    <motion.div 
+                      className="text-3xl mb-3 group-hover:scale-110 transition-transform"
+                      whileHover={{ rotate: [0, -10, 10, 0] }}
+                      transition={{ duration: 0.5 }}
+                    >
+                      {type.icon}
+                    </motion.div>
+                    <h4 className={`text-white font-semibold text-sm mb-2 group-hover:text-${type.color}-300 transition-colors`}>
+                      {type.name}
+                    </h4>
+                    <p className="text-gray-400 text-xs leading-relaxed group-hover:text-gray-300 transition-colors">
+                      {type.desc}
+                    </p>
+                  </motion.div>
+                ))}
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </div>
+      </motion.div>
 
       {/* Help Section */}
-      <Card className="mt-8 bg-customgreys-secondarybg border-customgreys-darkerGrey">
-        <CardContent className="p-6">
-          <div className="flex items-start gap-4">
-            <div className="p-3 bg-violet-600 rounded-lg">
-              <Target className="w-6 h-6 text-white" />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-lg font-semibold text-white mb-2">
-                Como criar exercícios eficazes?
-              </h3>
-              <div className="grid md:grid-cols-2 gap-4 text-white text-sm">
-                <div className="space-y-2">
-                  <p><strong className="text-violet-400">📋 Planejamento:</strong> Escolha o tipo de desafio baseado no objetivo de aprendizagem</p>
-                  <p><strong className="text-violet-400">🎯 Progressão:</strong> Comece com exercícios fáceis e aumente a dificuldade</p>
-                  <p><strong className="text-violet-400">🔄 Variedade:</strong> Misture diferentes tipos para manter o engajamento</p>
-                </div>
-                <div className="space-y-2">
-                  <p><strong className="text-violet-400">💡 Dicas:</strong> Sempre forneça dicas úteis para apoiar o aprendizado</p>
-                  <p><strong className="text-violet-400">✅ Feedback:</strong> Inclua explicações para respostas corretas e incorretas</p>
-                  <p><strong className="text-violet-400">📊 Equilíbrio:</strong> 8-12 exercícios por lição para experiência ideal</p>
+      <motion.div
+        initial={{ y: 40, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.8, duration: 0.6 }}
+        className="px-6 pb-12"
+      >
+        <div className="max-w-7xl mx-auto">
+          <Card className="bg-customgreys-secondarybg/50 backdrop-blur-sm border-orange-500/20 shadow-lg shadow-orange-500/5">
+            <CardContent className="p-8">
+              <div className="flex items-start gap-6">
+                <motion.div 
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 1, type: "spring", stiffness: 200 }}
+                  className="p-4 bg-gradient-to-br from-orange-600 to-red-600 rounded-xl shadow-lg shadow-orange-500/25"
+                >
+                  <Target className="w-8 h-8 text-white" />
+                </motion.div>
+                <div className="flex-1">
+                  <motion.h3 
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 1.1 }}
+                    className="text-2xl font-semibold text-white mb-6"
+                  >
+                    Como criar <span className="bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent">exercícios eficazes</span>?
+                  </motion.h3>
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      {[
+                        { icon: "📋", title: "Planejamento", desc: "Escolha o tipo de desafio baseado no objetivo de aprendizagem" },
+                        { icon: "🎯", title: "Progressão", desc: "Comece com exercícios fáceis e aumente a dificuldade" },
+                        { icon: "🔄", title: "Variedade", desc: "Misture diferentes tipos para manter o engajamento" }
+                      ].map((tip, index) => (
+                        <motion.div
+                          key={tip.title}
+                          initial={{ x: -20, opacity: 0 }}
+                          animate={{ x: 0, opacity: 1 }}
+                          transition={{ delay: 1.2 + index * 0.1 }}
+                          className="flex items-start gap-3 p-3 rounded-lg bg-orange-500/5 border border-orange-500/10 hover:bg-orange-500/10 transition-colors group"
+                        >
+                          <div className="text-xl group-hover:scale-110 transition-transform">{tip.icon}</div>
+                          <div>
+                            <p className="text-white font-medium mb-1">{tip.title}</p>
+                            <p className="text-gray-400 text-sm">{tip.desc}</p>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                    <div className="space-y-4">
+                      {[
+                        { icon: "💡", title: "Dicas", desc: "Sempre forneça dicas úteis para apoiar o aprendizado" },
+                        { icon: "✅", title: "Feedback", desc: "Inclua explicações para respostas corretas e incorretas" },
+                        { icon: "📊", title: "Equilíbrio", desc: "8-12 exercícios por lição para experiência ideal" }
+                      ].map((tip, index) => (
+                        <motion.div
+                          key={tip.title}
+                          initial={{ x: -20, opacity: 0 }}
+                          animate={{ x: 0, opacity: 1 }}
+                          transition={{ delay: 1.5 + index * 0.1 }}
+                          className="flex items-start gap-3 p-3 rounded-lg bg-red-500/5 border border-red-500/10 hover:bg-red-500/10 transition-colors group"
+                        >
+                          <div className="text-xl group-hover:scale-110 transition-transform">{tip.icon}</div>
+                          <div>
+                            <p className="text-white font-medium mb-1">{tip.title}</p>
+                            <p className="text-gray-400 text-sm">{tip.desc}</p>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </div>
+      </motion.div>
     </div>
   );
 }

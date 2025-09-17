@@ -29,6 +29,17 @@ const Header = () => {
     await logout();
   };
 
+  const handleScrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'start',
+        inline: 'nearest'
+      });
+    }
+  };
+
   const getUserInitials = (name: string) => {
     return name
       .split(' ')
@@ -73,11 +84,11 @@ const Header = () => {
               <SheetContent side="right" className="w-[300px] sm:w-[400px] bg-black">
               <div className="gradient-03  z-0" />
                 <nav className="flex flex-col gap-6 mt-6 text-white/70">
-                  <a href="#about">Sobre Nós</a>
-                  <a href="#service">Serviços</a>
-                  <a href="search">Cursos</a>
-                  <a href="#plan">Planos</a>
-                  <a href="#testimonial">Testemunhos</a>
+                  <button onClick={() => handleScrollToSection('about')} className="hover:text-white transition-colors text-left">Sobre Nós</button>
+                  <button onClick={() => handleScrollToSection('features')} className="hover:text-white transition-colors text-left">Serviços</button>
+                  <Link href="/search" className="hover:text-white transition-colors">Cursos</Link>
+                  <button onClick={() => handleScrollToSection('pricing')} className="hover:text-white transition-colors text-left">Planos</button>
+                  <button onClick={() => handleScrollToSection('testimonials')} className="hover:text-white transition-colors text-left">Testemunhos</button>
                   {isAuthenticated && user ? (
                     <div className="flex flex-col gap-2">
                       <span className="text-white text-sm">Olá, {user.name}</span>
@@ -100,11 +111,11 @@ const Header = () => {
               </SheetContent>
             </Sheet>
             <nav className="hidden md:flex gap-6 items-center text-white/70">
-              <a href="#about">Sobre Nós</a>
-              <a href="#service">Serviços</a>
-              <a href="search">Cursos</a>
-              <a href="#plan">Planos</a>
-              <a href="#testimonial">Testemunhos</a>
+              <button onClick={() => handleScrollToSection('about')} className="hover:text-white transition-colors">Sobre Nós</button>
+              <button onClick={() => handleScrollToSection('features')} className="hover:text-white transition-colors">Serviços</button>
+              <Link href="/search" className="hover:text-white transition-colors">Cursos</Link>
+              <button onClick={() => handleScrollToSection('pricing')} className="hover:text-white transition-colors">Planos</button>
+              <button onClick={() => handleScrollToSection('testimonials')} className="hover:text-white transition-colors">Testemunhos</button>
               
               {isAuthenticated && user ? (
                 <DropdownMenu>

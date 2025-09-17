@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { motion } from "framer-motion";
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -22,7 +23,9 @@ import {
   Code,
   Heart,
   Stethoscope,
-  Scale
+  Scale,
+  Star,
+  Zap
 } from "lucide-react";
 
 interface WizardStep {
@@ -211,57 +214,85 @@ const CourseWizard = ({ onComplete }: { onComplete: (courseData: any) => void })
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {courseTemplates.map((template) => {
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {courseTemplates.map((template, index) => {
                 const Icon = template.icon;
                 const isSelected = courseData.template?.id === template.id;
                 
                 return (
-                  <Card
+                  <motion.div
                     key={template.id}
-                    className={`cursor-pointer transition-all duration-200 hover:shadow-lg ${
-                      isSelected
-                        ? 'border-violet-500 bg-customgreys-darkGrey shadow-lg'
-                        : 'border-customgreys-darkerGrey bg-customgreys-secondarybg hover:border-violet-400'
-                    }`}
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ duration: 0.5, delay: index * 0.1 }}
+                    whileHover={{ y: -4, scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={() => selectTemplate(template)}
+                    className="group cursor-pointer"
                   >
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center space-x-3">
-                        <div className={`p-2 rounded-lg ${template.color}`}>
-                          <Icon className="h-5 w-5 text-white" />
-                        </div>
-                        <div className="flex-1">
-                          <CardTitle className="text-lg text-white">{template.name}</CardTitle>
-                          <div className="flex items-center space-x-2 mt-1">
-                            <Badge variant="outline" className="text-xs">
-                              {template.estimatedLessons} lições
-                            </Badge>
-                            <Badge variant="outline" className="text-xs">
-                              {template.estimatedTime}
-                            </Badge>
+                    <div className={`relative p-6 rounded-3xl border transition-all duration-300 h-full ${
+                      isSelected
+                        ? 'border-violet-400/50 bg-gradient-to-br from-violet-500/20 to-purple-500/20 shadow-2xl'
+                        : 'border-gray-600/30 bg-gradient-to-br from-gray-500/5 to-gray-600/5 hover:border-violet-400/40 hover:from-violet-500/10 hover:to-purple-500/10'
+                    }`}>
+                      {isSelected && (
+                        <div className="absolute top-4 right-4">
+                          <div className="w-8 h-8 bg-gradient-to-br from-violet-500 to-purple-600 rounded-full flex items-center justify-center">
+                            <Check className="h-4 w-4 text-white" />
                           </div>
                         </div>
-                        {isSelected && (
-                          <Check className="h-5 w-5 text-violet-400" />
-                        )}
+                      )}
+                      
+                      <div className="mb-6">
+                        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-4 transition-all duration-300 ${template.color} ${
+                          isSelected ? 'scale-110' : 'group-hover:scale-105'
+                        }`}>
+                          <Icon className="h-8 w-8 text-white" />
+                        </div>
+                        
+                        <h3 className="text-xl font-bold text-white mb-2 group-hover:text-violet-100 transition-colors">
+                          {template.name}
+                        </h3>
+                        
+                        <p className="text-gray-400 leading-relaxed mb-4">
+                          {template.description}
+                        </p>
+                        
+                        <div className="flex items-center space-x-3 mb-4">
+                          <Badge className="bg-violet-500/20 text-violet-300 border-violet-500/30 text-xs">
+                            {template.estimatedLessons} lições
+                          </Badge>
+                          <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/30 text-xs">
+                            {template.estimatedTime}
+                          </Badge>
+                        </div>
                       </div>
-                    </CardHeader>
-                    <CardContent>
-                      <CardDescription className="mb-3 text-gray-300">
-                        {template.description}
-                      </CardDescription>
-                      <div className="space-y-1">
-                        <p className="text-sm font-medium text-violet-400">Inclui:</p>
-                        {template.features.map((feature, index) => (
-                          <div key={index} className="flex items-center space-x-2">
-                            <div className="w-1.5 h-1.5 bg-violet-400 rounded-full"></div>
-                            <span className="text-sm text-gray-400">{feature}</span>
-                          </div>
-                        ))}
+                      
+                      <div className="space-y-3">
+                        <p className="text-sm font-semibold text-violet-400 flex items-center">
+                          <Sparkles className="w-4 h-4 mr-2" />
+                          Inclui:
+                        </p>
+                        <div className="space-y-2">
+                          {template.features.map((feature, featureIndex) => (
+                            <div key={featureIndex} className="flex items-center space-x-3">
+                              <Zap className="w-3 h-3 text-violet-400 flex-shrink-0" />
+                              <span className="text-sm text-gray-300">{feature}</span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    </CardContent>
-                  </Card>
+                      
+                      <div className="mt-6 pt-4 border-t border-gray-600/30">
+                        <div className={`flex items-center text-sm font-medium transition-colors ${
+                          isSelected ? 'text-violet-300' : 'text-gray-400 group-hover:text-violet-400'
+                        }`}>
+                          <span>Selecionar template</span>
+                          <ChevronRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
                 );
               })}
             </div>
@@ -594,85 +625,153 @@ const CourseWizard = ({ onComplete }: { onComplete: (courseData: any) => void })
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto space-y-8">
       {/* Progress Header */}
-      <Card className="bg-customgreys-secondarybg border-customgreys-darkerGrey">
-        <CardHeader>
-          <div className="flex items-center justify-between mb-4">
+      <motion.div
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        className="relative"
+      >
+        <div className="bg-gradient-to-br from-violet-500/10 to-purple-500/10 backdrop-blur-xl rounded-3xl border border-violet-500/20 p-8">
+          <div className="flex items-center justify-between mb-6">
             <div>
-              <CardTitle className="text-white">Criação de Curso - Passo {currentStep + 1} de {steps.length}</CardTitle>
-              <CardDescription className="text-gray-300">{steps[currentStep].description}</CardDescription>
+              <h2 className="text-2xl font-bold text-white mb-2">
+                Passo {currentStep + 1} de {steps.length}
+              </h2>
+              <p className="text-gray-300 text-lg">{steps[currentStep].description}</p>
             </div>
             <div className="text-right">
-              <p className="text-2xl font-bold text-violet-400">{getCurrentStepProgress()}%</p>
-              <p className="text-sm text-gray-400">Concluído</p>
-            </div>
-          </div>
-          <Progress value={getCurrentStepProgress()} className="h-2" />
-        </CardHeader>
-      </Card>
-
-      {/* Step Navigation */}
-      <div className="grid grid-cols-4 gap-4">
-        {steps.map((step, index) => (
-          <Card
-            key={step.id}
-            className={`transition-all duration-200 ${
-              index === currentStep
-                ? 'border-violet-500 bg-customgreys-darkGrey'
-                : index < currentStep
-                ? 'border-green-500 bg-customgreys-darkGrey'
-                : 'border-customgreys-darkerGrey bg-customgreys-secondarybg'
-            }`}
-          >
-            <CardContent className="p-4">
-              <div className="flex items-center space-x-3">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                  index === currentStep
-                    ? 'bg-violet-500 text-white'
-                    : index < currentStep
-                    ? 'bg-green-500 text-white'
-                    : 'bg-gray-200 text-gray-500'
-                }`}>
-                  {index < currentStep ? <Check className="h-4 w-4" /> : index + 1}
-                </div>
-                <div>
-                  <p className="font-medium text-sm text-white">{step.title}</p>
+              <div className="w-20 h-20 relative">
+                <svg className="w-20 h-20 transform -rotate-90" viewBox="0 0 100 100">
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="40"
+                    stroke="currentColor"
+                    strokeWidth="8"
+                    fill="transparent"
+                    className="text-violet-900/30"
+                  />
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="40"
+                    stroke="currentColor"
+                    strokeWidth="8"
+                    fill="transparent"
+                    strokeDasharray={`${2 * Math.PI * 40}`}
+                    strokeDashoffset={`${2 * Math.PI * 40 * (1 - getCurrentStepProgress() / 100)}`}
+                    className="text-violet-400 transition-all duration-500 ease-out"
+                    strokeLinecap="round"
+                  />
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-2xl font-bold text-white">{getCurrentStepProgress()}%</span>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
+          <div className="w-full bg-violet-900/20 rounded-full h-2">
+            <motion.div 
+              className="bg-gradient-to-r from-violet-500 to-purple-500 h-2 rounded-full transition-all duration-500"
+              initial={{ width: 0 }}
+              animate={{ width: `${getCurrentStepProgress()}%` }}
+            />
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Step Navigation */}
+      <motion.div 
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+        className="grid grid-cols-1 md:grid-cols-4 gap-4"
+      >
+        {steps.map((step, index) => (
+          <motion.div
+            key={step.id}
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.1 + index * 0.1 }}
+            whileHover={{ y: -2 }}
+            className={`relative p-6 rounded-2xl border transition-all duration-300 ${
+              index === currentStep
+                ? 'border-violet-400/50 bg-gradient-to-br from-violet-500/20 to-purple-500/20'
+                : index < currentStep
+                ? 'border-green-400/50 bg-gradient-to-br from-green-500/20 to-emerald-500/20'
+                : 'border-gray-600/30 bg-gradient-to-br from-gray-500/10 to-gray-600/10'
+            }`}
+          >
+            <div className="flex items-center space-x-3">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold transition-all duration-300 ${
+                index === currentStep
+                  ? 'bg-gradient-to-br from-violet-500 to-purple-600 text-white shadow-lg'
+                  : index < currentStep
+                  ? 'bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-lg'
+                  : 'bg-gray-600/50 text-gray-400'
+              }`}>
+                {index < currentStep ? <Check className="h-5 w-5" /> : index + 1}
+              </div>
+              <div>
+                <p className="font-semibold text-white text-sm">{step.title}</p>
+              </div>
+            </div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
 
       {/* Step Content */}
-      <Card className="bg-customgreys-secondarybg border-customgreys-darkerGrey">
-        <CardContent className="p-8">
-          {renderStepContent()}
-        </CardContent>
-      </Card>
+      <motion.div
+        key={currentStep}
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.4 }}
+        className="bg-gradient-to-br from-violet-500/5 to-purple-500/5 backdrop-blur-xl rounded-3xl border border-violet-500/20 p-8"
+      >
+        {renderStepContent()}
+      </motion.div>
 
       {/* Navigation Buttons */}
-      <div className="flex justify-between">
-        <Button
-          variant="outline"
-          onClick={handlePrevious}
-          disabled={currentStep === 0}
-          className="border-customgreys-darkerGrey bg-customgreys-darkGrey text-gray-300 hover:bg-customgreys-darkerGrey hover:text-white"
-        >
-          <ChevronLeft className="h-4 w-4 mr-2" />
-          Anterior
-        </Button>
+      <motion.div 
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.3 }}
+        className="flex justify-between items-center"
+      >
+        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <Button
+            variant="outline"
+            onClick={handlePrevious}
+            disabled={currentStep === 0}
+            className="px-8 py-3 bg-gray-600/20 border-gray-500/30 text-gray-300 hover:bg-gray-500/30 hover:text-white hover:border-gray-400/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+          >
+            <ChevronLeft className="h-5 w-5 mr-2" />
+            Anterior
+          </Button>
+        </motion.div>
 
-        <Button
-          onClick={handleNext}
-          disabled={!canProceedToNext()}
-          className="bg-violet-800 hover:bg-violet-900"
-        >
-          {currentStep === steps.length - 1 ? 'Criar Curso' : 'Próximo'}
-          {currentStep !== steps.length - 1 && <ChevronRight className="h-4 w-4 ml-2" />}
-        </Button>
-      </div>
+        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <Button
+            onClick={handleNext}
+            disabled={!canProceedToNext()}
+            className="px-8 py-3 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+          >
+            {currentStep === steps.length - 1 ? (
+              <>
+                <Star className="h-5 w-5 mr-2" />
+                Criar Curso
+              </>
+            ) : (
+              <>
+                Próximo
+                <ChevronRight className="h-5 w-5 ml-2" />
+              </>
+            )}
+          </Button>
+        </motion.div>
+      </motion.div>
     </div>
   );
 };
