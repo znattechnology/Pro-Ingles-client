@@ -27,9 +27,11 @@ import {
   Code,
   Stethoscope,
   Scale,
-  Layers
+  Layers,
+  Send,
+  FileEdit
 } from "lucide-react";
-import { getPracticeCourses, deletePracticeCourse } from "@/actions/practice-management";
+import { getPracticeCourses, deletePracticeCourse, publishPracticeCourse } from "@/actions/practice-management";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -122,6 +124,21 @@ const ManageCoursesPage = () => {
       } catch (error) {
         console.error('Error deleting course:', error);
         alert('Erro ao excluir curso. Tente novamente.');
+      }
+    }
+  };
+
+  const handlePublishCourse = async (courseId: string, courseTitle: string, currentStatus: string) => {
+    const isPublishing = currentStatus === 'draft';
+    const action = isPublishing ? 'publicar' : 'despublicar';
+    
+    if (confirm(`Tem certeza que deseja ${action} o curso "${courseTitle}"?`)) {
+      try {
+        await publishPracticeCourse(courseId, isPublishing);
+        await loadCourses(); // Reload courses
+      } catch (error) {
+        console.error(`Error ${action}ing course:`, error);
+        alert(`Erro ao ${action} curso. Tente novamente.`);
       }
     }
   };
@@ -553,6 +570,25 @@ const ManageCoursesPage = () => {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="bg-customgreys-secondarybg border-violet-500/30">
+                              <DropdownMenuItem 
+                                onClick={() => handlePublishCourse(course.id, course.title, course.status)}
+                                className={course.status === 'draft' 
+                                  ? "text-green-400 hover:text-green-300 hover:bg-green-900/20"
+                                  : "text-yellow-400 hover:text-yellow-300 hover:bg-yellow-900/20"
+                                }
+                              >
+                                {course.status === 'draft' ? (
+                                  <>
+                                    <Send className="h-4 w-4 mr-2" />
+                                    Publicar
+                                  </>
+                                ) : (
+                                  <>
+                                    <FileEdit className="h-4 w-4 mr-2" />
+                                    Despublicar
+                                  </>
+                                )}
+                              </DropdownMenuItem>
                               <DropdownMenuItem 
                                 onClick={() => router.push(`/teacher/laboratory/edit-course/${course.id}`)}
                                 className="text-white hover:bg-violet-800/20"

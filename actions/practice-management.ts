@@ -279,6 +279,46 @@ export const updatePracticeCourse = async (courseId: string, courseData: {
 };
 
 /**
+ * Publish/Unpublish a practice course
+ */
+export const publishPracticeCourse = async (courseId: string, publish: boolean = true) => {
+    try {
+        const token = getAuthToken();
+        if (!token) {
+            throw new Error("Authentication required");
+        }
+
+        console.log(`${publish ? '📢' : '📝'} ${publish ? 'Publishing' : 'Unpublishing'} practice course:`, courseId);
+
+        const response = await fetch(`${API_BASE_URL}/courses/${courseId}/`, {
+            method: 'PATCH',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                status: publish ? 'Published' : 'Draft'
+            }),
+        });
+
+        console.log('📡 Publish response status:', response.status);
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error('❌ Publish error:', errorData);
+            throw new Error(errorData.message || `Failed to ${publish ? 'publish' : 'unpublish'} course`);
+        }
+
+        const result = await response.json();
+        console.log(`✅ Course ${publish ? 'published' : 'unpublished'} successfully:`, result);
+        return result;
+    } catch (error) {
+        console.error(`Error ${publish ? 'publishing' : 'unpublishing'} practice course:`, error);
+        throw error;
+    }
+};
+
+/**
  * Delete a practice course
  */
 export const deletePracticeCourse = async (courseId: string) => {
