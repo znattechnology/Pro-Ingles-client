@@ -8,7 +8,7 @@
  */
 
 // Base API URL
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+const API_BASE_URL = process.env.NEXT_PUBLIC_DJANGO_API_URL || 'http://localhost:8000/api/v1';
 
 /**
  * Get auth token from localStorage
@@ -96,7 +96,13 @@ export const getPracticeCourses = async () => {
             throw new Error("Authentication required");
         }
 
-        const response = await fetch(`${API_BASE_URL}/practice/courses/`, {
+        console.log('Fetching courses from:', `${API_BASE_URL}/practice/courses/`);
+        console.log('Using token:', token.substring(0, 20) + '...');
+
+        // Try to get ALL courses including drafts
+        console.log('🔍 Trying to fetch ALL courses including drafts...');
+        
+        const response = await fetch(`${API_BASE_URL}/practice/courses/?include_drafts=true`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -104,11 +110,71 @@ export const getPracticeCourses = async () => {
             },
         });
 
+        console.log('Courses fetch response status:', response.status);
+
+        // If the parameter doesn't work, try without it and log the issue
         if (!response.ok) {
-            throw new Error("Failed to fetch practice courses");
+            console.warn('🚨 Failed with include_drafts parameter, trying without...');
+            
+            const fallbackResponse = await fetch(`${API_BASE_URL}/practice/courses/`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+            
+            console.log('Fallback fetch response status:', fallbackResponse.status);
+            
+            if (!fallbackResponse.ok) {
+                const errorText = await fallbackResponse.text();
+                console.error('Courses fetch error response:', errorText);
+                throw new Error(`Failed to fetch practice courses: ${fallbackResponse.status}`);
+            }
+            
+            console.log('⚠️ NOTA: API Django está filtrando cursos - apenas "Published" são retornados');
+            console.log('⚠️ Para ver cursos "Draft", a API precisa ser configurada no backend');
+            
+            const courses = await fallbackResponse.json();
+            console.log('✅ Courses fetched successfully from database:', courses);
+            console.log('📊 Number of courses from DB:', courses.length);
+            
+            // Log detailed course data to verify they're from database
+            courses.forEach((course: any, index: number) => {
+                console.log(`🎯 Course ${index + 1}:`, {
+                    id: course.id,
+                    title: course.title,
+                    category: course.category,
+                    level: course.level,
+                    status: course.status,
+                    created_at: course.created_at,
+                    updated_at: course.updated_at,
+                    teacher: course.teacher?.username || course.teacher?.email || 'Unknown'
+                });
+            });
+            
+            return courses;
         }
 
-        return await response.json();
+        const courses = await response.json();
+        console.log('✅ Courses fetched successfully from database:', courses);
+        console.log('📊 Number of courses from DB:', courses.length);
+        
+        // Log detailed course data to verify they're from database
+        courses.forEach((course: any, index: number) => {
+            console.log(`🎯 Course ${index + 1}:`, {
+                id: course.id,
+                title: course.title,
+                category: course.category,
+                level: course.level,
+                status: course.status,
+                created_at: course.created_at,
+                updated_at: course.updated_at,
+                teacher: course.teacher?.username || course.teacher?.email || 'Unknown'
+            });
+        });
+        
+        return courses;
     } catch (error) {
         console.error("Error fetching practice courses:", error);
         throw error;
@@ -141,7 +207,33 @@ export const createPracticeCourse = async (courseData: {
             body: JSON.stringify(requestBody),
         });
 
-        console.log('Success response:', result);
+        console.log('✅ Course created successfully:', result);
+        console.log('🆔 New course ID:', result.id);
+        console.log('📝 Course details:', {
+            title: result.title,
+            category: result.category,
+            level: result.level,
+            status: result.status,
+            created_at: result.created_at
+        });
+        
+        // After creating, wait a moment and then fetch courses to verify persistence
+        setTimeout(async () => {
+            try {
+                console.log('🔍 Verifying course persistence after creation...');
+                const allCourses = await getPracticeCourses();
+                const createdCourse = allCourses.find((c: any) => c.id === result.id);
+                if (createdCourse) {
+                    console.log('✅ CONFIRMED: New course persisted in database');
+                    console.log('🎯 Found created course:', createdCourse);
+                } else {
+                    console.log('❌ WARNING: New course NOT found in database after creation');
+                }
+            } catch (error) {
+                console.error('Error verifying course persistence:', error);
+            }
+        }, 1000);
+        
         return result;
     } catch (error) {
         console.error("Error creating practice course:", error);
@@ -229,6 +321,9 @@ export const getCourseUnits = async (courseId: string) => {
             throw new Error("Authentication required");
         }
 
+        console.log('🔄 Fetching units for course:', courseId);
+        console.log('🌐 API URL:', `${API_BASE_URL}/practice/courses/${courseId}/units-with-progress/`);
+
         const response = await fetch(`${API_BASE_URL}/practice/courses/${courseId}/units-with-progress/`, {
             method: 'GET',
             headers: {
@@ -237,13 +332,21 @@ export const getCourseUnits = async (courseId: string) => {
             },
         });
 
+        console.log('📡 Units fetch response status:', response.status);
+
         if (!response.ok) {
-            throw new Error("Failed to fetch course units");
+            const errorText = await response.text();
+            console.error('❌ Units fetch error:', errorText);
+            throw new Error(`Failed to fetch course units: ${response.status}`);
         }
 
-        return await response.json();
+        const units = await response.json();
+        console.log('✅ Units fetched successfully:', units);
+        console.log('📊 Number of units:', units?.length || 0);
+        
+        return units;
     } catch (error) {
-        console.error("Error fetching course units:", error);
+        console.error("❌ Error fetching course units:", error);
         throw error;
     }
 };
@@ -263,6 +366,9 @@ export const createPracticeUnit = async (unitData: {
             throw new Error("Authentication required");
         }
 
+        console.log('🔄 Creating unit with data:', unitData);
+        console.log('🌐 API URL:', `${API_BASE_URL}/practice/units/`);
+
         const response = await fetch(`${API_BASE_URL}/practice/units/`, {
             method: 'POST',
             headers: {
@@ -272,14 +378,19 @@ export const createPracticeUnit = async (unitData: {
             body: JSON.stringify(unitData),
         });
 
+        console.log('📡 Unit creation response status:', response.status);
+
         if (!response.ok) {
             const errorData = await response.json();
+            console.error('❌ Unit creation error:', errorData);
             throw new Error(errorData.message || "Failed to create unit");
         }
 
-        return await response.json();
+        const result = await response.json();
+        console.log('✅ Unit created successfully:', result);
+        return result;
     } catch (error) {
-        console.error("Error creating practice unit:", error);
+        console.error("❌ Error creating practice unit:", error);
         throw error;
     }
 };
@@ -395,6 +506,9 @@ export const createPracticeLesson = async (lessonData: {
             throw new Error("Authentication required");
         }
 
+        console.log('🔄 Creating lesson with data:', lessonData);
+        console.log('🌐 API URL:', `${API_BASE_URL}/practice/lessons/`);
+
         const response = await fetch(`${API_BASE_URL}/practice/lessons/`, {
             method: 'POST',
             headers: {
@@ -404,14 +518,19 @@ export const createPracticeLesson = async (lessonData: {
             body: JSON.stringify(lessonData),
         });
 
+        console.log('📡 Lesson creation response status:', response.status);
+
         if (!response.ok) {
             const errorData = await response.json();
+            console.error('❌ Lesson creation error:', errorData);
             throw new Error(errorData.message || "Failed to create lesson");
         }
 
-        return await response.json();
+        const result = await response.json();
+        console.log('✅ Lesson created successfully:', result);
+        return result;
     } catch (error) {
-        console.error("Error creating practice lesson:", error);
+        console.error("❌ Error creating practice lesson:", error);
         throw error;
     }
 };
@@ -471,6 +590,18 @@ export const createPracticeChallenge = async (challengeData: {
             throw new Error("Authentication required");
         }
 
+        console.log('🔄 Creating challenge with data:', challengeData);
+        
+        const challengePayload = {
+            lesson: challengeData.lesson,
+            type: challengeData.type,
+            question: challengeData.question,
+            order: challengeData.order,
+        };
+        
+        console.log('📝 Challenge payload:', challengePayload);
+        console.log('🌐 API URL:', `${API_BASE_URL}/practice/challenges/`);
+
         // First create the challenge
         const challengeResponse = await fetch(`${API_BASE_URL}/practice/challenges/`, {
             method: 'POST',
@@ -478,37 +609,70 @@ export const createPracticeChallenge = async (challengeData: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                lesson: challengeData.lesson,
-                type: challengeData.type,
-                question: challengeData.question,
-                order: challengeData.order,
-            }),
+            body: JSON.stringify(challengePayload),
         });
 
+        console.log('📡 Challenge creation response status:', challengeResponse.status);
+
         if (!challengeResponse.ok) {
-            const errorData = await challengeResponse.json();
-            throw new Error(errorData.message || "Failed to create challenge");
+            const errorText = await challengeResponse.text();
+            console.error('❌ Challenge creation error response:', errorText);
+            
+            let errorData;
+            try {
+                errorData = JSON.parse(errorText);
+            } catch (e) {
+                errorData = { message: errorText };
+            }
+            
+            throw new Error(errorData.message || `Failed to create challenge: ${challengeResponse.status}`);
         }
 
         const challenge = await challengeResponse.json();
+        console.log('✅ Challenge created, now creating options...');
+        console.log('🎯 Challenge ID:', challenge.id);
+        console.log('📋 Options to create:', challengeData.options);
 
-        // Then create the options
-        for (const option of challengeData.options) {
-            await fetch(`${API_BASE_URL}/practice/challenge-options/`, {
+        // Then create the options and collect their IDs
+        const createdOptions = [];
+        for (const [index, option] of challengeData.options.entries()) {
+            const optionPayload = {
+                ...option,
+                challenge_id: challenge.id,  // Django expects challenge_id, not challenge
+            };
+            
+            console.log(`🔄 Creating option ${index + 1}:`, optionPayload);
+            
+            const optionResponse = await fetch(`${API_BASE_URL}/practice/challenge-options/`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    ...option,
-                    challenge: challenge.id,
-                }),
+                body: JSON.stringify(optionPayload),
             });
+            
+            console.log(`📡 Option ${index + 1} response status:`, optionResponse.status);
+            
+            if (!optionResponse.ok) {
+                const errorText = await optionResponse.text();
+                console.error(`❌ Option ${index + 1} creation error:`, errorText);
+                
+                // Don't throw, continue with other options for now
+                console.warn(`⚠️ Skipping option ${index + 1} due to error`);
+                createdOptions.push(null); // Keep index alignment
+            } else {
+                const optionResult = await optionResponse.json();
+                console.log(`✅ Option ${index + 1} created:`, optionResult);
+                createdOptions.push(optionResult);
+            }
         }
 
-        return challenge;
+        // Return challenge with created options
+        return {
+            ...challenge,
+            createdOptions: createdOptions
+        };
     } catch (error) {
         console.error("Error creating practice challenge:", error);
         throw error;
@@ -637,6 +801,470 @@ export const getStudentProgress = async () => {
         return await response.json();
     } catch (error) {
         console.error("Error fetching student progress:", error);
+        throw error;
+    }
+};
+
+/**
+ * Get presigned URL for audio upload to S3
+ */
+export const getAudioUploadUrl = async (payload: {
+    lessonId: string;
+    challengeId: string;
+    fileName: string;
+    fileType: string;
+}) => {
+    try {
+        const token = getAuthToken();
+        if (!token) {
+            throw new Error("Authentication required");
+        }
+
+        console.log('🎵 Getting audio upload URL...', payload);
+
+        const response = await fetch(`${API_BASE_URL}/practice/challenges/${payload.challengeId}/get-audio-upload-url/`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                lessonId: payload.lessonId,
+                fileName: payload.fileName,
+                fileType: payload.fileType
+            }),
+        });
+
+        console.log('📡 Audio upload URL response status:', response.status);
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ Audio upload URL error:', errorText);
+            throw new Error(`Failed to get audio upload URL: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log('✅ Audio upload URL received:', result);
+        return result;
+    } catch (error) {
+        console.error("Error getting audio upload URL:", error);
+        throw error;
+    }
+};
+
+/**
+ * Upload audio file to S3 using presigned URL
+ */
+export const uploadAudioToS3 = async (audioFile: File, lessonId: string, challengeId: string): Promise<string> => {
+    try {
+        console.log('🎵 Starting audio upload...', { audioFile: audioFile.name });
+        
+        // Get presigned URL from Django backend
+        const uploadResponse = await getAudioUploadUrl({
+            lessonId,
+            challengeId,
+            fileName: audioFile.name,
+            fileType: audioFile.type
+        });
+
+        const { uploadUrl, audioUrl } = uploadResponse.data;
+        console.log('📍 Audio upload details:', { uploadUrl, audioUrl });
+
+        // Upload file to S3 using presigned URL
+        const uploadToS3Response = await fetch(uploadUrl, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': audioFile.type,
+            },
+            body: audioFile,
+        });
+
+        if (!uploadToS3Response.ok) {
+            throw new Error(`Upload failed with status: ${uploadToS3Response.status}`);
+        }
+
+        console.log('✅ Audio uploaded to S3 successfully');
+        return audioUrl;
+    } catch (error: any) {
+        console.error('❌ Audio upload failed:', error);
+        throw error;
+    }
+};
+
+/**
+ * Get presigned URL for image upload to S3
+ */
+export const getImageUploadUrl = async (payload: {
+    lessonId: string;
+    challengeId: string;
+    fileName: string;
+    fileType: string;
+}) => {
+    try {
+        const token = getAuthToken();
+        if (!token) {
+            throw new Error("Authentication required");
+        }
+
+        console.log('🖼️ Getting image upload URL...', payload);
+
+        const response = await fetch(`${API_BASE_URL}/practice/challenges/${payload.challengeId}/get-image-upload-url/`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                lessonId: payload.lessonId,
+                fileName: payload.fileName,
+                fileType: payload.fileType
+            }),
+        });
+
+        console.log('📡 Image upload URL response status:', response.status);
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ Image upload URL error:', errorText);
+            throw new Error(`Failed to get image upload URL: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log('✅ Image upload URL received:', result);
+        return result;
+    } catch (error) {
+        console.error("Error getting image upload URL:", error);
+        throw error;
+    }
+};
+
+/**
+ * Upload image file to S3 using presigned URL
+ */
+export const uploadImageToS3 = async (imageFile: File, lessonId: string, challengeId: string): Promise<string> => {
+    try {
+        console.log('🖼️ Starting image upload...', { imageFile: imageFile.name });
+        
+        // Get presigned URL from Django backend
+        const uploadResponse = await getImageUploadUrl({
+            lessonId,
+            challengeId,
+            fileName: imageFile.name,
+            fileType: imageFile.type
+        });
+
+        const { uploadUrl, imageUrl } = uploadResponse.data;
+        console.log('📍 Image upload details:', { uploadUrl, imageUrl });
+
+        // Upload file to S3 using presigned URL
+        const uploadToS3Response = await fetch(uploadUrl, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': imageFile.type,
+            },
+            body: imageFile,
+        });
+
+        if (!uploadToS3Response.ok) {
+            throw new Error(`Upload failed with status: ${uploadToS3Response.status}`);
+        }
+
+        console.log('✅ Image uploaded to S3 successfully');
+        return imageUrl;
+    } catch (error: any) {
+        console.error('❌ Image upload failed:', error);
+        throw error;
+    }
+};
+
+/**
+ * Update challenge option with media URLs
+ */
+export const updateChallengeOption = async (optionId: string, updateData: {
+    audioSrc?: string;
+    imageSrc?: string;
+}) => {
+    try {
+        const token = getAuthToken();
+        if (!token) {
+            throw new Error("Authentication required");
+        }
+
+        console.log('🔄 Updating challenge option...', { optionId, updateData });
+
+        const response = await fetch(`${API_BASE_URL}/practice/challenge-options/${optionId}/`, {
+            method: 'PATCH',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(updateData),
+        });
+
+        console.log('📡 Option update response status:', response.status);
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ Option update error:', errorText);
+            throw new Error(`Failed to update option: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log('✅ Option updated successfully:', result);
+        return result;
+    } catch (error) {
+        console.error("Error updating challenge option:", error);
+        throw error;
+    }
+};
+
+// ============================================================================
+// AI TRANSLATION FUNCTIONS - Intelligent translation validation for challenges
+// ============================================================================
+
+/**
+ * Validate translation using AI with detailed feedback
+ */
+export const validateTranslationWithAI = async (payload: {
+    sourceText: string;
+    userTranslation: string;
+    challengeId?: string;
+    difficultyLevel?: string;
+}) => {
+    try {
+        const token = getAuthToken();
+        if (!token) {
+            throw new Error("Authentication required");
+        }
+
+        console.log('🤖 Validating translation with AI...', payload);
+
+        const response = await fetch(`${API_BASE_URL}/practice/validate-ai-translation/`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                source_text: payload.sourceText,
+                user_translation: payload.userTranslation,
+                challenge_id: payload.challengeId,
+                difficulty_level: payload.difficultyLevel || 'intermediate'
+            }),
+        });
+
+        console.log('📡 AI validation response status:', response.status);
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ AI validation error:', errorText);
+            throw new Error(`AI validation failed: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log('✅ AI validation successful:', result);
+        return result;
+    } catch (error) {
+        console.error("Error validating translation with AI:", error);
+        throw error;
+    }
+};
+
+/**
+ * Generate multiple translation suggestions for teachers creating challenges
+ */
+export const generateTranslationSuggestions = async (payload: {
+    sourceText: string;
+    difficultyLevel?: string;
+    count?: number;
+}) => {
+    try {
+        const token = getAuthToken();
+        if (!token) {
+            throw new Error("Authentication required");
+        }
+
+        console.log('🎯 Generating translation suggestions...', payload);
+
+        const response = await fetch(`${API_BASE_URL}/practice/generate-translation-suggestions/`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                source_text: payload.sourceText,
+                difficulty_level: payload.difficultyLevel || 'intermediate',
+                count: payload.count || 3
+            }),
+        });
+
+        console.log('📡 Suggestions response status:', response.status);
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ Suggestions generation error:', errorText);
+            throw new Error(`Suggestions generation failed: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log('✅ Suggestions generated successfully:', result);
+        return result;
+    } catch (error) {
+        console.error("Error generating translation suggestions:", error);
+        throw error;
+    }
+};
+
+// ============================================================================
+// AI PRONUNCIATION FUNCTIONS - Intelligent pronunciation analysis for challenges
+// ============================================================================
+
+/**
+ * Analyze pronunciation using AI with detailed feedback
+ */
+export const analyzePronunciationWithAI = async (payload: {
+    audioFile: File;
+    expectedText: string;
+    challengeId?: string;
+    difficultyLevel?: string;
+}) => {
+    try {
+        const token = getAuthToken();
+        if (!token) {
+            throw new Error("Authentication required");
+        }
+
+        console.log('🎤 Analyzing pronunciation with AI...', {
+            expectedText: payload.expectedText,
+            audioFile: payload.audioFile.name,
+            size: payload.audioFile.size
+        });
+
+        // Create FormData for file upload
+        const formData = new FormData();
+        formData.append('audio_file', payload.audioFile);
+        formData.append('expected_text', payload.expectedText);
+        formData.append('difficulty_level', payload.difficultyLevel || 'intermediate');
+        if (payload.challengeId) {
+            formData.append('challenge_id', payload.challengeId);
+        }
+
+        const response = await fetch(`${API_BASE_URL}/practice/analyze-ai-pronunciation/`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                // Don't set Content-Type for FormData - let browser set it with boundary
+            },
+            body: formData,
+        });
+
+        console.log('📡 AI pronunciation analysis response status:', response.status);
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ AI pronunciation analysis error:', errorText);
+            throw new Error(`AI pronunciation analysis failed: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log('✅ AI pronunciation analysis successful:', result);
+        return result;
+    } catch (error) {
+        console.error("Error analyzing pronunciation with AI:", error);
+        throw error;
+    }
+};
+
+/**
+ * Generate pronunciation exercise with AI suggestions for teachers
+ */
+export const generatePronunciationExercise = async (payload: {
+    topic?: string;
+    difficultyLevel?: string;
+    exerciseType?: string;
+}) => {
+    try {
+        const token = getAuthToken();
+        if (!token) {
+            throw new Error("Authentication required");
+        }
+
+        console.log('🎯 Generating pronunciation exercise...', payload);
+
+        const response = await fetch(`${API_BASE_URL}/practice/generate-pronunciation-exercise/`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                topic: payload.topic || 'daily conversation',
+                difficulty_level: payload.difficultyLevel || 'intermediate',
+                exercise_type: payload.exerciseType || 'word'
+            }),
+        });
+
+        console.log('📡 Pronunciation exercise response status:', response.status);
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ Pronunciation exercise generation error:', errorText);
+            throw new Error(`Exercise generation failed: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log('✅ Pronunciation exercise generated successfully:', result);
+        return result;
+    } catch (error) {
+        console.error("Error generating pronunciation exercise:", error);
+        throw error;
+    }
+};
+
+/**
+ * Generate reference audio for pronunciation practice
+ */
+export const generateReferenceAudio = async (payload: {
+    text: string;
+    voice?: string;
+}) => {
+    try {
+        const token = getAuthToken();
+        if (!token) {
+            throw new Error("Authentication required");
+        }
+
+        console.log('🔊 Generating reference audio...', payload);
+
+        const response = await fetch(`${API_BASE_URL}/practice/generate-reference-audio/`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                text: payload.text,
+                voice: payload.voice || 'alloy'
+            }),
+        });
+
+        console.log('📡 Reference audio response status:', response.status);
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ Reference audio generation error:', errorText);
+            throw new Error(`Reference audio generation failed: ${response.status}`);
+        }
+
+        // Response is audio blob
+        const audioBlob = await response.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+        
+        console.log('✅ Reference audio generated successfully');
+        return { audioUrl, audioBlob };
+    } catch (error) {
+        console.error("Error generating reference audio:", error);
         throw error;
     }
 };

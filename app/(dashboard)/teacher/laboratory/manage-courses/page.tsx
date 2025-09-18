@@ -49,10 +49,29 @@ const ManageCoursesPage = () => {
     loadCourses();
   }, []);
 
+  // Reload courses when component is focused (useful when returning from create course page)
+  useEffect(() => {
+    const handleFocus = () => {
+      console.log('Window focused, reloading courses...');
+      loadCourses();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, []);
+
   const loadCourses = async () => {
     try {
+      console.log('🔄 Loading courses in manage-courses page...');
       setIsLoading(true);
       const coursesData = await getPracticeCourses();
+      
+      console.log('📚 Raw courses data received:', coursesData);
+      console.log('📊 Course statuses from API:', coursesData.map((c: any) => ({ 
+        title: c.title, 
+        status: c.status,
+        id: c.id 
+      })));
       
       // Transform data and add mock statistics
       const transformedCourses = coursesData.map((course: any) => ({
@@ -61,7 +80,7 @@ const ManageCoursesPage = () => {
         description: course.description,
         category: course.category,
         level: course.level,
-        status: course.status.toLowerCase(),
+        status: course.status?.toLowerCase() || 'draft',
         // Mock data - later we'll get from API
         units: Math.floor(Math.random() * 8) + 2,
         lessons: Math.floor(Math.random() * 30) + 10,
@@ -72,9 +91,24 @@ const ManageCoursesPage = () => {
         createdAt: new Date(Date.now() - Math.random() * 100000000000).toISOString()
       }));
       
+      console.log('✅ Transformed courses:', transformedCourses);
+      console.log('📊 Number of courses to display:', transformedCourses.length);
+      console.log('🔍 Final course statuses:', transformedCourses.map(c => ({ 
+        title: c.title, 
+        status: c.status, 
+        id: c.id 
+      })));
+      console.log('🎯 Looking for recently created course ID: bfe9c7fc-1b0f-4f6d-88c8-6e9363ddd736');
+      const recentCourse = transformedCourses.find(c => c.id === 'bfe9c7fc-1b0f-4f6d-88c8-6e9363ddd736');
+      if (recentCourse) {
+        console.log('✅ Recently created course FOUND:', recentCourse);
+      } else {
+        console.log('❌ Recently created course NOT FOUND in list');
+      }
+      
       setCourses(transformedCourses);
     } catch (error) {
-      console.error('Error loading courses:', error);
+      console.error('❌ Error loading courses:', error);
     } finally {
       setIsLoading(false);
     }

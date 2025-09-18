@@ -29,7 +29,8 @@ import {
   Circle,
   Target,
   Trophy,
-  Heart
+  Heart,
+  Zap
 } from 'lucide-react';
 import { getCourseUnits, createPracticeUnit, createPracticeLesson } from '@/actions/practice-management';
 
@@ -166,10 +167,16 @@ export default function LessonConstructor({ course, onBack }: LessonConstructorP
   const loadCourseUnits = async () => {
     try {
       setLoading(true);
+      console.log('🔄 LessonConstructor: Loading units for course:', course.id);
+      console.log('🎯 Course details:', course);
+      
       const unitsData = await getCourseUnits(course.id);
+      console.log('✅ Units loaded successfully:', unitsData);
+      console.log('📊 Number of units:', unitsData?.length || 0);
+      
       setUnits(unitsData || []);
     } catch (error) {
-      console.error('Error loading units:', error);
+      console.error('❌ Error loading units:', error);
     } finally {
       setLoading(false);
     }
@@ -181,6 +188,8 @@ export default function LessonConstructor({ course, onBack }: LessonConstructorP
     
     try {
       setLoading(true);
+      console.log('🔄 Creating new unit...');
+      
       const unitData = {
         course: course.id,
         title: newUnitData.title,
@@ -188,12 +197,16 @@ export default function LessonConstructor({ course, onBack }: LessonConstructorP
         order: units.length + 1
       };
       
+      console.log('📝 Unit data to create:', unitData);
+      
       const newUnit = await createPracticeUnit(unitData);
+      console.log('✅ Unit created successfully:', newUnit);
+      
       setUnits([...units, newUnit]);
       setNewUnitData({ title: '', description: '', order: 1 });
       setCurrentStep(2);
     } catch (error) {
-      console.error('Error creating unit:', error);
+      console.error('❌ Error creating unit:', error);
     } finally {
       setLoading(false);
     }
@@ -205,13 +218,19 @@ export default function LessonConstructor({ course, onBack }: LessonConstructorP
     
     try {
       setLoading(true);
+      console.log('🔄 Creating new lesson...');
+      console.log('📝 Selected unit:', selectedUnit);
+      
       const lessonData = {
         unit: selectedUnit.id,
         title: newLessonData.title,
         order: (selectedUnit.lessons?.length || 0) + 1
       };
       
+      console.log('📝 Lesson data to create:', lessonData);
+      
       const newLesson = await createPracticeLesson(lessonData);
+      console.log('✅ Lesson created successfully:', newLesson);
       
       // Update local state
       const updatedUnits = units.map(unit =>
@@ -221,8 +240,9 @@ export default function LessonConstructor({ course, onBack }: LessonConstructorP
       );
       setUnits(updatedUnits);
       setCurrentStep(4); // Move to preview step
+      console.log('✅ Local state updated, moved to step 4');
     } catch (error) {
-      console.error('Error creating lesson:', error);
+      console.error('❌ Error creating lesson:', error);
     } finally {
       setLoading(false);
     }
@@ -526,16 +546,20 @@ export default function LessonConstructor({ course, onBack }: LessonConstructorP
             </Card>
           )}
 
-          {/* Step 4: Preview */}
-          {currentStep === 4 && (
+          {/* Step 4: Course Overview */}
+          {currentStep === 4 && selectedUnit && (
             <Card className="bg-customgreys-secondarybg border-customgreys-darkerGrey">
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
-                  <Trophy className="w-5 h-5" />
-                  Lição Criada com Sucesso!
+                  <BookOpen className="w-5 h-5" />
+                  Visão Geral do Curso
                 </CardTitle>
+                <p className="text-customgreys-dirtyGrey">
+                  {course.title} - {selectedUnit.title}
+                </p>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Success Message */}
                 <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4">
                   <div className="flex items-center gap-2 text-green-400 mb-2">
                     <CheckCircle className="w-5 h-5" />
@@ -546,7 +570,47 @@ export default function LessonConstructor({ course, onBack }: LessonConstructorP
                   </p>
                 </div>
 
-                <div className="space-y-3">
+                {/* Unit Progress */}
+                <div className="bg-customgreys-primarybg rounded-lg p-4 border border-customgreys-darkerGrey">
+                  <h4 className="text-white font-semibold mb-3 flex items-center gap-2">
+                    <Target className="w-4 h-4" />
+                    Progresso da Unidade: {selectedUnit.title}
+                  </h4>
+                  
+                  {/* Lessons List */}
+                  <div className="space-y-2">
+                    {selectedUnit.lessons && selectedUnit.lessons.length > 0 ? (
+                      selectedUnit.lessons.map((lesson, index) => (
+                        <div
+                          key={lesson.id}
+                          className="flex items-center justify-between p-3 bg-customgreys-secondarybg rounded-lg border border-customgreys-darkerGrey"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center text-white text-sm font-bold">
+                              {index + 1}
+                            </div>
+                            <div>
+                              <h5 className="text-white font-medium">{lesson.title}</h5>
+                              <p className="text-customgreys-dirtyGrey text-xs">
+                                {lesson.challenges?.length || 0} exercícios
+                              </p>
+                            </div>
+                          </div>
+                          <Badge variant="outline" className="text-xs text-green-400 border-green-400">
+                            Criada
+                          </Badge>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-customgreys-dirtyGrey text-sm text-center py-4">
+                        Nenhuma lição encontrada nesta unidade
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="grid grid-cols-1 gap-3">
                   <Button
                     onClick={() => {
                       // Reset state for new lesson
@@ -561,7 +625,27 @@ export default function LessonConstructor({ course, onBack }: LessonConstructorP
                     className="w-full bg-violet-600 hover:bg-violet-700"
                   >
                     <Plus className="w-4 h-4 mr-2" />
-                    Criar Nova Lição
+                    Criar Nova Lição nesta Unidade
+                  </Button>
+                  
+                  <Button
+                    onClick={() => setCurrentStep(1)}
+                    variant="outline"
+                    className="w-full bg-customgreys-primarybg border-customgreys-darkerGrey text-white hover:bg-customgreys-darkerGrey"
+                  >
+                    <BookOpen className="w-4 h-4 mr-2" />
+                    Escolher Outra Unidade
+                  </Button>
+
+                  <Button
+                    onClick={() => {
+                      // Navigate to challenge constructor
+                      window.open('/teacher/laboratory/challenge-constructor', '_blank');
+                    }}
+                    className="w-full bg-emerald-600 hover:bg-emerald-700"
+                  >
+                    <Zap className="w-4 h-4 mr-2" />
+                    Adicionar Exercícios às Lições
                   </Button>
                   
                   <Button
@@ -569,7 +653,8 @@ export default function LessonConstructor({ course, onBack }: LessonConstructorP
                     onClick={onBack}
                     className="w-full bg-customgreys-primarybg border-customgreys-darkerGrey text-white hover:bg-customgreys-darkerGrey"
                   >
-                    Voltar ao Dashboard
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Voltar à Lista de Cursos
                   </Button>
                 </div>
               </CardContent>
