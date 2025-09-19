@@ -73,6 +73,33 @@ export const achievementsApi = apiSlice.injectEndpoints({
         method: "GET",
         credentials: "include" as const
       }),
+      transformResponse: (response: any[]) => {
+        // Check if data is already transformed (has isUnlocked property)
+        if (response.length > 0 && 'isUnlocked' in response[0]) {
+          // Data is already transformed by backend
+          return response;
+        }
+        
+        // Data needs transformation (legacy format)
+        return response
+          .filter((userAchievement) => userAchievement.achievement) // Filter out items without achievement
+          .map((userAchievement) => ({
+            id: userAchievement.achievement.id,
+            title: userAchievement.achievement.title,
+            description: userAchievement.achievement.description,
+            icon: userAchievement.achievement.icon,
+            category: userAchievement.achievement.category,
+            rarity: userAchievement.achievement.rarity,
+            points: userAchievement.achievement.points,
+            isUnlocked: userAchievement.is_unlocked,
+            unlockedAt: userAchievement.unlocked_at_formatted,
+            progress: userAchievement.is_unlocked ? undefined : {
+              current: userAchievement.current_progress,
+              target: userAchievement.achievement.requirement_target,
+              unit: userAchievement.achievement.requirement_unit
+            }
+          }));
+      },
       providesTags: ['Achievements'],
     }),
 

@@ -180,6 +180,11 @@ const navLinks = {
           icon: Volume2,
         },
         {
+          title: "Práticas por Curso",
+          url: "/user/laboratory/learn/courses",
+          icon: BookOpen,
+        },
+        {
           title: "Meu Progresso",
           url: "/user/laboratory/speaking/progress",
           icon: TrendingUp,
@@ -208,6 +213,11 @@ const navLinks = {
           icon: PenTool,
         },
         {
+          title: "Práticas por Curso",
+          url: "/user/laboratory/learn/courses",
+          icon: BookOpen,
+        },
+        {
           title: "Sotaques",
           url: "/user/laboratory/listening/accents",
           icon: Globe,
@@ -216,19 +226,6 @@ const navLinks = {
           title: "Meu Progresso",
           url: "/user/laboratory/listening/progress",
           icon: TrendingUp,
-        },
-      ],
-    },
-    {
-      title: "Laboratório",
-      url: "/user/laboratory",
-      icon: FlaskConical,
-      isActive: true,
-      items: [
-        {
-          title: "Exercícios",
-          url: "/user/laboratory",
-          icon: FlaskConical,
         },
       ],
     },
@@ -297,6 +294,52 @@ const navLinks = {
       ],
     },
     {
+      title: "Speaking Management",
+      url: "/teacher/laboratory/speaking",
+      icon: Mic,
+      isActive: true,
+      items: [
+        {
+          title: "Gerenciar Exercícios",
+          url: "/teacher/laboratory/speaking/exercises",
+          icon: MessageCircle,
+        },
+        {
+          title: "Práticas por Curso",
+          url: "/teacher/laboratory/course-practices",
+          icon: BookOpen,
+        },
+        {
+          title: "Analytics",
+          url: "/teacher/laboratory/speaking/analytics",
+          icon: BarChart3,
+        },
+      ],
+    },
+    {
+      title: "Listening Management",
+      url: "/teacher/laboratory/listening",
+      icon: Headphones,
+      isActive: true,
+      items: [
+        {
+          title: "Gerenciar Exercícios",
+          url: "/teacher/laboratory/listening/exercises",
+          icon: Headphones,
+        },
+        {
+          title: "Práticas por Curso",
+          url: "/teacher/laboratory/course-practices",
+          icon: BookOpen,
+        },
+        {
+          title: "Analytics",
+          url: "/teacher/laboratory/listening/analytics",
+          icon: BarChart3,
+        },
+      ],
+    },
+    {
       title: "Laboratório",
       url: "/teacher/laboratory",
       icon: FlaskConical,
@@ -326,6 +369,11 @@ const navLinks = {
           title: "Construtor de Desafios",
           url: "/teacher/laboratory/challenge-constructor",
           icon: Target,
+        },
+        {
+          title: "Gestão de Conquistas",
+          url: "/teacher/laboratory/achievements",
+          icon: Trophy,
         },
         {
           title: "Analytics",
@@ -455,6 +503,7 @@ const isLinkActive = (currentPath: string, linkUrl: string): boolean => {
     "/teacher/laboratory/manage-courses",
     "/teacher/laboratory/lesson-constructor",
     "/teacher/laboratory/challenge-constructor",
+    "/teacher/laboratory/achievements",
     "/teacher/laboratory/analytics",
     "/admin/subscriptions/plans",
     "/admin/subscriptions/users",

@@ -22,7 +22,11 @@ import {
   Brain,
   Rocket,
   Star,
-  Sparkles
+  Sparkles,
+  Mic,
+  Headphones,
+  Trophy,
+  Award
 } from "lucide-react";
 
 const LaboratoryDashboard = () => {
@@ -412,7 +416,7 @@ const LaboratoryDashboard = () => {
               whileHover={{ y: -8, scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => router.push('/teacher/laboratory/challenge-constructor')}
-              className="group cursor-pointer md:col-span-2 lg:col-span-1"
+              className="group cursor-pointer"
             >
               <div className="relative p-8 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 backdrop-blur-xl rounded-3xl border border-indigo-500/20 hover:border-indigo-400/40 transition-all duration-300 h-full overflow-hidden">
                 <div className="absolute top-4 right-4 w-1.5 h-1.5 bg-indigo-400 rounded-full animate-pulse opacity-60" />
@@ -434,6 +438,73 @@ const LaboratoryDashboard = () => {
                   <div className="flex items-center text-indigo-400 font-medium group-hover:text-indigo-300 transition-colors">
                     <span>Criar desafio</span>
                     <Star className="w-4 h-4 ml-2 group-hover:rotate-12 transition-transform" />
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Course-Specific Practices Card */}
+            <motion.div
+              whileHover={{ y: -8, scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => router.push('/teacher/laboratory/course-practices')}
+              className="group cursor-pointer"
+            >
+              <div className="relative p-8 bg-gradient-to-br from-pink-500/10 to-rose-500/10 backdrop-blur-xl rounded-3xl border border-pink-500/20 hover:border-pink-400/40 transition-all duration-300 h-full overflow-hidden">
+                <div className="absolute top-4 right-4 w-1.5 h-1.5 bg-pink-400 rounded-full animate-pulse opacity-60" />
+                <div className="absolute inset-0 bg-gradient-to-br from-pink-600/5 to-rose-600/5 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                
+                <div className="relative">
+                  <div className="w-16 h-16 bg-gradient-to-br from-pink-500 to-rose-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                    <div className="flex gap-1">
+                      <Mic className="w-4 h-4 text-white drop-shadow-sm" />
+                      <Headphones className="w-4 h-4 text-white drop-shadow-sm" />
+                    </div>
+                  </div>
+                  
+                  <h3 className="text-2xl font-bold text-white mb-4 group-hover:text-pink-100 transition-colors">
+                    Práticas Contextualizadas
+                  </h3>
+                  
+                  <p className="text-gray-300 leading-relaxed mb-6">
+                    Gerencie práticas de Speaking e Listening por curso
+                  </p>
+                  
+                  <div className="flex items-center text-pink-400 font-medium group-hover:text-pink-300 transition-colors">
+                    <span>Gerenciar práticas</span>
+                    <Sparkles className="w-4 h-4 ml-2 group-hover:scale-110 transition-transform" />
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Achievement Management Card */}
+            <motion.div
+              whileHover={{ y: -8, scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => router.push('/teacher/laboratory/achievements')}
+              className="group cursor-pointer"
+            >
+              <div className="relative p-8 bg-gradient-to-br from-yellow-500/10 to-orange-500/10 backdrop-blur-xl rounded-3xl border border-yellow-500/20 hover:border-yellow-400/40 transition-all duration-300 h-full overflow-hidden">
+                <div className="absolute top-4 right-4 w-1.5 h-1.5 bg-yellow-400 rounded-full animate-pulse opacity-60" />
+                <div className="absolute inset-0 bg-gradient-to-br from-yellow-600/5 to-orange-600/5 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                
+                <div className="relative">
+                  <div className="w-16 h-16 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                    <Trophy className="w-8 h-8 text-white drop-shadow-sm" />
+                  </div>
+                  
+                  <h3 className="text-2xl font-bold text-white mb-4 group-hover:text-yellow-100 transition-colors">
+                    Gestão de Conquistas
+                  </h3>
+                  
+                  <p className="text-gray-300 leading-relaxed mb-6">
+                    Crie e gerencie badges e conquistas para gamificação
+                  </p>
+                  
+                  <div className="flex items-center text-yellow-400 font-medium group-hover:text-yellow-300 transition-colors">
+                    <span>Gerenciar conquistas</span>
+                    <Award className="w-4 h-4 ml-2 group-hover:scale-110 transition-transform" />
                   </div>
                 </div>
               </div>

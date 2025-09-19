@@ -1,9 +1,10 @@
 import { cn } from "@/lib/utils";
-import { Check, Target, Users, Trophy, Clock, Star, Play, Book, ArrowRight, Zap } from "lucide-react";
+import { Check, Target, Users, Trophy, Clock, Star, Play, Book, ArrowRight, Zap, Mic, Headphones } from "lucide-react";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { useRouter } from "next/navigation";
 
 type Props = {
     title: string;
@@ -29,17 +30,39 @@ const levelConfig = {
 };
 
 export const LaboratoryCard = ({title, id, imageSrc, description, level, totalUnits, completedUnits, totalLessons, totalChallenges, progress = 0, onClick, disabled, active, viewMode = 'grid'}:Props) => {
+    const router = useRouter();
     const levelInfo = levelConfig[level as keyof typeof levelConfig] || levelConfig.Beginner;
     const isCompleted = progress >= 100;
     const progressPercentage = Math.round(progress);
+
+    // Handler para navegar para speaking practice
+    const handleSpeakingClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        console.log('Speaking clicked for course:', id);
+        router.push(`/user/laboratory/learn/courses/${id}/speaking`);
+    };
+
+    // Handler para navegar para listening practice
+    const handleListeningClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        console.log('Listening clicked for course:', id);
+        router.push(`/user/laboratory/learn/courses/${id}/listening`);
+    };
+
+    // Handler para botão principal
+    const handleMainClick = () => {
+        if (!disabled) {
+            console.log('Main button clicked for course:', id);
+            onClick(id);
+        }
+    };
     
     // List view layout
     if (viewMode === 'list') {
         return (
             <div 
-                onClick={() => !disabled && onClick(id)}
                 className={cn(
-                    "group relative bg-customgreys-secondarybg rounded-xl border overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-xl flex items-center p-6 gap-6 border-violet-900/30 hover:border-violet-500/50",
+                    "group relative bg-customgreys-secondarybg rounded-xl border overflow-hidden transition-all duration-300 hover:shadow-xl flex items-center p-6 gap-6 border-violet-900/30 hover:border-violet-500/50",
                     disabled && "pointer-events-none opacity-50 cursor-not-allowed",
                     active && "ring-2 ring-green-500 ring-offset-2 ring-offset-customgreys-primarybg shadow-lg border-green-500/50"
                 )}
@@ -148,9 +171,11 @@ export const LaboratoryCard = ({title, id, imageSrc, description, level, totalUn
                 
                 {/* Action Buttons */}
                 <div className="flex flex-col gap-2 flex-shrink-0">
+                    {/* Botão Principal - Laboratório */}
                     <Button
+                        onClick={handleMainClick}
                         className={cn(
-                            "flex items-center gap-2 px-4 py-2 rounded-lg transition-colors",
+                            "flex items-center gap-2 px-4 py-2 rounded-lg transition-colors cursor-pointer",
                             isCompleted 
                                 ? "bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
                                 : "bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white"
@@ -166,6 +191,26 @@ export const LaboratoryCard = ({title, id, imageSrc, description, level, totalUn
                             <Play className="h-4 w-4" />
                         )}
                     </Button>
+                    
+                    {/* Botões Secundários - Speaking/Listening */}
+                    <div className="flex gap-1 relative z-10">
+                        <Button
+                            onClick={handleSpeakingClick}
+                            size="sm"
+                            className="flex-1 bg-blue-500/20 border border-blue-500/30 text-blue-400 hover:bg-blue-500/30 hover:border-blue-500/50 hover:text-blue-300 transition-colors cursor-pointer"
+                        >
+                            <Mic className="h-3 w-3 mr-1" />
+                            <span className="text-xs">Speaking</span>
+                        </Button>
+                        <Button
+                            onClick={handleListeningClick}
+                            size="sm"
+                            className="flex-1 bg-orange-500/20 border border-orange-500/30 text-orange-400 hover:bg-orange-500/30 hover:border-orange-500/50 hover:text-orange-300 transition-colors cursor-pointer"
+                        >
+                            <Headphones className="h-3 w-3 mr-1" />
+                            <span className="text-xs">Listening</span>
+                        </Button>
+                    </div>
                 </div>
                 
                 {/* Hover Effect Overlay */}
@@ -177,9 +222,8 @@ export const LaboratoryCard = ({title, id, imageSrc, description, level, totalUn
     // Grid view layout (default)
     return (
         <div 
-            onClick={() => !disabled && onClick(id)}
             className={cn(
-                "group relative bg-customgreys-secondarybg rounded-2xl border overflow-hidden cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl min-h-[420px] flex flex-col border-violet-900/30 hover:border-violet-500/50",
+                "group relative bg-customgreys-secondarybg rounded-2xl border overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl min-h-[420px] flex flex-col border-violet-900/30 hover:border-violet-500/50",
                 disabled && "pointer-events-none opacity-50 cursor-not-allowed",
                 active && "ring-2 ring-green-500 ring-offset-2 ring-offset-customgreys-primarybg shadow-lg transform scale-[1.02] border-green-500/50"
             )}
@@ -332,11 +376,13 @@ export const LaboratoryCard = ({title, id, imageSrc, description, level, totalUn
                     </div>
                 )}
                 
-                {/* Action Button */}
+                {/* Action Buttons */}
                 <div className="space-y-3">
+                    {/* Botão Principal - Laboratório */}
                     <Button
+                        onClick={handleMainClick}
                         className={cn(
-                            "w-full text-white transition-all duration-200",
+                            "w-full text-white transition-all duration-200 cursor-pointer",
                             isCompleted 
                                 ? "bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700" 
                                 : "bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700"
@@ -356,6 +402,26 @@ export const LaboratoryCard = ({title, id, imageSrc, description, level, totalUn
                         )}
                         <ArrowRight className="w-4 h-4 ml-auto" />
                     </Button>
+                    
+                    {/* Botões Secundários - Speaking/Listening */}
+                    <div className="grid grid-cols-2 gap-2 relative z-10">
+                        <Button
+                            onClick={handleSpeakingClick}
+                            size="sm"
+                            className="bg-blue-500/20 border border-blue-500/30 text-blue-400 hover:bg-blue-500/30 hover:border-blue-500/50 hover:text-blue-300 transition-colors cursor-pointer"
+                        >
+                            <Mic className="h-3 w-3 mr-1" />
+                            <span className="text-xs font-medium">Speaking</span>
+                        </Button>
+                        <Button
+                            onClick={handleListeningClick}
+                            size="sm"
+                            className="bg-orange-500/20 border border-orange-500/30 text-orange-400 hover:bg-orange-500/30 hover:border-orange-500/50 hover:text-orange-300 transition-colors cursor-pointer"
+                        >
+                            <Headphones className="h-3 w-3 mr-1" />
+                            <span className="text-xs font-medium">Listening</span>
+                        </Button>
+                    </div>
                 </div>
             </div>
             

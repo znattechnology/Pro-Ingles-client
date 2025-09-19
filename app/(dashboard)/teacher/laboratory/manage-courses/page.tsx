@@ -13,11 +13,9 @@ import {
   Plus,
   Search,
   Edit,
-  Trash2,
   Eye,
   Settings,
   ChevronLeft,
-  MoreVertical,
   Users,
   Target,
   BookOpen,
@@ -28,16 +26,8 @@ import {
   Stethoscope,
   Scale,
   Layers,
-  Send,
-  FileEdit
 } from "lucide-react";
-import { getPracticeCourses, deletePracticeCourse, publishPracticeCourse } from "@/actions/practice-management";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { getPracticeCourses } from "@/actions/practice-management";
 
 const ManageCoursesPage = () => {
   const router = useRouter();
@@ -116,32 +106,7 @@ const ManageCoursesPage = () => {
     }
   };
 
-  const handleDeleteCourse = async (courseId: string, courseTitle: string) => {
-    if (confirm(`Tem certeza que deseja excluir o curso "${courseTitle}"? Esta ação não pode ser desfeita.`)) {
-      try {
-        await deletePracticeCourse(courseId);
-        await loadCourses(); // Reload courses
-      } catch (error) {
-        console.error('Error deleting course:', error);
-        alert('Erro ao excluir curso. Tente novamente.');
-      }
-    }
-  };
 
-  const handlePublishCourse = async (courseId: string, courseTitle: string, currentStatus: string) => {
-    const isPublishing = currentStatus === 'draft';
-    const action = isPublishing ? 'publicar' : 'despublicar';
-    
-    if (confirm(`Tem certeza que deseja ${action} o curso "${courseTitle}"?`)) {
-      try {
-        await publishPracticeCourse(courseId, isPublishing);
-        await loadCourses(); // Reload courses
-      } catch (error) {
-        console.error(`Error ${action}ing course:`, error);
-        alert(`Erro ao ${action} curso. Tente novamente.`);
-      }
-    }
-  };
 
   const getCategoryIcon = (category: string) => {
     switch (category.toLowerCase()) {
@@ -559,59 +524,14 @@ const ManageCoursesPage = () => {
                             Gerenciar
                           </Button>
                           
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="border-violet-500/30 text-gray-400 hover:text-white hover:bg-violet-800/20"
-                              >
-                                <MoreVertical className="w-4 h-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="bg-customgreys-secondarybg border-violet-500/30">
-                              <DropdownMenuItem 
-                                onClick={() => handlePublishCourse(course.id, course.title, course.status)}
-                                className={course.status === 'draft' 
-                                  ? "text-green-400 hover:text-green-300 hover:bg-green-900/20"
-                                  : "text-yellow-400 hover:text-yellow-300 hover:bg-yellow-900/20"
-                                }
-                              >
-                                {course.status === 'draft' ? (
-                                  <>
-                                    <Send className="h-4 w-4 mr-2" />
-                                    Publicar
-                                  </>
-                                ) : (
-                                  <>
-                                    <FileEdit className="h-4 w-4 mr-2" />
-                                    Despublicar
-                                  </>
-                                )}
-                              </DropdownMenuItem>
-                              <DropdownMenuItem 
-                                onClick={() => router.push(`/teacher/laboratory/edit-course/${course.id}`)}
-                                className="text-white hover:bg-violet-800/20"
-                              >
-                                <Edit className="h-4 w-4 mr-2" />
-                                Editar
-                              </DropdownMenuItem>
-                              <DropdownMenuItem 
-                                onClick={() => router.push(`/teacher/laboratory/course-settings/${course.id}`)}
-                                className="text-white hover:bg-violet-800/20"
-                              >
-                                <Settings className="h-4 w-4 mr-2" />
-                                Configurações
-                              </DropdownMenuItem>
-                              <DropdownMenuItem 
-                                onClick={() => handleDeleteCourse(course.id, course.title)}
-                                className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Excluir
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => router.push(`/teacher/laboratory/edit-course/${course.id}`)}
+                            className="border-violet-500/30 text-gray-400 hover:text-white hover:bg-violet-800/20"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
                         </div>
                       </div>
                     </div>
@@ -657,6 +577,7 @@ const ManageCoursesPage = () => {
           )}
         </div>
       </div>
+
     </div>
   );
 };

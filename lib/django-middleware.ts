@@ -195,7 +195,12 @@ export function djangoAuthMiddleware(request: NextRequest) {
 
   // If user is authenticated but accessing wrong role route
   if (user && requiredRole && requiredRole !== 'authenticated') {
-    if (user.role !== requiredRole) {
+    // Special case for routes accessible by both students and teachers
+    if (requiredRole === 'studentAndTeacher') {
+      if (user.role !== 'student' && user.role !== 'teacher') {
+        return NextResponse.redirect(new URL(getDefaultRedirect(user.role), request.url));
+      }
+    } else if (user.role !== requiredRole) {
       // Redirect to appropriate dashboard based on user role
       return NextResponse.redirect(new URL(getDefaultRedirect(user.role), request.url));
     }

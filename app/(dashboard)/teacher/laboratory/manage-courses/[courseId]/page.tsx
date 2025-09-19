@@ -6,6 +6,14 @@ import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useDjangoAuth } from "@/hooks/useDjangoAuth";
 import Loading from "@/components/course/Loading";
 import { motion } from "framer-motion";
@@ -28,8 +36,15 @@ import {
   Scale,
   Play,
   Download,
-  Share2
+  Share2,
+  Send,
+  FileEdit,
+  Trash2,
+  CheckCircle,
+  X,
+  AlertTriangle
 } from "lucide-react";
+import { deletePracticeCourse, publishPracticeCourse, getPracticeCourseById } from "@/actions/practice-management";
 
 interface Course {
   id: string;
@@ -38,6 +53,10 @@ interface Course {
   category: string;
   level: string;
   status: string;
+  course_type?: string;
+  template?: string;
+  image?: string;
+  teacherName?: string;
   units?: number;
   lessons?: number;
   challenges?: number;
@@ -45,6 +64,13 @@ interface Course {
   completionRate?: number;
   lastUpdated: string;
   createdAt: string;
+  teacher?: {
+    id: string;
+    username?: string;
+    email?: string;
+    first_name?: string;
+    last_name?: string;
+  };
 }
 
 const ManageCourseDetailPage = () => {
@@ -55,37 +81,85 @@ const ManageCourseDetailPage = () => {
   
   const [isLoading, setIsLoading] = useState(true);
   const [course, setCourse] = useState<Course | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showPublishDialog, setShowPublishDialog] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
 
   useEffect(() => {
-    loadCourse();
-  }, [courseId]);
+    if (isAuthenticated && courseId) {
+      loadCourse();
+    }
+  }, [courseId, isAuthenticated]);
 
   const loadCourse = async () => {
     try {
       setIsLoading(true);
-      // Aqui você implementaria a busca do curso específico
-      // Por enquanto, vou simular dados
-      const mockCourse: Course = {
-        id: courseId,
-        title: "Curso de Inglês para Medicina",
-        description: "Curso especializado em terminologia médica e comunicação em saúde. Este curso abrange desde vocabulário básico até situações complexas de comunicação médica.",
-        category: "Medicine",
-        level: "Intermediate",
-        status: "published",
-        units: 8,
-        lessons: 24,
-        challenges: 120,
-        students: 45,
-        completionRate: 78,
-        lastUpdated: new Date().toISOString(),
-        createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
-      };
+      console.log('Loading course details for ID:', courseId);
       
-      setCourse(mockCourse);
+      // Fetch real course data from API
+      const courseData = await getPracticeCourseById(courseId);
+      console.log('Course data loaded:', courseData);
+      
+      setCourse(courseData);
     } catch (error) {
       console.error('Error loading course:', error);
+      // Show error toast if course not found
+      showToast('Erro ao carregar dados do curso. Verifique se o curso existe.', 'error');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Toast functions
+  const showToast = (message: string, type: 'success' | 'error') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
+  };
+
+  const handleDeleteCourse = async () => {
+    if (!course) return;
+    
+    setIsProcessing(true);
+    try {
+      await deletePracticeCourse(course.id);
+      setShowDeleteDialog(false);
+      showToast('Curso excluído com sucesso!', 'success');
+      // Redirect back to courses list after successful deletion
+      setTimeout(() => {
+        router.push('/teacher/laboratory/manage-courses');
+      }, 1500);
+    } catch (error) {
+      console.error('Error deleting course:', error);
+      showToast('Erro ao excluir curso. Tente novamente.', 'error');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handlePublishCourse = async () => {
+    if (!course) return;
+    
+    const isPublishing = course.status === 'draft';
+    setIsProcessing(true);
+    
+    try {
+      await publishPracticeCourse(course.id, isPublishing);
+      // Update local course state
+      setCourse({ ...course, status: isPublishing ? 'published' : 'draft' });
+      setShowPublishDialog(false);
+      showToast(
+        `Curso ${isPublishing ? 'publicado' : 'despublicado'} com sucesso!`, 
+        'success'
+      );
+    } catch (error) {
+      console.error(`Error ${isPublishing ? 'publishing' : 'unpublishing'} course:`, error);
+      showToast(
+        `Erro ao ${isPublishing ? 'publicar' : 'despublicar'} curso. Tente novamente.`, 
+        'error'
+      );
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -288,33 +362,66 @@ const ManageCourseDetailPage = () => {
               
               <div className="space-y-3">
                 <Button 
-                  className="w-full justify-start bg-gradient-to-r from-violet-600/20 to-purple-600/20 border border-violet-500/30 text-white hover:from-violet-600/30 hover:to-purple-600/30"
+                  className="w-full justify-start bg-violet-600 hover:bg-violet-700 border border-violet-500 text-white transition-all duration-200 shadow-lg"
                   onClick={() => router.push(`/teacher/laboratory/edit-course/${courseId}`)}
                 >
                   <Edit className="h-4 w-4 mr-3" />
                   Editar Conteúdo do Curso
                 </Button>
                 
+                {/* Publish/Unpublish Button */}
                 <Button 
-                  className="w-full justify-start bg-gradient-to-r from-blue-600/20 to-cyan-600/20 border border-blue-500/30 text-white hover:from-blue-600/30 hover:to-cyan-600/30"
+                  onClick={() => setShowPublishDialog(true)}
+                  className={`w-full justify-start border text-white transition-all duration-200 shadow-lg ${
+                    course.status === 'draft' 
+                      ? "bg-green-600 hover:bg-green-700 border-green-500"
+                      : "bg-yellow-600 hover:bg-yellow-700 border-yellow-500"
+                  }`}
+                >
+                  {course.status === 'draft' ? (
+                    <>
+                      <Send className="h-4 w-4 mr-3" />
+                      Publicar Curso
+                    </>
+                  ) : (
+                    <>
+                      <FileEdit className="h-4 w-4 mr-3" />
+                      Despublicar Curso
+                    </>
+                  )}
+                </Button>
+                
+                <Button 
+                  className="w-full justify-start bg-blue-600 hover:bg-blue-700 border border-blue-500 text-white transition-all duration-200 shadow-lg"
                 >
                   <Play className="h-4 w-4 mr-3" />
                   Visualizar como Estudante
                 </Button>
                 
                 <Button 
-                  className="w-full justify-start bg-gradient-to-r from-green-600/20 to-emerald-600/20 border border-green-500/30 text-white hover:from-green-600/30 hover:to-emerald-600/30"
+                  className="w-full justify-start bg-purple-600 hover:bg-purple-700 border border-purple-500 text-white transition-all duration-200 shadow-lg"
                 >
                   <Download className="h-4 w-4 mr-3" />
                   Exportar Relatório
                 </Button>
                 
                 <Button 
-                  className="w-full justify-start bg-gradient-to-r from-orange-600/20 to-red-600/20 border border-orange-500/30 text-white hover:from-orange-600/30 hover:to-red-600/30"
+                  className="w-full justify-start bg-indigo-600 hover:bg-indigo-700 border border-indigo-500 text-white transition-all duration-200 shadow-lg"
                 >
                   <Share2 className="h-4 w-4 mr-3" />
                   Compartilhar Curso
                 </Button>
+
+                {/* Delete Button */}
+                <div className="pt-2 border-t border-gray-600/50">
+                  <Button 
+                    onClick={() => setShowDeleteDialog(true)}
+                    className="w-full justify-start bg-red-600 hover:bg-red-700 border border-red-500 text-white transition-all duration-200 shadow-lg"
+                  >
+                    <Trash2 className="h-4 w-4 mr-3" />
+                    Excluir Curso
+                  </Button>
+                </div>
               </div>
             </motion.div>
           </div>
@@ -326,27 +433,275 @@ const ManageCourseDetailPage = () => {
             transition={{ delay: 0.5, duration: 0.6 }}
             className="mt-8 bg-gradient-to-br from-violet-500/5 to-purple-500/5 backdrop-blur-xl rounded-2xl border border-violet-500/20 p-6"
           >
-            <h2 className="text-xl font-semibold text-white mb-4">Detalhes do Curso</h2>
+            <h2 className="text-xl font-semibold text-white mb-6">Informações Detalhadas do Curso</h2>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div>
-                <h3 className="text-sm font-medium text-violet-400 mb-2">Categoria</h3>
-                <p className="text-white">{course.category}</p>
+            {/* Basic Course Info */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              <div className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 rounded-xl p-4 border border-blue-500/20">
+                <h3 className="text-sm font-medium text-blue-400 mb-2">Categoria</h3>
+                <p className="text-white font-semibold">{course.category}</p>
               </div>
               
-              <div>
-                <h3 className="text-sm font-medium text-violet-400 mb-2">Nível</h3>
-                <p className="text-white">{course.level}</p>
+              <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 rounded-xl p-4 border border-green-500/20">
+                <h3 className="text-sm font-medium text-green-400 mb-2">Nível</h3>
+                <p className="text-white font-semibold">{course.level}</p>
               </div>
               
-              <div>
-                <h3 className="text-sm font-medium text-violet-400 mb-2">Total de Desafios</h3>
-                <p className="text-white">{course.challenges}</p>
+              <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-xl p-4 border border-purple-500/20">
+                <h3 className="text-sm font-medium text-purple-400 mb-2">Tipo</h3>
+                <p className="text-white font-semibold">{course.course_type === 'practice' ? 'Laboratório' : 'Vídeo'}</p>
+              </div>
+              
+              <div className="bg-gradient-to-br from-orange-500/10 to-red-500/10 rounded-xl p-4 border border-orange-500/20">
+                <h3 className="text-sm font-medium text-orange-400 mb-2">Template</h3>
+                <p className="text-white font-semibold capitalize">{course.template}</p>
               </div>
             </div>
+
+            {/* Content Statistics */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <div className="bg-gradient-to-br from-violet-500/10 to-purple-500/10 rounded-xl p-6 border border-violet-500/20 text-center">
+                <BookOpen className="w-8 h-8 text-violet-400 mx-auto mb-3" />
+                <div className="text-3xl font-bold text-white mb-2">{course.units || 0}</div>
+                <div className="text-sm text-violet-300">Unidades Criadas</div>
+                <div className="text-xs text-gray-400 mt-1">Módulos organizacionais</div>
+              </div>
+              
+              <div className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 rounded-xl p-6 border border-blue-500/20 text-center">
+                <Target className="w-8 h-8 text-blue-400 mx-auto mb-3" />
+                <div className="text-3xl font-bold text-white mb-2">{course.lessons || 0}</div>
+                <div className="text-sm text-blue-300">Lições Disponíveis</div>
+                <div className="text-xs text-gray-400 mt-1">Conteúdo educacional</div>
+              </div>
+              
+              <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 rounded-xl p-6 border border-green-500/20 text-center">
+                <Users className="w-8 h-8 text-green-400 mx-auto mb-3" />
+                <div className="text-3xl font-bold text-white mb-2">{course.challenges || 0}</div>
+                <div className="text-sm text-green-300">Desafios Criados</div>
+                <div className="text-xs text-gray-400 mt-1">Exercícios práticos</div>
+              </div>
+            </div>
+
+            {/* Additional Details */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Teacher Information */}
+              <div className="bg-gradient-to-br from-indigo-500/10 to-blue-500/10 rounded-xl p-6 border border-indigo-500/20">
+                <h3 className="text-lg font-semibold text-indigo-400 mb-4 flex items-center">
+                  <Users className="w-5 h-5 mr-2" />
+                  Informações do Professor
+                </h3>
+                <div className="space-y-3">
+                  <div>
+                    <span className="text-sm text-gray-400">Nome:</span>
+                    <p className="text-white font-medium">{course.teacherName || 'Não definido'}</p>
+                  </div>
+                  {course.teacher && (
+                    <>
+                      <div>
+                        <span className="text-sm text-gray-400">Email:</span>
+                        <p className="text-white font-medium">{course.teacher.email}</p>
+                      </div>
+                      <div>
+                        <span className="text-sm text-gray-400">Username:</span>
+                        <p className="text-white font-medium">@{course.teacher.username}</p>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Course Statistics */}
+              <div className="bg-gradient-to-br from-emerald-500/10 to-green-500/10 rounded-xl p-6 border border-emerald-500/20">
+                <h3 className="text-lg font-semibold text-emerald-400 mb-4 flex items-center">
+                  <BarChart3 className="w-5 h-5 mr-2" />
+                  Estatísticas do Curso
+                </h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-400">Estudantes:</span>
+                    <span className="text-white font-bold">{course.students || 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-400">Taxa de Conclusão:</span>
+                    <span className="text-white font-bold">{course.completionRate || 0}%</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-400">Status:</span>
+                    <Badge className={getStatusColor(course.status)}>
+                      {getStatusText(course.status)}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Course Description */}
+            {course.description && (
+              <div className="mt-6 bg-gradient-to-br from-gray-500/10 to-slate-500/10 rounded-xl p-6 border border-gray-500/20">
+                <h3 className="text-lg font-semibold text-gray-300 mb-3 flex items-center">
+                  <BookOpen className="w-5 h-5 mr-2" />
+                  Descrição do Curso
+                </h3>
+                <p className="text-gray-300 leading-relaxed">{course.description}</p>
+              </div>
+            )}
           </motion.div>
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent className="bg-customgreys-secondarybg border-red-900/30 text-white">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-400">
+              <AlertTriangle className="w-5 h-5" />
+              Confirmar Exclusão
+            </DialogTitle>
+            <DialogDescription className="text-gray-300">
+              Tem certeza que deseja excluir o curso <strong>"{course?.title}"</strong>?
+              <br />
+              <span className="text-red-400 text-sm">Esta ação não pode ser desfeita e você será redirecionado para a lista de cursos.</span>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowDeleteDialog(false)}
+              disabled={isProcessing}
+              className="border-gray-600 text-gray-300 hover:bg-gray-800"
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleDeleteCourse}
+              disabled={isProcessing}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {isProcessing ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Excluindo...
+                </div>
+              ) : (
+                <>
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Excluir
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Publish/Unpublish Confirmation Dialog */}
+      <Dialog open={showPublishDialog} onOpenChange={setShowPublishDialog}>
+        <DialogContent className="bg-customgreys-secondarybg border-violet-900/30 text-white">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-violet-400">
+              {course?.status === 'draft' ? (
+                <>
+                  <Send className="w-5 h-5" />
+                  Publicar Curso
+                </>
+              ) : (
+                <>
+                  <FileEdit className="w-5 h-5" />
+                  Despublicar Curso
+                </>
+              )}
+            </DialogTitle>
+            <DialogDescription className="text-gray-300">
+              {course?.status === 'draft' ? (
+                <>
+                  Tem certeza que deseja publicar o curso <strong>"{course?.title}"</strong>?
+                  <br />
+                  <span className="text-green-400 text-sm">O curso ficará visível para todos os alunos.</span>
+                </>
+              ) : (
+                <>
+                  Tem certeza que deseja despublicar o curso <strong>"{course?.title}"</strong>?
+                  <br />
+                  <span className="text-yellow-400 text-sm">O curso será movido para rascunho e não ficará mais visível para os alunos.</span>
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowPublishDialog(false)}
+              disabled={isProcessing}
+              className="border-gray-600 text-gray-300 hover:bg-gray-800"
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handlePublishCourse}
+              disabled={isProcessing}
+              className={course?.status === 'draft' 
+                ? "bg-green-600 hover:bg-green-700 text-white"
+                : "bg-yellow-600 hover:bg-yellow-700 text-white"
+              }
+            >
+              {isProcessing ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  {course?.status === 'draft' ? 'Publicando...' : 'Despublicando...'}
+                </div>
+              ) : (
+                <>
+                  {course?.status === 'draft' ? (
+                    <>
+                      <Send className="w-4 h-4 mr-2" />
+                      Publicar
+                    </>
+                  ) : (
+                    <>
+                      <FileEdit className="w-4 h-4 mr-2" />
+                      Despublicar
+                    </>
+                  )}
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Toast Notification */}
+      {toast && (
+        <motion.div
+          initial={{ opacity: 0, y: 50, scale: 0.9 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 50, scale: 0.9 }}
+          className="fixed bottom-6 right-6 z-50"
+        >
+          <div className={`rounded-lg border p-4 shadow-lg backdrop-blur-sm max-w-md ${
+            toast.type === 'success' 
+              ? 'bg-green-900/90 border-green-500/30 text-green-100'
+              : 'bg-red-900/90 border-red-500/30 text-red-100'
+          }`}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                {toast.type === 'success' ? (
+                  <CheckCircle className="w-5 h-5 text-green-400" />
+                ) : (
+                  <AlertTriangle className="w-5 h-5 text-red-400" />
+                )}
+                <p className="text-sm font-medium">{toast.message}</p>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setToast(null)}
+                className="h-auto p-1 hover:bg-white/10"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 };

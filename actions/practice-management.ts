@@ -87,6 +87,76 @@ const makeAuthenticatedRequest = async (url: string, options: RequestInit = {}) 
 // ============================================================================
 
 /**
+ * Get specific practice course by ID - for course details page
+ */
+export const getPracticeCourseById = async (courseId: string) => {
+    try {
+        const token = getAuthToken();
+        if (!token) {
+            throw new Error("Authentication required");
+        }
+
+        console.log('Fetching course details for ID:', courseId);
+        console.log('Using token:', token.substring(0, 20) + '...');
+
+        const response = await fetch(`${API_BASE_URL}/practice/courses/${courseId}/units-with-progress/`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+        });
+
+        console.log('Course details fetch response status:', response.status);
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Course details fetch error response:', errorText);
+            throw new Error(`Failed to fetch course details: ${response.status}`);
+        }
+
+        const courseData = await response.json();
+        console.log('✅ Course details fetched successfully:', courseData);
+        
+        // Extract course info and calculate stats
+        const course = courseData.course;
+        const units = courseData.units || [];
+        
+        // Calculate stats from units data
+        const totalLessons = units.reduce((acc: number, unit: any) => acc + (unit.lessons?.length || 0), 0);
+        const totalChallenges = units.reduce((acc: number, unit: any) => {
+            return acc + (unit.lessons?.reduce((lessonAcc: number, lesson: any) => {
+                return lessonAcc + (lesson.challenges?.length || 0);
+            }, 0) || 0);
+        }, 0);
+        
+        // Format course data with calculated stats
+        const formattedCourse = {
+            id: course.id,
+            title: course.title,
+            description: course.description,
+            category: course.category,
+            level: course.level,
+            status: course.status,
+            units: units.length,
+            lessons: totalLessons,
+            challenges: totalChallenges,
+            students: 0, // TODO: Implement student count from enrollments
+            completionRate: 0, // TODO: Implement completion rate calculation
+            lastUpdated: course.updated_at,
+            createdAt: course.created_at,
+            teacher: course.teacher
+        };
+        
+        console.log('📊 Formatted course data:', formattedCourse);
+        return formattedCourse;
+    } catch (error) {
+        console.error("Error fetching course details:", error);
+        throw error;
+    }
+};
+
+/**
  * Get all practice courses - for teacher dashboard
  */
 export const getPracticeCourses = async () => {
@@ -257,7 +327,7 @@ export const updatePracticeCourse = async (courseId: string, courseData: {
             throw new Error("Authentication required");
         }
 
-        const response = await fetch(`${API_BASE_URL}/courses/${courseId}/`, {
+        const response = await fetch(`${API_BASE_URL}/practice/courses/${courseId}/`, {
             method: 'PATCH',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -290,23 +360,28 @@ export const publishPracticeCourse = async (courseId: string, publish: boolean =
 
         console.log(`${publish ? '📢' : '📝'} ${publish ? 'Publishing' : 'Unpublishing'} practice course:`, courseId);
 
-        const response = await fetch(`${API_BASE_URL}/courses/${courseId}/`, {
-            method: 'PATCH',
+        const response = await fetch(`${API_BASE_URL}/practice/courses/${courseId}/`, {
+            method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                status: publish ? 'Published' : 'Draft'
+                action: publish ? 'publish' : 'unpublish'
             }),
         });
 
         console.log('📡 Publish response status:', response.status);
 
         if (!response.ok) {
-            const errorData = await response.json();
+            let errorData;
+            try {
+                errorData = await response.json();
+            } catch (e) {
+                errorData = { message: await response.text() };
+            }
             console.error('❌ Publish error:', errorData);
-            throw new Error(errorData.message || `Failed to ${publish ? 'publish' : 'unpublish'} course`);
+            throw new Error(errorData.message || `Failed to ${publish ? 'publish' : 'unpublish'} course: ${response.status}`);
         }
 
         const result = await response.json();
@@ -328,7 +403,11 @@ export const deletePracticeCourse = async (courseId: string) => {
             throw new Error("Authentication required");
         }
 
-        const response = await fetch(`${API_BASE_URL}/courses/${courseId}/`, {
+        console.log('🗑️ Deleting course:', courseId);
+        console.log('🌐 Delete URL:', `${API_BASE_URL}/practice/courses/${courseId}/`);
+        console.log('🔑 Token (first 20 chars):', token.substring(0, 20) + '...');
+
+        const response = await fetch(`${API_BASE_URL}/practice/courses/${courseId}/`, {
             method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -337,7 +416,9 @@ export const deletePracticeCourse = async (courseId: string) => {
         });
 
         if (!response.ok) {
-            throw new Error("Failed to delete course");
+            const errorText = await response.text();
+            console.error('Delete course error response:', errorText);
+            throw new Error(`Failed to delete course: ${response.status} - ${errorText}`);
         }
 
         return true;
