@@ -376,6 +376,11 @@ const navLinks = {
           icon: Trophy,
         },
         {
+          title: "Rankings & Competições",
+          url: "/teacher/laboratory/leaderboard",
+          icon: Crown,
+        },
+        {
           title: "Analytics",
           url: "/teacher/laboratory/analytics",
           icon: BarChart3,

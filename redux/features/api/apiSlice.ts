@@ -23,7 +23,12 @@ export const apiSlice = createApi({
         'Achievements',
         'AchievementStats',
         'AchievementCategories',
-        'AchievementNotifications'
+        'AchievementNotifications',
+        'TeacherLeaderboard',
+        'TeacherLeaderboardStats',
+        'TeacherCompetitions',
+        'CompetitionAnalytics',
+        'StudentEngagement'
     ],
     endpoints: (builder)=> ({
         loadUser:builder.query({
