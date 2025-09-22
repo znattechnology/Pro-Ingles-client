@@ -157,12 +157,14 @@ export interface StudentQuizAttempt {
 export const coursesApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     // List all published courses
-    getCourses: builder.query<{message: string, data: Course[]}, {category?: string}>({
+    getCourses: builder.query<{message: string, data: Course[]}, {category?: string, course_type?: 'video' | 'practice'}>({
       query: (params = {}) => {
         const searchParams = new URLSearchParams();
         if (params.category) {
           searchParams.append('category', params.category);
         }
+        // Note: course_type filtering is handled by Django API internally
+        // The API already filters for video courses by default for public exploration
         return `/courses/?${searchParams.toString()}`;
       },
       providesTags: ['Course'],

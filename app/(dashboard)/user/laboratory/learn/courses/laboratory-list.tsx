@@ -58,16 +58,30 @@ export const LaboratoryList = ({courses, activeCourseId, viewMode = 'grid'}: Pro
     };
 
     const onClick = (id: string) => {
-        if (pending) return;
+        console.log('🔍 ONCLICK DEBUG: Function called with courseId:', id);
+        console.log('🔍 ONCLICK DEBUG: pending state:', pending);
+        console.log('🔍 ONCLICK DEBUG: activeCourseId:', activeCourseId);
+        console.log('🔍 ONCLICK DEBUG: is same course?', id === activeCourseId);
+        
+        if (pending) {
+            console.log('⏳ ONCLICK DEBUG: Blocked by pending state');
+            return;
+        }
+        
         if (id === activeCourseId) {
+            console.log('🏃 ONCLICK DEBUG: Same course, redirecting directly to learn page');
             return router.push("/user/laboratory/learn");
         }
+        
+        console.log('🚀 ONCLICK DEBUG: Starting transition for new course selection');
         startTransition(async () => {
             try {
+                console.log('📤 ONCLICK DEBUG: Calling upsertUserProgress with courseId:', id);
                 await upsertUserProgress(id);
+                console.log('✅ ONCLICK DEBUG: upsertUserProgress successful, redirecting');
                 router.push("/user/laboratory/learn");
             } catch (error) {
-                console.error("Error selecting course:", error);
+                console.error("❌ ONCLICK DEBUG: Error selecting course:", error);
                 toast.error("Alguma coisa não correu bem");
             }
         });

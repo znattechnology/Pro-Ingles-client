@@ -1,5 +1,11 @@
 "use client";
 
+/**
+ * Teacher Laboratory Dashboard - Enhanced with Redux
+ * 
+ * 🔄 REDUX MIGRATION: This component now supports Redux with feature flags
+ */
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,6 +13,12 @@ import { useDjangoAuth } from "@/hooks/useDjangoAuth";
 import Loading from "@/components/course/Loading";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { useFeatureFlag } from '@/lib/featureFlags';
+import { 
+  useFullTeacherDashboard,
+  useTeacherDashboardNavigation,
+  useTeacherDashboardPerformance 
+} from '@/redux/features/laboratory/hooks/useTeacherDashboard';
 import { 
   Plus,
   BookOpen,
@@ -32,26 +44,61 @@ import {
 const LaboratoryDashboard = () => {
   const { user, isAuthenticated } = useDjangoAuth();
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
-  const [stats, setStats] = useState({
+  
+  // Feature flags
+  const useReduxDashboard = useFeatureFlag('REDUX_TEACHER_DASHBOARD');
+  
+  // Redux hooks
+  const {
+    data: reduxData,
+    isLoading: reduxLoading,
+    error: reduxError,
+    actions: reduxActions,
+    performance: reduxPerformance,
+  } = useFullTeacherDashboard();
+  
+  // Legacy state
+  const [legacyIsLoading, setLegacyIsLoading] = useState(true);
+  const [legacyStats, setLegacyStats] = useState({
     totalCourses: 0,
     totalStudents: 0,
     totalChallenges: 0,
     completionRate: 0
   });
+  
+  // Determine data source
+  const isLoading = useReduxDashboard ? reduxLoading : legacyIsLoading;
+  const stats = useReduxDashboard ? reduxData?.stats : legacyStats;
+  const error = useReduxDashboard ? reduxError : null;
 
+  // Debug migration
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🎓 Teacher Dashboard Migration Status:', {
+      useReduxDashboard,
+      hasReduxData: !!reduxData,
+      reduxLoading,
+      reduxError,
+      stats,
+      timestamp: new Date().toISOString()
+    });
+  }
+  
+  // Legacy data loading (fallback when Redux is disabled)
   useEffect(() => {
-    // Simular carregamento dos dados
-    setTimeout(() => {
-      setStats({
-        totalCourses: 2,
-        totalStudents: 77,
-        totalChallenges: 270,
-        completionRate: 73
-      });
-      setIsLoading(false);
-    }, 1000);
-  }, []);
+    if (!useReduxDashboard) {
+      // Simular carregamento dos dados (legacy)
+      console.log('🔄 Legacy: Loading teacher dashboard data...');
+      setTimeout(() => {
+        setLegacyStats({
+          totalCourses: 2,
+          totalStudents: 77,
+          totalChallenges: 270,
+          completionRate: 73
+        });
+        setLegacyIsLoading(false);
+      }, 1000);
+    }
+  }, [useReduxDashboard]);
 
   if (!isAuthenticated || isLoading) {
     return <Loading />;
@@ -81,7 +128,9 @@ const LaboratoryDashboard = () => {
               className="inline-flex items-center gap-2 bg-violet-500/10 border border-violet-500/20 rounded-full px-6 py-2 mb-6"
             >
               <Brain className="w-5 h-5 text-violet-400" />
-              <span className="text-violet-300 font-medium">Laboratório de Criação</span>
+              <span className="text-violet-300 font-medium">
+                Laboratório de Criação {useReduxDashboard && '🔄'}
+              </span>
             </motion.div>
             
             <motion.h1 
@@ -117,7 +166,7 @@ const LaboratoryDashboard = () => {
               <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-violet-500/20 flex items-center justify-center">
                 <BookOpen className="w-6 h-6 text-violet-400" />
               </div>
-              <div className="text-3xl font-bold text-white mb-1">{stats.totalCourses}</div>
+              <div className="text-3xl font-bold text-white mb-1">{stats?.totalCourses || 0}</div>
               <div className="text-sm text-gray-400">Cursos Ativos</div>
             </motion.div>
         
@@ -128,7 +177,7 @@ const LaboratoryDashboard = () => {
               <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-blue-500/20 flex items-center justify-center">
                 <Users className="w-6 h-6 text-blue-400" />
               </div>
-              <div className="text-3xl font-bold text-white mb-1">{stats.totalStudents}</div>
+              <div className="text-3xl font-bold text-white mb-1">{stats?.totalStudents || 0}</div>
               <div className="text-sm text-gray-400">Estudantes</div>
             </motion.div>
         
@@ -139,7 +188,7 @@ const LaboratoryDashboard = () => {
               <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-green-500/20 flex items-center justify-center">
                 <Target className="w-6 h-6 text-green-400" />
               </div>
-              <div className="text-3xl font-bold text-white mb-1">{stats.totalChallenges}</div>
+              <div className="text-3xl font-bold text-white mb-1">{stats?.totalChallenges || 0}</div>
               <div className="text-sm text-gray-400">Desafios</div>
             </motion.div>
         
@@ -150,7 +199,7 @@ const LaboratoryDashboard = () => {
               <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-orange-500/20 flex items-center justify-center">
                 <TrendingUp className="w-6 h-6 text-orange-400" />
               </div>
-              <div className="text-3xl font-bold text-white mb-1">{stats.completionRate}%</div>
+              <div className="text-3xl font-bold text-white mb-1">{stats?.completionRate || 0}%</div>
               <div className="text-sm text-gray-400">Taxa Sucesso</div>
             </motion.div>
           </motion.div>
@@ -180,7 +229,13 @@ const LaboratoryDashboard = () => {
             <motion.div
               whileHover={{ y: -8, scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              onClick={() => router.push('/teacher/laboratory/create-course')}
+              onClick={() => {
+                if (useReduxDashboard && reduxActions) {
+                  reduxActions.navigateToCreateCourse();
+                  reduxPerformance?.trackNavigation('create-course');
+                }
+                router.push('/teacher/laboratory/create-course');
+              }}
               className="group cursor-pointer relative"
             >
               <div className="relative bg-customgreys-secondarybg rounded-2xl border overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-2xl min-h-[380px] flex flex-col border-violet-500/30 hover:border-violet-400/60">
@@ -317,7 +372,13 @@ const LaboratoryDashboard = () => {
             <motion.div
               whileHover={{ y: -8, scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              onClick={() => router.push('/teacher/laboratory/manage-courses')}
+              onClick={() => {
+                if (useReduxDashboard && reduxActions) {
+                  reduxActions.navigateToManageCourses();
+                  reduxPerformance?.trackNavigation('manage-courses');
+                }
+                router.push('/teacher/laboratory/manage-courses');
+              }}
               className="group cursor-pointer"
             >
               <div className="relative p-8 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 backdrop-blur-xl rounded-3xl border border-blue-500/20 hover:border-blue-400/40 transition-all duration-300 h-full overflow-hidden">
@@ -351,7 +412,13 @@ const LaboratoryDashboard = () => {
             <motion.div
               whileHover={{ y: -8, scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              onClick={() => router.push('/teacher/laboratory/lesson-constructor')}
+              onClick={() => {
+                if (useReduxDashboard && reduxActions) {
+                  reduxActions.navigateToLessonConstructor();
+                  reduxPerformance?.trackNavigation('lesson-constructor');
+                }
+                router.push('/teacher/laboratory/lesson-constructor');
+              }}
               className="group cursor-pointer"
             >
               <div className="relative p-8 bg-gradient-to-br from-green-500/10 to-emerald-500/10 backdrop-blur-xl rounded-3xl border border-green-500/20 hover:border-green-400/40 transition-all duration-300 h-full overflow-hidden">
@@ -383,7 +450,13 @@ const LaboratoryDashboard = () => {
             <motion.div
               whileHover={{ y: -8, scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              onClick={() => router.push('/teacher/laboratory/analytics')}
+              onClick={() => {
+                if (useReduxDashboard && reduxActions) {
+                  reduxActions.navigateToAnalytics();
+                  reduxPerformance?.trackNavigation('analytics');
+                }
+                router.push('/teacher/laboratory/analytics');
+              }}
               className="group cursor-pointer"
             >
               <div className="relative p-8 bg-gradient-to-br from-orange-500/10 to-red-500/10 backdrop-blur-xl rounded-3xl border border-orange-500/20 hover:border-orange-400/40 transition-all duration-300 h-full overflow-hidden">
@@ -415,7 +488,13 @@ const LaboratoryDashboard = () => {
             <motion.div
               whileHover={{ y: -8, scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              onClick={() => router.push('/teacher/laboratory/challenge-constructor')}
+              onClick={() => {
+                if (useReduxDashboard && reduxActions) {
+                  reduxActions.navigateToChallengeConstructor();
+                  reduxPerformance?.trackNavigation('challenge-constructor');
+                }
+                router.push('/teacher/laboratory/challenge-constructor');
+              }}
               className="group cursor-pointer"
             >
               <div className="relative p-8 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 backdrop-blur-xl rounded-3xl border border-indigo-500/20 hover:border-indigo-400/40 transition-all duration-300 h-full overflow-hidden">
@@ -447,7 +526,13 @@ const LaboratoryDashboard = () => {
             <motion.div
               whileHover={{ y: -8, scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              onClick={() => router.push('/teacher/laboratory/course-practices')}
+              onClick={() => {
+                if (useReduxDashboard && reduxActions) {
+                  reduxActions.navigateToCoursePractices();
+                  reduxPerformance?.trackNavigation('course-practices');
+                }
+                router.push('/teacher/laboratory/course-practices');
+              }}
               className="group cursor-pointer"
             >
               <div className="relative p-8 bg-gradient-to-br from-pink-500/10 to-rose-500/10 backdrop-blur-xl rounded-3xl border border-pink-500/20 hover:border-pink-400/40 transition-all duration-300 h-full overflow-hidden">
@@ -482,7 +567,13 @@ const LaboratoryDashboard = () => {
             <motion.div
               whileHover={{ y: -8, scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              onClick={() => router.push('/teacher/laboratory/achievements')}
+              onClick={() => {
+                if (useReduxDashboard && reduxActions) {
+                  reduxActions.navigateToAchievements();
+                  reduxPerformance?.trackNavigation('achievements');
+                }
+                router.push('/teacher/laboratory/achievements');
+              }}
               className="group cursor-pointer"
             >
               <div className="relative p-8 bg-gradient-to-br from-yellow-500/10 to-orange-500/10 backdrop-blur-xl rounded-3xl border border-yellow-500/20 hover:border-yellow-400/40 transition-all duration-300 h-full overflow-hidden">

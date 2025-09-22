@@ -169,10 +169,10 @@ export const getPracticeCourses = async () => {
         console.log('Fetching courses from:', `${API_BASE_URL}/practice/courses/`);
         console.log('Using token:', token.substring(0, 20) + '...');
 
-        // Try to get ALL courses including drafts
-        console.log('🔍 Trying to fetch ALL courses including drafts...');
+        // Try to get ALL practice courses including drafts
+        console.log('🔍 Trying to fetch ALL practice courses including drafts...');
         
-        const response = await fetch(`${API_BASE_URL}/practice/courses/?include_drafts=true`, {
+        const response = await fetch(`${API_BASE_URL}/practice/courses/?include_drafts=true&course_type=practice`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -186,7 +186,7 @@ export const getPracticeCourses = async () => {
         if (!response.ok) {
             console.warn('🚨 Failed with include_drafts parameter, trying without...');
             
-            const fallbackResponse = await fetch(`${API_BASE_URL}/practice/courses/`, {
+            const fallbackResponse = await fetch(`${API_BASE_URL}/practice/courses/?course_type=practice`, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -209,17 +209,27 @@ export const getPracticeCourses = async () => {
             console.log('✅ Courses fetched successfully from database:', courses);
             console.log('📊 Number of courses from DB:', courses.length);
             
-            // Log detailed course data to verify they're from database
+            // Log detailed course data to verify they're from database - ENHANCED FALLBACK LOGGING
             courses.forEach((course: any, index: number) => {
-                console.log(`🎯 Course ${index + 1}:`, {
+                console.log(`🎯 FALLBACK Course ${index + 1} - COMPLETE DATA:`, {
                     id: course.id,
                     title: course.title,
                     category: course.category,
                     level: course.level,
                     status: course.status,
+                    course_type: course.course_type,
                     created_at: course.created_at,
                     updated_at: course.updated_at,
-                    teacher: course.teacher?.username || course.teacher?.email || 'Unknown'
+                    teacher: course.teacher,
+                    teacher_id: course.teacher_id,
+                    teacher_email: course.teacher_email,
+                    teacher_name: course.teacher_name,
+                    created_by: course.created_by,
+                    language: course.language,
+                    // ALL AVAILABLE FIELDS
+                    allAvailableFields: Object.keys(course),
+                    // MISSING FIELDS (undefined)
+                    missingFields: Object.entries(course).filter(([_, value]) => value === undefined).map(([key, _]) => key)
                 });
             });
             
@@ -230,17 +240,27 @@ export const getPracticeCourses = async () => {
         console.log('✅ Courses fetched successfully from database:', courses);
         console.log('📊 Number of courses from DB:', courses.length);
         
-        // Log detailed course data to verify they're from database
+        // Log detailed course data to verify they're from database - ENHANCED LOGGING
         courses.forEach((course: any, index: number) => {
-            console.log(`🎯 Course ${index + 1}:`, {
+            console.log(`🎯 Course ${index + 1} - COMPLETE DATA:`, {
                 id: course.id,
                 title: course.title,
                 category: course.category,
                 level: course.level,
                 status: course.status,
+                course_type: course.course_type,
                 created_at: course.created_at,
                 updated_at: course.updated_at,
-                teacher: course.teacher?.username || course.teacher?.email || 'Unknown'
+                teacher: course.teacher,
+                teacher_id: course.teacher_id,
+                teacher_email: course.teacher_email,
+                teacher_name: course.teacher_name,
+                created_by: course.created_by,
+                language: course.language,
+                // ALL AVAILABLE FIELDS
+                allAvailableFields: Object.keys(course),
+                // MISSING FIELDS (undefined)
+                missingFields: Object.entries(course).filter(([_, value]) => value === undefined).map(([key, _]) => key)
             });
         });
         
@@ -260,49 +280,176 @@ export const createPracticeCourse = async (courseData: {
     category: string;
     level: string;
     template?: string;
+    // Teacher information
+    teacher_id?: string;
+    teacher_email?: string;
+    teacher_name?: string;
+    // Course metadata
+    course_type?: string;
+    status?: string;
+    created_by?: string;
+    language?: string;
+    difficulty_level?: string;
+    // Learning configuration
+    learningObjectives?: string[];
+    targetAudience?: string;
+    hearts?: number;
+    pointsPerChallenge?: number;
+    passingScore?: number;
+    [key: string]: any; // Allow additional fields
 }) => {
     try {
-        console.log('Creating course with data:', courseData);
+        console.log('🚀 DEEP DEBUG - createPracticeCourse called with:', courseData);
+        console.log('🚀 DEEP DEBUG - courseData keys:', Object.keys(courseData));
+        console.log('🚀 DEEP DEBUG - courseData teacher fields:', {
+            teacher_id: courseData.teacher_id,
+            teacher_email: courseData.teacher_email,
+            teacher_name: courseData.teacher_name,
+            course_type: courseData.course_type,
+            status: courseData.status
+        });
         
+        // Use courseData AS-IS since it now contains all necessary information
+        // Do NOT override fields that are already set correctly
         const requestBody = {
             ...courseData,
-            status: 'Draft' // Start as draft
+            // Only set these if they're not already provided
+            status: courseData.status || 'draft',
+            course_type: courseData.course_type || 'practice'
         };
         
-        console.log('Request URL:', `${API_BASE_URL}/practice/courses/create/`);
-        console.log('Request body:', requestBody);
+        console.log('🌐 FINAL REQUEST to Django API:');
+        console.log('📍 URL:', `${API_BASE_URL}/practice/courses/create/`);
+        console.log('📦 Request Body (FINAL):', requestBody);
+        console.log('📦 Request Body Keys:', Object.keys(requestBody));
+        console.log('📦 Request Body JSON:', JSON.stringify(requestBody, null, 2));
 
-        const result = await makeAuthenticatedRequest(`${API_BASE_URL}/practice/courses/create/`, {
-            method: 'POST',
-            body: JSON.stringify(requestBody),
+        console.log('🔑 AUTH TOKEN CHECK:', {
+            hasToken: !!getAuthToken(),
+            tokenLength: getAuthToken()?.length,
+            tokenPreview: getAuthToken()?.substring(0, 20) + '...'
         });
 
-        console.log('✅ Course created successfully:', result);
+        // MANUAL FETCH to see EXACTLY what's being sent
+        const token = getAuthToken();
+        console.log('🌐 MANUAL FETCH - About to send request...');
+        console.log('📍 URL:', `${API_BASE_URL}/practice/courses/create/`);
+        console.log('🔑 Token (first 20):', token?.substring(0, 20));
+        console.log('📦 Body String:', JSON.stringify(requestBody));
+        
+        const response = await fetch(`${API_BASE_URL}/practice/courses/create/`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+        });
+        
+        console.log('📡 Response Status:', response.status);
+        console.log('📡 Response Headers:', Object.fromEntries(response.headers.entries()));
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ Response Error Text:', errorText);
+            throw new Error(`HTTP ${response.status}: ${errorText}`);
+        }
+        
+        const result = await response.json();
+        console.log('📦 Raw Response JSON:', result);
+        
+        console.log('🔄 RAW API RESPONSE received:', result);
+
+        console.log('✅ Course created successfully - FULL RESPONSE:', result);
         console.log('🆔 New course ID:', result.id);
-        console.log('📝 Course details:', {
+        console.log('📝 DETAILED Course Response Analysis:', {
+            id: result.id,
             title: result.title,
             category: result.category,
             level: result.level,
             status: result.status,
-            created_at: result.created_at
+            course_type: result.course_type,
+            created_at: result.created_at,
+            updated_at: result.updated_at,
+            teacher: result.teacher,
+            teacher_id: result.teacher_id,
+            teacher_email: result.teacher_email,
+            teacher_name: result.teacher_name,
+            created_by: result.created_by,
+            language: result.language,
+            // Check ALL possible fields
+            allFields: Object.keys(result),
+            // Check for undefined fields
+            undefinedFields: Object.entries(result).filter(([_, value]) => value === undefined).map(([key, _]) => key)
         });
         
-        // After creating, wait a moment and then fetch courses to verify persistence
+        // IMMEDIATE verification - test multiple endpoints to find the course
+        console.log('🔍 IMMEDIATE VERIFICATION: Testing if course was created...');
+        
+        // Test different endpoint variations to find the course
+        const verificationTests = [
+            { name: 'Standard Endpoint', url: `${API_BASE_URL}/practice/courses/` },
+            { name: 'With include_drafts', url: `${API_BASE_URL}/practice/courses/?include_drafts=true` },
+            { name: 'With course_type', url: `${API_BASE_URL}/practice/courses/?course_type=practice` },
+            { name: 'Both Parameters', url: `${API_BASE_URL}/practice/courses/?include_drafts=true&course_type=practice` },
+            { name: 'Direct Course Access', url: `${API_BASE_URL}/practice/courses/${result.id}/` }
+        ];
+
+        for (const test of verificationTests) {
+            try {
+                console.log(`🧪 Testing: ${test.name} - ${test.url}`);
+                
+                const verifyResponse = await fetch(test.url, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${getAuthToken()}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (verifyResponse.ok) {
+                    const verifyData = await verifyResponse.json();
+                    let foundCourse = null;
+
+                    if (Array.isArray(verifyData)) {
+                        // List endpoint
+                        foundCourse = verifyData.find((c: any) => c.id === result.id);
+                        console.log(`📊 ${test.name}: Found ${verifyData.length} courses total`);
+                        if (foundCourse) {
+                            console.log(`✅ ${test.name}: Course FOUND!`, foundCourse);
+                        } else {
+                            console.log(`❌ ${test.name}: Course NOT in list`);
+                        }
+                    } else if (verifyData.id === result.id) {
+                        // Direct access endpoint
+                        foundCourse = verifyData;
+                        console.log(`✅ ${test.name}: Direct access successful!`, foundCourse);
+                    }
+                } else {
+                    console.log(`❌ ${test.name}: HTTP ${verifyResponse.status}`);
+                }
+            } catch (error) {
+                console.log(`❌ ${test.name}: Error - ${error}`);
+            }
+        }
+
+        // DELAYED verification (in case of DB sync delays)
         setTimeout(async () => {
             try {
-                console.log('🔍 Verifying course persistence after creation...');
+                console.log('⏰ DELAYED VERIFICATION (after 2 seconds)...');
                 const allCourses = await getPracticeCourses();
                 const createdCourse = allCourses.find((c: any) => c.id === result.id);
                 if (createdCourse) {
-                    console.log('✅ CONFIRMED: New course persisted in database');
-                    console.log('🎯 Found created course:', createdCourse);
+                    console.log('✅ DELAYED CONFIRMATION: Course found in standard fetch');
+                    console.log('📋 Final course data:', createdCourse);
                 } else {
-                    console.log('❌ WARNING: New course NOT found in database after creation');
+                    console.log('❌ DELAYED WARNING: Course still not found in standard fetch');
+                    console.log('🔍 Available courses:', allCourses.map((c: any) => ({ id: c.id, title: c.title, status: c.status })));
                 }
             } catch (error) {
-                console.error('Error verifying course persistence:', error);
+                console.error('❌ Delayed verification error:', error);
             }
-        }, 1000);
+        }, 2000);
         
         return result;
     } catch (error) {
@@ -461,9 +608,25 @@ export const getCourseUnits = async (courseId: string) => {
             throw new Error(`Failed to fetch course units: ${response.status}`);
         }
 
-        const units = await response.json();
-        console.log('✅ Units fetched successfully:', units);
+        const data = await response.json();
+        console.log('✅ Units fetched successfully:', data);
+        
+        // Handle different response structures from Django API
+        let units;
+        if (Array.isArray(data)) {
+            // Direct array response
+            units = data;
+        } else if (data && Array.isArray(data.units)) {
+            // Object with units property
+            units = data.units;
+        } else {
+            // Fallback to empty array
+            console.warn('⚠️ Unexpected units response structure:', data);
+            units = [];
+        }
+        
         console.log('📊 Number of units:', units?.length || 0);
+        console.log('🎯 Final units array:', units);
         
         return units;
     } catch (error) {

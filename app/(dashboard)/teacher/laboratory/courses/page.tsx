@@ -29,6 +29,7 @@ import {
   createPracticeCourse, 
   deletePracticeCourse 
 } from "@/actions/practice-management";
+import { courseToasts, enhancedToast } from "@/components/ui/enhanced-toast";
 
 const PracticeCoursesManagement = () => {
   const router = useRouter();
@@ -87,11 +88,16 @@ const PracticeCoursesManagement = () => {
   const handleCreateCourse = async () => {
     try {
       if (!newCourseData.title || !newCourseData.category) {
-        alert('Por favor, preencha todos os campos obrigatórios.');
+        enhancedToast.error('Campos obrigatórios', {
+          description: 'Por favor, preencha título e categoria.',
+        });
         return;
       }
 
       await createPracticeCourse(newCourseData);
+      
+      // Show enhanced success toast
+      courseToasts.created(newCourseData.title);
       
       // Reload courses to get updated list
       await loadCourses();
@@ -100,7 +106,8 @@ const PracticeCoursesManagement = () => {
       setShowCreateModal(false);
     } catch (error) {
       console.error('Error creating course:', error);
-      alert('Erro ao criar curso. Tente novamente.');
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      courseToasts.error('criar curso', errorMessage);
     }
   };
 
@@ -108,10 +115,15 @@ const PracticeCoursesManagement = () => {
     if (confirm('Tem certeza que deseja excluir este curso?')) {
       try {
         await deletePracticeCourse(courseId);
+        
+        // Show enhanced success toast
+        courseToasts.deleted('Curso');
+        
         await loadCourses(); // Reload courses after deletion
       } catch (error) {
         console.error('Error deleting course:', error);
-        alert('Erro ao excluir curso. Tente novamente.');
+        const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+        courseToasts.error('excluir curso', errorMessage);
       }
     }
   };

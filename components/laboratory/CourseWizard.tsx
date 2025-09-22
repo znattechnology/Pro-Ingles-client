@@ -10,22 +10,24 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { motion } from "framer-motion";
 import { 
+  courseCreationSchema, 
+  isStepValid
+} from "@/lib/validations";
+import { 
   ChevronLeft, 
   ChevronRight, 
   Check,
   BookOpen,
   Target,
-  Settings,
   Eye,
   Sparkles,
   Globe,
-  Briefcase,
-  Code,
   Heart,
-  Stethoscope,
-  Scale,
   Star,
-  Zap
+  Zap,
+  Building2,
+  Cpu,
+  Crown
 } from "lucide-react";
 
 interface WizardStep {
@@ -52,8 +54,8 @@ const CourseWizard = ({ onComplete }: { onComplete: (courseData: any) => void })
   const [courseData, setCourseData] = useState({
     title: '',
     description: '',
-    category: '',
-    level: 'beginner',
+    category: '' as 'General' | 'Oil & Gas' | 'Banking' | 'Technology' | 'Executive' | 'AI Enhanced' | '',
+    level: 'Beginner' as 'Beginner' | 'Intermediate' | 'Advanced',
     template: null as CourseTemplate | null,
     estimatedDuration: '',
     targetAudience: '',
@@ -62,6 +64,69 @@ const CourseWizard = ({ onComplete }: { onComplete: (courseData: any) => void })
     pointsPerChallenge: 10,
     passingScore: 70
   });
+
+  // ✨ VALIDAÇÃO EM TEMPO REAL COM ZOD - Estado de validação
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [fieldTouched, setFieldTouched] = useState<Record<string, boolean>>({});
+
+  // Função para validar campo individual
+  const validateSingleField = (fieldName: string, value: any) => {
+    try {
+      let schema;
+      switch (fieldName) {
+        case 'title':
+          schema = courseCreationSchema.shape.title;
+          break;
+        case 'description':
+          schema = courseCreationSchema.shape.description;
+          break;
+        case 'targetAudience':
+          schema = courseCreationSchema.shape.targetAudience;
+          break;
+        case 'learningObjectives':
+          schema = courseCreationSchema.shape.learningObjectives;
+          break;
+        default:
+          return;
+      }
+      
+      const result = schema.safeParse(value);
+      if (result.success) {
+        setValidationErrors(prev => {
+          const newErrors = { ...prev };
+          delete newErrors[fieldName];
+          return newErrors;
+        });
+      } else {
+        setValidationErrors(prev => ({ 
+          ...prev, 
+          [fieldName]: result.error.errors[0]?.message || 'Campo inválido' 
+        }));
+      }
+    } catch (error) {
+      console.warn(`Validation error for ${fieldName}:`, error);
+    }
+  };
+
+  // Função para validar formulário completo
+  const validateForm = (data: any): boolean => {
+    const result = courseCreationSchema.safeParse(data);
+    
+    if (result.success) {
+      setValidationErrors({});
+      return true;
+    } else {
+      const errors: Record<string, string> = {};
+      result.error.errors.forEach((error) => {
+        const fieldName = error.path[0] as string;
+        if (!errors[fieldName]) {
+          errors[fieldName] = error.message;
+        }
+      });
+      setValidationErrors(errors);
+      return false;
+    }
+  };
 
   const steps: WizardStep[] = [
     {
@@ -74,19 +139,19 @@ const CourseWizard = ({ onComplete }: { onComplete: (courseData: any) => void })
       id: 'basic-info',
       title: 'Informações Básicas',
       description: 'Defina título, descrição e configurações gerais',
-      completed: !!(courseData.title && courseData.description && courseData.category)
+      completed: isStepValid('basic-info', courseData)
     },
     {
       id: 'learning-config',
       title: 'Configurações de Aprendizado',
       description: 'Configure objetivos e parâmetros de gamificação',
-      completed: courseData.learningObjectives.filter(obj => obj.trim()).length > 0
+      completed: isStepValid('learning-config', courseData)
     },
     {
       id: 'preview',
       title: 'Preview e Confirmação',
       description: 'Revise todas as configurações antes de criar',
-      completed: false
+      completed: Object.keys(validationErrors).length === 0 && !!courseData.title && !!courseData.description
     }
   ];
 
@@ -103,48 +168,59 @@ const CourseWizard = ({ onComplete }: { onComplete: (courseData: any) => void })
       color: 'bg-blue-500'
     },
     {
-      id: 'business',
-      name: 'Inglês para Negócios',
-      description: 'Focado em comunicação empresarial e corporativa',
-      category: 'Business',
-      icon: Briefcase,
-      estimatedLessons: 25,
-      estimatedTime: '5-6 semanas',
-      features: ['Apresentações', 'Emails profissionais', 'Reuniões'],
+      id: 'oil-gas',
+      name: 'Inglês para Petróleo & Gás',
+      description: 'Especializado para Sonangol, Total Angola e Chevron',
+      category: 'Oil & Gas',
+      icon: Zap,
+      estimatedLessons: 35,
+      estimatedTime: '3-6 meses',
+      features: ['Terminologia técnica', 'Protocolos de segurança', 'Comunicação internacional'],
+      color: 'bg-orange-500'
+    },
+    {
+      id: 'banking',
+      name: 'Inglês Bancário',
+      description: 'Desenvolvido para BAI, BFA e Standard Bank',
+      category: 'Banking',
+      icon: Building2,
+      estimatedLessons: 28,
+      estimatedTime: '2-4 meses',
+      features: ['Transações internacionais', 'Análise de crédito', 'Compliance'],
       color: 'bg-green-500'
     },
     {
       id: 'technology',
-      name: 'Inglês para Tecnologia',
-      description: 'Vocabulário técnico e comunicação na área de TI',
+      name: 'Inglês para TI & Telecomunicações',
+      description: 'Criado para Unitel, MS Telecom e startups tech',
       category: 'Technology',
-      icon: Code,
-      estimatedLessons: 20,
-      estimatedTime: '4-5 semanas',
-      features: ['Termos técnicos', 'Documentação', 'Code review'],
+      icon: Cpu,
+      estimatedLessons: 25,
+      estimatedTime: '2-5 meses',
+      features: ['Vocabulário de programação', 'Metodologias ágeis', 'Cloud computing'],
       color: 'bg-purple-500'
     },
     {
-      id: 'medical',
-      name: 'Inglês Médico',
-      description: 'Terminologia médica e comunicação em saúde',
-      category: 'Medicine',
-      icon: Stethoscope,
-      estimatedLessons: 35,
-      estimatedTime: '8-10 semanas',
-      features: ['Anatomia', 'Procedimentos', 'Comunicação com pacientes'],
-      color: 'bg-red-500'
+      id: 'executive',
+      name: 'Inglês Executivo',
+      description: 'Para C-Level e gestores sênior',
+      category: 'Executive',
+      icon: Crown,
+      estimatedLessons: 32,
+      estimatedTime: '4-8 meses',
+      features: ['Liderança internacional', 'Negociações estratégicas', 'Networking global'],
+      color: 'bg-yellow-500'
     },
     {
-      id: 'legal',
-      name: 'Inglês Jurídico',
-      description: 'Terminologia jurídica e documentos legais',
-      category: 'Legal',
-      icon: Scale,
-      estimatedLessons: 28,
-      estimatedTime: '6-7 semanas',
-      features: ['Contratos', 'Processos', 'Terminologia legal'],
-      color: 'bg-yellow-500'
+      id: 'ai-personal',
+      name: 'Inglês com IA Personal Tutor',
+      description: 'Nossa tecnologia exclusiva com IA',
+      category: 'AI Enhanced',
+      icon: Sparkles,
+      estimatedLessons: 40,
+      estimatedTime: 'Contínuo',
+      features: ['Correção em tempo real', 'Feedback personalizado', 'Aprendizado adaptativo'],
+      color: 'bg-pink-500'
     }
   ];
 
@@ -160,7 +236,20 @@ const CourseWizard = ({ onComplete }: { onComplete: (courseData: any) => void })
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      onComplete(courseData);
+      // Validação final antes de submeter
+      const dataForValidation = {
+        ...courseData,
+        template: courseData.template?.id || '',
+        learningObjectives: courseData.learningObjectives.filter(obj => obj.trim() !== '')
+      };
+      
+      const isValid = validateForm(dataForValidation);
+      
+      if (isValid) {
+        onComplete(courseData);
+      } else {
+        alert('Por favor, corrija os erros no formulário antes de continuar.');
+      }
     }
   };
 
@@ -174,7 +263,7 @@ const CourseWizard = ({ onComplete }: { onComplete: (courseData: any) => void })
     setCourseData(prev => ({
       ...prev,
       template,
-      category: template.category,
+      category: template.category as 'General' | 'Oil & Gas' | 'Banking' | 'Technology' | 'Executive' | 'AI Enhanced',
       estimatedDuration: template.estimatedTime
     }));
   };
@@ -318,43 +407,94 @@ const CourseWizard = ({ onComplete }: { onComplete: (courseData: any) => void })
                   <Label className="text-gray-300">Título do Curso *</Label>
                   <Input
                     value={courseData.title}
-                    onChange={(e) => setCourseData(prev => ({ ...prev, title: e.target.value }))}
+                    onChange={(e) => {
+                      const newValue = e.target.value;
+                      setCourseData(prev => ({ ...prev, title: newValue }));
+                      validateSingleField('title', newValue);
+                    }}
+                    onBlur={() => setFieldTouched(prev => ({ ...prev, title: true }))}
                     placeholder="Ex: Inglês para Medicina Avançada"
-                    className="bg-customgreys-darkGrey border-customgreys-darkerGrey text-white placeholder:text-gray-400 focus:border-violet-500"
+                    className={`bg-customgreys-darkGrey border-customgreys-darkerGrey text-white placeholder:text-gray-400 focus:border-violet-500 ${
+                      validationErrors.title && fieldTouched.title 
+                        ? 'border-red-500 focus:border-red-500' 
+                        : ''
+                    }`}
                   />
+                  {validationErrors.title && fieldTouched.title && (
+                    <div className="text-sm text-red-500 mt-1 flex items-center">
+                      <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                      {validationErrors.title}
+                    </div>
+                  )}
                 </div>
 
                 <div>
                   <Label className="text-gray-300">Descrição *</Label>
                   <Textarea
                     value={courseData.description}
-                    onChange={(e) => setCourseData(prev => ({ ...prev, description: e.target.value }))}
+                    onChange={(e) => {
+                      const newValue = e.target.value;
+                      setCourseData(prev => ({ ...prev, description: newValue }));
+                      validateSingleField('description', newValue);
+                    }}
+                    onBlur={() => setFieldTouched(prev => ({ ...prev, description: true }))}
                     placeholder="Descreva o foco, objetivos e benefícios do curso..."
-                    className="bg-customgreys-darkGrey border-customgreys-darkerGrey text-white placeholder:text-gray-400 focus:border-violet-500 min-h-[100px]"
+                    className={`bg-customgreys-darkGrey border-customgreys-darkerGrey text-white placeholder:text-gray-400 focus:border-violet-500 min-h-[100px] ${
+                      validationErrors.description && fieldTouched.description 
+                        ? 'border-red-500 focus:border-red-500' 
+                        : ''
+                    }`}
                   />
+                  {validationErrors.description && fieldTouched.description && (
+                    <div className="text-sm text-red-500 mt-1 flex items-center">
+                      <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                      {validationErrors.description}
+                    </div>
+                  )}
                 </div>
 
                 <div>
                   <Label className="text-gray-300">Nível</Label>
                   <select
                     value={courseData.level}
-                    onChange={(e) => setCourseData(prev => ({ ...prev, level: e.target.value }))}
+                    onChange={(e) => setCourseData(prev => ({ ...prev, level: e.target.value as 'Beginner' | 'Intermediate' | 'Advanced' }))}
                     className="w-full p-2 bg-customgreys-darkGrey border border-customgreys-darkerGrey text-white rounded-md focus:border-violet-500"
                   >
-                    <option value="beginner">Iniciante</option>
-                    <option value="intermediate">Intermediário</option>
-                    <option value="advanced">Avançado</option>
+                    <option value="Beginner">Iniciante</option>
+                    <option value="Intermediate">Intermediário</option>
+                    <option value="Advanced">Avançado</option>
                   </select>
                 </div>
 
                 <div>
-                  <Label className="text-gray-300">Público-Alvo</Label>
+                  <Label className="text-gray-300">Público-Alvo *</Label>
                   <Input
                     value={courseData.targetAudience}
-                    onChange={(e) => setCourseData(prev => ({ ...prev, targetAudience: e.target.value }))}
+                    onChange={(e) => {
+                      const newValue = e.target.value;
+                      setCourseData(prev => ({ ...prev, targetAudience: newValue }));
+                      validateSingleField('targetAudience', newValue);
+                    }}
+                    onBlur={() => setFieldTouched(prev => ({ ...prev, targetAudience: true }))}
                     placeholder="Ex: Profissionais da área de saúde"
-                    className="bg-customgreys-darkGrey border-customgreys-darkerGrey text-white placeholder:text-gray-400 focus:border-violet-500"
+                    className={`bg-customgreys-darkGrey border-customgreys-darkerGrey text-white placeholder:text-gray-400 focus:border-violet-500 ${
+                      validationErrors.targetAudience && fieldTouched.targetAudience 
+                        ? 'border-red-500 focus:border-red-500' 
+                        : ''
+                    }`}
                   />
+                  {validationErrors.targetAudience && fieldTouched.targetAudience && (
+                    <div className="text-sm text-red-500 mt-1 flex items-center">
+                      <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                      {validationErrors.targetAudience}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -434,9 +574,21 @@ const CourseWizard = ({ onComplete }: { onComplete: (courseData: any) => void })
                       <div key={index} className="flex space-x-2">
                         <Input
                           value={objective}
-                          onChange={(e) => updateLearningObjective(index, e.target.value)}
-                          placeholder={`Objetivo ${index + 1}`}
-                          className="bg-customgreys-darkGrey border-customgreys-darkerGrey text-white placeholder:text-gray-400 focus:border-violet-500"
+                          onChange={(e) => {
+                            const newValue = e.target.value;
+                            updateLearningObjective(index, newValue);
+                            // Validar o array de objetivos após atualização
+                            const updatedObjectives = [...courseData.learningObjectives];
+                            updatedObjectives[index] = newValue;
+                            validateSingleField('learningObjectives', updatedObjectives);
+                          }}
+                          onBlur={() => setFieldTouched(prev => ({ ...prev, learningObjectives: true }))}
+                          placeholder={`Objetivo ${index + 1} (mínimo 5 caracteres)`}
+                          className={`bg-customgreys-darkGrey border-customgreys-darkerGrey text-white placeholder:text-gray-400 focus:border-violet-500 ${
+                            validationErrors.learningObjectives && fieldTouched.learningObjectives 
+                              ? 'border-red-500 focus:border-red-500' 
+                              : ''
+                          }`}
                         />
                         {courseData.learningObjectives.length > 1 && (
                           <Button
@@ -452,6 +604,14 @@ const CourseWizard = ({ onComplete }: { onComplete: (courseData: any) => void })
                       </div>
                     ))}
                   </div>
+                  {validationErrors.learningObjectives && fieldTouched.learningObjectives && (
+                    <div className="text-sm text-red-500 mt-2 flex items-center">
+                      <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                      {validationErrors.learningObjectives}
+                    </div>
+                  )}
                 </div>
               </div>
 

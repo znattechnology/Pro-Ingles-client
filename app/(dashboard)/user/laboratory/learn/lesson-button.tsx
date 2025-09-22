@@ -1,10 +1,9 @@
 "use client";
 import Link from "next/link";
-import { Check, Crown, Star, CheckIcon } from "lucide-react";
+import { Crown, Star, CheckIcon } from "lucide-react";
 import { CircularProgressbarWithChildren } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 type Props = {
   id: string;
   index: number;
@@ -45,8 +44,16 @@ export const LessonButton = ({
 
   const href = isCompleted ? `/user/laboratory/learn/lesson/${id}` : `/user/laboratory/learn/lesson/${id}`;
 
+  const handleClick = (e: React.MouseEvent) => {
+    if (locked) {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }
+  };
+
   return (
-    <Link href={href} aria-disabled={locked} style={{pointerEvents:locked ? "none" : "auto"}}>
+    <Link href={href} aria-disabled={locked} style={{pointerEvents:locked ? "none" : "auto"}} onClick={handleClick}>
         <div className="relative" style={ {
             right:`${rigthPosition}px`,
             marginTop: isFirst && !isCompleted ? 60 : 24,
@@ -76,25 +83,37 @@ export const LessonButton = ({
                     
                    }}
                    >
-                    <Button size="rounded" variant={locked ? "locked" : "secondary"} className="h-[50px] w-[50px] border-b-8">
+                    <div 
+                      className="h-[50px] w-[50px] border-b-8 rounded-full flex items-center justify-center cursor-pointer"
+                      style={{
+                        background: locked ? '#64748b' : isCompleted ? '#10b981' : '#8b5cf6',
+                        borderColor: locked ? '#475569' : isCompleted ? '#059669' : '#7c3aed'
+                      }}
+                    >
                         <Icon className={cn(
-                            "h-20 w-20", locked ? 
-                            "fill-neutral-400 text-neutral-400 stroke-neutral-400" : "fill-violet-600 text-violet-600",
-                            isCompleted && "fill-green-500 stroke-[4] text-green-500"
+                            "h-6 w-6", locked ? 
+                            "fill-neutral-400 text-neutral-400 stroke-neutral-400" : "fill-white text-white",
+                            isCompleted && "fill-white stroke-[4] text-white"
                         )}/>
-                    </Button>
+                    </div>
 
                    </CircularProgressbarWithChildren>
                 </div>
             ):
             (
-              <Button size="rounded" variant={locked ? "locked" : "secondary"} className="h-[50px] w-[50px] border-b-8">
+              <div 
+                className="h-[50px] w-[50px] border-b-8 rounded-full flex items-center justify-center cursor-pointer transition-all duration-200 hover:scale-110"
+                style={{
+                  background: locked ? '#64748b' : isCompleted ? '#10b981' : '#8b5cf6',
+                  borderColor: locked ? '#475569' : isCompleted ? '#059669' : '#7c3aed'
+                }}
+              >
               <Icon className={cn(
-                  "h-20 w-20", locked ? 
-                  "fill-neutral-400 text-neutral-400 stroke-neutral-400" : "fill-violet-600 text-violet-600",
-                  isCompleted && "fill-green-500 stroke-[4] text-green-500"
+                  "h-6 w-6", locked ? 
+                  "fill-neutral-400 text-neutral-400 stroke-neutral-400" : "fill-white text-white",
+                  isCompleted && "fill-white stroke-[4] text-white"
               )}/>
-          </Button>
+              </div>
             )}
 
         </div>

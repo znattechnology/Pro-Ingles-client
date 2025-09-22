@@ -41,11 +41,14 @@ export const Unit = ({
     activeLesson,
     activeLessonPercentage
 }:Props) => {
+  // Ensure lessons is always an array to prevent errors
+  const safeLessons = Array.isArray(lessons) ? lessons : [];
+
   return (
     <>
       <UnitBanner title={title} description={description} />
       <div className='flex items-center flex-col relative'>
-        {lessons.map((lesson, index) => {
+        {safeLessons.map((lesson, index) => {
             const isCurrent =  lesson.id === activeLesson?.id;
             const isLocked = !lesson.completed && !isCurrent;
             return (
@@ -53,7 +56,7 @@ export const Unit = ({
                 key={lesson.id}
                 id={lesson.id}
                 index={index}
-                totalCount={lessons.length -1}
+                totalCount={safeLessons.length -1}
                 current={isCurrent}
                 locked={isLocked}
                 percentage={activeLessonPercentage}

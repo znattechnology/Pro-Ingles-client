@@ -1,6 +1,18 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { useFeatureFlag } from '@/lib/featureFlags';
+import { useLaboratoryCourses } from '@/redux/features/laboratory/hooks/useCoursesManagement';
+import { useUserProgress } from '@/redux/features/laboratory/hooks/useUserProgress';
+import { useDispatch, useSelector } from 'react-redux';
+import { 
+  setViewMode as setReduxViewMode, 
+  setSearchQuery, 
+  setLevelFilter,
+  selectViewMode,
+  selectSearchQuery,
+  selectFilters 
+} from '@/redux/features/laboratory/laboratorySlice';
 import { getLaboratoryCourses, getUserProgress } from '@/db/django-queries';
 import { LaboratoryList } from './laboratory-list';
 import Loading from '@/components/course/Loading';
@@ -21,36 +33,132 @@ import {
 } from 'lucide-react';
 
 const LearnCourse = () => {
-  const [courses, setCourses] = useState([]);
-  const [userProgress, setUserProgress] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterLevel, setFilterLevel] = useState('all');
+  // Feature flags
+  const useReduxCourses = useFeatureFlag('REDUX_COURSE_SELECTION');
+  const useReduxProgress = useFeatureFlag('REDUX_USER_PROGRESS');
+  
+  // Debug migration
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🚀 Course Selection Migration Status:', {
+      useReduxCourses,
+      useReduxProgress,
+      timestamp: new Date().toISOString()
+    });
+  }
+  
+  // Redux state and dispatch
+  const dispatch = useDispatch();
+  const reduxViewMode = useSelector(selectViewMode);
+  const reduxSearchQuery = useSelector(selectSearchQuery);
+  const reduxFilters = useSelector(selectFilters);
+  
+  // Debug Redux state
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🔍 Redux Selectors Data:', {
+      reduxViewMode,
+      reduxSearchQuery,
+      reduxFilters,
+      timestamp: new Date().toISOString()
+    });
+  }
+  
+  // Redux hooks
+  const { 
+    courses: reduxCourses, 
+    isLoading: reduxCoursesLoading, 
+    error: reduxCoursesError,
+    refetch: refetchCourses 
+  } = useLaboratoryCourses();
+  
+  const { 
+    userProgress: reduxUserProgress, 
+    isLoading: reduxProgressLoading, 
+    error: reduxProgressError,
+    refetch: refetchProgress 
+  } = useUserProgress();
+
+  // Legacy state (for fallback)
+  const [legacyCourses, setLegacyCourses] = useState([]);
+  const [legacyUserProgress, setLegacyUserProgress] = useState(null);
+  const [legacyIsLoading, setLegacyIsLoading] = useState(true);
+  const [legacyError, setLegacyError] = useState(null);
+  
+  // UI state (using Redux when available, local state as fallback)
+  const [localSearchTerm, setLocalSearchTerm] = useState('');
+  const [localFilterLevel, setLocalFilterLevel] = useState('all');
   const [sortBy, setSortBy] = useState('progress'); // progress, title, level
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [localViewMode, setLocalViewMode] = useState<'grid' | 'list'>('grid');
 
+  // Determine which data source to use
+  const courses = useReduxCourses ? reduxCourses : legacyCourses;
+  const userProgress = useReduxProgress ? reduxUserProgress : legacyUserProgress;
+  const isLoading = useReduxCourses ? reduxCoursesLoading : legacyIsLoading;
+  const error = useReduxCourses ? reduxCoursesError : legacyError;
+  
+  // UI state management
+  const searchTerm = useReduxCourses ? reduxSearchQuery : localSearchTerm;
+  const filterLevel = useReduxCourses ? reduxFilters.level || 'all' : localFilterLevel;
+  const viewMode = useReduxCourses ? reduxViewMode : localViewMode;
+  
+  const setSearchTerm = (value: string) => {
+    if (useReduxCourses) {
+      dispatch(setSearchQuery(value));
+    } else {
+      setLocalSearchTerm(value);
+    }
+  };
+  
+  const setFilterLevel = (value: string) => {
+    if (useReduxCourses) {
+      dispatch(setLevelFilter(value));
+    } else {
+      setLocalFilterLevel(value);
+    }
+  };
+  
+  const setViewMode = (mode: 'grid' | 'list') => {
+    if (useReduxCourses) {
+      dispatch(setReduxViewMode(mode));
+    } else {
+      setLocalViewMode(mode);
+    }
+  };
+
+  // Legacy data fetching (fallback when Redux is disabled)
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setIsLoading(true);
-        const [coursesData, userProgressData] = await Promise.all([
-          getLaboratoryCourses(),
-          getUserProgress()
-        ]);
-        
-        setCourses(coursesData);
-        setUserProgress(userProgressData);
-      } catch (err: any) {
-        console.error('Error fetching data:', err);
-        setError(err.message || 'Erro ao carregar dados');
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    if (!useReduxCourses || !useReduxProgress) {
+      const fetchData = async () => {
+        try {
+          setLegacyIsLoading(true);
+          const [coursesData, userProgressData] = await Promise.all([
+            getLaboratoryCourses(),
+            getUserProgress()
+          ]);
+          
+          setLegacyCourses(coursesData);
+          setLegacyUserProgress(userProgressData);
+        } catch (err: any) {
+          console.error('Error fetching data:', err);
+          setLegacyError(err.message || 'Erro ao carregar dados');
+        } finally {
+          setLegacyIsLoading(false);
+        }
+      };
 
-    fetchData();
-  }, []);
+      fetchData();
+    }
+  }, [useReduxCourses, useReduxProgress]);
+
+  // Debug: Log laboratory courses
+  React.useEffect(() => {
+    if (process.env.NODE_ENV === 'development' && courses.length > 0) {
+      console.log('🧪 Laboratory Courses (Practice Page):', courses.map((c: any) => ({
+        title: c.title,
+        course_type: c.course_type || 'undefined',
+        id: c.id
+      })));
+    }
+  }, [courses]);
 
   // Filter and sort courses
   const filteredAndSortedCourses = React.useMemo(() => {
@@ -122,7 +230,7 @@ const LearnCourse = () => {
               </div>
               <div className="text-left">
                 <h1 className="text-4xl font-black bg-gradient-to-r from-white via-violet-200 to-purple-200 bg-clip-text text-transparent">
-                  Practice Laboratory
+                  Practice Laboratory {(useReduxCourses || useReduxProgress) && '🔄'}
                 </h1>
                 <p className="text-violet-300 text-lg font-medium">Cursos Interativos de Inglês</p>
               </div>

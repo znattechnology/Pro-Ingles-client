@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste de Categorias - ProEnglish</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #1a1a1a; color: white; }
+        .category { margin: 10px; padding: 15px; border: 1px solid #666; border-radius: 8px; background: #2a2a2a; }
+        .category h3 { color: #9333ea; margin: 0 0 10px 0; }
+        .features { list-style: none; padding: 0; }
+        .features li { margin: 5px 0; padding: 5px; background: #333; border-radius: 4px; }
+        button { background: #9333ea; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #7c3aed; }
+        #result { margin-top: 20px; padding: 15px; background: #333; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <h1>🎯 Teste das Novas Categorias de Curso</h1>
+    
+    <p>Categorias baseadas nos serviços da landing page:</p>
+    
+    <div class="category">
+        <h3>🛢️ Inglês para Petróleo & Gás</h3>
+        <p><strong>Category:</strong> Oil & Gas</p>
+        <p><strong>Template ID:</strong> oil-gas</p>
+        <p><strong>Empresas:</strong> Sonangol, Total Angola, Chevron</p>
+        <ul class="features">
+            <li>Terminologia técnica</li>
+            <li>Protocolos de segurança</li>
+            <li>Comunicação internacional</li>
+        </ul>
+    </div>
+    
+    <div class="category">
+        <h3>🏦 Inglês Bancário</h3>
+        <p><strong>Category:</strong> Banking</p>
+        <p><strong>Template ID:</strong> banking</p>
+        <p><strong>Empresas:</strong> BAI, BFA, Standard Bank</p>
+        <ul class="features">
+            <li>Transações internacionais</li>
+            <li>Análise de crédito</li>
+            <li>Compliance</li>
+        </ul>
+    </div>
+    
+    <div class="category">
+        <h3>💻 Inglês para TI & Telecomunicações</h3>
+        <p><strong>Category:</strong> Technology</p>
+        <p><strong>Template ID:</strong> technology</p>
+        <p><strong>Empresas:</strong> Unitel, MS Telecom, startups tech</p>
+        <ul class="features">
+            <li>Vocabulário de programação</li>
+            <li>Metodologias ágeis</li>
+            <li>Cloud computing</li>
+        </ul>
+    </div>
+    
+    <div class="category">
+        <h3>👔 Inglês Executivo</h3>
+        <p><strong>Category:</strong> Executive</p>
+        <p><strong>Template ID:</strong> executive</p>
+        <p><strong>Para:</strong> C-Level e gestores sênior</p>
+        <ul class="features">
+            <li>Liderança internacional</li>
+            <li>Negociações estratégicas</li>
+            <li>Networking global</li>
+        </ul>
+    </div>
+    
+    <div class="category">
+        <h3>🤖 Inglês com IA Personal Tutor</h3>
+        <p><strong>Category:</strong> AI Enhanced</p>
+        <p><strong>Template ID:</strong> ai-personal</p>
+        <p><strong>Exclusivo:</strong> ProEnglish Technology</p>
+        <ul class="features">
+            <li>Correção em tempo real</li>
+            <li>Feedback personalizado</li>
+            <li>Aprendizado adaptativo</li>
+        </ul>
+    </div>
+    
+    <button onclick="testCourseCreation()">🧪 Testar Criação de Curso com Nova Categoria</button>
+    
+    <div id="result"></div>
+    
+    <script>
+    function testCourseCreation() {
+        const resultDiv = document.getElementById('result');
+        resultDiv.innerHTML = '<p>🔄 Testando criação de curso...</p>';
+        
+        const testData = {
+            title: 'Curso Teste - Petróleo & Gás',
+            description: 'Teste das novas categorias implementadas',
+            category: 'Oil & Gas',  // Nova categoria
+            level: 'intermediate',
+            template: 'oil-gas',   // Novo template
+            learningObjectives: ['Dominar terminologia técnica', 'Protocolos de segurança'],
+            targetAudience: 'Profissionais da Sonangol',
+            hearts: 5,
+            pointsPerChallenge: 15,
+            passingScore: 75,
+            teacher_id: 'test-teacher-123',
+            teacher_email: 'test@proenglish.com',
+            teacher_name: 'Test Teacher',
+            course_type: 'practice',  // Campo importante
+            status: 'draft',
+            created_by: 'test-teacher-123',
+            language: 'pt-BR',
+            difficulty_level: 'intermediate'
+        };
+        
+        console.log('🚀 Dados do teste:', testData);
+        
+        resultDiv.innerHTML = `
+            <h3>✅ Dados Preparados para Teste</h3>
+            <pre>${JSON.stringify(testData, null, 2)}</pre>
+            <p><strong>🎯 Campos importantes verificados:</strong></p>
+            <ul>
+                <li>✅ course_type: ${testData.course_type}</li>
+                <li>✅ category: ${testData.category} (baseada nos serviços)</li>
+                <li>✅ template: ${testData.template} (novo template)</li>
+                <li>✅ teacher_id: ${testData.teacher_id}</li>
+                <li>✅ created_by: ${testData.created_by}</li>
+            </ul>
+            <p><em>🌐 Para testar efetivamente, acesse o frontend em localhost:3001 e crie um curso.</em></p>
+        `;
+    }
+    </script>
+</body>
+</html>

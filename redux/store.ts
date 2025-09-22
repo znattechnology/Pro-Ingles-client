@@ -3,12 +3,18 @@ import {configureStore} from "@reduxjs/toolkit";
 import { apiSlice } from "./features/api/apiSlice";
 import authSlice from "./features/auth/authSlice";
 import { adminApi } from "./features/admin/adminApi";
+import laboratorySlice from "./features/laboratory/laboratorySlice";
+// Import practiceApiSlice to ensure endpoints are registered
+import "./features/api/practiceApiSlice";
+// Import laboratoryApiSlice to ensure endpoints are registered
+import "./features/laboratory/laboratoryApiSlice";
 
 export const store = configureStore({
     reducer:{
         [apiSlice.reducerPath]: apiSlice.reducer,
         [adminApi.reducerPath]: adminApi.reducer,
-        auth: authSlice
+        auth: authSlice,
+        laboratory: laboratorySlice
     },
     devTools:false,
     middleware: (getDefaultMiddleware) => 

@@ -9,45 +9,100 @@ import { createPracticeCourse } from "@/actions/practice-management";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { ChevronLeft, Sparkles, Brain } from "lucide-react";
+import { courseToasts } from "@/components/ui/enhanced-toast";
+import "@/utils/testCourseCreation"; // Load test utilities
+import "@/utils/testApiDirect"; // Load direct API test utilities
 
 const CreateCoursePage = () => {
   const router = useRouter();
-  const { isAuthenticated } = useDjangoAuth();
+  const { isAuthenticated, user } = useDjangoAuth();
   const [isCreating, setIsCreating] = useState(false);
 
   const handleCourseCreation = async (courseData: any) => {
     try {
       setIsCreating(true);
       
-      console.log('Creating course with data:', courseData);
+      // CRITICAL CHECK: Ensure user data is available  
+      if (!user?.id) {
+        console.error('❌ USER DATA NOT AVAILABLE:', user);
+        courseToasts.error("criar curso", "Informações do professor não encontradas. Faça login novamente.");
+        setIsCreating(false);
+        return;
+      }
       
-      // Prepare data for API
+      console.log('🎓 Creating course with complete data...');
+      console.log('📝 Form Data from Wizard:', courseData);
+      console.log('👨‍🏫 Available User Data:', user);
+      
+      // Prepare COMPLETE data for API - MERGE wizard data with teacher info
       const apiData = {
+        // FROM WIZARD
         title: courseData.title,
         description: courseData.description,
         category: courseData.category,
         level: courseData.level,
-        template: courseData.template?.id || 'general'
+        template: courseData.template?.id || 'general',
+        // LEARNING CONFIG FROM WIZARD
+        learningObjectives: courseData.learningObjectives,
+        targetAudience: courseData.targetAudience,
+        hearts: courseData.hearts,
+        pointsPerChallenge: courseData.pointsPerChallenge,
+        passingScore: courseData.passingScore,
+        // TEACHER INFORMATION - CRITICAL!
+        teacher_id: user.id,
+        teacher_email: user.email,
+        teacher_name: user.name || user.email,
+        // COURSE METADATA - EXPLICIT
+        course_type: 'practice',
+        status: 'draft',
+        // ADDITIONAL METADATA
+        created_by: user.id,
+        language: 'pt-BR',
+        difficulty_level: courseData.level,
       };
 
-      console.log('API Data:', apiData);
+      console.log('🔍 DEEP INVESTIGATION - User Object:', user);
+      console.log('🔍 DEEP INVESTIGATION - User Available?:', !!user);
+      console.log('🔍 DEEP INVESTIGATION - User ID:', user?.id);
+      console.log('🔍 DEEP INVESTIGATION - User Email:', user?.email);
+      
+      console.log('👨‍🏫 Teacher Info Built:', {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        hasAllFields: !!(user.id && user.email)
+      });
+      
+      console.log('📡 BEFORE API CALL - Complete Data Being Sent:', apiData);
+      console.log('📡 BEFORE API CALL - Data Keys:', Object.keys(apiData));
+      console.log('📡 BEFORE API CALL - Teacher Fields Check:', {
+        teacher_id: apiData.teacher_id,
+        teacher_email: apiData.teacher_email,
+        teacher_name: apiData.teacher_name,
+        course_type: apiData.course_type,
+        status: apiData.status
+      });
       
       const createdCourse = await createPracticeCourse(apiData);
       
       console.log('Course created:', createdCourse);
       
-      // Show success message
-      alert(`Curso "${courseData.title}" criado com sucesso!`);
+      // Show enhanced success toast
+      courseToasts.created(courseData.title);
       
-      // Redirect to course management page
-      router.push('/teacher/laboratory/manage-courses');
+      // Wait a bit for the toast to show, then redirect with refresh
+      setTimeout(() => {
+        // Use replace to avoid back button issues and add a refresh param
+        router.replace('/teacher/laboratory/manage-courses?refresh=true');
+      }, 1500);
       
     } catch (error) {
       console.error('Error creating course:', error);
       
-      // Show more detailed error message
+      // Show enhanced error toast
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
-      alert(`Erro ao criar curso: ${errorMessage}`);
+      courseToasts.error("criar curso", errorMessage);
       
       setIsCreating(false);
     }
@@ -57,9 +112,23 @@ const CreateCoursePage = () => {
     router.push('/teacher/laboratory');
   };
 
+  // Enhanced loading checks
   if (!isAuthenticated) {
+    console.log('🔐 Not authenticated, showing loading...');
     return <Loading />;
   }
+  
+  if (!user) {
+    console.log('👤 User data not loaded yet, showing loading...');
+    return <Loading />;
+  }
+  
+  console.log('✅ User data available for course creation:', {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    role: user.role
+  });
 
   if (isCreating) {
     return (

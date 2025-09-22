@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,13 @@ import { Badge } from "@/components/ui/badge";
 import { useDjangoAuth } from "@/hooks/useDjangoAuth";
 import Loading from "@/components/course/Loading";
 import { motion } from "framer-motion";
+import { useFeatureFlag } from '@/lib/featureFlags';
+import { 
+  useTeacherCourses, 
+  useTeacherCourseFilters, 
+  useTeacherDashboardStats,
+  useTeacherMigrationDebug 
+} from '@/redux/features/laboratory/hooks/useTeacherCourses';
 import { 
   Plus,
   Search,
@@ -28,34 +35,123 @@ import {
   Layers,
 } from "lucide-react";
 import { getPracticeCourses } from "@/actions/practice-management";
+import { CourseCreationDebugger } from "@/components/debug/CourseCreationDebugger";
+import "@/utils/courseDebugUtils"; // Load debug utilities
 
 const ManageCoursesPage = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { isAuthenticated } = useDjangoAuth();
-  const [isLoading, setIsLoading] = useState(true);
-  const [courses, setCourses] = useState<any[]>([]);
+  
+  // Feature flags
+  const useReduxTeacher = useFeatureFlag('REDUX_TEACHER_MANAGEMENT');
+  
+  // Redux hooks
+  const { courses: reduxCourses, isLoading: reduxLoading, error: reduxError, refetch } = useTeacherCourses();
+  const { stats } = useTeacherDashboardStats();
+  const { filterCourses } = useTeacherCourseFilters();
+  
+  // Migration debug
+  useTeacherMigrationDebug();
+  
+  // Legacy state (for fallback)
+  const [legacyCourses, setLegacyCourses] = useState<any[]>([]);
+  const [legacyLoading, setLegacyLoading] = useState(true);
+  const [legacyError, setLegacyError] = useState<string | null>(null);
+  
+  // UI state
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState("all"); // all, draft, published, archived
 
+  // Determine which data source to use
+  const courses = useReduxTeacher ? reduxCourses : legacyCourses;
+  const isLoading = useReduxTeacher ? reduxLoading : legacyLoading;
+  const error = useReduxTeacher ? reduxError : legacyError;
+
+  // Debug migration
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🎓 Teacher Management Migration Status:', {
+      useReduxTeacher,
+      coursesCount: courses.length,
+      isLoading,
+      error,
+      timestamp: new Date().toISOString()
+    });
+    
+    // Log course details for teacher filtering verification
+    if (courses.length > 0) {
+      console.log('📚 TEACHER FILTER VERIFICATION - Courses loaded:', courses.map(c => ({
+        id: c.id,
+        title: c.title,
+        teacher_id: c.teacher_id,
+        teacher_email: c.teacher_email,
+        teacher_name: c.teacher_name,
+        status: c.status
+      })));
+    }
+  }
+
+  // Legacy data loading (fallback when Redux is disabled)
   useEffect(() => {
-    loadCourses();
-  }, []);
+    if (!useReduxTeacher) {
+      loadCoursesLegacy();
+    }
+  }, [useReduxTeacher]);
+
+  // Check for refresh parameter and force reload
+  useEffect(() => {
+    const shouldRefresh = searchParams.get('refresh') === 'true';
+    if (shouldRefresh) {
+      console.log('🔄 Refresh parameter detected, force reloading courses...');
+      
+      if (useReduxTeacher) {
+        refetch();
+      } else {
+        loadCoursesLegacy();
+      }
+      
+      // Remove the refresh parameter from URL
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
+    }
+  }, [searchParams, useReduxTeacher, refetch]);
 
   // Reload courses when component is focused (useful when returning from create course page)
   useEffect(() => {
     const handleFocus = () => {
       console.log('Window focused, reloading courses...');
-      loadCourses();
+      if (useReduxTeacher) {
+        refetch();
+      } else {
+        loadCoursesLegacy();
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        console.log('Page became visible, reloading courses...');
+        if (useReduxTeacher) {
+          refetch();
+        } else {
+          loadCoursesLegacy();
+        }
+      }
     };
 
     window.addEventListener('focus', handleFocus);
-    return () => window.removeEventListener('focus', handleFocus);
-  }, []);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [useReduxTeacher, refetch]);
 
-  const loadCourses = async () => {
+  const loadCoursesLegacy = async () => {
     try {
-      console.log('🔄 Loading courses in manage-courses page...');
-      setIsLoading(true);
+      console.log('🔄 ENHANCED Loading courses in manage-courses page (legacy)...');
+      console.log('🎯 Ensuring fresh data with cache-busting...');
+      setLegacyLoading(true);
       const coursesData = await getPracticeCourses();
       
       console.log('📚 Raw courses data received:', coursesData);
@@ -84,25 +180,12 @@ const ManageCoursesPage = () => {
       }));
       
       console.log('✅ Transformed courses:', transformedCourses);
-      console.log('📊 Number of courses to display:', transformedCourses.length);
-      console.log('🔍 Final course statuses:', transformedCourses.map(c => ({ 
-        title: c.title, 
-        status: c.status, 
-        id: c.id 
-      })));
-      console.log('🎯 Looking for recently created course ID: bfe9c7fc-1b0f-4f6d-88c8-6e9363ddd736');
-      const recentCourse = transformedCourses.find(c => c.id === 'bfe9c7fc-1b0f-4f6d-88c8-6e9363ddd736');
-      if (recentCourse) {
-        console.log('✅ Recently created course FOUND:', recentCourse);
-      } else {
-        console.log('❌ Recently created course NOT FOUND in list');
-      }
-      
-      setCourses(transformedCourses);
+      setLegacyCourses(transformedCourses);
     } catch (error) {
       console.error('❌ Error loading courses:', error);
+      setLegacyError(error instanceof Error ? error.message : 'Error loading courses');
     } finally {
-      setIsLoading(false);
+      setLegacyLoading(false);
     }
   };
 
@@ -137,16 +220,46 @@ const ManageCoursesPage = () => {
     }
   };
 
-  const filteredCourses = courses.filter(course => {
-    const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         course.category.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = filter === 'all' || course.status === filter;
-    
-    return matchesSearch && matchesFilter;
-  });
+  const filteredCourses = useReduxTeacher 
+    ? filterCourses(courses, searchTerm, filter)
+    : courses.filter(course => {
+        const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                             course.category.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesFilter = filter === 'all' || course.status.toLowerCase() === filter.toLowerCase();
+        
+        return matchesSearch && matchesFilter;
+      });
 
   if (!isAuthenticated || isLoading) {
     return <Loading />;
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-customgreys-primarybg flex items-center justify-center">
+        <Card className="bg-customgreys-secondarybg border-red-500/30 max-w-md w-full mx-4">
+          <CardContent className="flex flex-col items-center justify-center py-16">
+            <div className="bg-red-500/20 rounded-full p-6 mb-6">
+              <Target className="h-12 w-12 text-red-400" />
+            </div>
+            <h3 className="text-2xl font-bold text-white mb-3">Erro ao Carregar</h3>
+            <p className="text-gray-400 text-center mb-6">{error}</p>
+            <Button
+              onClick={() => {
+                if (useReduxTeacher) {
+                  refetch();
+                } else {
+                  loadCoursesLegacy();
+                }
+              }}
+              className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white"
+            >
+              Tentar Novamente
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (
@@ -285,7 +398,9 @@ const ManageCoursesPage = () => {
               <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-violet-500/20 flex items-center justify-center">
                 <BookOpen className="w-6 h-6 text-violet-400" />
               </div>
-              <div className="text-3xl font-bold text-white mb-1">{courses.length}</div>
+              <div className="text-3xl font-bold text-white mb-1">
+                {useReduxTeacher ? stats.totalCourses : courses.length}
+              </div>
               <div className="text-sm text-gray-400">Total de Cursos</div>
             </motion.div>
             
@@ -297,7 +412,10 @@ const ManageCoursesPage = () => {
                 <Users className="w-6 h-6 text-blue-400" />
               </div>
               <div className="text-3xl font-bold text-white mb-1">
-                {courses.reduce((sum, course) => sum + course.students, 0)}
+                {useReduxTeacher 
+                  ? stats.totalStudents 
+                  : courses.reduce((sum, course) => sum + (course.students || 0), 0)
+                }
               </div>
               <div className="text-sm text-gray-400">Estudantes Ativos</div>
             </motion.div>
@@ -310,7 +428,10 @@ const ManageCoursesPage = () => {
                 <Target className="w-6 h-6 text-green-400" />
               </div>
               <div className="text-3xl font-bold text-white mb-1">
-                {courses.reduce((sum, course) => sum + course.challenges, 0)}
+                {useReduxTeacher 
+                  ? stats.totalChallenges 
+                  : courses.reduce((sum, course) => sum + (course.challenges || 0), 0)
+                }
               </div>
               <div className="text-sm text-gray-400">Total Desafios</div>
             </motion.div>
@@ -323,7 +444,10 @@ const ManageCoursesPage = () => {
                 <TrendingUp className="w-6 h-6 text-orange-400" />
               </div>
               <div className="text-3xl font-bold text-white mb-1">
-                {Math.round(courses.reduce((sum, course) => sum + course.completionRate, 0) / courses.length || 0)}%
+                {useReduxTeacher 
+                  ? stats.averageCompletionRate 
+                  : Math.round(courses.length > 0 ? courses.reduce((sum, course) => sum + (course.completionRate || 0), 0) / courses.length : 0)
+                }%
               </div>
               <div className="text-sm text-gray-400">Taxa Média</div>
             </motion.div>
@@ -577,6 +701,11 @@ const ManageCoursesPage = () => {
           )}
         </div>
       </div>
+
+      {/* Debug Component (Development Only) */}
+      {process.env.NODE_ENV === 'development' && (
+        <CourseCreationDebugger />
+      )}
 
     </div>
   );

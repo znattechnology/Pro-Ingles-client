@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Units API</title>
+    <style>
+        body { font-family: monospace; padding: 20px; }
+        .debug { background: #f5f5f5; padding: 10px; margin: 10px 0; white-space: pre-wrap; }
+        .error { background: #ffe6e6; color: red; }
+        .success { background: #e6ffe6; color: green; }
+    </style>
+</head>
+<body>
+    <h1>Debug Units API Response</h1>
+    <button onclick="fetchUnits()">Fetch Units</button>
+    
+    <div id="output"></div>
+
+    <script>
+        async function fetchUnits() {
+            const output = document.getElementById('output');
+            output.innerHTML = '<div class="debug">Loading...</div>';
+            
+            try {
+                // Get token from localStorage (if available)
+                const token = localStorage.getItem('access_token');
+                if (!token) {
+                    output.innerHTML = '<div class="error">No access token found in localStorage</div>';
+                    return;
+                }
+                
+                // Replace with actual course ID
+                const courseId = '0c86c90c-3b45-4901-8c58-cf0d22e9b6c0'; // Update this
+                const response = await fetch(`http://localhost:8000/api/v1/practice/courses/${courseId}/units-with-progress/`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                output.innerHTML = `
+                    <div class="success">✅ API Response Received</div>
+                    <div class="debug">Raw Response:
+${JSON.stringify(data, null, 2)}</div>
+                    
+                    <div class="debug">Units Analysis:
+${data.units ? data.units.map((unit, index) => `
+Unit ${index}: ${unit.title}
+- ID: ${unit.id}
+- Order: ${unit.order} (type: ${typeof unit.order})
+- Lessons: ${unit.lessons ? unit.lessons.length : 0}
+${unit.lessons ? unit.lessons.map((lesson, lessonIndex) => 
+    `  Lesson ${lessonIndex}: ${lesson.title} (completed: ${lesson.completed} - type: ${typeof lesson.completed})`
+).join('\n') : '  No lessons'}
+`).join('\n') : 'No units found'}</div>
+                `;
+                
+            } catch (error) {
+                output.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+                console.error('Fetch error:', error);
+            }
+        }
+    </script>
+</body>
+</html>

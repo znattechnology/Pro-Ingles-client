@@ -28,7 +28,13 @@ export const apiSlice = createApi({
         'TeacherLeaderboardStats',
         'TeacherCompetitions',
         'CompetitionAnalytics',
-        'StudentEngagement'
+        'StudentEngagement',
+        // Laboratory/Practice course tags
+        'LaboratoryCourses',
+        'PracticeCourses',
+        'PracticeCourse',
+        'PracticeAnalytics',
+        'StudentProgress'
     ],
     endpoints: (builder)=> ({
         loadUser:builder.query({

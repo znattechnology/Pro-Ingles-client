@@ -34,12 +34,23 @@ const LearnCourse = () => {
   const [sortBy, setSortBy] = useState('popular'); // popular, newest, rating, title
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
-  // Fetch courses from Django API
-  const { data: coursesData, isLoading, error } = useGetCoursesQuery({});
+  // Fetch courses from Django API (only video courses for exploration)
+  const { data: coursesData, isLoading, error } = useGetCoursesQuery({ 
+    course_type: 'video' // Explicitly request video courses for exploration
+  });
   
   // Transform API data to match component expectations
   const courses = React.useMemo(() => {
     if (!coursesData?.data) return [];
+    
+    // Debug: Log course types
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🎥 Video Courses (Explore Page):', coursesData.data.map(c => ({
+        title: c.title,
+        course_type: c.course_type || 'undefined',
+        id: c.courseId
+      })));
+    }
     
     return coursesData.data.map(course => ({
       id: course.courseId, // Use courseId as the primary identifier

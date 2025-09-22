@@ -100,8 +100,18 @@ const ManageCourseDetailPage = () => {
       // Fetch real course data from API
       const courseData = await getPracticeCourseById(courseId);
       console.log('Course data loaded:', courseData);
+      console.log('🔍 Course status debug:', {
+        id: courseData?.id,
+        title: courseData?.title,
+        status: courseData?.status,
+        statusType: typeof courseData?.status
+      });
       
       setCourse(courseData);
+      
+      // Additional debug for button display issue
+      console.log('🔍 All course fields:', Object.keys(courseData || {}));
+      console.log('🔍 Course object full:', JSON.stringify(courseData, null, 2));
     } catch (error) {
       console.error('Error loading course:', error);
       // Show error toast if course not found
@@ -140,7 +150,19 @@ const ManageCourseDetailPage = () => {
   const handlePublishCourse = async () => {
     if (!course) return;
     
-    const isPublishing = course.status === 'draft';
+    const isPublishing = course.status.toLowerCase() === 'draft';
+    
+    // Validate action
+    if (isPublishing && course.status.toLowerCase() !== 'draft') {
+      showToast('Curso já está publicado!', 'error');
+      return;
+    }
+    
+    if (!isPublishing && course.status.toLowerCase() !== 'published') {
+      showToast('Curso já está em rascunho!', 'error');
+      return;
+    }
+    
     setIsProcessing(true);
     
     try {
@@ -154,12 +176,31 @@ const ManageCourseDetailPage = () => {
       );
     } catch (error) {
       console.error(`Error ${isPublishing ? 'publishing' : 'unpublishing'} course:`, error);
-      showToast(
-        `Erro ao ${isPublishing ? 'publicar' : 'despublicar'} curso. Tente novamente.`, 
-        'error'
-      );
+      
+      // Handle specific error messages
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      
+      if (errorMessage.includes('já está em rascunho')) {
+        showToast('Curso já está em rascunho! Sincronizando estado...', 'error');
+        // Update local state to match server state
+        setCourse({ ...course, status: 'draft' });
+        // Reload course data from server to ensure sync
+        loadCourse();
+      } else if (errorMessage.includes('já está publicado')) {
+        showToast('Curso já está publicado! Sincronizando estado...', 'error');
+        // Update local state to match server state
+        setCourse({ ...course, status: 'Published' });
+        // Reload course data from server to ensure sync
+        loadCourse();
+      } else {
+        showToast(
+          `Erro ao ${isPublishing ? 'publicar' : 'despublicar'} curso: ${errorMessage}`, 
+          'error'
+        );
+      }
     } finally {
       setIsProcessing(false);
+      setShowPublishDialog(false);
     }
   };
 
@@ -371,24 +412,39 @@ const ManageCourseDetailPage = () => {
                 
                 {/* Publish/Unpublish Button */}
                 <Button 
-                  onClick={() => setShowPublishDialog(true)}
+                  onClick={() => {
+                    console.log('🔍 Button click debug:', {
+                      courseStatus: course.status,
+                      isDraft: course.status === 'draft',
+                      courseId: course.id
+                    });
+                    setShowPublishDialog(true);
+                  }}
                   className={`w-full justify-start border text-white transition-all duration-200 shadow-lg ${
-                    course.status === 'draft' 
+                    course.status.toLowerCase() === 'draft' 
                       ? "bg-green-600 hover:bg-green-700 border-green-500"
                       : "bg-yellow-600 hover:bg-yellow-700 border-yellow-500"
                   }`}
                 >
-                  {course.status === 'draft' ? (
-                    <>
-                      <Send className="h-4 w-4 mr-3" />
-                      Publicar Curso
-                    </>
-                  ) : (
-                    <>
-                      <FileEdit className="h-4 w-4 mr-3" />
-                      Despublicar Curso
-                    </>
-                  )}
+                  {(() => {
+                    console.log('🔍 RENDER BUTTON:', {
+                      status: course.status,
+                      isDraft: course.status.toLowerCase() === 'draft',
+                      comparison: `"${course.status.toLowerCase()}" === "draft"`,
+                      result: course.status.toLowerCase() === 'draft'
+                    });
+                    return course.status.toLowerCase() === 'draft' ? (
+                      <>
+                        <Send className="h-4 w-4 mr-3" />
+                        Publicar Curso
+                      </>
+                    ) : (
+                      <>
+                        <FileEdit className="h-4 w-4 mr-3" />
+                        Despublicar Curso
+                      </>
+                    );
+                  })()}
                 </Button>
                 
                 <Button 
@@ -598,7 +654,7 @@ const ManageCourseDetailPage = () => {
         <DialogContent className="bg-customgreys-secondarybg border-violet-900/30 text-white">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-violet-400">
-              {course?.status === 'draft' ? (
+              {course?.status.toLowerCase() === 'draft' ? (
                 <>
                   <Send className="w-5 h-5" />
                   Publicar Curso
@@ -611,7 +667,7 @@ const ManageCourseDetailPage = () => {
               )}
             </DialogTitle>
             <DialogDescription className="text-gray-300">
-              {course?.status === 'draft' ? (
+              {course?.status.toLowerCase() === 'draft' ? (
                 <>
                   Tem certeza que deseja publicar o curso <strong>"{course?.title}"</strong>?
                   <br />
@@ -638,7 +694,7 @@ const ManageCourseDetailPage = () => {
             <Button
               onClick={handlePublishCourse}
               disabled={isProcessing}
-              className={course?.status === 'draft' 
+              className={course?.status.toLowerCase() === 'draft' 
                 ? "bg-green-600 hover:bg-green-700 text-white"
                 : "bg-yellow-600 hover:bg-yellow-700 text-white"
               }
@@ -646,11 +702,11 @@ const ManageCourseDetailPage = () => {
               {isProcessing ? (
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  {course?.status === 'draft' ? 'Publicando...' : 'Despublicando...'}
+                  {course?.status.toLowerCase() === 'draft' ? 'Publicando...' : 'Despublicando...'}
                 </div>
               ) : (
                 <>
-                  {course?.status === 'draft' ? (
+                  {course?.status.toLowerCase() === 'draft' ? (
                     <>
                       <Send className="w-4 h-4 mr-2" />
                       Publicar

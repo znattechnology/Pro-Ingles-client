@@ -6,124 +6,177 @@
  * This is the modernized learning interface that follows the same design
  * principles as the teacher laboratory system. Provides a premium Duolingo-style
  * experience with dark theme consistency.
+ * 
+ * 🔄 REDUX MIGRATION: This component now supports Redux with feature flags
  */
 
 import { FeedWrapper } from "@/components/learn/FeedWrapper";
-import { StickWrapper } from "@/components/learn/StickyWrapper";
 import { LearnHeader } from "./header";
 import { UserProgress } from "@/components/learn/UserProgress";
+import { UserProgressRedux } from "@/components/learn/UserProgressRedux";
 import { Unit } from "./unit";
+import { UnitRedux } from "./unit-redux";
 import { getUserProgress, getUnits, getCourseProgress, getLessonPercentage } from "@/db/django-queries";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import Loading from "@/components/course/Loading";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { useFeatureFlag } from '@/lib/featureFlags';
+import { 
+  useFullMainLearnPage,
+  useLearnPageNavigation 
+} from '@/redux/features/laboratory/hooks/useMainLearnPage';
 import { 
   BookOpen, 
-  Trophy, 
-  Target, 
-  Clock,
   Star,
   ArrowLeft,
-  Lightbulb,
   Zap,
   Flame,
   Award,
   TrendingUp,
-  Play,
   CheckCircle,
   CircleDot,
   Sparkles
 } from "lucide-react";
+import { ReduxMigrationTest } from "@/components/debug/ReduxMigrationTest";
 
 const LearnPage = () => {
   const router = useRouter();
-  const [userProgress, setUserProgress] = useState(null);
-  const [units, setUnits] = useState([]);
-  const [courseProgress, setCourseProgress] = useState(null);
-  const [lessonPercentage, setLessonPercentage] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  
+  // Feature flags
+  const useReduxMainPage = useFeatureFlag('REDUX_MAIN_LEARN_PAGE');
+  
+  // Redux hooks
+  const {
+    data: reduxData,
+    isLoading: reduxLoading,
+    error: reduxError,
+    stats: reduxStats,
+    navigation: reduxNavigation,
+    actions: reduxActions,
+  } = useFullMainLearnPage();
+  
+  // Legacy state
+  const [legacyUserProgress, setLegacyUserProgress] = useState(null);
+  const [legacyUnits, setLegacyUnits] = useState([]);
+  const [legacyCourseProgress, setLegacyCourseProgress] = useState(null);
+  const [legacyLessonPercentage, setLegacyLessonPercentage] = useState(0);
+  const [legacyIsLoading, setLegacyIsLoading] = useState(true);
+  const [legacyError, setLegacyError] = useState<string | null>(null);
+  
+  // Determine data source
+  const userProgress = useReduxMainPage ? reduxData?.userProgress : legacyUserProgress;
+  const units = useReduxMainPage ? reduxData?.units : legacyUnits;
+  const courseProgress = useReduxMainPage ? reduxData?.courseProgress : legacyCourseProgress;
+  const lessonPercentage = useReduxMainPage ? reduxData?.lessonPercentage : legacyLessonPercentage;
+  const isLoading = useReduxMainPage ? reduxLoading : legacyIsLoading;
+  const error = useReduxMainPage ? reduxError : legacyError;
 
+  // Debug migration
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🏠 Main Learn Page Migration Status:', {
+      useReduxMainPage,
+      hasReduxData: !!reduxData,
+      reduxLoading,
+      reduxError,
+      activeCourse: reduxData?.activeCourse?.title,
+      timestamp: new Date().toISOString()
+    });
+  }
+  
+  // Legacy data loading (fallback when Redux is disabled)
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setIsLoading(true);
-        
-        // Check if user is authenticated
-        const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
-        if (!token) {
-          console.warn('No authentication token found, redirecting to login');
-          router.push('/auth/signin');
-          return;
+    if (!useReduxMainPage) {
+      const fetchData = async () => {
+        try {
+          setLegacyIsLoading(true);
+          
+          // Check if user is authenticated
+          const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+          if (!token) {
+            console.warn('No authentication token found, redirecting to login');
+            router.push('/auth/signin');
+            return;
+          }
+          
+          console.log('🔄 Legacy: Starting data fetch for learn page');
+          
+          // First get user progress to check for active course
+          const userProgressData = await getUserProgress();
+          console.log('🔄 Legacy: User progress result:', userProgressData);
+          
+          if (!userProgressData) {
+            console.warn('🔄 Legacy: No user progress data, redirecting to courses');
+            router.push("/user/laboratory/learn/courses");
+            return;
+          }
+
+          if (!userProgressData.active_course) {
+            console.warn('🔄 Legacy: No active course, redirecting to courses');
+            router.push("/user/laboratory/learn/courses");
+            return;
+          }
+
+          setLegacyUserProgress(userProgressData);
+          console.log('🔄 Legacy: User progress set successfully');
+
+          // Get course data
+          const courseId = userProgressData.active_course.id;
+          console.log('🔄 Legacy: Fetching data for course ID:', courseId);
+          
+          const [unitsData, courseProgressData] = await Promise.all([
+            getUnits(courseId),
+            getCourseProgress(courseId)
+          ]);
+
+          console.log('🔄 Legacy: Units data received:', unitsData);
+          console.log('🔄 Legacy: Course progress data received:', courseProgressData);
+          
+          setLegacyUnits(unitsData || []);
+          setLegacyCourseProgress(courseProgressData as any);
+
+          // Get lesson percentage if there's an active lesson
+          if (courseProgressData?.activeLessonId) {
+            console.log('🔄 Legacy: Fetching lesson percentage for:', courseProgressData.activeLessonId);
+            const percentage = await getLessonPercentage(courseProgressData.activeLessonId);
+            setLegacyLessonPercentage(percentage);
+          }
+
+        } catch (error: any) {
+          console.error("🔄 Legacy: Error loading learn page:", error);
+          setLegacyError(error?.message || 'Failed to load learning data');
+          
+          // Check if it's an authentication error
+          if (error?.message?.includes('401') || error?.message?.includes('Unauthorized')) {
+            console.warn('🔄 Legacy: Authentication error, redirecting to login');
+            setLegacyError('Authentication required. Redirecting to login...');
+            setTimeout(() => router.push('/auth/signin'), 2000);
+          } else {
+            console.warn('🔄 Legacy: General error, redirecting to courses');
+            setLegacyError('Failed to load course data. Redirecting to courses...');
+            setTimeout(() => router.push("/user/laboratory/learn/courses"), 2000);
+          }
+        } finally {
+          setLegacyIsLoading(false);
         }
-        
-        console.log('Starting data fetch for learn page');
-        
-        // First get user progress to check for active course
-        const userProgressData = await getUserProgress();
-        console.log('User progress result:', userProgressData);
-        
-        if (!userProgressData) {
-          console.warn('No user progress data, redirecting to courses');
-          router.push("/user/laboratory/learn/courses");
-          return;
-        }
+      };
 
-        if (!userProgressData.active_course) {
-          console.warn('No active course, redirecting to courses');
-          router.push("/user/laboratory/learn/courses");
-          return;
-        }
-
-        setUserProgress(userProgressData);
-        console.log('User progress set successfully');
-
-        // Get course data
-        const courseId = userProgressData.active_course.id;
-        console.log('Fetching data for course ID:', courseId);
-        
-        const [unitsData, courseProgressData] = await Promise.all([
-          getUnits(courseId),
-          getCourseProgress(courseId)
-        ]);
-
-        console.log('Units data received:', unitsData);
-        console.log('Course progress data received:', courseProgressData);
-
-        setUnits(unitsData || []);
-        setCourseProgress(courseProgressData);
-
-        // Get lesson percentage if there's an active lesson
-        if (courseProgressData?.activeLessonId) {
-          console.log('Fetching lesson percentage for:', courseProgressData.activeLessonId);
-          const percentage = await getLessonPercentage(courseProgressData.activeLessonId);
-          setLessonPercentage(percentage);
-        }
-
-      } catch (error) {
-        console.error("Error loading learn page:", error);
-        setError(error?.message || 'Failed to load learning data');
-        
-        // Check if it's an authentication error
-        if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
-          console.warn('Authentication error, redirecting to login');
-          setError('Authentication required. Redirecting to login...');
-          setTimeout(() => router.push('/auth/signin'), 2000);
-        } else {
-          console.warn('General error, redirecting to courses');
-          setError('Failed to load course data. Redirecting to courses...');
-          setTimeout(() => router.push("/user/laboratory/learn/courses"), 2000);
-        }
-      } finally {
-        setIsLoading(false);
+      fetchData();
+    }
+  }, [router, useReduxMainPage]);
+  
+  // Handle Redux navigation and redirects
+  const navigation = useLearnPageNavigation();
+  
+  useEffect(() => {
+    if (useReduxMainPage && reduxData?.userProgress && !reduxLoading) {
+      const shouldContinue = navigation.navigateToActiveCourse(router, reduxData.userProgress);
+      if (!shouldContinue) {
+        return;
       }
-    };
-
-    fetchData();
-  }, [router]);
+    }
+  }, [useReduxMainPage, reduxData, reduxLoading, router, navigation]);
 
   if (isLoading) {
     return <Loading />;
@@ -167,30 +220,37 @@ const LearnPage = () => {
     return null; // Will redirect via useEffect
   }
 
-  const activeCourse = (userProgress as any).active_course;
+  const activeCourse = useReduxMainPage ? reduxData?.activeCourse : (userProgress as any)?.active_course;
   
-  // Safe calculation of lesson statistics
-  const completedLessons = units.reduce((acc: number, unit: any) => {
-    if (!unit?.lessons || !Array.isArray(unit.lessons)) return acc;
-    return acc + unit.lessons.filter((lesson: any) => lesson?.completed === true).length;
-  }, 0);
-  
-  const totalLessons = units.reduce((acc: number, unit: any) => {
-    if (!unit?.lessons || !Array.isArray(unit.lessons)) return acc;
-    return acc + unit.lessons.length;
-  }, 0);
-  
-  const userStats = {
+  // Get stats from Redux or calculate legacy stats
+  const userStats = useReduxMainPage ? reduxStats : {
     hearts: (userProgress as any)?.hearts || 5,
     points: (userProgress as any)?.points || 0,
     streak: 7, // Mock data - replace with real API
-    completedLessons,
-    totalLessons
+    completedLessons: (() => {
+      const safeUnits = Array.isArray(units) ? units : [];
+      return safeUnits.reduce((acc: number, unit: any) => {
+        if (!unit?.lessons || !Array.isArray(unit.lessons)) return acc;
+        return acc + unit.lessons.filter((lesson: any) => lesson?.completed === true).length;
+      }, 0);
+    })(),
+    totalLessons: (() => {
+      const safeUnits = Array.isArray(units) ? units : [];
+      return safeUnits.reduce((acc: number, unit: any) => {
+        if (!unit?.lessons || !Array.isArray(unit.lessons)) return acc;
+        return acc + unit.lessons.length;
+      }, 0);
+    })(),
+    courseProgressPercentage: 0,
   };
   
-  // Safe progress percentage calculation
-  const courseProgressPercentage = totalLessons > 0 ? 
-    Math.round((completedLessons / totalLessons) * 100) : 0;
+  // Calculate progress percentage
+  const courseProgressPercentage = useReduxMainPage 
+    ? userStats.courseProgressPercentage 
+    : (userStats.totalLessons > 0 ? Math.round((userStats.completedLessons / userStats.totalLessons) * 100) : 0);
+  
+  // Safe units array
+  const safeUnits = Array.isArray(units) ? units : [];
 
   return (
     <div className="min-h-screen bg-customgreys-primarybg">
@@ -220,7 +280,7 @@ const LearnPage = () => {
               </div>
               <div className="flex-1">
                 <h1 className="text-3xl font-bold text-white mb-1 bg-gradient-to-r from-white to-gray-300 bg-clip-text">
-                  {activeCourse.title}
+                  {activeCourse?.title || 'Carregando...'} {useReduxMainPage && '🔄'}
                 </h1>
                 <p className="text-customgreys-dirtyGrey">
                   Continue sua jornada de aprendizagem • {courseProgressPercentage}% concluído
@@ -319,12 +379,19 @@ const LearnPage = () => {
         {/* Right Sidebar - User Progress */}
         <div className="w-80 flex-shrink-0">
           <div className="sticky top-8 space-y-6">
-            <UserProgress
-              activeCourse={activeCourse}
-              hearts={userStats.hearts}
-              points={userStats.points}
-              hasActiveSubscription={false}
-            />
+            {useReduxMainPage ? (
+              <UserProgressRedux
+                useRedux={true}
+                hasActiveSubscription={false}
+              />
+            ) : (
+              <UserProgress
+                activeCourse={activeCourse}
+                hearts={userStats.hearts}
+                points={userStats.points}
+                hasActiveSubscription={false}
+              />
+            )}
 
             {/* Enhanced Daily Tips Card */}
             <Card className="relative bg-gradient-to-br from-violet-500/20 via-purple-500/15 to-violet-500/10 border-violet-500/30 hover:border-violet-400/50 transition-all duration-300 overflow-hidden group">
@@ -362,7 +429,12 @@ const LearnPage = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => router.push('/user/laboratory/learn/shop')}
+                    onClick={() => {
+                      if (useReduxMainPage && reduxActions) {
+                        reduxActions.buyHearts();
+                      }
+                      router.push('/user/laboratory/learn/shop');
+                    }}
                     className="w-full justify-start text-customgreys-dirtyGrey hover:text-white hover:bg-red-500/10 hover:border-red-500/20 border border-transparent transition-all duration-200 group"
                   >
                     <div className="bg-red-500/20 rounded-lg p-1 mr-3 group-hover:bg-red-500/30 transition-colors duration-200">
@@ -373,7 +445,12 @@ const LearnPage = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => router.push('/user/laboratory/achievements')}
+                    onClick={() => {
+                      if (useReduxMainPage && reduxActions) {
+                        reduxActions.viewAchievements();
+                      }
+                      router.push('/user/laboratory/achievements');
+                    }}
                     className="w-full justify-start text-customgreys-dirtyGrey hover:text-white hover:bg-yellow-500/10 hover:border-yellow-500/20 border border-transparent transition-all duration-200 group"
                   >
                     <div className="bg-yellow-500/20 rounded-lg p-1 mr-3 group-hover:bg-yellow-500/30 transition-colors duration-200">
@@ -384,7 +461,12 @@ const LearnPage = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => router.push('/user/laboratory/leaderboard')}
+                    onClick={() => {
+                      if (useReduxMainPage && reduxActions) {
+                        reduxActions.viewLeaderboard();
+                      }
+                      router.push('/user/laboratory/leaderboard');
+                    }}
                     className="w-full justify-start text-customgreys-dirtyGrey hover:text-white hover:bg-purple-500/10 hover:border-purple-500/20 border border-transparent transition-all duration-200 group"
                   >
                     <div className="bg-purple-500/20 rounded-lg p-1 mr-3 group-hover:bg-purple-500/30 transition-colors duration-200">
@@ -403,7 +485,7 @@ const LearnPage = () => {
           <FeedWrapper>
             {/* Course Header */}
             <div className="mb-8">
-              <LearnHeader title={activeCourse.title} />
+              <LearnHeader title={`${activeCourse?.title || 'Carregando...'} ${useReduxMainPage ? '🔄' : ''}`} />
               
               {/* Enhanced Progress Summary */}
               {userStats.totalLessons > 0 && (
@@ -412,7 +494,9 @@ const LearnPage = () => {
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
                         <CheckCircle className="w-4 h-4 text-green-400" />
-                        <span className="text-white font-medium">Progresso do Curso</span>
+                        <span className="text-white font-medium">
+                          Progresso do Curso {useReduxMainPage && '🔄'}
+                        </span>
                       </div>
                       <div className="text-right">
                         <div className="text-2xl font-bold text-white">
@@ -438,23 +522,37 @@ const LearnPage = () => {
 
             {/* Units */}
             <div className="space-y-8">
-              {units.map((unit: any) => (
+              {safeUnits.length > 0 && safeUnits.map((unit: any) => (
                 <div key={unit.id} className="mb-10">
-                  <Unit
-                    id={unit.id}
-                    order={unit.order}
-                    description={unit.description}
-                    title={unit.title}
-                    lessons={unit.lessons}
-                    activeLesson={(courseProgress as any)?.activeLesson}
-                    activeLessonPercentage={lessonPercentage}
-                  />
+                  {useReduxMainPage ? (
+                    <UnitRedux
+                      id={unit.id}
+                      order={unit.order}
+                      description={unit.description}
+                      title={unit.title}
+                      lessons={unit.lessons || []}
+                      activeLesson={(courseProgress as any)?.activeLesson}
+                      activeLessonPercentage={lessonPercentage || 0}
+                      courseId={activeCourse?.id}
+                      useRedux={true}
+                    />
+                  ) : (
+                    <Unit
+                      id={unit.id}
+                      order={unit.order}
+                      description={unit.description}
+                      title={unit.title}
+                      lessons={unit.lessons || []}
+                      activeLesson={(courseProgress as any)?.activeLesson}
+                      activeLessonPercentage={lessonPercentage || 0}
+                    />
+                  )}
                 </div>
               ))}
             </div>
 
             {/* Enhanced No Units Message */}
-            {units.length === 0 && (
+            {safeUnits.length === 0 && (
               <Card className="relative bg-gradient-to-br from-customgreys-secondarybg via-customgreys-secondarybg/80 to-customgreys-primarybg border-customgreys-darkerGrey overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-r from-violet-500/5 to-purple-500/5" />
                 <CardContent className="relative flex flex-col items-center justify-center py-16">
@@ -503,6 +601,11 @@ const LearnPage = () => {
           </FeedWrapper>
         </div>
       </div>
+
+      {/* Redux Migration Test Component (Debug Only) */}
+      {process.env.NODE_ENV === 'development' && useReduxMainPage && (
+        <ReduxMigrationTest />
+      )}
     </div>
   );
 };

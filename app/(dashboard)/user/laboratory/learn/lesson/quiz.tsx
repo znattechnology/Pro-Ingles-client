@@ -18,6 +18,7 @@ import { useRouter } from "next/navigation";
 import { useHeartsModal } from "@/store/use-hearts-modal";
 import { usePracticeModal } from "@/store/use-practice-modal";
 import { ExitModal } from "@/components/modals/exit-modal";
+import { usePracticeSession } from '@/redux/features/laboratory/hooks/usePracticeSession';
 
 // Django API types
 interface ChallengeOption {
@@ -45,6 +46,7 @@ type Props = {
   initialLessonId: string;
   initialLessonChallenges: ChallengeType[];
   userSubscription: any;
+  useReduxPractice?: boolean;
 };
 
 export const Quiz = ({
@@ -53,6 +55,7 @@ export const Quiz = ({
   initialLessonId,
   initialLessonChallenges,
   userSubscription,
+  useReduxPractice = false,
 }: Props) => {
  const {width, height} = useWindowSize();
   
@@ -65,6 +68,9 @@ export const Quiz = ({
   const {open: openPracticeModal} = usePracticeModal();
   const [lessonId] = useState(initialLessonId);
   const [hearts, setHearts] = useState(initialHearts);
+  
+  // Redux practice session hooks
+  const { actions } = usePracticeSession(useReduxPractice ? initialLessonId : null);
   
   const [percentage, setPercentage] = useState( () => {
     return initialPercentage === 100 ? 0 : initialPercentage
@@ -87,6 +93,17 @@ export const Quiz = ({
   useMount(() => {
     if (initialPercentage === 100) {
         openPracticeModal();
+    }
+    
+    // Debug migration
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🧪 Quiz Component Migration Status:', {
+        useReduxPractice,
+        lessonId: initialLessonId,
+        challengesCount: initialLessonChallenges.length,
+        hasReduxActions: !!actions,
+        timestamp: new Date().toISOString()
+      });
     }
   })
 
@@ -113,47 +130,73 @@ export const Quiz = ({
       return;
     }
 
-    // Check answer with the Django API
-    startTransition(() => {
-      upsertChallengeProgress(challenge.id, selectedOptions)
-        .then((response) => {
-          if (response?.error === "hearts") {
-            openHeartsModal();
-            return;
-          }
+    // Check answer with Redux or Django API
+    startTransition(async () => {
+      try {
+        let response;
+        
+        if (useReduxPractice && actions.submitAnswer) {
+          // Use Redux for challenge submission
+          console.log('🧪 Using Redux for challenge submission');
+          const reduxResponse = await actions.submitAnswer(challenge.id, selectedOptions);
           
-          if (response?.correct) {
-            // Correct answer
-            if (correctAudioRef.current) {
-              correctAudioRef.current.currentTime = 0;
-              correctAudioRef.current.play().catch(console.error);
-            }
-            setStatus("correct");
-            setPercentage((prev) => prev + 100 / challenges.length);
-
-            // Update hearts for practice mode
-            if (initialPercentage === 100) {
-              setHearts((prev) => Math.min(prev + 1, 5));
-            }
-          } else {
-            // Wrong answer
-            if (incorrectAudioRef.current) {
-              incorrectAudioRef.current.currentTime = 0;
-              incorrectAudioRef.current.play().catch(console.error);
-            }
-            setStatus("wrong");
-            
-            // Update hearts count from response
-            if (response?.data?.userProgress?.hearts !== undefined) {
-              setHearts(response.data.userProgress.hearts);
-            }
+          // Transform Redux response to legacy format for compatibility
+          response = {
+            correct: reduxResponse.correct,
+            error: reduxResponse.success === false ? "challenge" : null,
+            data: {
+              userProgress: {
+                hearts: undefined // Let Redux optimistic updates handle this
+              }
+            },
+            heartsUsed: reduxResponse.heartsUsed || 0
+          };
+          
+          console.log('🧪 Redux response transformed:', response);
+        } else {
+          // Use legacy Django API
+          console.log('🧪 Using legacy API for challenge submission');
+          response = await upsertChallengeProgress(challenge.id, selectedOptions);
+        }
+        
+        if (response?.error === "hearts") {
+          openHeartsModal();
+          return;
+        }
+        
+        if (response?.correct) {
+          // Correct answer
+          if (correctAudioRef.current) {
+            correctAudioRef.current.currentTime = 0;
+            correctAudioRef.current.play().catch(console.error);
           }
-        })
-        .catch(() =>
-          toast.error(
-            "Alguma coisa não correu bem por favor tentar novamente"
-          )
-        );
+          setStatus("correct");
+          setPercentage((prev) => prev + 100 / challenges.length);
+
+          // Update hearts for practice mode
+          if (initialPercentage === 100) {
+            setHearts((prev) => Math.min(prev + 1, 5));
+          }
+        } else {
+          // Wrong answer
+          if (incorrectAudioRef.current) {
+            incorrectAudioRef.current.currentTime = 0;
+            incorrectAudioRef.current.play().catch(console.error);
+          }
+          setStatus("wrong");
+          
+          // Update hearts count from response
+          if (response?.data?.userProgress?.hearts !== undefined) {
+            setHearts(response.data.userProgress.hearts);
+          } else if ('heartsUsed' in response && response.heartsUsed) {
+            // Redux response format
+            setHearts((prev) => Math.max(prev - response.heartsUsed, 0));
+          }
+        }
+      } catch (error) {
+        console.error('Challenge submission error:', error);
+        toast.error("Alguma coisa não correu bem por favor tentar novamente");
+      }
     });
   };
 

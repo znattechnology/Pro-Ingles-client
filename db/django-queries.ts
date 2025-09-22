@@ -1,6 +1,9 @@
 /**
  * Django API Queries - Replacement for Drizzle queries
  * 
+ * 🧪 TESTING REDUX INDEPENDENCE: Most functions temporarily commented out
+ * to test if Redux migration is working 100% independently.
+ * 
  * These functions replace the original Drizzle/Clerk queries
  * and call our Django REST API endpoints instead.
  */
@@ -31,8 +34,23 @@ const getAuthToken = () => {
  * Get user's practice progress
  * Replaces: getUserProgress() from client project
  * Django API: GET /api/v1/practice/user-progress/
+ * 
+ * 🧪 COMMENTED OUT FOR REDUX INDEPENDENCE TEST
  */
 export const getUserProgress = async () => {
+    console.warn('🧪 LEGACY getUserProgress called - Redux should handle this!');
+    console.warn('🔄 If you see this, the component is not using Redux properly');
+    
+    // Return mock data to prevent crashes during testing
+    return {
+        hearts: 5,
+        points: 0,
+        active_course: null,
+        user_image_src: '/placeholder.png',
+        streak: 0
+    };
+    
+    /* ORIGINAL IMPLEMENTATION COMMENTED OUT FOR TESTING
     try {
         const token = getAuthToken();
         if (!token) {
@@ -68,14 +86,24 @@ export const getUserProgress = async () => {
         console.error('Error fetching user progress:', error);
         return null;
     }
+    */
 };
 
 /**
  * Get all available courses
  * Replaces: getCourses() from client project
  * Django API: GET /api/v1/practice/courses/
+ * 
+ * 🧪 COMMENTED OUT FOR REDUX INDEPENDENCE TEST
  */
 export const getCourses = async () => {
+    console.warn('🧪 LEGACY getCourses called - Redux should handle this!');
+    console.warn('🔄 If you see this, the component is not using Redux properly');
+    
+    // Return empty array to prevent crashes during testing
+    return [];
+    
+    /* ORIGINAL IMPLEMENTATION COMMENTED OUT FOR TESTING
     try {
         const token = getAuthToken();
         if (!token) return [];
@@ -96,14 +124,24 @@ export const getCourses = async () => {
         console.error('Error fetching courses:', error);
         return [];
     }
+    */
 };
 
 /**
  * Get laboratory courses (practice courses only)
  * Now the Django API filters courses that have practice_units (Course → PracticeUnit → PracticeLesson → PracticeChallenge)
  * Django API: GET /api/v1/practice/courses/ (filtered by practice_units existence)
+ * 
+ * 🧪 COMMENTED OUT FOR REDUX INDEPENDENCE TEST
  */
 export const getLaboratoryCourses = async () => {
+    console.warn('🧪 LEGACY getLaboratoryCourses called - Redux should handle this!');
+    console.warn('🔄 If you see this, the component is not using Redux properly');
+    
+    // Return empty array to prevent crashes during testing
+    return [];
+    
+    /* ORIGINAL IMPLEMENTATION COMMENTED OUT FOR TESTING
     try {
         const token = getAuthToken();
         if (!token) return [];
@@ -133,14 +171,24 @@ export const getLaboratoryCourses = async () => {
         console.error('Error fetching laboratory courses:', error);
         return [];
     }
+    */
 };
 
 /**
  * Get course by ID
  * Replaces: getCourseById() from client project  
  * Django API: GET /api/v1/practice/courses/ (then filter)
+ * 
+ * 🧪 COMMENTED OUT FOR REDUX INDEPENDENCE TEST
  */
 export const getCourseById = async (courseId: string) => {
+    console.warn('🧪 LEGACY getCourseById called - Redux should handle this!');
+    console.warn('🔄 If you see this, the component is not using Redux properly');
+    
+    // Return null to prevent crashes during testing
+    return null;
+    
+    /* ORIGINAL IMPLEMENTATION COMMENTED OUT FOR TESTING
     try {
         const courses = await getCourses();
         return courses.find((course: any) => course.id === courseId) || null;
@@ -148,14 +196,24 @@ export const getCourseById = async (courseId: string) => {
         console.error('Error fetching course by ID:', error);
         return null;
     }
+    */
 };
 
 /**
  * Get units for a course (with user progress)
  * Replaces: getUnits() from client project
  * Django API: GET /api/v1/practice/courses/{courseId}/units-with-progress/
+ * 
+ * 🧪 COMMENTED OUT FOR REDUX INDEPENDENCE TEST
  */
 export const getUnits = async (courseId?: string) => {
+    console.warn('🧪 LEGACY getUnits called - Redux should handle this!');
+    console.warn('🔄 If you see this, the component is not using Redux properly');
+    
+    // Return empty array to prevent crashes during testing
+    return [];
+    
+    /* ORIGINAL IMPLEMENTATION COMMENTED OUT FOR TESTING
     try {
         if (!courseId) {
             console.warn('No courseId provided to getUnits');
@@ -186,20 +244,48 @@ export const getUnits = async (courseId?: string) => {
         }
 
         const data = await response.json();
-        console.log('Units data:', data);
-        return data;
+        console.log('Units data from API:', data);
+        
+        // Handle different response structures from Django API
+        let units;
+        if (Array.isArray(data)) {
+            // Direct array response (legacy)
+            units = data;
+        } else if (data && Array.isArray(data.units)) {
+            // Object with units property (current API structure)
+            units = data.units;
+        } else {
+            // Fallback to empty array
+            console.warn('⚠️ Unexpected units response structure:', data);
+            units = [];
+        }
+        
+        console.log('📊 Number of units:', units?.length || 0);
+        console.log('🎯 Final units array:', units);
+        
+        return units;
     } catch (error) {
         console.error('Error fetching units:', error);
         return [];
     }
+    */
 };
 
 /**
  * Get course progress (active lesson info)
  * This is a derived function - the Django API provides lesson completion
  * status within the units, so we calculate the first uncompleted lesson
+ * 
+ * 🧪 COMMENTED OUT FOR REDUX INDEPENDENCE TEST
  */
 export const getCourseProgress = async (courseId?: string) => {
+    console.warn('🧪 LEGACY getCourseProgress called - Redux should handle this!');
+    console.warn('🔄 If you see this, the component is not using Redux properly');
+    
+    // Return null to prevent crashes during testing
+    return null;
+    
+    /* ORIGINAL IMPLEMENTATION COMMENTED OUT FOR TESTING
     try {
         if (!courseId) return null;
         
@@ -226,6 +312,7 @@ export const getCourseProgress = async (courseId?: string) => {
         console.error('Error calculating course progress:', error);
         return null;
     }
+    */
 };
 
 /**
@@ -233,9 +320,20 @@ export const getCourseProgress = async (courseId?: string) => {
  * Replaces: getLesson() from client project
  * Django API: GET /api/v1/practice/lessons/{lessonId}/
  * 
- * If no lessonId is provided, gets the current active lesson
+ * 🧪 COMMENTED OUT FOR REDUX INDEPENDENCE TEST
  */
 export const getLesson = async (lessonId?: string) => {
+    console.warn('🧪 LEGACY getLesson called - Redux should handle this!');
+    console.warn('🔄 If you see this, the component is not using Redux properly');
+    
+    // Return mock lesson data to prevent crashes during testing
+    return {
+        id: lessonId || 'mock-lesson-id',
+        title: 'Mock Lesson for Testing',
+        challenges: []
+    };
+    
+    /* ORIGINAL IMPLEMENTATION COMMENTED OUT FOR TESTING
     try {
         const token = getAuthToken();
         if (!token) return null;
@@ -269,14 +367,24 @@ export const getLesson = async (lessonId?: string) => {
         console.error('Error fetching lesson:', error);
         return null;
     }
+    */
 };
 
 /**
  * Get lesson completion percentage
  * Replaces: getLessonPercentage() from client project
  * Django API: GET /api/v1/practice/lessons/{lessonId}/percentage/
+ * 
+ * 🧪 COMMENTED OUT FOR REDUX INDEPENDENCE TEST
  */
 export const getLessonPercentage = async (lessonId?: string) => {
+    console.warn('🧪 LEGACY getLessonPercentage called - Redux should handle this!');
+    console.warn('🔄 If you see this, the component is not using Redux properly');
+    
+    // Return 0 to prevent crashes during testing
+    return 0;
+    
+    /* ORIGINAL IMPLEMENTATION COMMENTED OUT FOR TESTING
     try {
         if (!lessonId) return 0;
         
@@ -300,4 +408,5 @@ export const getLessonPercentage = async (lessonId?: string) => {
         console.error('Error fetching lesson percentage:', error);
         return 0;
     }
+    */
 };

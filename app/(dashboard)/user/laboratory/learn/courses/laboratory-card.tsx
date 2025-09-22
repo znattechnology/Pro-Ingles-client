@@ -38,22 +38,33 @@ export const LaboratoryCard = ({title, id, imageSrc, description, level, totalUn
     // Handler para navegar para speaking practice
     const handleSpeakingClick = (e: React.MouseEvent) => {
         e.stopPropagation();
-        console.log('Speaking clicked for course:', id);
+        e.preventDefault();
+        console.log('🎤 SPEAKING DEBUG: Speaking clicked for course:', id);
         router.push(`/user/laboratory/learn/courses/${id}/speaking`);
     };
 
     // Handler para navegar para listening practice
     const handleListeningClick = (e: React.MouseEvent) => {
         e.stopPropagation();
-        console.log('Listening clicked for course:', id);
+        e.preventDefault();
+        console.log('🎧 LISTENING DEBUG: Listening clicked for course:', id);
         router.push(`/user/laboratory/learn/courses/${id}/listening`);
     };
 
     // Handler para botão principal
-    const handleMainClick = () => {
+    const handleMainClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        e.preventDefault();
+        console.log('🎯 CARD DEBUG: handleMainClick called');
+        console.log('🎯 CARD DEBUG: courseId:', id);
+        console.log('🎯 CARD DEBUG: disabled state:', disabled);
+        console.log('🎯 CARD DEBUG: onClick function:', typeof onClick);
+        
         if (!disabled) {
-            console.log('Main button clicked for course:', id);
+            console.log('🎯 CARD DEBUG: Not disabled, calling onClick function');
             onClick(id);
+        } else {
+            console.log('🎯 CARD DEBUG: Button is disabled, not calling onClick');
         }
     };
     
@@ -377,15 +388,18 @@ export const LaboratoryCard = ({title, id, imageSrc, description, level, totalUn
                 )}
                 
                 {/* Action Buttons */}
-                <div className="space-y-3">
+                <div className="space-y-3 relative z-20">
                     {/* Botão Principal - Laboratório */}
                     <Button
                         onClick={handleMainClick}
+                        disabled={disabled}
                         className={cn(
-                            "w-full text-white transition-all duration-200 cursor-pointer",
+                            "w-full text-white transition-all duration-200 cursor-pointer relative z-30",
+                            "hover:transform hover:scale-[1.02] active:scale-[0.98]",
                             isCompleted 
                                 ? "bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700" 
-                                : "bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700"
+                                : "bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700",
+                            disabled && "opacity-50 cursor-not-allowed"
                         )}
                         size="sm"
                     >
@@ -404,19 +418,29 @@ export const LaboratoryCard = ({title, id, imageSrc, description, level, totalUn
                     </Button>
                     
                     {/* Botões Secundários - Speaking/Listening */}
-                    <div className="grid grid-cols-2 gap-2 relative z-10">
+                    <div className="grid grid-cols-2 gap-2 relative z-30">
                         <Button
                             onClick={handleSpeakingClick}
+                            disabled={disabled}
                             size="sm"
-                            className="bg-blue-500/20 border border-blue-500/30 text-blue-400 hover:bg-blue-500/30 hover:border-blue-500/50 hover:text-blue-300 transition-colors cursor-pointer"
+                            className={cn(
+                                "bg-blue-500/20 border border-blue-500/30 text-blue-400 hover:bg-blue-500/30 hover:border-blue-500/50 hover:text-blue-300 transition-colors cursor-pointer relative",
+                                "hover:transform hover:scale-[1.02] active:scale-[0.98]",
+                                disabled && "opacity-50 cursor-not-allowed"
+                            )}
                         >
                             <Mic className="h-3 w-3 mr-1" />
                             <span className="text-xs font-medium">Speaking</span>
                         </Button>
                         <Button
                             onClick={handleListeningClick}
+                            disabled={disabled}
                             size="sm"
-                            className="bg-orange-500/20 border border-orange-500/30 text-orange-400 hover:bg-orange-500/30 hover:border-orange-500/50 hover:text-orange-300 transition-colors cursor-pointer"
+                            className={cn(
+                                "bg-orange-500/20 border border-orange-500/30 text-orange-400 hover:bg-orange-500/30 hover:border-orange-500/50 hover:text-orange-300 transition-colors cursor-pointer relative",
+                                "hover:transform hover:scale-[1.02] active:scale-[0.98]",
+                                disabled && "opacity-50 cursor-not-allowed"
+                            )}
                         >
                             <Headphones className="h-3 w-3 mr-1" />
                             <span className="text-xs font-medium">Listening</span>
