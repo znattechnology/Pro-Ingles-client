@@ -23,6 +23,7 @@ const getAuthToken = () => {
  */
 const makeAuthenticatedRequest = async (url: string, options: RequestInit = {}) => {
     const token = getAuthToken();
+    console.log('🔑 Auth token available:', !!token, token ? 'Bearer ***' + token.slice(-10) : 'null');
     
     if (!token) {
         throw new Error("Token de autenticação não encontrado. Por favor, faça login novamente.");
@@ -268,6 +269,164 @@ export const getPracticeCourses = async () => {
     } catch (error) {
         console.error("Error fetching practice courses:", error);
         throw error;
+    }
+};
+
+/**
+ * Get courses with statistics efficiently
+ */
+export const getCoursesWithStatistics = async () => {
+    try {
+        const token = getAuthToken();
+        if (!token) {
+            throw new Error("Authentication required");
+        }
+
+        console.log('📊 Fetching courses with statistics...');
+
+        // Buscar cursos básicos primeiro
+        const courses = await getPracticeCourses();
+        console.log('📚 Found courses:', courses?.length || 0, courses);
+        
+        if (!courses || courses.length === 0) {
+            console.log('❌ No courses found');
+            return [];
+        }
+        
+        // Buscar todas as estatísticas em paralelo
+        const coursesWithStats = await Promise.all(
+            courses.map(async (course: any) => {
+                try {
+                    console.log(`📊 Fetching stats for course: ${course.id} - ${course.title}`);
+                    const stats = await getCourseStatistics(course.id);
+                    console.log(`✅ Stats for ${course.title}:`, stats);
+                    return {
+                        ...course,
+                        ...stats
+                    };
+                } catch (error) {
+                    console.warn(`❌ Não foi possível buscar estatísticas para o curso ${course.id}:`, error);
+                    return {
+                        ...course,
+                        units_count: 0,
+                        lessons_count: 0,
+                        challenges_count: 0,
+                        total_progress: 0
+                    };
+                }
+            })
+        );
+        
+        console.log('✅ Courses with statistics loaded:', coursesWithStats.length);
+        return coursesWithStats;
+
+    } catch (error) {
+        console.error("Error fetching courses with statistics:", error);
+        throw error;
+    }
+};
+
+/**
+ * Get course statistics (units, lessons, challenges count)
+ */
+export const getCourseStatistics = async (courseId: string) => {
+    try {
+        const token = getAuthToken();
+        console.log('🔑 getCourseStatistics - Auth token available:', !!token, token ? 'Bearer ***' + token.slice(-10) : 'null');
+        if (!token) {
+            throw new Error("Authentication required");
+        }
+
+        console.log(`📊 Fetching statistics for course: ${courseId}`);
+        console.log(`🔗 API URL: ${API_BASE_URL}/practice/units/?course=${courseId}`);
+
+        // Buscar unidades do curso
+        const unitsResponse = await fetch(`${API_BASE_URL}/practice/units/?course=${courseId}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+        });
+
+        let unitsCount = 0;
+        let lessonsCount = 0;
+        let challengesCount = 0;
+
+        console.log(`📊 Units response status: ${unitsResponse.status}`);
+        
+        if (unitsResponse.ok) {
+            const unitsData = await unitsResponse.json();
+            console.log(`📦 Found undefined units:`, unitsData);
+            const units = unitsData.results || unitsData || [];
+            unitsCount = units.length;
+            console.log(`📦 Found ${unitsCount} units:`, units);
+
+            // Para cada unidade, buscar lições
+            for (const unit of units) {
+                try {
+                    const lessonsResponse = await fetch(`${API_BASE_URL}/practice/lessons/?unit=${unit.id}`, {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json',
+                        },
+                    });
+
+                    if (lessonsResponse.ok) {
+                        const lessonsData = await lessonsResponse.json();
+                        const lessons = lessonsData.results || lessonsData || [];
+                        lessonsCount += lessons.length;
+
+                        // Para cada lição, buscar challenges
+                        for (const lesson of lessons) {
+                            try {
+                                const challengesResponse = await fetch(`${API_BASE_URL}/practice/challenges/?lesson=${lesson.id}`, {
+                                    method: 'GET',
+                                    headers: {
+                                        'Authorization': `Bearer ${token}`,
+                                        'Content-Type': 'application/json',
+                                    },
+                                });
+
+                                if (challengesResponse.ok) {
+                                    const challengesData = await challengesResponse.json();
+                                    const challenges = challengesData.results || challengesData || [];
+                                    challengesCount += challenges.length;
+                                }
+                            } catch (error) {
+                                console.warn(`Erro ao buscar challenges da lição ${lesson.id}:`, error);
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.warn(`Erro ao buscar lições da unidade ${unit.id}:`, error);
+                }
+            }
+        } else {
+            console.warn(`❌ Failed to fetch units for course ${courseId}. Status: ${unitsResponse.status}`);
+            const errorText = await unitsResponse.text();
+            console.warn(`❌ Error response:`, errorText);
+        }
+
+        const stats = {
+            units_count: unitsCount,
+            lessons_count: lessonsCount,
+            challenges_count: challengesCount,
+            total_progress: lessonsCount > 0 ? Math.round((challengesCount / lessonsCount) * 100) : 0
+        };
+
+        console.log(`📊 Statistics for course ${courseId}:`, stats);
+        return stats;
+
+    } catch (error) {
+        console.error(`Error fetching course statistics for ${courseId}:`, error);
+        return {
+            units_count: 0,
+            lessons_count: 0,
+            challenges_count: 0,
+            total_progress: 0
+        };
     }
 };
 
@@ -644,13 +803,47 @@ export const createPracticeUnit = async (unitData: {
     description: string;
     order: number;
 }) => {
+    // =============================================
+    // DEFENSIVE VALIDATION - Frontend
+    // =============================================
+    
+    // Validate required fields
+    if (!unitData.course || !unitData.title || !unitData.description) {
+        throw new Error('Campos obrigatórios ausentes: course, title, description são necessários');
+    }
+    
+    // Validate field types and formats
+    if (typeof unitData.course !== 'string' || unitData.course.trim() === '') {
+        throw new Error('ID do curso deve ser uma string não vazia');
+    }
+    
+    if (typeof unitData.title !== 'string' || unitData.title.trim().length < 3) {
+        throw new Error('Título deve ter pelo menos 3 caracteres');
+    }
+    
+    if (typeof unitData.description !== 'string' || unitData.description.trim().length < 10) {
+        throw new Error('Descrição deve ter pelo menos 10 caracteres');
+    }
+    
+    if (typeof unitData.order !== 'number' || unitData.order < 1) {
+        throw new Error('Ordem deve ser um número maior que 0');
+    }
+    
+    // Sanitize data
+    const sanitizedData = {
+        course: unitData.course.trim(),
+        title: unitData.title.trim(),
+        description: unitData.description.trim(),
+        order: Math.max(1, Math.floor(unitData.order))
+    };
+
     try {
         const token = getAuthToken();
         if (!token) {
             throw new Error("Authentication required");
         }
 
-        console.log('🔄 Creating unit with data:', unitData);
+        console.log('🔄 Creating unit with data:', sanitizedData);
         console.log('🌐 API URL:', `${API_BASE_URL}/practice/units/`);
 
         const response = await fetch(`${API_BASE_URL}/practice/units/`, {
@@ -659,7 +852,7 @@ export const createPracticeUnit = async (unitData: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(unitData),
+            body: JSON.stringify(sanitizedData),
         });
 
         console.log('📡 Unit creation response status:', response.status);
@@ -784,13 +977,42 @@ export const createPracticeLesson = async (lessonData: {
     title: string;
     order: number;
 }) => {
+    // =============================================
+    // DEFENSIVE VALIDATION - Frontend
+    // =============================================
+    
+    // Validate required fields
+    if (!lessonData.unit || !lessonData.title) {
+        throw new Error('Campos obrigatórios ausentes: unit, title são necessários');
+    }
+    
+    // Validate field types and formats
+    if (typeof lessonData.unit !== 'string' || lessonData.unit.trim() === '') {
+        throw new Error('ID da unidade deve ser uma string não vazia');
+    }
+    
+    if (typeof lessonData.title !== 'string' || lessonData.title.trim().length < 3) {
+        throw new Error('Título da lição deve ter pelo menos 3 caracteres');
+    }
+    
+    if (typeof lessonData.order !== 'number' || lessonData.order < 1) {
+        throw new Error('Ordem deve ser um número maior que 0');
+    }
+    
+    // Sanitize data
+    const sanitizedData = {
+        unit: lessonData.unit.trim(),
+        title: lessonData.title.trim(),
+        order: Math.max(1, Math.floor(lessonData.order))
+    };
+
     try {
         const token = getAuthToken();
         if (!token) {
             throw new Error("Authentication required");
         }
 
-        console.log('🔄 Creating lesson with data:', lessonData);
+        console.log('🔄 Creating lesson with data:', sanitizedData);
         console.log('🌐 API URL:', `${API_BASE_URL}/practice/lessons/`);
 
         const response = await fetch(`${API_BASE_URL}/practice/lessons/`, {
@@ -799,7 +1021,7 @@ export const createPracticeLesson = async (lessonData: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(lessonData),
+            body: JSON.stringify(sanitizedData),
         });
 
         console.log('📡 Lesson creation response status:', response.status);
@@ -876,11 +1098,60 @@ export const createPracticeChallenge = async (challengeData: {
 
         console.log('🔄 Creating challenge with data:', challengeData);
         
+        // Defensive validation before API call
+        if (!challengeData.lesson || typeof challengeData.lesson !== 'string') {
+            throw new Error('ID da lição é obrigatório e deve ser válido');
+        }
+        
+        if (!challengeData.type || typeof challengeData.type !== 'string') {
+            throw new Error('Tipo do desafio é obrigatório');
+        }
+        
+        if (!challengeData.question || typeof challengeData.question !== 'string' || challengeData.question.trim().length < 5) {
+            throw new Error('Pergunta deve ter pelo menos 5 caracteres');
+        }
+        
+        if (typeof challengeData.order !== 'number' || challengeData.order < 1) {
+            throw new Error('Ordem do desafio deve ser um número positivo');
+        }
+        
+        if (!Array.isArray(challengeData.options)) {
+            throw new Error('Opções devem ser fornecidas como array');
+        }
+        
+        // Validate options
+        challengeData.options.forEach((option, index) => {
+            if (!option.text || typeof option.text !== 'string' || option.text.trim().length === 0) {
+                throw new Error(`Opção ${index + 1}: Texto é obrigatório`);
+            }
+            if (typeof option.is_correct !== 'boolean') {
+                throw new Error(`Opção ${index + 1}: Campo 'is_correct' deve ser booleano`);
+            }
+            if (typeof option.order !== 'number') {
+                throw new Error(`Opção ${index + 1}: Ordem deve ser um número`);
+            }
+        });
+
+        // Sanitize data
+        const sanitizedData = {
+            lesson: challengeData.lesson.trim(),
+            type: challengeData.type.trim(),
+            question: challengeData.question.trim(),
+            order: Math.max(1, Math.floor(challengeData.order)),
+            options: challengeData.options.map((option) => ({
+                text: option.text.trim(),
+                is_correct: Boolean(option.is_correct),
+                order: Math.max(0, Math.floor(option.order)),
+                image_url: option.image_url?.trim() || undefined,
+                audio_url: option.audio_url?.trim() || undefined,
+            }))
+        };
+        
         const challengePayload = {
-            lesson: challengeData.lesson,
-            type: challengeData.type,
-            question: challengeData.question,
-            order: challengeData.order,
+            lesson: sanitizedData.lesson,
+            type: sanitizedData.type,
+            question: sanitizedData.question,
+            order: sanitizedData.order,
         };
         
         console.log('📝 Challenge payload:', challengePayload);
@@ -915,11 +1186,11 @@ export const createPracticeChallenge = async (challengeData: {
         const challenge = await challengeResponse.json();
         console.log('✅ Challenge created, now creating options...');
         console.log('🎯 Challenge ID:', challenge.id);
-        console.log('📋 Options to create:', challengeData.options);
+        console.log('📋 Options to create:', sanitizedData.options);
 
         // Then create the options and collect their IDs
         const createdOptions = [];
-        for (const [index, option] of challengeData.options.entries()) {
+        for (const [index, option] of sanitizedData.options.entries()) {
             const optionPayload = {
                 ...option,
                 challenge_id: challenge.id,  // Django expects challenge_id, not challenge

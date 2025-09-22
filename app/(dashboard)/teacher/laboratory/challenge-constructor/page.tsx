@@ -17,7 +17,7 @@ import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { motion } from 'framer-motion';
 import ChallengeConstructor from '@/components/laboratory/ChallengeConstructor';
-import { getPracticeCourses } from '@/actions/practice-management';
+import { getCoursesWithStatistics } from '@/actions/practice-management';
 
 interface Course {
   id: string;
@@ -26,6 +26,11 @@ interface Course {
   level: string;
   category: string;
   status: string;
+  // Estatísticas do curso
+  units_count?: number;
+  lessons_count?: number;
+  challenges_count?: number;
+  total_progress?: number;
 }
 
 export default function ChallengeConstructorPage() {
@@ -43,7 +48,7 @@ export default function ChallengeConstructorPage() {
   const loadCourses = async () => {
     try {
       setLoading(true);
-      const coursesData = await getPracticeCourses();
+      const coursesData = await getCoursesWithStatistics();
       setCourses(coursesData || []);
     } catch (error) {
       console.error('Error loading courses:', error);
@@ -474,9 +479,78 @@ export default function ChallengeConstructorPage() {
                       </motion.div>
                     </CardHeader>
                     <CardContent className="relative">
-                      <p className="text-gray-400 text-sm mb-6 line-clamp-2 leading-relaxed">
+                      <p className="text-gray-400 text-sm mb-4 line-clamp-2 leading-relaxed">
                         {course.description}
                       </p>
+                      
+                      {/* Course Statistics */}
+                      <div className="mb-4">
+                        <div className="grid grid-cols-3 gap-3 mb-3 p-3 bg-gradient-to-r from-orange-500/5 via-red-500/5 to-yellow-500/5 rounded-lg border border-orange-500/10">
+                          <motion.div 
+                            className="text-center"
+                            whileHover={{ scale: 1.05 }}
+                            transition={{ duration: 0.2 }}
+                          >
+                            <div className="text-orange-400 font-bold text-lg">
+                              {course.units_count || 0}
+                            </div>
+                            <div className="text-gray-400 text-xs">Unidades</div>
+                          </motion.div>
+                          
+                          <motion.div 
+                            className="text-center"
+                            whileHover={{ scale: 1.05 }}
+                            transition={{ duration: 0.2 }}
+                          >
+                            <div className="text-red-400 font-bold text-lg">
+                              {course.lessons_count || 0}
+                            </div>
+                            <div className="text-gray-400 text-xs">Lições</div>
+                          </motion.div>
+                          
+                          <motion.div 
+                            className="text-center"
+                            whileHover={{ scale: 1.05 }}
+                            transition={{ duration: 0.2 }}
+                          >
+                            <div className="text-yellow-400 font-bold text-lg">
+                              {course.challenges_count || 0}
+                            </div>
+                            <div className="text-gray-400 text-xs">Exercícios</div>
+                          </motion.div>
+                        </div>
+                        
+                        {/* Progress Indicator */}
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs text-gray-400">Progresso do Curso</span>
+                          <motion.div
+                            whileHover={{ scale: 1.1 }}
+                            className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              (course.lessons_count || 0) > 0 
+                                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' 
+                                : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                            }`}
+                          >
+                            {(course.lessons_count || 0) > 0 ? '✓ Pronto' : '⚠ Incompleto'}
+                          </motion.div>
+                        </div>
+                        
+                        {/* Progress Bar */}
+                        <div className="w-full bg-gray-700 rounded-full h-2 mb-3">
+                          <motion.div 
+                            className="bg-gradient-to-r from-orange-400 to-red-400 h-2 rounded-full"
+                            initial={{ width: 0 }}
+                            animate={{ 
+                              width: `${Math.min(
+                                ((course.units_count || 0) * 30 + (course.lessons_count || 0) * 40 + (course.challenges_count || 0) * 30) / 100 * 100, 
+                                100
+                              )}%` 
+                            }}
+                            transition={{ duration: 1, delay: index * 0.1 }}
+                          />
+                        </div>
+                      </div>
+                      
                       <div className="flex items-center justify-between">
                         <div className="flex gap-2">
                           <motion.div whileHover={{ scale: 1.05 }}>
@@ -495,7 +569,12 @@ export default function ChallengeConstructorPage() {
                           whileHover={{ x: 6 }}
                         >
                           <Zap className="w-4 h-4" />
-                          <span>Criar exercícios</span>
+                          <span>
+                            {(course.lessons_count || 0) > 0 
+                              ? `${(course.challenges_count || 0) > 0 ? 'Mais exercícios' : 'Criar exercícios'}`
+                              : 'Criar lições primeiro'
+                            }
+                          </span>
                           <motion.span
                             animate={{ 
                               x: [0, 6, 0],
@@ -506,9 +585,13 @@ export default function ChallengeConstructorPage() {
                               repeat: Infinity,
                               ease: "easeInOut"
                             }}
-                            className="text-orange-400"
+                            className={
+                              (course.lessons_count || 0) > 0 
+                                ? "text-orange-400" 
+                                : "text-amber-400"
+                            }
                           >
-                            🎯
+                            {(course.lessons_count || 0) > 0 ? '🎯' : '⚠️'}
                           </motion.span>
                         </motion.div>
                       </div>

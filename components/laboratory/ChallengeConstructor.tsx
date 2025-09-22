@@ -14,6 +14,9 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useChallengeValidation } from '@/hooks/useFormValidation';
+import { validateChallenge } from '@/lib/validations';
+import { laboratoryNotifications } from '@/lib/toast';
 import { 
   ArrowLeft, 
   ArrowRight, 
@@ -293,6 +296,15 @@ export default function ChallengeConstructor({ course, onBack }: ChallengeConstr
   });
   const [previewMode, setPreviewMode] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // Real-time validation
+  const challengeValidation = useChallengeValidation({
+    type: currentChallenge.type,
+    question: currentChallenge.question,
+    options: currentChallenge.options,
+    hints: currentChallenge.hints || [],
+    explanation: currentChallenge.explanation || '',
+  });
   
   // AI Translation states
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
@@ -624,16 +636,82 @@ export default function ChallengeConstructor({ course, onBack }: ChallengeConstr
   const saveChallenge = async () => {
     console.log('🔄 ChallengeConstructor: Save function called');
     
+    // Defensive validation - Pre-checks
     if (!selectedLesson) {
       console.error('❌ No lesson selected');
-      alert('Erro: Nenhuma lição selecionada');
+      laboratoryNotifications.creationError('exercício', 'Nenhuma lição selecionada');
       return;
     }
     
     if (!currentChallenge.question.trim()) {
       console.error('❌ No question provided');
-      alert('Erro: Por favor, digite uma pergunta');
+      laboratoryNotifications.challengeValidationError('Por favor, digite uma pergunta');
       return;
+    }
+
+    // Real-time validation check - filtrar campos que não são parte do schema
+    const challengeDataToValidate = {
+      type: currentChallenge.type,
+      question: currentChallenge.question,
+      options: currentChallenge.options.map(option => {
+        const cleanOption: any = {
+          text: option.text,
+          is_correct: option.is_correct,
+          order: option.order,
+        };
+        
+        // Só incluir URLs se tiverem valores válidos
+        if (option.image_url && option.image_url.trim() !== '') {
+          cleanOption.image_url = option.image_url;
+        }
+        if (option.audio_url && option.audio_url.trim() !== '') {
+          cleanOption.audio_url = option.audio_url;
+        }
+        
+        return cleanOption;
+      }),
+      order: currentChallenge.order,
+      hints: currentChallenge.hints || [],
+      explanation: currentChallenge.explanation || '',
+    };
+
+    // Dados preparados para validação e envio
+
+    // Validação essencial básica (substituindo Zod excessivamente rígido)
+    if (!challengeDataToValidate.question || challengeDataToValidate.question.trim().length < 3) {
+      laboratoryNotifications.challengeValidationError('Pergunta deve ter pelo menos 3 caracteres');
+      return;
+    }
+
+    if (!challengeDataToValidate.type) {
+      laboratoryNotifications.challengeValidationError('Tipo de exercício é obrigatório');
+      return;
+    }
+
+    console.log('✅ Basic validation passed');
+
+    // Validações específicas simples baseadas no tipo
+    switch (currentChallenge.type) {
+      case 'speaking':
+        // Speaking não precisa de opções
+        break;
+      
+      case 'multiple-choice':
+      case 'listening':
+      case 'true-false':
+        // Estes tipos precisam de pelo menos uma resposta correta
+        if (currentChallenge.options.length > 0) {
+          const hasCorrectAnswer = currentChallenge.options.some(opt => opt.is_correct);
+          if (!hasCorrectAnswer) {
+            laboratoryNotifications.challengeValidationError('Pelo menos uma resposta deve estar marcada como correta');
+            return;
+          }
+        }
+        break;
+      
+      default:
+        // Outros tipos são flexíveis
+        break;
     }
     
     try {
@@ -672,8 +750,12 @@ export default function ChallengeConstructor({ course, onBack }: ChallengeConstr
       
       console.log('📤 Challenge data to send:', challengeData);
       
-      // Create the challenge first
-      const createdChallenge = await createPracticeChallenge(challengeData);
+      // Create the challenge first with toast notification
+      const createdChallenge = await laboratoryNotifications.asyncOperation(
+        createPracticeChallenge(challengeData),
+        'Criando exercício',
+        selectedTemplate?.name || 'Exercício'
+      );
       console.log('✅ Challenge created successfully!');
 
 
@@ -743,6 +825,9 @@ export default function ChallengeConstructor({ course, onBack }: ChallengeConstr
       const savedChallenge = { ...currentChallenge, order: nextOrder };
       setChallenges([...challenges, savedChallenge]);
       
+      // Show success notification for specific challenge type
+      laboratoryNotifications.challengeCreated(currentChallenge.type);
+      
       // Reset for next challenge
       if (!selectedTemplate) {
         console.error('❌ selectedTemplate is null during reset');
@@ -769,8 +854,9 @@ export default function ChallengeConstructor({ course, onBack }: ChallengeConstr
       
     } catch (error) {
       console.error('❌ Error saving challenge:', error);
-      // Show user-friendly error message
-      alert(`Erro ao salvar desafio: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+      // Show user-friendly error message with toast
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      laboratoryNotifications.creationError('exercício', errorMessage);
     } finally {
       setLoading(false);
     }
@@ -1105,10 +1191,48 @@ export default function ChallengeConstructor({ course, onBack }: ChallengeConstr
                   <Textarea
                     placeholder="Digite a pergunta ou instrução do desafio..."
                     value={currentChallenge.question}
-                    onChange={(e) => setCurrentChallenge(prev => ({ ...prev, question: e.target.value }))}
-                    className="bg-customgreys-primarybg border-customgreys-darkerGrey text-white"
+                    onChange={(e) => {
+                      const newValue = e.target.value;
+                      setCurrentChallenge(prev => ({ ...prev, question: newValue }));
+                      challengeValidation.validateField('question', newValue);
+                    }}
+                    onBlur={() => {
+                      challengeValidation.setFieldTouched('question');
+                      challengeValidation.validateField('question', currentChallenge.question);
+                    }}
+                    className={`bg-customgreys-primarybg border-2 text-white transition-colors ${
+                      challengeValidation.isFieldValid('question')
+                        ? 'border-customgreys-darkerGrey focus:border-violet-500'
+                        : 'border-red-500 focus:border-red-400'
+                    }`}
                     rows={3}
                   />
+                  {/* Validation Feedback */}
+                  {challengeValidation.getFieldError('question') && (
+                    <div className="text-red-400 text-sm mt-1 flex items-center gap-1">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                      {challengeValidation.getFieldError('question')}
+                    </div>
+                  )}
+                  {challengeValidation.fields.question?.isValidating && (
+                    <div className="text-gray-400 text-sm mt-1 flex items-center gap-1">
+                      <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Validando pergunta...
+                    </div>
+                  )}
+                  {currentChallenge.question && challengeValidation.isFieldValid('question') && (
+                    <div className="text-green-400 text-sm mt-1 flex items-center gap-1">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                      Pergunta válida
+                    </div>
+                  )}
                 </div>
 
                 {/* Listening Comprehension - Explanation */}
@@ -1230,9 +1354,36 @@ export default function ChallengeConstructor({ course, onBack }: ChallengeConstr
                             <Input
                               placeholder={`Digite o texto da opção ${index + 1}`}
                               value={option.text}
-                              onChange={(e) => updateOption(index, 'text', e.target.value)}
-                              className="bg-customgreys-primarybg border-customgreys-darkerGrey text-white"
+                              onChange={(e) => {
+                                const newValue = e.target.value;
+                                updateOption(index, 'text', newValue);
+                                // Validate the current challenge with updated options
+                                const updatedOptions = [...currentChallenge.options];
+                                updatedOptions[index] = { ...option, text: newValue };
+                                challengeValidation.validateField('options', updatedOptions);
+                              }}
+                              onBlur={() => {
+                                challengeValidation.setFieldTouched('options');
+                              }}
+                              className={`bg-customgreys-primarybg border-2 text-white transition-colors ${
+                                option.text && option.text.length >= 1
+                                  ? 'border-customgreys-darkerGrey focus:border-violet-500'
+                                  : option.text !== '' 
+                                    ? 'border-red-500 focus:border-red-400'
+                                    : 'border-customgreys-darkerGrey focus:border-violet-500'
+                              }`}
                             />
+                            {/* Option validation feedback */}
+                            {option.text === '' && challengeValidation.fields.options?.hasBeenTouched && (
+                              <div className="text-red-400 text-xs mt-1">
+                                Texto da opção é obrigatório
+                              </div>
+                            )}
+                            {option.text && option.text.length >= 1 && (
+                              <div className="text-green-400 text-xs mt-1">
+                                ✓ Opção válida
+                              </div>
+                            )}
                           </div>
 
                           {/* Media uploads for listening challenges */}

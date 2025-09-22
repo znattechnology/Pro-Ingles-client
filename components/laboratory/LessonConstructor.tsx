@@ -33,6 +33,15 @@ import {
   Zap
 } from 'lucide-react';
 import { getCourseUnits, createPracticeUnit, createPracticeLesson } from '@/actions/practice-management';
+import { 
+  unitCreationSchema, 
+  lessonCreationSchema, 
+  validateSafely, 
+  validateField,
+  type UnitCreationData,
+  type LessonCreationData 
+} from '@/lib/validations';
+import { laboratoryNotifications } from '@/lib/toast';
 
 interface Course {
   id: string;
@@ -159,6 +168,12 @@ export default function LessonConstructor({ course, onBack }: LessonConstructorP
     objectives: ['']
   });
 
+  // Validation state
+  const [unitValidationErrors, setUnitValidationErrors] = useState<Record<string, string>>({});
+  const [lessonValidationErrors, setLessonValidationErrors] = useState<Record<string, string>>({});
+  const [unitFieldTouched, setUnitFieldTouched] = useState<Record<string, boolean>>({});
+  const [lessonFieldTouched, setLessonFieldTouched] = useState<Record<string, boolean>>({});
+
   // Load course units
   useEffect(() => {
     loadCourseUnits();
@@ -177,19 +192,131 @@ export default function LessonConstructor({ course, onBack }: LessonConstructorP
       setUnits(unitsData || []);
     } catch (error) {
       console.error('❌ Error loading units:', error);
+      laboratoryNotifications.creationError('unidades', error instanceof Error ? error.message : undefined);
     } finally {
       setLoading(false);
     }
   };
 
+  // =============================================
+  // VALIDATION FUNCTIONS
+  // =============================================
+
+  const validateUnitField = (fieldName: string, value: any) => {
+    try {
+      let schema;
+      switch (fieldName) {
+        case 'title':
+          schema = unitCreationSchema.shape.title;
+          break;
+        case 'description':
+          schema = unitCreationSchema.shape.description;
+          break;
+        default:
+          return;
+      }
+      
+      const result = schema.safeParse(value);
+      if (result.success) {
+        setUnitValidationErrors(prev => {
+          const newErrors = { ...prev };
+          delete newErrors[fieldName];
+          return newErrors;
+        });
+      } else {
+        setUnitValidationErrors(prev => ({ 
+          ...prev, 
+          [fieldName]: result.error.errors[0]?.message || 'Campo inválido' 
+        }));
+      }
+    } catch (error) {
+      console.warn(`Validation error for unit.${fieldName}:`, error);
+    }
+  };
+
+  const validateLessonField = (fieldName: string, value: any) => {
+    try {
+      let schema;
+      switch (fieldName) {
+        case 'title':
+          schema = lessonCreationSchema.shape.title;
+          break;
+        case 'objectives':
+          schema = lessonCreationSchema.shape.objectives;
+          break;
+        case 'estimatedDuration':
+          schema = lessonCreationSchema.shape.estimatedDuration;
+          break;
+        default:
+          return;
+      }
+      
+      const result = schema.safeParse(value);
+      if (result.success) {
+        setLessonValidationErrors(prev => {
+          const newErrors = { ...prev };
+          delete newErrors[fieldName];
+          return newErrors;
+        });
+      } else {
+        setLessonValidationErrors(prev => ({ 
+          ...prev, 
+          [fieldName]: result.error.errors[0]?.message || 'Campo inválido' 
+        }));
+      }
+    } catch (error) {
+      console.warn(`Validation error for lesson.${fieldName}:`, error);
+    }
+  };
+
+  const validateFullUnit = (): boolean => {
+    const result = validateSafely(unitCreationSchema, {
+      title: newUnitData.title,
+      description: newUnitData.description,
+      order: newUnitData.order,
+      course: course.id
+    });
+
+    if (!result.success) {
+      setUnitValidationErrors(result.errors);
+      return false;
+    }
+    
+    setUnitValidationErrors({});
+    return true;
+  };
+
+  const validateFullLesson = (): boolean => {
+    const validObjectives = newLessonData.objectives.filter(obj => obj.trim() !== '');
+    
+    const result = validateSafely(lessonCreationSchema, {
+      title: newLessonData.title,
+      objectives: validObjectives,
+      estimatedDuration: newLessonData.estimatedDuration,
+      selectedTemplate: newLessonData.selectedTemplate,
+      unit: selectedUnit?.id,
+      order: (selectedUnit?.lessons?.length || 0) + 1
+    });
+
+    if (!result.success) {
+      setLessonValidationErrors(result.errors);
+      return false;
+    }
+    
+    setLessonValidationErrors({});
+    return true;
+  };
+
   // Create new unit
   const handleCreateUnit = async () => {
-    if (!newUnitData.title.trim()) return;
-    
-    try {
-      setLoading(true);
-      console.log('🔄 Creating new unit...');
-      
+    // Validate before creating
+    if (!validateFullUnit()) {
+      laboratoryNotifications.validationError('Preencha todos os campos obrigatórios da unidade');
+      return;
+    }
+
+    // Use toast.promise for better UX
+    const unitCreationPromise = (async () => {
       const unitData = {
         course: course.id,
         title: newUnitData.title,
@@ -202,24 +329,45 @@ export default function LessonConstructor({ course, onBack }: LessonConstructorP
       const newUnit = await createPracticeUnit(unitData);
       console.log('✅ Unit created successfully:', newUnit);
       
+      // Verify unit creation
+      if (!newUnit || !newUnit.id) {
+        throw new Error('Resposta inválida da API - unidade não foi criada corretamente');
+      }
+      
       setUnits([...units, newUnit]);
       setNewUnitData({ title: '', description: '', order: 1 });
+      setUnitValidationErrors({});
+      setUnitFieldTouched({});
       setCurrentStep(2);
-    } catch (error) {
-      console.error('❌ Error creating unit:', error);
-    } finally {
-      setLoading(false);
-    }
+      
+      return newUnit;
+    })();
+
+    await laboratoryNotifications.asyncOperation(
+      unitCreationPromise,
+      'Criando unidade',
+      newUnitData.title
+    );
   };
 
   // Create new lesson
   const handleCreateLesson = async () => {
-    if (!selectedUnit || !newLessonData.title.trim()) return;
-    
-    try {
-      setLoading(true);
+    if (!selectedUnit) {
+      laboratoryNotifications.validationError('Selecione uma unidade primeiro');
+      return;
+    }
+
+    // Validate before creating
+    if (!validateFullLesson()) {
+      laboratoryNotifications.validationError('Preencha todos os campos obrigatórios da lição');
+      return;
+    }
+
+    // Use toast.promise for better UX
+    const lessonCreationPromise = (async () => {
       console.log('🔄 Creating new lesson...');
       console.log('📝 Selected unit:', selectedUnit);
+      console.log('📋 Current lessons in unit:', selectedUnit.lessons?.length || 0);
       
       const lessonData = {
         unit: selectedUnit.id,
@@ -232,6 +380,11 @@ export default function LessonConstructor({ course, onBack }: LessonConstructorP
       const newLesson = await createPracticeLesson(lessonData);
       console.log('✅ Lesson created successfully:', newLesson);
       
+      // Verify the lesson has required properties
+      if (!newLesson || !newLesson.id) {
+        throw new Error('Resposta inválida da API - lição não foi criada corretamente');
+      }
+      
       // Update local state
       const updatedUnits = units.map(unit =>
         unit.id === selectedUnit.id
@@ -239,13 +392,35 @@ export default function LessonConstructor({ course, onBack }: LessonConstructorP
           : unit
       );
       setUnits(updatedUnits);
+      
+      // CRITICAL: Update selectedUnit with the new lesson
+      const updatedSelectedUnit = {
+        ...selectedUnit,
+        lessons: [...(selectedUnit.lessons || []), newLesson]
+      };
+      setSelectedUnit(updatedSelectedUnit);
+      
+      // Reset lesson form for next creation
+      setNewLessonData({
+        title: '',
+        selectedTemplate: '',
+        estimatedDuration: 15,
+        objectives: ['']
+      });
+      setLessonValidationErrors({});
+      setLessonFieldTouched({});
+      
       setCurrentStep(4); // Move to preview step
-      console.log('✅ Local state updated, moved to step 4');
-    } catch (error) {
-      console.error('❌ Error creating lesson:', error);
-    } finally {
-      setLoading(false);
-    }
+      console.log('✅ Local state updated, selectedUnit updated, moved to step 4');
+      
+      return newLesson;
+    })();
+
+    await laboratoryNotifications.asyncOperation(
+      lessonCreationPromise,
+      'Criando lição',
+      newLessonData.title
+    );
   };
 
   const addObjective = () => {
@@ -378,15 +553,49 @@ export default function LessonConstructor({ course, onBack }: LessonConstructorP
                     <Input
                       placeholder="Título da unidade (ex: Gramática Básica)"
                       value={newUnitData.title}
-                      onChange={(e) => setNewUnitData(prev => ({ ...prev, title: e.target.value }))}
-                      className="bg-customgreys-primarybg border-customgreys-darkerGrey text-white"
+                      onChange={(e) => {
+                        const newValue = e.target.value;
+                        setNewUnitData(prev => ({ ...prev, title: newValue }));
+                        validateUnitField('title', newValue);
+                      }}
+                      onBlur={() => setUnitFieldTouched(prev => ({ ...prev, title: true }))}
+                      className={`bg-customgreys-primarybg border-customgreys-darkerGrey text-white ${
+                        unitValidationErrors.title && unitFieldTouched.title 
+                          ? 'border-red-500 focus:border-red-500' 
+                          : ''
+                      }`}
                     />
+                    {unitValidationErrors.title && unitFieldTouched.title && (
+                      <div className="text-sm text-red-500 mt-1 flex items-center">
+                        <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                        {unitValidationErrors.title}
+                      </div>
+                    )}
                     <Textarea
                       placeholder="Descrição da unidade (ex: Aprenda os fundamentos da gramática inglesa)"
                       value={newUnitData.description}
-                      onChange={(e) => setNewUnitData(prev => ({ ...prev, description: e.target.value }))}
-                      className="bg-customgreys-primarybg border-customgreys-darkerGrey text-white"
+                      onChange={(e) => {
+                        const newValue = e.target.value;
+                        setNewUnitData(prev => ({ ...prev, description: newValue }));
+                        validateUnitField('description', newValue);
+                      }}
+                      onBlur={() => setUnitFieldTouched(prev => ({ ...prev, description: true }))}
+                      className={`bg-customgreys-primarybg border-customgreys-darkerGrey text-white ${
+                        unitValidationErrors.description && unitFieldTouched.description 
+                          ? 'border-red-500 focus:border-red-500' 
+                          : ''
+                      }`}
                     />
+                    {unitValidationErrors.description && unitFieldTouched.description && (
+                      <div className="text-sm text-red-500 mt-1 flex items-center">
+                        <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                        {unitValidationErrors.description}
+                      </div>
+                    )}
                     <Button
                       onClick={handleCreateUnit}
                       disabled={!newUnitData.title.trim() || loading}
@@ -422,9 +631,26 @@ export default function LessonConstructor({ course, onBack }: LessonConstructorP
                   <Input
                     placeholder="ex: Presente Simples - Verbos Regulares"
                     value={newLessonData.title}
-                    onChange={(e) => setNewLessonData(prev => ({ ...prev, title: e.target.value }))}
-                    className="bg-customgreys-primarybg border-customgreys-darkerGrey text-white"
+                    onChange={(e) => {
+                      const newValue = e.target.value;
+                      setNewLessonData(prev => ({ ...prev, title: newValue }));
+                      validateLessonField('title', newValue);
+                    }}
+                    onBlur={() => setLessonFieldTouched(prev => ({ ...prev, title: true }))}
+                    className={`bg-customgreys-primarybg border-customgreys-darkerGrey text-white ${
+                      lessonValidationErrors.title && lessonFieldTouched.title 
+                        ? 'border-red-500 focus:border-red-500' 
+                        : ''
+                    }`}
                   />
+                  {lessonValidationErrors.title && lessonFieldTouched.title && (
+                    <div className="text-sm text-red-500 mt-1 flex items-center">
+                      <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                      {lessonValidationErrors.title}
+                    </div>
+                  )}
                 </div>
 
                 {/* Learning Objectives */}
@@ -449,8 +675,20 @@ export default function LessonConstructor({ course, onBack }: LessonConstructorP
                         <Input
                           placeholder={`Objetivo ${index + 1} (ex: Formar frases no presente simples)`}
                           value={objective}
-                          onChange={(e) => updateObjective(index, e.target.value)}
-                          className="bg-customgreys-primarybg border-customgreys-darkerGrey text-white"
+                          onChange={(e) => {
+                            const newValue = e.target.value;
+                            updateObjective(index, newValue);
+                            // Validate the entire objectives array
+                            const updatedObjectives = [...newLessonData.objectives];
+                            updatedObjectives[index] = newValue;
+                            validateLessonField('objectives', updatedObjectives);
+                          }}
+                          onBlur={() => setLessonFieldTouched(prev => ({ ...prev, objectives: true }))}
+                          className={`bg-customgreys-primarybg border-customgreys-darkerGrey text-white ${
+                            lessonValidationErrors.objectives && lessonFieldTouched.objectives 
+                              ? 'border-red-500 focus:border-red-500' 
+                              : ''
+                          }`}
                         />
                         {newLessonData.objectives.length > 1 && (
                           <Button
@@ -465,6 +703,14 @@ export default function LessonConstructor({ course, onBack }: LessonConstructorP
                       </div>
                     ))}
                   </div>
+                  {lessonValidationErrors.objectives && lessonFieldTouched.objectives && (
+                    <div className="text-sm text-red-500 mt-1 flex items-center">
+                      <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                      {lessonValidationErrors.objectives}
+                    </div>
+                  )}
                 </div>
 
                 {/* Estimated Duration */}
@@ -477,9 +723,26 @@ export default function LessonConstructor({ course, onBack }: LessonConstructorP
                     min="5"
                     max="60"
                     value={newLessonData.estimatedDuration}
-                    onChange={(e) => setNewLessonData(prev => ({ ...prev, estimatedDuration: parseInt(e.target.value) || 15 }))}
-                    className="bg-customgreys-primarybg border-customgreys-darkerGrey text-white"
+                    onChange={(e) => {
+                      const newValue = parseInt(e.target.value) || 15;
+                      setNewLessonData(prev => ({ ...prev, estimatedDuration: newValue }));
+                      validateLessonField('estimatedDuration', newValue);
+                    }}
+                    onBlur={() => setLessonFieldTouched(prev => ({ ...prev, estimatedDuration: true }))}
+                    className={`bg-customgreys-primarybg border-customgreys-darkerGrey text-white ${
+                      lessonValidationErrors.estimatedDuration && lessonFieldTouched.estimatedDuration 
+                        ? 'border-red-500 focus:border-red-500' 
+                        : ''
+                    }`}
                   />
+                  {lessonValidationErrors.estimatedDuration && lessonFieldTouched.estimatedDuration && (
+                    <div className="text-sm text-red-500 mt-1 flex items-center">
+                      <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                      {lessonValidationErrors.estimatedDuration}
+                    </div>
+                  )}
                 </div>
 
                 <Button
@@ -539,8 +802,17 @@ export default function LessonConstructor({ course, onBack }: LessonConstructorP
                   disabled={!newLessonData.selectedTemplate || loading}
                   className="w-full bg-violet-600 hover:bg-violet-700"
                 >
-                  Criar Lição e Ver Preview
-                  <Eye className="w-4 h-4 ml-2" />
+                  {loading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Criando Lição...
+                    </>
+                  ) : (
+                    <>
+                      Criar Lição e Ver Preview
+                      <Eye className="w-4 h-4 ml-2" />
+                    </>
+                  )}
                 </Button>
               </CardContent>
             </Card>

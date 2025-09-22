@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { motion } from 'framer-motion';
 import LessonConstructor from '@/components/laboratory/LessonConstructor';
-import { getPracticeCourses } from '@/actions/practice-management';
+import { getCoursesWithStatistics } from '@/actions/practice-management';
 
 interface Course {
   id: string;
@@ -18,6 +18,9 @@ interface Course {
   level: string;
   category: string;
   status: string;
+  // Estatísticas do curso (sem challenges para lesson-constructor)
+  units_count?: number;
+  lessons_count?: number;
 }
 
 export default function LessonConstructorPage() {
@@ -35,7 +38,7 @@ export default function LessonConstructorPage() {
   const loadCourses = async () => {
     try {
       setLoading(true);
-      const coursesData = await getPracticeCourses();
+      const coursesData = await getCoursesWithStatistics();
       setCourses(coursesData || []);
     } catch (error) {
       console.error('Error loading courses:', error);
@@ -457,11 +460,41 @@ export default function LessonConstructorPage() {
                         </CardTitle>
                       </motion.div>
                     </CardHeader>
-                    <CardContent className="relative">
-                      <p className="text-gray-400 text-sm mb-6 line-clamp-2 leading-relaxed">
+                    <CardContent className="relative space-y-4">
+                      <p className="text-gray-400 text-sm line-clamp-2 leading-relaxed">
                         {course.description}
                       </p>
-                      <div className="flex items-center justify-between">
+                      
+                      {/* Course Statistics Grid */}
+                      <div className="grid grid-cols-2 gap-3 py-3 px-2 bg-gradient-to-r from-violet-500/5 to-purple-500/5 rounded-lg border border-violet-500/10">
+                        <motion.div 
+                          whileHover={{ scale: 1.05 }}
+                          className="flex items-center gap-2"
+                        >
+                          <div className="p-1.5 bg-gradient-to-br from-violet-500/20 to-violet-600/20 rounded-lg">
+                            <Layers className="w-3 h-3 text-violet-400" />
+                          </div>
+                          <div>
+                            <p className="text-xs text-gray-400">Unidades</p>
+                            <p className="text-sm font-semibold text-white">{course.units_count || 0}</p>
+                          </div>
+                        </motion.div>
+                        
+                        <motion.div 
+                          whileHover={{ scale: 1.05 }}
+                          className="flex items-center gap-2"
+                        >
+                          <div className="p-1.5 bg-gradient-to-br from-purple-500/20 to-purple-600/20 rounded-lg">
+                            <BookOpen className="w-3 h-3 text-purple-400" />
+                          </div>
+                          <div>
+                            <p className="text-xs text-gray-400">Lições</p>
+                            <p className="text-sm font-semibold text-white">{course.lessons_count || 0}</p>
+                          </div>
+                        </motion.div>
+                      </div>
+                      
+                      <div className="flex items-center justify-between pt-2">
                         <div className="flex gap-2">
                           <motion.div whileHover={{ scale: 1.05 }}>
                             <Badge variant="secondary" className="text-xs bg-gradient-to-r from-violet-500/10 to-violet-500/20 text-violet-300 border-violet-500/30 shadow-sm">
@@ -474,12 +507,34 @@ export default function LessonConstructorPage() {
                             </Badge>
                           </motion.div>
                         </div>
+                        
+                        {/* Contextual Action Button */}
                         <motion.div 
-                          className="text-sm text-gray-400 group-hover:text-violet-400 transition-colors flex items-center gap-2 font-medium"
+                          className="text-sm transition-colors flex items-center gap-2 font-medium"
                           whileHover={{ x: 6 }}
                         >
-                          <Wand2 className="w-4 h-4" />
-                          <span>Criar lições</span>
+                          {course.units_count === 0 ? (
+                            <>
+                              <div className="text-amber-400 group-hover:text-amber-300">
+                                <Plus className="w-4 h-4" />
+                              </div>
+                              <span className="text-amber-400 group-hover:text-amber-300">Primeira unidade</span>
+                            </>
+                          ) : course.lessons_count === 0 ? (
+                            <>
+                              <div className="text-blue-400 group-hover:text-blue-300">
+                                <Wand2 className="w-4 h-4" />
+                              </div>
+                              <span className="text-blue-400 group-hover:text-blue-300">Primeira lição</span>
+                            </>
+                          ) : (
+                            <>
+                              <div className="text-violet-400 group-hover:text-violet-300">
+                                <Brain className="w-4 h-4" />
+                              </div>
+                              <span className="text-violet-400 group-hover:text-violet-300">Criar lições</span>
+                            </>
+                          )}
                           <motion.span
                             animate={{ 
                               x: [0, 6, 0],
@@ -490,7 +545,7 @@ export default function LessonConstructorPage() {
                               repeat: Infinity,
                               ease: "easeInOut"
                             }}
-                            className="text-violet-400"
+                            className={course.units_count === 0 ? "text-amber-400" : course.lessons_count === 0 ? "text-blue-400" : "text-violet-400"}
                           >
                             ✨
                           </motion.span>
