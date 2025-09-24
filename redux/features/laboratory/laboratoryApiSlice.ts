@@ -123,15 +123,17 @@ export const laboratoryApiSlice = apiSlice.injectEndpoints({
       query: () => ({
         url: '/practice/courses/',
         method: 'GET',
+        params: {
+          include_stats: 'true' // Include statistics for student cards
+        }
       }),
       transformResponse: (response: any[]) => {
-        console.log('📚 Laboratory courses received:', response);
         return response.map(course => ({
           ...course,
-          // Ensure consistent property naming
-          totalUnits: course.practice_units?.length || 0,
-          totalLessons: course.total_lessons || 0,
-          totalChallenges: course.total_challenges || 0,
+          // Ensure consistent property naming for statistics
+          totalUnits: course.units_count || course.practice_units?.length || 0,
+          total_lessons: course.lessons_count || course.total_lessons || 0,
+          total_challenges: course.challenges_count || course.total_challenges || 0,
         }));
       },
       providesTags: ['LaboratoryCourses'],
@@ -347,11 +349,20 @@ export const laboratoryApiSlice = apiSlice.injectEndpoints({
       query: ({ includeDrafts = true } = {}) => ({
         url: '/practice/courses/',
         method: 'GET',
-        params: includeDrafts ? { include_drafts: 'true' } : {},
+        params: { 
+          ...(includeDrafts ? { include_drafts: 'true' } : {}),
+          include_stats: 'true' // Always include statistics for teacher management
+        },
       }),
       transformResponse: (response: any[]) => {
-        console.log('🎓 Practice courses for teacher:', response);
-        return response;
+        console.log('🎓 Practice courses for teacher with statistics:', response);
+        // Ensure consistency with expected fields
+        return response.map(course => ({
+          ...course,
+          totalUnits: course.units_count || course.totalUnits || 0,
+          total_lessons: course.lessons_count || course.total_lessons || 0,
+          total_challenges: course.challenges_count || course.total_challenges || 0,
+        }));
       },
       providesTags: ['PracticeCourses'],
     }),
@@ -574,6 +585,121 @@ export const laboratoryApiSlice = apiSlice.injectEndpoints({
     }),
     
     // =============================================
+    // INTEGRATION ENDPOINTS - Course ↔ Laboratory
+    // =============================================
+    
+    /**
+     * Get available exercises for course integration
+     * Returns hierarchical structure: Course → Unit → Lesson → Challenge
+     */
+    getAvailableExercises: builder.query<any, void>({
+      query: () => ({
+        url: '/practice/available-exercises/',
+        method: 'GET',
+      }),
+      transformResponse: (response: any) => {
+        console.log('🎯 Available exercises for integration:', response);
+        return response;
+      },
+      providesTags: ['AvailableExercises'],
+    }),
+    
+    /**
+     * Get specific exercise details by ID
+     */
+    getExerciseById: builder.query<any, string>({
+      query: (exerciseId) => ({
+        url: `/practice/exercises/${exerciseId}/`,
+        method: 'GET',
+      }),
+      providesTags: (result, error, exerciseId) => [
+        { type: 'ExerciseDetail', id: exerciseId },
+      ],
+    }),
+    
+    /**
+     * Submit exercise progress (from course integration)
+     */
+    submitExerciseProgress: builder.mutation<any, { exerciseId: string; challengeId: string; selectedOptionId: string; courseId?: string; chapterId?: string }>(
+      {
+        query: ({ exerciseId, challengeId, selectedOptionId, courseId, chapterId }) => ({
+          url: '/practice/exercise-progress/',
+          method: 'POST',
+          body: {
+            exercise_id: exerciseId,
+            challenge_id: challengeId,
+            selected_option: selectedOptionId,
+            source: 'course_integration',
+            course_id: courseId, // Track which course the exercise came from
+            chapter_id: chapterId, // Track which chapter the exercise came from
+          },
+        }),
+        transformResponse: (response: any) => {
+          console.log('✅ Exercise progress submitted from course:', response);
+          return {
+            ...response,
+            success: response.success || response.correct,
+            pointsEarned: response.points_earned || response.pointsEarned || 15,
+            heartsUsed: response.hearts_used || response.heartsUsed || (response.correct ? 0 : 1),
+            explanation: response.explanation,
+          };
+        },
+        // Optimistically update both lab and course progress
+        async onQueryStarted({ courseId, chapterId }, { dispatch, queryFulfilled }) {
+          try {
+            const { data } = await queryFulfilled;
+            
+            // Update lab progress
+            dispatch(
+              laboratoryApiSlice.util.updateQueryData('getUserProgress', undefined, (draft) => {
+                if (draft) {
+                  draft.points += data.pointsEarned;
+                  draft.hearts = Math.max(0, draft.hearts - data.heartsUsed);
+                }
+              })
+            );
+            
+            // If exercise completed successfully and we have course context, 
+            // we'll let the course component handle chapter completion
+            console.log('🎆 Exercise completed from course integration:', {
+              success: data.success,
+              courseId,
+              chapterId,
+              points: data.pointsEarned
+            });
+            
+          } catch (error) {
+            console.error('❌ Failed to sync exercise progress:', error);
+          }
+        },
+        invalidatesTags: ['UserProgress', 'ExerciseDetail'],
+      }
+    ),
+    
+    /**
+     * Sync course chapter completion with lab progress
+     */
+    syncChapterProgress: builder.mutation<any, { chapterId: string; exerciseId: string; completed: boolean }>(
+      {
+        query: ({ chapterId, exerciseId, completed }) => ({
+          url: '/practice/sync-chapter-progress/',
+          method: 'POST',
+          body: {
+            chapter_id: chapterId,
+            exercise_id: exerciseId,
+            completed,
+            source: 'course_completion',
+          },
+        }),
+        transformResponse: (response: any) => {
+          console.log('🔄 Chapter progress synced with lab:', response);
+          return response;
+        },
+        invalidatesTags: ['UserProgress'],
+      }
+    ),
+    
+    // =============================================
     // SHARED ENDPOINTS - Analytics & Reports
     // =============================================
     
@@ -625,6 +751,12 @@ export const {
   useUpdatePracticeUnitMutation,
   useCreatePracticeLessonMutation,
   useCreatePracticeChallengeMutation,
+  
+  // Integration hooks
+  useGetAvailableExercisesQuery,
+  useGetExerciseByIdQuery,
+  useSubmitExerciseProgressMutation,
+  useSyncChapterProgressMutation,
   
   // Analytics hooks
   useGetPracticeAnalyticsQuery,

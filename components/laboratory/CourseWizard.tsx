@@ -27,7 +27,13 @@ import {
   Zap,
   Building2,
   Cpu,
-  Crown
+  Crown,
+  Briefcase,
+  Code,
+  Stethoscope,
+  Scale,
+  Fuel,
+  Brain
 } from "lucide-react";
 
 interface WizardStep {
@@ -54,9 +60,14 @@ const CourseWizard = ({ onComplete }: { onComplete: (courseData: any) => void })
   const [courseData, setCourseData] = useState({
     title: '',
     description: '',
-    category: '' as 'General' | 'Oil & Gas' | 'Banking' | 'Technology' | 'Executive' | 'AI Enhanced' | '',
+    category: '' as 'General' | 'Business' | 'Technology' | 'Medicine' | 'Legal' | 'Oil & Gas' | 'Banking' | 'Executive' | 'AI Enhanced' | '',
     level: 'Beginner' as 'Beginner' | 'Intermediate' | 'Advanced',
     template: null as CourseTemplate | null,
+    customColors: {
+      primary: '',
+      secondary: '',
+      accent: ''
+    },
     estimatedDuration: '',
     targetAudience: '',
     learningObjectives: [''],
@@ -136,6 +147,12 @@ const CourseWizard = ({ onComplete }: { onComplete: (courseData: any) => void })
       completed: !!courseData.template
     },
     {
+      id: 'colors',
+      title: 'Personalizar Cores',
+      description: 'Customize as cores do template (opcional)',
+      completed: true // Sempre válido pois é opcional
+    },
+    {
       id: 'basic-info',
       title: 'Informações Básicas',
       description: 'Defina título, descrição e configurações gerais',
@@ -168,15 +185,59 @@ const CourseWizard = ({ onComplete }: { onComplete: (courseData: any) => void })
       color: 'bg-blue-500'
     },
     {
+      id: 'business',
+      name: 'Inglês de Negócios',
+      description: 'Focado em comunicação empresarial e corporativa',
+      category: 'Business',
+      icon: Briefcase,
+      estimatedLessons: 28,
+      estimatedTime: '2-4 meses',
+      features: ['Apresentações corporativas', 'Reuniões de negócios', 'Networking profissional'],
+      color: 'bg-green-500'
+    },
+    {
+      id: 'technology',
+      name: 'Inglês para TI & Telecomunicações',
+      description: 'Criado para Unitel, MS Telecom e startups tech',
+      category: 'Technology',
+      icon: Code,
+      estimatedLessons: 25,
+      estimatedTime: '2-5 meses',
+      features: ['Vocabulário de programação', 'Metodologias ágeis', 'Cloud computing'],
+      color: 'bg-purple-500'
+    },
+    {
+      id: 'medicine',
+      name: 'Inglês Médico',
+      description: 'Especializado para profissionais da área de saúde',
+      category: 'Medicine',
+      icon: Stethoscope,
+      estimatedLessons: 32,
+      estimatedTime: '3-6 meses',
+      features: ['Terminologia médica', 'Comunicação com pacientes', 'Documentação clínica'],
+      color: 'bg-red-500'
+    },
+    {
+      id: 'legal',
+      name: 'Inglês Jurídico',
+      description: 'Para advogados e profissionais do direito',
+      category: 'Legal',
+      icon: Scale,
+      estimatedLessons: 30,
+      estimatedTime: '3-5 meses',
+      features: ['Terminologia jurídica', 'Contratos internacionais', 'Procedimentos legais'],
+      color: 'bg-yellow-500'
+    },
+    {
       id: 'oil-gas',
       name: 'Inglês para Petróleo & Gás',
       description: 'Especializado para Sonangol, Total Angola e Chevron',
       category: 'Oil & Gas',
-      icon: Zap,
+      icon: Fuel,
       estimatedLessons: 35,
       estimatedTime: '3-6 meses',
       features: ['Terminologia técnica', 'Protocolos de segurança', 'Comunicação internacional'],
-      color: 'bg-orange-500'
+      color: 'bg-orange-600'
     },
     {
       id: 'banking',
@@ -187,18 +248,7 @@ const CourseWizard = ({ onComplete }: { onComplete: (courseData: any) => void })
       estimatedLessons: 28,
       estimatedTime: '2-4 meses',
       features: ['Transações internacionais', 'Análise de crédito', 'Compliance'],
-      color: 'bg-green-500'
-    },
-    {
-      id: 'technology',
-      name: 'Inglês para TI & Telecomunicações',
-      description: 'Criado para Unitel, MS Telecom e startups tech',
-      category: 'Technology',
-      icon: Cpu,
-      estimatedLessons: 25,
-      estimatedTime: '2-5 meses',
-      features: ['Vocabulário de programação', 'Metodologias ágeis', 'Cloud computing'],
-      color: 'bg-purple-500'
+      color: 'bg-indigo-600'
     },
     {
       id: 'executive',
@@ -209,14 +259,14 @@ const CourseWizard = ({ onComplete }: { onComplete: (courseData: any) => void })
       estimatedLessons: 32,
       estimatedTime: '4-8 meses',
       features: ['Liderança internacional', 'Negociações estratégicas', 'Networking global'],
-      color: 'bg-yellow-500'
+      color: 'bg-slate-700'
     },
     {
-      id: 'ai-personal',
+      id: 'ai-enhanced',
       name: 'Inglês com IA Personal Tutor',
-      description: 'Nossa tecnologia exclusiva com IA',
+      description: 'Nossa tecnologia exclusiva com IA personalizada',
       category: 'AI Enhanced',
-      icon: Sparkles,
+      icon: Brain,
       estimatedLessons: 40,
       estimatedTime: 'Contínuo',
       features: ['Correção em tempo real', 'Feedback personalizado', 'Aprendizado adaptativo'],
@@ -259,12 +309,35 @@ const CourseWizard = ({ onComplete }: { onComplete: (courseData: any) => void })
     }
   };
 
+  // Cores padrão dos templates
+  const getTemplateDefaultColors = (templateId: string) => {
+    const colorMap = {
+      'general': { primary: '#3B82F6', secondary: '#06B6D4', accent: '#1D4ED8' },
+      'business': { primary: '#10B981', secondary: '#059669', accent: '#047857' },
+      'technology': { primary: '#8B5CF6', secondary: '#7C3AED', accent: '#6D28D9' },
+      'medicine': { primary: '#EF4444', secondary: '#F87171', accent: '#DC2626' },
+      'legal': { primary: '#F59E0B', secondary: '#FBBF24', accent: '#D97706' },
+      'oil-gas': { primary: '#EA580C', secondary: '#FB923C', accent: '#C2410C' },
+      'banking': { primary: '#4F46E5', secondary: '#6366F1', accent: '#3730A3' },
+      'executive': { primary: '#475569', secondary: '#64748B', accent: '#334155' },
+      'ai-enhanced': { primary: '#EC4899', secondary: '#F472B6', accent: '#DB2777' }
+    };
+    return colorMap[templateId as keyof typeof colorMap] || colorMap.general;
+  };
+
   const selectTemplate = (template: CourseTemplate) => {
+    const defaultColors = getTemplateDefaultColors(template.id);
     setCourseData(prev => ({
       ...prev,
       template,
-      category: template.category as 'General' | 'Oil & Gas' | 'Banking' | 'Technology' | 'Executive' | 'AI Enhanced',
-      estimatedDuration: template.estimatedTime
+      category: template.category as 'General' | 'Business' | 'Technology' | 'Medicine' | 'Legal' | 'Oil & Gas' | 'Banking' | 'Executive' | 'AI Enhanced',
+      estimatedDuration: template.estimatedTime,
+      // Definir cores padrão do template
+      customColors: {
+        primary: defaultColors.primary,
+        secondary: defaultColors.secondary,
+        accent: defaultColors.accent
+      }
     }));
   };
 
@@ -286,6 +359,26 @@ const CourseWizard = ({ onComplete }: { onComplete: (courseData: any) => void })
       ...prev,
       learningObjectives: prev.learningObjectives.filter((_, i) => i !== index)
     }));
+  };
+
+  const updateCustomColor = (colorType: 'primary' | 'secondary' | 'accent', color: string) => {
+    setCourseData(prev => ({
+      ...prev,
+      customColors: {
+        ...prev.customColors,
+        [colorType]: color
+      }
+    }));
+  };
+
+  const resetToDefaultColors = () => {
+    if (courseData.template) {
+      const defaultColors = getTemplateDefaultColors(courseData.template.id);
+      setCourseData(prev => ({
+        ...prev,
+        customColors: defaultColors
+      }));
+    }
   };
 
   const renderStepContent = () => {
@@ -384,6 +477,183 @@ const CourseWizard = ({ onComplete }: { onComplete: (courseData: any) => void })
                   </motion.div>
                 );
               })}
+            </div>
+          </div>
+        );
+
+      case 'colors':
+        return (
+          <div className="space-y-6">
+            <div className="text-center mb-6">
+              <div className="h-12 w-12 text-violet-400 mx-auto mb-4 flex items-center justify-center">
+                🎨
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-2">
+                Personalizar Cores do Template
+              </h3>
+              <p className="text-gray-300">
+                Customize as cores do seu template ou mantenha as cores padrão
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Color Pickers */}
+              <div className="space-y-6">
+                <div className="space-y-4">
+                  <div>
+                    <Label className="text-gray-300 text-sm font-medium">Cor Primária</Label>
+                    <div className="flex items-center gap-3 mt-2">
+                      <input
+                        type="color"
+                        value={courseData.customColors.primary}
+                        onChange={(e) => updateCustomColor('primary', e.target.value)}
+                        className="w-12 h-12 rounded-lg border border-gray-600 bg-transparent cursor-pointer"
+                      />
+                      <Input
+                        value={courseData.customColors.primary}
+                        onChange={(e) => updateCustomColor('primary', e.target.value)}
+                        placeholder="#3B82F6"
+                        className="bg-customgreys-darkGrey border-customgreys-darkerGrey text-white"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-400 mt-1">Cor principal do template (ícones, botões)</p>
+                  </div>
+
+                  <div>
+                    <Label className="text-gray-300 text-sm font-medium">Cor Secundária</Label>
+                    <div className="flex items-center gap-3 mt-2">
+                      <input
+                        type="color"
+                        value={courseData.customColors.secondary}
+                        onChange={(e) => updateCustomColor('secondary', e.target.value)}
+                        className="w-12 h-12 rounded-lg border border-gray-600 bg-transparent cursor-pointer"
+                      />
+                      <Input
+                        value={courseData.customColors.secondary}
+                        onChange={(e) => updateCustomColor('secondary', e.target.value)}
+                        placeholder="#06B6D4"
+                        className="bg-customgreys-darkGrey border-customgreys-darkerGrey text-white"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-400 mt-1">Cor secundária (gradientes, destaques)</p>
+                  </div>
+
+                  <div>
+                    <Label className="text-gray-300 text-sm font-medium">Cor de Destaque</Label>
+                    <div className="flex items-center gap-3 mt-2">
+                      <input
+                        type="color"
+                        value={courseData.customColors.accent}
+                        onChange={(e) => updateCustomColor('accent', e.target.value)}
+                        className="w-12 h-12 rounded-lg border border-gray-600 bg-transparent cursor-pointer"
+                      />
+                      <Input
+                        value={courseData.customColors.accent}
+                        onChange={(e) => updateCustomColor('accent', e.target.value)}
+                        placeholder="#1D4ED8"
+                        className="bg-customgreys-darkGrey border-customgreys-darkerGrey text-white"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-400 mt-1">Cor de destaque (acentos, bordas)</p>
+                  </div>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={resetToDefaultColors}
+                    className="w-full border-customgreys-darkerGrey bg-customgreys-darkGrey text-gray-300 hover:bg-violet-600/10 hover:border-violet-500 hover:text-white"
+                  >
+                    🔄 Restaurar Cores Padrão
+                  </Button>
+                </div>
+              </div>
+
+              {/* Preview */}
+              <div className="space-y-4">
+                {courseData.template && (
+                  <div className="bg-customgreys-darkGrey rounded-2xl p-6 border border-customgreys-darkerGrey">
+                    <h4 className="text-white font-semibold mb-4">Preview do Template</h4>
+                    
+                    {/* Mock Course Card Preview */}
+                    <div className="bg-customgreys-secondarybg rounded-xl border border-gray-600/30 overflow-hidden">
+                      {/* Header with custom colors */}
+                      <div 
+                        className="h-24 relative"
+                        style={{ 
+                          background: `linear-gradient(135deg, ${courseData.customColors.primary}, ${courseData.customColors.secondary})` 
+                        }}
+                      >
+                        <div className="absolute inset-0 bg-black/20" />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div 
+                            className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg"
+                            style={{ backgroundColor: courseData.customColors.accent }}
+                          >
+                            <courseData.template.icon className="w-6 h-6 text-white" />
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Content */}
+                      <div className="p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div 
+                            className="px-2 py-1 rounded-full text-xs font-medium border"
+                            style={{ 
+                              backgroundColor: `${courseData.customColors.primary}20`,
+                              borderColor: `${courseData.customColors.primary}40`,
+                              color: courseData.customColors.primary
+                            }}
+                          >
+                            {courseData.template.name}
+                          </div>
+                        </div>
+                        <h5 className="text-white font-medium mb-2">
+                          {courseData.title || 'Título do Curso'}
+                        </h5>
+                        <div 
+                          className="w-full h-2 bg-gray-700 rounded-full overflow-hidden"
+                        >
+                          <div 
+                            className="h-full w-1/3 rounded-full"
+                            style={{ 
+                              background: `linear-gradient(90deg, ${courseData.customColors.primary}, ${courseData.customColors.secondary})` 
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Color Palette */}
+                    <div className="mt-4">
+                      <h5 className="text-sm font-medium text-gray-300 mb-3">Paleta de Cores</h5>
+                      <div className="flex gap-2">
+                        <div className="text-center">
+                          <div 
+                            className="w-8 h-8 rounded-lg border border-gray-600"
+                            style={{ backgroundColor: courseData.customColors.primary }}
+                          />
+                          <p className="text-xs text-gray-400 mt-1">Primária</p>
+                        </div>
+                        <div className="text-center">
+                          <div 
+                            className="w-8 h-8 rounded-lg border border-gray-600"
+                            style={{ backgroundColor: courseData.customColors.secondary }}
+                          />
+                          <p className="text-xs text-gray-400 mt-1">Secundária</p>
+                        </div>
+                        <div className="text-center">
+                          <div 
+                            className="w-8 h-8 rounded-lg border border-gray-600"
+                            style={{ backgroundColor: courseData.customColors.accent }}
+                          />
+                          <p className="text-xs text-gray-400 mt-1">Destaque</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         );
@@ -718,9 +988,9 @@ const CourseWizard = ({ onComplete }: { onComplete: (courseData: any) => void })
               <div className="space-y-4">
                 <Card className="bg-customgreys-darkGrey border-customgreys-darkerGrey">
                   <CardHeader>
-                    <CardTitle className="text-white">Template Selecionado</CardTitle>
+                    <CardTitle className="text-white">Template e Cores</CardTitle>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="space-y-4">
                     {courseData.template && (
                       <div className="flex items-center space-x-3">
                         <div className={`p-2 rounded ${courseData.template.color}`}>
@@ -734,6 +1004,34 @@ const CourseWizard = ({ onComplete }: { onComplete: (courseData: any) => void })
                         </div>
                       </div>
                     )}
+                    
+                    {/* Custom Colors Preview */}
+                    <div>
+                      <p className="text-sm font-medium text-violet-400 mb-3">Cores Personalizadas:</p>
+                      <div className="flex gap-3">
+                        <div className="text-center">
+                          <div 
+                            className="w-8 h-8 rounded-lg border border-gray-600 mx-auto"
+                            style={{ backgroundColor: courseData.customColors.primary }}
+                          />
+                          <p className="text-xs text-gray-400 mt-1">Primária</p>
+                        </div>
+                        <div className="text-center">
+                          <div 
+                            className="w-8 h-8 rounded-lg border border-gray-600 mx-auto"
+                            style={{ backgroundColor: courseData.customColors.secondary }}
+                          />
+                          <p className="text-xs text-gray-400 mt-1">Secundária</p>
+                        </div>
+                        <div className="text-center">
+                          <div 
+                            className="w-8 h-8 rounded-lg border border-gray-600 mx-auto"
+                            style={{ backgroundColor: courseData.customColors.accent }}
+                          />
+                          <p className="text-xs text-gray-400 mt-1">Destaque</p>
+                        </div>
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
 

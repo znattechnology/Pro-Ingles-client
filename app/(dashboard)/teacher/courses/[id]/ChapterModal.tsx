@@ -25,6 +25,7 @@ import {
   useDeleteChapterQuizMutation,
   useGetVideoUploadUrlMutation,
 } from "@/redux/features/api/coursesApiSlice";
+import { useGetAvailableExercisesQuery } from "@/redux/features/laboratory/laboratoryApiSlice";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { X, BookOpen, FileText, Brain, Plus, Trash2, ExternalLink, Upload, Zap, Target, CheckCircle, Save } from "lucide-react";
 import React, { useEffect, useState } from "react";
@@ -75,6 +76,13 @@ const ChapterModal = () => {
   const [createQuiz] = useCreateChapterQuizMutation();
   const [deleteQuiz] = useDeleteChapterQuizMutation();
   const [getVideoUploadUrl] = useGetVideoUploadUrlMutation();
+  
+  // Exercise integration API
+  const { 
+    data: availableExercises, 
+    isLoading: exercisesLoading,
+    error: exercisesError 
+  } = useGetAvailableExercisesQuery();
 
   const methods = useForm<ChapterFormData>({
     resolver: zodResolver(chapterSchema),
@@ -224,9 +232,10 @@ const ChapterModal = () => {
       }
 
       // Determine chapter type based on content
-      let chapterType: "Text" | "Quiz" | "Video" = "Text";
+      let chapterType: "Text" | "Quiz" | "Video" | "Exercise" = "Text";
       if (finalVideoUrl) chapterType = "Video";
       if (data.quiz_enabled) chapterType = "Quiz";
+      if (data.practice_lesson && data.practice_lesson.trim() !== "") chapterType = "Exercise";
 
       const newChapter: Chapter = {
         chapterId: chapter?.chapterId || uuidv4(),
@@ -963,101 +972,162 @@ const ChapterModal = () => {
                     
                     <div className="flex-1">
                       <h3 className="text-white font-bold text-lg mb-2 flex items-center gap-2">
-                        Integração Practice Lab
-                        {chapter?.practice_lesson ? (
+                        Exercício do Practice Lab
+                        {methods.watch("practice_lesson") ? (
                           <CheckCircle className="w-5 h-5 text-emerald-400" />
                         ) : (
                           <div className="w-5 h-5 border-2 border-gray-500 rounded-full" />
                         )}
                       </h3>
                       
-                      {chapter?.practice_lesson ? (
-                        /* CONNECTED STATE */
-                        <div className="space-y-4">
-                          <div className="flex items-center gap-2 text-emerald-300">
-                            <Zap className="w-4 h-4" />
-                            <span className="text-sm font-medium">Capítulo conectado ao Practice Lab!</span>
-                          </div>
-                          
+                      <p className="text-gray-300 text-sm mb-4">
+                        Selecione um exercício específico do Practice Lab para este capítulo. 
+                        Os estudantes responderão diretamente na interface do curso.
+                      </p>
+                      
+                      {/* Seletor de Exercício */}
+                      <div className="space-y-4">
+                        <FormField
+                          control={methods.control}
+                          name="practice_lesson"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-white text-sm">Exercício do Laboratory</FormLabel>
+                              <FormControl>
+                                <select
+                                  className="w-full bg-customgreys-darkGrey border border-gray-600 text-white rounded px-3 py-2"
+                                  {...field}
+                                  value={field.value || ""}
+                                  disabled={exercisesLoading}
+                                >
+                                  <option value="">
+                                    {exercisesLoading ? 'Carregando exercícios...' : 'Selecione um exercício...'}
+                                  </option>
+                                  
+                                  {exercisesError && (
+                                    <option disabled>Erro ao carregar exercícios</option>
+                                  )}
+                                  
+                                  {availableExercises?.map((course: any) => (
+                                    <optgroup key={course.id} label={`${course.category_icon || '📚'} ${course.title}`}>
+                                      {course.units?.map((unit: any) => 
+                                        unit.lessons?.map((lesson: any) => 
+                                          lesson.challenges?.map((challenge: any) => (
+                                            <option 
+                                              key={challenge.id} 
+                                              value={challenge.id}
+                                            >
+                                              {lesson.title} → {challenge.title}
+                                            </option>
+                                          ))
+                                        )
+                                      )}
+                                    </optgroup>
+                                  ))}
+                                  
+                                  {/* Fallback options if no data */}
+                                  {!exercisesLoading && !availableExercises?.length && (
+                                    <>
+                                      <optgroup label="🛢️ Inglês para Petróleo & Gás">
+                                        <option value="oil-gas-unit-1-lesson-1-challenge-1">Lesson 1 → Challenge 1: Oil Drilling Vocabulary</option>
+                                        <option value="oil-gas-unit-1-lesson-1-challenge-2">Lesson 1 → Challenge 2: Safety Procedures</option>
+                                      </optgroup>
+                                      <optgroup label="🏦 Inglês Bancário">
+                                        <option value="banking-unit-1-lesson-1-challenge-1">Lesson 1 → Challenge 1: Financial Terms</option>
+                                        <option value="banking-unit-1-lesson-2-challenge-1">Lesson 2 → Challenge 1: Investment Vocabulary</option>
+                                      </optgroup>
+                                      <optgroup label="💻 Inglês para TI & Telecomunicações">
+                                        <option value="tech-unit-1-lesson-1-challenge-1">Lesson 1 → Challenge 1: Programming Terms</option>
+                                        <option value="tech-unit-1-lesson-2-challenge-1">Lesson 2 → Challenge 1: Software Development</option>
+                                      </optgroup>
+                                      <optgroup label="👔 Inglês Executivo">
+                                        <option value="executive-unit-1-lesson-1-challenge-1">Lesson 1 → Challenge 1: Business Meetings</option>
+                                        <option value="executive-unit-1-lesson-2-challenge-1">Lesson 2 → Challenge 1: Negotiations</option>
+                                      </optgroup>
+                                    </>
+                                  )}
+                                </select>
+                              </FormControl>
+                              <FormMessage className="text-red-400" />
+                              
+                              {exercisesLoading && (
+                                <div className="flex items-center gap-2 text-xs text-gray-400 mt-1">
+                                  <div className="w-3 h-3 border border-violet-400 border-t-transparent rounded-full animate-spin"></div>
+                                  <span>Carregando exercícios do Practice Lab...</span>
+                                </div>
+                              )}
+                              
+                              {exercisesError && (
+                                <div className="text-xs text-red-400 mt-1">
+                                  Erro ao carregar exercícios. Usando opções padrão.
+                                </div>
+                              )}
+                            </FormItem>
+                          )}
+                        />
+                        
+                        {/* Preview do Exercício Selecionado */}
+                        {methods.watch("practice_lesson") && (
                           <div className="bg-emerald-900/20 rounded-lg p-4 space-y-3">
                             <div className="text-sm text-white">
-                              <strong>ID da Lição:</strong> <code className="bg-gray-800 px-2 py-1 rounded text-xs">{chapter.practice_lesson}</code>
+                              <strong>Exercício Selecionado:</strong> 
+                              <code className="bg-gray-800 px-2 py-1 rounded text-xs ml-2">
+                                {methods.watch("practice_lesson")}
+                              </code>
                             </div>
                             
                             <div className="text-sm text-gray-300">
-                              Os estudantes verão automaticamente um botão "Praticar Conceitos" 
-                              após estudar este capítulo, direcionando-os para exercícios gamificados.
+                              Os estudantes responderão a este exercício diretamente na interface do curso, 
+                              sem sair da experiência de aprendizado.
                             </div>
                             
                             <div className="grid grid-cols-3 gap-3 mt-4">
                               <div className="bg-emerald-800/30 rounded-lg p-2 text-center">
-                                <div className="text-emerald-300 font-semibold text-sm">3-5</div>
-                                <div className="text-xs text-gray-400">Exercícios</div>
+                                <div className="text-emerald-300 font-semibold text-sm">1</div>
+                                <div className="text-xs text-gray-400">Exercício</div>
                               </div>
                               <div className="bg-blue-800/30 rounded-lg p-2 text-center">
-                                <div className="text-blue-300 font-semibold text-sm">+10-15</div>
-                                <div className="text-xs text-gray-400">Pontos/acerto</div>
+                                <div className="text-blue-300 font-semibold text-sm">+15</div>
+                                <div className="text-xs text-gray-400">Pontos</div>
                               </div>
                               <div className="bg-violet-800/30 rounded-lg p-2 text-center">
-                                <div className="text-violet-300 font-semibold text-sm">~5min</div>
+                                <div className="text-violet-300 font-semibold text-sm">~2min</div>
                                 <div className="text-xs text-gray-400">Duração</div>
                               </div>
                             </div>
-                          </div>
-                          
-                          <div className="flex gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/10"
-                              onClick={() => {
-                                if (chapter?.practice_lesson) {
-                                  window.open(`/user/learn/lesson/${chapter.practice_lesson}`, '_blank');
-                                }
-                              }}
-                            >
-                              <Zap className="w-4 h-4 mr-2" />
-                              Preview Prática
-                            </Button>
                             
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-white border-gray-600 hover:bg-gray-700"
-                              onClick={() => {
-                                window.open('/teacher/laboratory/analytics', '_blank');
-                              }}
-                            >
-                              Ver Analytics
-                            </Button>
+                            <div className="flex gap-2 mt-4">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/10"
+                                onClick={() => {
+                                  const lessonId = methods.watch("practice_lesson");
+                                  if (lessonId) {
+                                    window.open(`/user/laboratory/learn/lesson/${lessonId}`, '_blank');
+                                  }
+                                }}
+                              >
+                                <Zap className="w-4 h-4 mr-2" />
+                                Preview Exercício
+                              </Button>
+                            </div>
                           </div>
+                        )}
+                        
+                        {/* Informações sobre tipos de capítulo */}
+                        <div className="bg-blue-900/20 border border-blue-600/30 rounded-lg p-4">
+                          <h4 className="text-blue-400 font-medium mb-2 flex items-center gap-2">
+                            💡 Tipos de Capítulo
+                          </h4>
+                          <ul className="text-sm text-blue-200 space-y-1">
+                            <li>• <strong>Vídeo:</strong> Player de vídeo + notas</li>
+                            <li>• <strong>Texto:</strong> Conteúdo de leitura</li>
+                            <li>• <strong>Exercício:</strong> Challenge do Laboratory (inline)</li>
+                          </ul>
                         </div>
-                      ) : (
-                        /* NOT CONNECTED STATE */
-                        <div className="space-y-4">
-                          <p className="text-gray-300 text-sm">
-                            Este capítulo ainda não está conectado ao Practice Lab. 
-                            A integração é criada automaticamente quando o capítulo é salvo.
-                          </p>
-                          
-                          <div className="bg-blue-900/20 border border-blue-600/30 rounded-lg p-4">
-                            <h4 className="text-blue-400 font-medium mb-2 flex items-center gap-2">
-                              🎆 O que acontece quando você salvar?
-                            </h4>
-                            <ul className="text-sm text-blue-200 space-y-1">
-                              <li>• Sistema criará automaticamente uma Practice Lesson</li>
-                              <li>• Gerará 3-5 exercícios baseados no conteúdo do capítulo</li>
-                              <li>• Estudantes poderão praticar conceitos de forma gamificada</li>
-                              <li>• Progressão será rastreada no sistema de pontos/corações</li>
-                            </ul>
-                          </div>
-                          
-                          <div className="text-xs text-gray-400 bg-gray-800/30 rounded p-2">
-                            📝 <strong>Dica:</strong> Quanto mais detalhado o conteúdo do capítulo, 
-                            melhores serão os exercícios gerados automaticamente.
-                          </div>
-                        </div>
-                      )}
+                      </div>
                     </div>
                   </div>
                 </div>

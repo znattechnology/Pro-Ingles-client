@@ -13,6 +13,7 @@ import {
   useGetChapterResourcesQuery,
   useGetChapterQuizQuery
 } from "@/redux/features/api/coursesApiSlice";
+import InlineExercise from "@/components/laboratory/InlineExercise";
 import { 
   BookOpen, 
   Play, 
@@ -158,11 +159,18 @@ const Course = () => {
       tabs.push('Quiz');
     }
     
+    if (currentChapter?.type === 'Exercise' && currentChapter?.practice_lesson) {
+      tabs.push('Exercise');
+    }
+    
     return tabs;
   };
 
   // Auto-select appropriate default tab
   const getDefaultTab = () => {
+    if (currentChapter?.type === 'Exercise' && currentChapter?.practice_lesson) {
+      return 'Exercise';
+    }
     if (currentChapter?.type === 'Quiz' && currentChapter?.quiz_enabled) {
       return 'Quiz';
     }
@@ -336,6 +344,53 @@ const Course = () => {
                   </Badge>
                 </div>
               </div>
+            ) : currentChapter?.type === 'Exercise' && currentChapter?.practice_lesson ? (
+              /* Enhanced Exercise Preview - Practice Lab Integration */
+              <div className="flex items-center justify-center p-8 w-full">
+                <div className="bg-gradient-to-br from-emerald-900/40 via-green-900/30 to-blue-900/40 backdrop-blur-sm rounded-xl p-8 max-w-lg mx-auto border border-emerald-500/30 shadow-2xl">
+                  <div className="text-center">
+                    <div className="w-20 h-20 bg-gradient-to-br from-emerald-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                      <Target className="w-10 h-10 text-white" />
+                    </div>
+                    <h3 className="text-white font-bold text-2xl mb-3">
+                      Exercício Prático
+                    </h3>
+                    <p className="text-gray-300 mb-6 leading-relaxed">
+                      Complete este exercício do Practice Lab para fixar o conteúdo e ganhar pontos!
+                    </p>
+                  
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+                      <div className="bg-emerald-500/20 border border-emerald-500/30 rounded-lg p-3 text-center">
+                        <Target className="w-5 h-5 text-emerald-400 mx-auto mb-1" />
+                        <div className="text-emerald-300 font-semibold">15</div>
+                        <div className="text-xs text-gray-400">pontos</div>
+                      </div>
+                      <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-3 text-center">
+                        <Heart className="w-5 h-5 text-red-400 mx-auto mb-1" />
+                        <div className="text-red-300 font-semibold">1</div>
+                        <div className="text-xs text-gray-400">por erro</div>
+                      </div>
+                      <div className="bg-blue-500/20 border border-blue-500/30 rounded-lg p-3 text-center">
+                        <Clock className="w-5 h-5 text-blue-400 mx-auto mb-1" />
+                        <div className="text-blue-300 font-semibold">~2</div>
+                        <div className="text-xs text-gray-400">minutos</div>
+                      </div>
+                    </div>
+                  
+                    <Button
+                      className="bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+                      size="lg"
+                      onClick={() => {
+                        // Show exercise interface inline
+                        setSelectedTab('Exercise');
+                      }}
+                    >
+                      <Play className="w-5 h-5 mr-2" />
+                      Começar Exercício
+                    </Button>
+                  </div>
+                </div>
+              </div>
             ) : currentChapter?.quiz_enabled && quiz ? (
               /* Enhanced Quiz Preview */
               <div className="flex items-center justify-center p-8 w-full">
@@ -408,7 +463,8 @@ const Course = () => {
                           <Badge key={tab} variant="outline" className="border-violet-500/30 text-violet-300">
                             {tab === 'Notes' ? '📝 Notas' : 
                              tab === 'Resources' ? '📁 Recursos' : 
-                             '❓ Quiz'}
+                             tab === 'Quiz' ? '🧠 Quiz' :
+                             tab === 'Exercise' ? '🎯 Exercício' : tab}
                           </Badge>
                         ))}
                       </div>
@@ -458,6 +514,17 @@ const Course = () => {
                   Quiz
                   <Badge variant="secondary" className="ml-1 text-xs bg-violet-500/20 text-violet-300 border-none">
                     {quiz.points_reward || 15} pts
+                  </Badge>
+                </TabsTrigger>
+              )}
+              
+              {/* Enhanced Exercise Tab */}
+              {currentChapter?.type === 'Exercise' && currentChapter?.practice_lesson && (
+                <TabsTrigger className="data-[state=active]:bg-emerald-600 data-[state=active]:text-white text-gray-300 hover:text-white transition-all duration-200 px-6 py-3 rounded-lg flex items-center gap-2 font-medium" value="Exercise">
+                  <Target className="w-4 h-4" />
+                  Exercício
+                  <Badge variant="secondary" className="ml-1 text-xs bg-emerald-500/20 text-emerald-300 border-none">
+                    Lab
                   </Badge>
                 </TabsTrigger>
               )}
@@ -612,6 +679,95 @@ const Course = () => {
                         })}
                       </div>
                     )}
+                  </div>
+                </div>
+              </TabsContent>
+            )}
+
+            {/* Enhanced Exercise Tab Content */}
+            {currentChapter?.type === 'Exercise' && currentChapter?.practice_lesson && (
+              <TabsContent value="Exercise">
+                <div className="bg-customgreys-secondarybg border-customgreys-darkerGrey rounded-lg">
+                  <div className="p-6 border-b border-emerald-900/20">
+                    <h3 className="text-2xl font-bold text-white flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-green-600 rounded-lg flex items-center justify-center">
+                        <Target className="w-5 h-5 text-white" />
+                      </div>
+                      Exercício Prático
+                      {isChapterCompleted() && (
+                        <Badge className="bg-green-500/20 text-green-300 border-green-500/30">
+                          <CheckCircle2 className="w-4 h-4 mr-1" />
+                          Concluído
+                        </Badge>
+                      )}
+                    </h3>
+                    <p className="text-gray-300 text-sm mt-2">
+                      Exercício do Practice Lab: <code className="bg-gray-800 px-2 py-1 rounded text-xs">{currentChapter.practice_lesson}</code>
+                    </p>
+                  </div>
+                  <div className="p-6">
+                    <div className="space-y-6">
+                      <div className="bg-gradient-to-r from-emerald-900/30 to-green-900/30 rounded-lg p-6 border border-emerald-500/20">
+                        <h3 className="text-emerald-400 font-bold text-lg mb-2">🎯 Exercício Integrado</h3>
+                        <p className="text-gray-300 mb-4">
+                          Este exercício será carregado diretamente do Practice Lab para uma experiência perfeita.
+                        </p>
+                        
+                        <div className="flex items-center justify-center gap-4 mb-6 text-sm">
+                          <div className="flex items-center gap-1 text-emerald-400">
+                            <Target className="w-4 h-4" />
+                            <span>15 pontos</span>
+                          </div>
+                          <div className="flex items-center gap-1 text-red-400">
+                            <Heart className="w-4 h-4" />
+                            <span>1 coração por erro</span>
+                          </div>
+                          <div className="flex items-center gap-1 text-blue-400">
+                            <Clock className="w-4 h-4" />
+                            <span>~2 minutos</span>
+                          </div>
+                        </div>
+                        
+                        {/* Inline Exercise Component */}
+                        <InlineExercise 
+                          exerciseId={currentChapter.practice_lesson}
+                          courseId={course?.courseId}
+                          chapterId={currentChapter.chapterId}
+                          onComplete={(result) => {
+                            console.log('✅ Exercise completed:', result);
+                            // Mark chapter as completed when exercise is done
+                            if (result.success) {
+                              console.log('🎆 Auto-completing chapter after successful exercise');
+                              markChapterAsCompleted();
+                            }
+                          }}
+                          className="border-none shadow-none bg-transparent"
+                        />
+                        
+                        {/* Alternative: Direct link to Practice Lab */}
+                        <div className="text-center mt-4">
+                          <Button
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white mr-2"
+                            onClick={() => {
+                              if (currentChapter?.practice_lesson) {
+                                window.open(`/user/laboratory/learn/lesson/${currentChapter.practice_lesson}`, '_blank');
+                              }
+                            }}
+                          >
+                            <Play className="w-4 h-4 mr-2" />
+                            Abrir no Practice Lab
+                          </Button>
+                          
+                          <Button
+                            variant="outline"
+                            className="text-white border-white/30"
+                            onClick={() => markChapterAsCompleted()}
+                          >
+                            Marcar como Concluído
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </TabsContent>

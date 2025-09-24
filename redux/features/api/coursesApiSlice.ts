@@ -39,7 +39,7 @@ export interface Chapter {
   section: string;
   title: string;
   content: string;
-  type: 'Text' | 'Quiz' | 'Video';
+  type: 'Text' | 'Quiz' | 'Video' | 'Exercise';
   video?: string;
   order: number;
   created_at: string;
@@ -163,8 +163,10 @@ export const coursesApiSlice = apiSlice.injectEndpoints({
         if (params.category) {
           searchParams.append('category', params.category);
         }
-        // Note: course_type filtering is handled by Django API internally
-        // The API already filters for video courses by default for public exploration
+        if (params.course_type) {
+          searchParams.append('course_type', params.course_type);
+        }
+        // Note: course_type filtering is now properly sent to Django API
         return `/courses/?${searchParams.toString()}`;
       },
       providesTags: ['Course'],
@@ -400,6 +402,25 @@ export const coursesApiSlice = apiSlice.injectEndpoints({
       }),
     }),
 
+    // 📎 RESOURCE UPLOAD - Get presigned S3 URL for resources (PDF, audio, etc.)
+    getResourceUploadUrl: builder.mutation<
+      {message: string, data: {uploadUrl: string, resourceUrl: string, resourceType: string}}, 
+      {courseId: string, sectionId: string, chapterId: string, fileName: string, fileType: string, resourceType: string}
+    >({
+      query: ({courseId, sectionId, chapterId, fileName, fileType, resourceType}) => ({
+        url: `/courses/${courseId}/sections/${sectionId}/chapters/${chapterId}/get-resource-upload-url/`,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fileName: fileName,
+          fileType: fileType,
+          resourceType: resourceType
+        }),
+      }),
+    }),
+
     // 🔄 UPDATE COURSE - Update course with sections and chapters
     updateCourse: builder.mutation<
       {message: string, data: Course}, 
@@ -417,6 +438,74 @@ export const coursesApiSlice = apiSlice.injectEndpoints({
         { type: 'Course', id: courseId },
         'Course'
       ],
+    }),
+
+    // 📚 TEACHER COURSE MANAGEMENT - Endpoints específicos para professores
+    createCourse: builder.mutation<{message: string, data: Course}, Partial<any>>({
+      query: (data = {}) => ({
+        url: '/courses/',
+        method: 'POST',
+        body: data,
+      }),
+      transformResponse: (response: { message: string; data: Course }) => {
+        const course = response.data;
+        return {
+          message: response.message,
+          data: {
+            ...course,
+            id: course.courseId, // Set id from courseId for compatibility
+            createdAt: course.created_at,
+            updatedAt: course.updated_at,
+            sections: course.sections || []
+          }
+        };
+      },
+      invalidatesTags: ['Course'],
+    }),
+
+    getAllTeacherCourses: builder.query<{message: string, data: Course[]}, { category?: string }>({
+      query: (params = {}) => {
+        const searchParams = new URLSearchParams();
+        searchParams.append('view_mode', 'teacher_courses');
+        if (params.category && params.category !== 'all') {
+          searchParams.append('category', params.category);
+        }
+        const queryString = searchParams.toString() ? `?${searchParams.toString()}` : '';
+        return `/courses/${queryString}`;
+      },
+      transformResponse: (response: { message: string; data: Course[] }) => {
+        const courses = response.data || [];
+        return {
+          message: response.message,
+          data: courses.map(course => ({
+            ...course,
+            id: course.courseId, // Set id from courseId for compatibility
+            createdAt: course.created_at,
+            updatedAt: course.updated_at,
+            sections: course.sections || []
+          }))
+        };
+      },
+      providesTags: ['Course'],
+    }),
+
+    deleteCourse: builder.mutation<{message: string}, string>({
+      query: (id) => ({
+        url: `/courses/${id}/`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Course'],
+    }),
+
+    getCourseDetails: builder.query<{message: string, data: Course}, string>({
+      query: (id) => ({
+        url: `/courses/${id}/`,
+        method: 'GET',
+      }),
+      transformResponse: (response: { message: string; data: Course }) => {
+        return response;
+      },
+      providesTags: (_result, _error, id) => [{ type: 'Course', id }],
     }),
   }),
 });
@@ -447,6 +536,15 @@ export const {
   // 📹 VIDEO UPLOAD hooks
   useGetVideoUploadUrlMutation,
   
+  // 📎 RESOURCE UPLOAD hooks  
+  useGetResourceUploadUrlMutation,
+  
   // 🔄 COURSE UPDATE hooks
   useUpdateCourseMutation,
+
+  // 📚 TEACHER COURSE MANAGEMENT hooks
+  useCreateCourseMutation,
+  useGetAllTeacherCoursesQuery,
+  useDeleteCourseMutation,
+  useGetCourseDetailsQuery,
 } = coursesApiSlice;

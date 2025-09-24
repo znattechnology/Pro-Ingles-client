@@ -6,9 +6,9 @@ import { useDjangoAuth } from "@/hooks/useDjangoAuth";
 import {
   useCreateCourseMutation,
   useDeleteCourseMutation,
-  useGetAllCoursesQuery,
-} from "@/redux/features/courses/coursesApi";
-import { Course } from "@/redux/features/courses/coursesApi";
+  useGetAllTeacherCoursesQuery,
+} from "@/redux/features/api/coursesApiSlice";
+import { Course } from "@/redux/features/api/coursesApiSlice";
 import Loading from "@/components/course/Loading";
 import TeacherCourseCard from "@/components/course/TeacherCourseCard";
 import DeleteCourseModal from "@/components/modals/DeleteCourseModal";
@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { notifications } from "@/lib/toast";
 import {
   Search,
   Plus,
@@ -30,10 +31,12 @@ const TeacherCoursesPage = () => {
   const router = useRouter();
   const { user, isAuthenticated, isLoading: authLoading } = useDjangoAuth();
   const {
-    data: courses,
+    data: coursesResponse,
     isLoading,
     isError,
-  } = useGetAllCoursesQuery({ category: "all" });
+  } = useGetAllTeacherCoursesQuery({ category: "all" });
+  
+  const courses = coursesResponse?.data || [];
 
   const [createCourse] = useCreateCourseMutation();
   const [deleteCourse] = useDeleteCourseMutation();
@@ -144,21 +147,26 @@ const TeacherCoursesPage = () => {
     
     try {
       const result = await createCourse({}).unwrap();
-      const courseId = result.id || result.courseId;
+      const courseId = result.data.id || result.data.courseId;
       
       if (courseId) {
-        // Small delay to ensure the user sees the loading state
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // Show success toast
+        notifications.success("Novo curso criado com sucesso! 🎉 Redirecionando para edição...");
+        
+        // Small delay to ensure the user sees the loading state and toast
+        await new Promise(resolve => setTimeout(resolve, 1000));
         
         router.push(`/teacher/courses/${courseId}`, {
           scroll: false,
         });
       } else {
+        notifications.error("Erro ao obter ID do curso criado. Recarregando página...");
         window.location.reload();
       }
     } catch (error) {
       console.error('Error creating course:', error);
-      alert('Erro ao criar curso');
+      const errorMessage = error instanceof Error ? error.message : "Erro desconhecido";
+      notifications.error(`Erro ao criar curso. ${errorMessage}. Tente novamente.`);
     } finally {
       setIsCreatingCourse(false);
     }

@@ -34,7 +34,12 @@ export const apiSlice = createApi({
         'PracticeCourses',
         'PracticeCourse',
         'PracticeAnalytics',
-        'StudentProgress'
+        'StudentProgress',
+        // Chapter/Course resource tags
+        'ChapterResource',
+        'ChapterQuiz',
+        'QuizAttempt',
+        'QuizSummary'
     ],
     endpoints: (builder)=> ({
         loadUser:builder.query({

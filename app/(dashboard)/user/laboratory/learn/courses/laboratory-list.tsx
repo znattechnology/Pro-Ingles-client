@@ -4,6 +4,8 @@ import { LaboratoryCard } from "./laboratory-card";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { upsertUserProgress } from "@/actions/user-progress";
+import { useUpdateActiveCourseMutation } from "@/redux/features/api/practiceApiSlice";
+import { useFeatureFlag } from "@/lib/featureFlags";
 import { toast } from "sonner";
 
 // Define types for Django API responses
@@ -30,8 +32,63 @@ type Props = {
 export const LaboratoryList = ({courses, activeCourseId, viewMode = 'grid'}: Props) => {
     const router = useRouter();
     const [pending, startTransition] = useTransition();
+    
+    // Feature flag for Redux usage
+    const useReduxMutation = useFeatureFlag('REDUX_USER_PROGRESS');
+    
+    // Redux mutation for updating active course
+    const [updateActiveCourse, { isLoading: isUpdatingCourse }] = useUpdateActiveCourseMutation();
 
-    // Array of default laboratory images using service images from landing page
+    // Category-specific images for enhanced visual experience
+    const categoryImages = {
+        'General': [
+            '/service-1.jpg',
+            '/service-2.jpg',
+            '/course-general-1.jpg'
+        ],
+        'Business': [
+            '/course-business-1.jpg',
+            '/course-business-2.jpg',
+            '/service-3.jpg'
+        ],
+        'Technology': [
+            '/course-tech-1.jpg',
+            '/course-tech-2.jpg',
+            '/service-4.jpg'
+        ],
+        'Medicine': [
+            '/course-medical-1.jpg',
+            '/course-medical-2.jpg',
+            '/service-5.jpg'
+        ],
+        'Legal': [
+            '/course-legal-1.jpg',
+            '/course-legal-2.jpg',
+            '/service-6.jpg'
+        ],
+        'Oil & Gas': [
+            '/course-energy-1.jpg',
+            '/course-oilgas-1.jpg',
+            '/course-energy-2.jpg'
+        ],
+        'Banking': [
+            '/course-banking-1.jpg',
+            '/course-finance-1.jpg',
+            '/course-banking-2.jpg'
+        ],
+        'Executive': [
+            '/course-executive-1.jpg',
+            '/course-leadership-1.jpg',
+            '/course-executive-2.jpg'
+        ],
+        'AI Enhanced': [
+            '/course-ai-1.jpg',
+            '/course-ai-2.jpg',
+            '/course-ai-3.jpg'
+        ]
+    };
+
+    // Fallback images for unknown categories
     const defaultImages = [
         '/service-1.jpg',
         '/service-2.jpg',
@@ -41,30 +98,35 @@ export const LaboratoryList = ({courses, activeCourseId, viewMode = 'grid'}: Pro
         '/service-6.jpg'
     ];
 
-    // Function to get a consistent image for a course based on its ID
+    // Enhanced function to get category-specific images
     const getCourseImage = (course: Course) => {
+        // If course has a custom image, use it
         if (course.image) {
             return course.image;
         }
         
-        // Use a simple hash of the course ID to consistently assign the same image
+        // Get images for the course category
+        const categoryImageList = categoryImages[course.category as keyof typeof categoryImages] || defaultImages;
+        
+        // Use a simple hash of the course ID to consistently assign the same image from the category
         const hash = course.id.split('').reduce((a, b) => {
             a = ((a << 5) - a) + b.charCodeAt(0);
             return a & a;
         }, 0);
         
-        const imageIndex = Math.abs(hash) % defaultImages.length;
-        return defaultImages[imageIndex];
+        const imageIndex = Math.abs(hash) % categoryImageList.length;
+        return categoryImageList[imageIndex];
     };
 
     const onClick = (id: string) => {
         console.log('🔍 ONCLICK DEBUG: Function called with courseId:', id);
-        console.log('🔍 ONCLICK DEBUG: pending state:', pending);
+        console.log('🔍 ONCLICK DEBUG: pending state:', pending, 'updating course:', isUpdatingCourse);
         console.log('🔍 ONCLICK DEBUG: activeCourseId:', activeCourseId);
         console.log('🔍 ONCLICK DEBUG: is same course?', id === activeCourseId);
+        console.log('🔍 ONCLICK DEBUG: useReduxMutation:', useReduxMutation);
         
-        if (pending) {
-            console.log('⏳ ONCLICK DEBUG: Blocked by pending state');
+        if (pending || isUpdatingCourse) {
+            console.log('⏳ ONCLICK DEBUG: Blocked by pending/updating state');
             return;
         }
         
@@ -73,39 +135,40 @@ export const LaboratoryList = ({courses, activeCourseId, viewMode = 'grid'}: Pro
             return router.push("/user/laboratory/learn");
         }
         
-        console.log('🚀 ONCLICK DEBUG: Starting transition for new course selection');
-        startTransition(async () => {
-            try {
-                console.log('📤 ONCLICK DEBUG: Calling upsertUserProgress with courseId:', id);
-                await upsertUserProgress(id);
-                console.log('✅ ONCLICK DEBUG: upsertUserProgress successful, redirecting');
-                router.push("/user/laboratory/learn");
-            } catch (error) {
-                console.error("❌ ONCLICK DEBUG: Error selecting course:", error);
-                toast.error("Alguma coisa não correu bem");
-            }
-        });
+        if (useReduxMutation) {
+            console.log('🚀 ONCLICK DEBUG: Using Redux mutation for course selection');
+            updateActiveCourse(id)
+                .unwrap()
+                .then(() => {
+                    console.log('✅ ONCLICK DEBUG: Redux mutation successful, redirecting');
+                    router.push("/user/laboratory/learn");
+                })
+                .catch((error) => {
+                    console.error("❌ ONCLICK DEBUG: Redux mutation error:", error);
+                    toast.error("Erro ao selecionar curso");
+                });
+        } else {
+            console.log('🚀 ONCLICK DEBUG: Using legacy transition for course selection');
+            startTransition(async () => {
+                try {
+                    console.log('📤 ONCLICK DEBUG: Calling upsertUserProgress with courseId:', id);
+                    await upsertUserProgress(id);
+                    console.log('✅ ONCLICK DEBUG: upsertUserProgress successful, redirecting');
+                    router.push("/user/laboratory/learn");
+                } catch (error) {
+                    console.error("❌ ONCLICK DEBUG: Error selecting course:", error);
+                    toast.error("Alguma coisa não correu bem");
+                }
+            });
+        }
     }
 
-    // Function to calculate course statistics
+    // Function to get course statistics (from Redux API with include_stats)
     const getCourseStats = (course: Course) => {
-        const practiceUnits = course.practice_units || [];
-        const totalUnits = practiceUnits.length;
-        
-        // Count total lessons and challenges
-        let totalLessons = 0;
-        let totalChallenges = 0;
-        
-        practiceUnits.forEach((unit: any) => {
-            if (unit.practice_lessons) {
-                totalLessons += unit.practice_lessons.length;
-                unit.practice_lessons.forEach((lesson: any) => {
-                    if (lesson.practice_challenges) {
-                        totalChallenges += lesson.practice_challenges.length;
-                    }
-                });
-            }
-        });
+        // Use statistics directly from Redux API (backend calculated)
+        const totalUnits = (course as any).totalUnits || (course as any).units_count || (course.practice_units?.length || 0);
+        const totalLessons = (course as any).total_lessons || (course as any).lessons_count || 0;
+        const totalChallenges = (course as any).total_challenges || (course as any).challenges_count || 0;
 
         return {
             totalUnits,
@@ -133,6 +196,9 @@ export const LaboratoryList = ({courses, activeCourseId, viewMode = 'grid'}: Pro
                         description={course.description}
                         imageSrc={getCourseImage(course)}
                         level={course.level}
+                        category={course.category}
+                        template={(course as any).template}
+                        customColors={(course as any).customColors}
                         totalUnits={stats.totalUnits}
                         completedUnits={stats.completedUnits}
                         totalLessons={stats.totalLessons}

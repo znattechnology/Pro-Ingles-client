@@ -110,7 +110,7 @@ declare global {
     content: string;
     video?: string | File;
     freePreview?: boolean;
-    type: "Text" | "Quiz" | "Video";
+    type: "Text" | "Quiz" | "Video" | "Exercise";
     
     // 🆕 PHASE 1 BRIDGE - Novos campos opcionais
     transcript?: string;

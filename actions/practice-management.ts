@@ -173,7 +173,7 @@ export const getPracticeCourses = async () => {
         // Try to get ALL practice courses including drafts
         console.log('🔍 Trying to fetch ALL practice courses including drafts...');
         
-        const response = await fetch(`${API_BASE_URL}/practice/courses/?include_drafts=true&course_type=practice`, {
+        const response = await fetch(`${API_BASE_URL}/practice/courses/?include_drafts=true&course_type=practice&include_stats=true`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -187,7 +187,7 @@ export const getPracticeCourses = async () => {
         if (!response.ok) {
             console.warn('🚨 Failed with include_drafts parameter, trying without...');
             
-            const fallbackResponse = await fetch(`${API_BASE_URL}/practice/courses/?course_type=practice`, {
+            const fallbackResponse = await fetch(`${API_BASE_URL}/practice/courses/?course_type=practice&include_stats=true`, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -284,41 +284,59 @@ export const getCoursesWithStatistics = async () => {
 
         console.log('📊 Fetching courses with statistics...');
 
-        // Buscar cursos básicos primeiro
-        const courses = await getPracticeCourses();
-        console.log('📚 Found courses:', courses?.length || 0, courses);
+        // Fetch courses with statistics in one optimized call
+        const response = await fetch(`${API_BASE_URL}/practice/courses/?include_stats=true`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+        });
+
+        console.log(`📊 Courses with statistics response status: ${response.status}`);
         
-        if (!courses || courses.length === 0) {
-            console.log('❌ No courses found');
-            return [];
+        if (response.ok) {
+            const coursesData = await response.json();
+            console.log(`📦 Courses with statistics received:`, coursesData);
+            
+            // Transform the data to include statistics
+            const coursesWithStats = coursesData.map((course: any) => ({
+                ...course,
+                units_count: course.units_count || 0,
+                lessons_count: course.lessons_count || 0,
+                challenges_count: course.challenges_count || 0,
+                total_progress: course.lessons_count > 0 ? Math.round((course.challenges_count / course.lessons_count) * 100) : 0
+            }));
+            
+            console.log('✅ Courses with statistics loaded:', coursesWithStats.length);
+            return coursesWithStats;
+        } else {
+            console.warn(`❌ Failed to fetch courses with statistics. Status: ${response.status}`);
+            const errorText = await response.text();
+            console.warn(`❌ Error response:`, errorText);
+            
+            // Fallback to original method
+            console.log('🔄 Falling back to original method...');
+            const courses = await getPracticeCourses();
+            console.log('📚 Found courses:', courses?.length || 0, courses);
+            
+            if (!courses || courses.length === 0) {
+                console.log('❌ No courses found');
+                return [];
+            }
+            
+            // Add default statistics for all courses
+            const coursesWithStats = courses.map((course: any) => ({
+                ...course,
+                units_count: 0,
+                lessons_count: 0,
+                challenges_count: 0,
+                total_progress: 0
+            }));
+            
+            console.log('✅ Courses with default statistics loaded:', coursesWithStats.length);
+            return coursesWithStats;
         }
-        
-        // Buscar todas as estatísticas em paralelo
-        const coursesWithStats = await Promise.all(
-            courses.map(async (course: any) => {
-                try {
-                    console.log(`📊 Fetching stats for course: ${course.id} - ${course.title}`);
-                    const stats = await getCourseStatistics(course.id);
-                    console.log(`✅ Stats for ${course.title}:`, stats);
-                    return {
-                        ...course,
-                        ...stats
-                    };
-                } catch (error) {
-                    console.warn(`❌ Não foi possível buscar estatísticas para o curso ${course.id}:`, error);
-                    return {
-                        ...course,
-                        units_count: 0,
-                        lessons_count: 0,
-                        challenges_count: 0,
-                        total_progress: 0
-                    };
-                }
-            })
-        );
-        
-        console.log('✅ Courses with statistics loaded:', coursesWithStats.length);
-        return coursesWithStats;
 
     } catch (error) {
         console.error("Error fetching courses with statistics:", error);
@@ -328,6 +346,7 @@ export const getCoursesWithStatistics = async () => {
 
 /**
  * Get course statistics (units, lessons, challenges count)
+ * ✅ FIXED: Now uses the optimized API endpoint with include_stats=true
  */
 export const getCourseStatistics = async (courseId: string) => {
     try {
@@ -338,10 +357,9 @@ export const getCourseStatistics = async (courseId: string) => {
         }
 
         console.log(`📊 Fetching statistics for course: ${courseId}`);
-        console.log(`🔗 API URL: ${API_BASE_URL}/practice/units/?course=${courseId}`);
 
-        // Buscar unidades do curso
-        const unitsResponse = await fetch(`${API_BASE_URL}/practice/units/?course=${courseId}`, {
+        // ✅ NEW APPROACH: Fetch courses with statistics instead of multiple API calls
+        const response = await fetch(`${API_BASE_URL}/practice/courses/?include_stats=true`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -349,75 +367,46 @@ export const getCourseStatistics = async (courseId: string) => {
             },
         });
 
-        let unitsCount = 0;
-        let lessonsCount = 0;
-        let challengesCount = 0;
-
-        console.log(`📊 Units response status: ${unitsResponse.status}`);
+        console.log(`📊 Course statistics response status: ${response.status}`);
         
-        if (unitsResponse.ok) {
-            const unitsData = await unitsResponse.json();
-            console.log(`📦 Found undefined units:`, unitsData);
-            const units = unitsData.results || unitsData || [];
-            unitsCount = units.length;
-            console.log(`📦 Found ${unitsCount} units:`, units);
+        if (response.ok) {
+            const coursesData = await response.json();
+            console.log(`📦 All courses data received:`, coursesData);
+            
+            // Find the specific course by ID
+            const course = coursesData.find((c: any) => c.id === courseId);
+            
+            if (course) {
+                const stats = {
+                    units_count: course.units_count || 0,
+                    lessons_count: course.lessons_count || 0,
+                    challenges_count: course.challenges_count || 0,
+                    total_progress: course.lessons_count > 0 ? Math.round((course.challenges_count / course.lessons_count) * 100) : 0
+                };
 
-            // Para cada unidade, buscar lições
-            for (const unit of units) {
-                try {
-                    const lessonsResponse = await fetch(`${API_BASE_URL}/practice/lessons/?unit=${unit.id}`, {
-                        method: 'GET',
-                        headers: {
-                            'Authorization': `Bearer ${token}`,
-                            'Content-Type': 'application/json',
-                        },
-                    });
-
-                    if (lessonsResponse.ok) {
-                        const lessonsData = await lessonsResponse.json();
-                        const lessons = lessonsData.results || lessonsData || [];
-                        lessonsCount += lessons.length;
-
-                        // Para cada lição, buscar challenges
-                        for (const lesson of lessons) {
-                            try {
-                                const challengesResponse = await fetch(`${API_BASE_URL}/practice/challenges/?lesson=${lesson.id}`, {
-                                    method: 'GET',
-                                    headers: {
-                                        'Authorization': `Bearer ${token}`,
-                                        'Content-Type': 'application/json',
-                                    },
-                                });
-
-                                if (challengesResponse.ok) {
-                                    const challengesData = await challengesResponse.json();
-                                    const challenges = challengesData.results || challengesData || [];
-                                    challengesCount += challenges.length;
-                                }
-                            } catch (error) {
-                                console.warn(`Erro ao buscar challenges da lição ${lesson.id}:`, error);
-                            }
-                        }
-                    }
-                } catch (error) {
-                    console.warn(`Erro ao buscar lições da unidade ${unit.id}:`, error);
-                }
+                console.log(`📊 Statistics for course ${courseId}:`, stats);
+                return stats;
+            } else {
+                console.warn(`❌ Course ${courseId} not found in courses list`);
+                return {
+                    units_count: 0,
+                    lessons_count: 0,
+                    challenges_count: 0,
+                    total_progress: 0
+                };
             }
         } else {
-            console.warn(`❌ Failed to fetch units for course ${courseId}. Status: ${unitsResponse.status}`);
-            const errorText = await unitsResponse.text();
+            console.warn(`❌ Failed to fetch courses. Status: ${response.status}`);
+            const errorText = await response.text();
             console.warn(`❌ Error response:`, errorText);
+            
+            return {
+                units_count: 0,
+                lessons_count: 0,
+                challenges_count: 0,
+                total_progress: 0
+            };
         }
-
-        const stats = {
-            units_count: unitsCount,
-            lessons_count: lessonsCount,
-            challenges_count: challengesCount,
-            total_progress: lessonsCount > 0 ? Math.round((challengesCount / lessonsCount) * 100) : 0
-        };
-
-        console.log(`📊 Statistics for course ${courseId}:`, stats);
-        return stats;
 
     } catch (error) {
         console.error(`Error fetching course statistics for ${courseId}:`, error);

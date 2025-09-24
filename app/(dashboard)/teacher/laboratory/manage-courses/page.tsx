@@ -33,18 +33,23 @@ import {
   Stethoscope,
   Scale,
   Layers,
+  Fuel,
+  Building2,
+  Crown,
+  Brain,
 } from "lucide-react";
-import { getPracticeCourses } from "@/actions/practice-management";
-import { CourseCreationDebugger } from "@/components/debug/CourseCreationDebugger";
-import "@/utils/courseDebugUtils"; // Load debug utilities
+import { useGetTeacherCoursesQuery } from "@/redux/features/api/practiceApiSlice";
 
 const ManageCoursesPage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { isAuthenticated } = useDjangoAuth();
+  const { isAuthenticated, user } = useDjangoAuth();
   
   // Feature flags
   const useReduxTeacher = useFeatureFlag('REDUX_TEACHER_MANAGEMENT');
+  
+  // Practice API Redux hooks - use teacher endpoint to include drafts
+  const { data: practiceCoursesData, isLoading: practiceLoading, error: practiceError, refetch: refetchPractice } = useGetTeacherCoursesQuery();
   
   // Redux hooks
   const { courses: reduxCourses, isLoading: reduxLoading, error: reduxError, refetch } = useTeacherCourses();
@@ -63,33 +68,32 @@ const ManageCoursesPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState("all"); // all, draft, published, archived
 
-  // Determine which data source to use
-  const courses = useReduxTeacher ? reduxCourses : legacyCourses;
-  const isLoading = useReduxTeacher ? reduxLoading : legacyLoading;
-  const error = useReduxTeacher ? reduxError : legacyError;
-
-  // Debug migration
-  if (process.env.NODE_ENV === 'development') {
-    console.log('🎓 Teacher Management Migration Status:', {
-      useReduxTeacher,
-      coursesCount: courses.length,
-      isLoading,
-      error,
-      timestamp: new Date().toISOString()
-    });
+  // Determine which data source to use - prioritize practiceApiSlice
+  const courses = (practiceCoursesData && Array.isArray(practiceCoursesData)) ? practiceCoursesData.map(course => ({
+    ...course,
+    status: course.status?.toLowerCase() || 'draft',
+    units: course.units_count || course.units || 0,
+    lessons: course.lessons_count || course.lessons || 0,
+    challenges: course.challenges_count || course.challenges || 0,
+    students: 0, // TODO: Add student count to API
+    completionRate: course.total_progress || 0,
+    lastUpdated: course.updated_at || new Date().toISOString(),
+    createdAt: course.created_at || new Date().toISOString()
+  })) : (useReduxTeacher ? reduxCourses : legacyCourses);
+  
+  const isLoading = practiceLoading || (useReduxTeacher ? reduxLoading : legacyLoading);
+  
+  // Handle error from practiceApiSlice properly
+  const practiceErrorMessage = practiceError ? 
+    ('data' in practiceError && practiceError.data && typeof practiceError.data === 'object' && 'message' in practiceError.data) 
+      ? String((practiceError.data as any).message)
+      : 'status' in practiceError 
+        ? `API Error ${practiceError.status}`
+        : 'Error loading practice courses'
+    : null;
     
-    // Log course details for teacher filtering verification
-    if (courses.length > 0) {
-      console.log('📚 TEACHER FILTER VERIFICATION - Courses loaded:', courses.map(c => ({
-        id: c.id,
-        title: c.title,
-        teacher_id: c.teacher_id,
-        teacher_email: c.teacher_email,
-        teacher_name: c.teacher_name,
-        status: c.status
-      })));
-    }
-  }
+  const error = practiceErrorMessage || (useReduxTeacher ? reduxError : legacyError);
+
 
   // Legacy data loading (fallback when Redux is disabled)
   useEffect(() => {
@@ -102,8 +106,7 @@ const ManageCoursesPage = () => {
   useEffect(() => {
     const shouldRefresh = searchParams.get('refresh') === 'true';
     if (shouldRefresh) {
-      console.log('🔄 Refresh parameter detected, force reloading courses...');
-      
+      refetchPractice(); // Always refetch practice data first
       if (useReduxTeacher) {
         refetch();
       } else {
@@ -114,12 +117,12 @@ const ManageCoursesPage = () => {
       const newUrl = window.location.pathname;
       window.history.replaceState({}, '', newUrl);
     }
-  }, [searchParams, useReduxTeacher, refetch]);
+  }, [searchParams, useReduxTeacher, refetch, refetchPractice]);
 
   // Reload courses when component is focused (useful when returning from create course page)
   useEffect(() => {
     const handleFocus = () => {
-      console.log('Window focused, reloading courses...');
+      refetchPractice(); // Always refetch practice data first
       if (useReduxTeacher) {
         refetch();
       } else {
@@ -129,7 +132,7 @@ const ManageCoursesPage = () => {
 
     const handleVisibilityChange = () => {
       if (!document.hidden) {
-        console.log('Page became visible, reloading courses...');
+        refetchPractice(); // Always refetch practice data first
         if (useReduxTeacher) {
           refetch();
         } else {
@@ -145,48 +148,11 @@ const ManageCoursesPage = () => {
       window.removeEventListener('focus', handleFocus);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [useReduxTeacher, refetch]);
+  }, [useReduxTeacher, refetch, refetchPractice]);
 
   const loadCoursesLegacy = async () => {
-    try {
-      console.log('🔄 ENHANCED Loading courses in manage-courses page (legacy)...');
-      console.log('🎯 Ensuring fresh data with cache-busting...');
-      setLegacyLoading(true);
-      const coursesData = await getPracticeCourses();
-      
-      console.log('📚 Raw courses data received:', coursesData);
-      console.log('📊 Course statuses from API:', coursesData.map((c: any) => ({ 
-        title: c.title, 
-        status: c.status,
-        id: c.id 
-      })));
-      
-      // Transform data and add mock statistics
-      const transformedCourses = coursesData.map((course: any) => ({
-        id: course.id,
-        title: course.title,
-        description: course.description,
-        category: course.category,
-        level: course.level,
-        status: course.status?.toLowerCase() || 'draft',
-        // Mock data - later we'll get from API
-        units: Math.floor(Math.random() * 8) + 2,
-        lessons: Math.floor(Math.random() * 30) + 10,
-        challenges: Math.floor(Math.random() * 150) + 50,
-        students: Math.floor(Math.random() * 100) + 5,
-        completionRate: Math.floor(Math.random() * 40) + 60,
-        lastUpdated: new Date(Date.now() - Math.random() * 10000000000).toISOString(),
-        createdAt: new Date(Date.now() - Math.random() * 100000000000).toISOString()
-      }));
-      
-      console.log('✅ Transformed courses:', transformedCourses);
-      setLegacyCourses(transformedCourses);
-    } catch (error) {
-      console.error('❌ Error loading courses:', error);
-      setLegacyError(error instanceof Error ? error.message : 'Error loading courses');
-    } finally {
-      setLegacyLoading(false);
-    }
+    // Legacy function removed - now using practiceApiSlice
+    console.log('🔄 Legacy course loading disabled - using practiceApiSlice');
   };
 
 
@@ -198,6 +164,10 @@ const ManageCoursesPage = () => {
       case 'technology': return Code;
       case 'medicine': return Stethoscope;
       case 'legal': return Scale;
+      case 'oil & gas': return Fuel;
+      case 'banking': return Building2;
+      case 'executive': return Crown;
+      case 'ai enhanced': return Brain;
       default: return BookOpen;
     }
   };
@@ -246,6 +216,7 @@ const ManageCoursesPage = () => {
             <p className="text-gray-400 text-center mb-6">{error}</p>
             <Button
               onClick={() => {
+                refetchPractice(); // Always refetch practice data first
                 if (useReduxTeacher) {
                   refetch();
                 } else {
@@ -504,6 +475,38 @@ const ManageCoursesPage = () => {
                   hoverColor: 'hover:border-yellow-500/60', 
                   textColor: 'text-yellow-400',
                   name: 'Jurídico'
+                },
+                'Oil & Gas': { 
+                  color: 'bg-orange-600', 
+                  lightColor: 'bg-orange-600/10', 
+                  borderColor: 'border-orange-600/30', 
+                  hoverColor: 'hover:border-orange-600/60', 
+                  textColor: 'text-orange-400',
+                  name: 'Petróleo & Gás'
+                },
+                'Banking': { 
+                  color: 'bg-indigo-600', 
+                  lightColor: 'bg-indigo-600/10', 
+                  borderColor: 'border-indigo-600/30', 
+                  hoverColor: 'hover:border-indigo-600/60', 
+                  textColor: 'text-indigo-400',
+                  name: 'Setor Bancário'
+                },
+                'Executive': { 
+                  color: 'bg-slate-700', 
+                  lightColor: 'bg-slate-700/10', 
+                  borderColor: 'border-slate-700/30', 
+                  hoverColor: 'hover:border-slate-700/60', 
+                  textColor: 'text-slate-400',
+                  name: 'Executivo'
+                },
+                'AI Enhanced': { 
+                  color: 'bg-pink-500', 
+                  lightColor: 'bg-pink-500/10', 
+                  borderColor: 'border-pink-500/30', 
+                  hoverColor: 'hover:border-pink-500/60', 
+                  textColor: 'text-pink-400',
+                  name: 'IA Personalizada'
                 }
               };
               
@@ -702,10 +705,6 @@ const ManageCoursesPage = () => {
         </div>
       </div>
 
-      {/* Debug Component (Development Only) */}
-      {process.env.NODE_ENV === 'development' && (
-        <CourseCreationDebugger />
-      )}
 
     </div>
   );

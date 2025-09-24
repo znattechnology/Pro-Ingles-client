@@ -37,14 +37,6 @@ const LearnCourse = () => {
   const useReduxCourses = useFeatureFlag('REDUX_COURSE_SELECTION');
   const useReduxProgress = useFeatureFlag('REDUX_USER_PROGRESS');
   
-  // Debug migration
-  if (process.env.NODE_ENV === 'development') {
-    console.log('🚀 Course Selection Migration Status:', {
-      useReduxCourses,
-      useReduxProgress,
-      timestamp: new Date().toISOString()
-    });
-  }
   
   // Redux state and dispatch
   const dispatch = useDispatch();

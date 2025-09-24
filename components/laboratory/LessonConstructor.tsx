@@ -32,7 +32,8 @@ import {
   Heart,
   Zap
 } from 'lucide-react';
-import { getCourseUnits, createPracticeUnit, createPracticeLesson } from '@/actions/practice-management';
+import { getCourseUnits, createPracticeLesson } from '@/actions/practice-management';
+import { useCreatePracticeUnitMutation } from '@/redux/features/laboratory/laboratoryApiSlice';
 import { 
   unitCreationSchema, 
   lessonCreationSchema, 
@@ -146,6 +147,9 @@ const LESSON_TEMPLATES: LessonTemplate[] = [
 ];
 
 export default function LessonConstructor({ course, onBack }: LessonConstructorProps) {
+  // Redux hooks
+  const [createPracticeUnit] = useCreatePracticeUnitMutation();
+  
   // State management
   const [currentStep, setCurrentStep] = useState(1);
   const [units, setUnits] = useState<Unit[]>([]);
@@ -326,7 +330,7 @@ export default function LessonConstructor({ course, onBack }: LessonConstructorP
       
       console.log('📝 Unit data to create:', unitData);
       
-      const newUnit = await createPracticeUnit(unitData);
+      const newUnit = await createPracticeUnit({ courseId: course.id, data: unitData }).unwrap();
       console.log('✅ Unit created successfully:', newUnit);
       
       // Verify unit creation
@@ -334,7 +338,7 @@ export default function LessonConstructor({ course, onBack }: LessonConstructorP
         throw new Error('Resposta inválida da API - unidade não foi criada corretamente');
       }
       
-      setUnits([...units, newUnit]);
+      setUnits([...units, newUnit as any]);
       setNewUnitData({ title: '', description: '', order: 1 });
       setUnitValidationErrors({});
       setUnitFieldTouched({});

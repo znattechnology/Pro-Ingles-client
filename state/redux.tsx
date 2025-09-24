@@ -10,16 +10,16 @@ import { api } from "@/state/api";
 import authSlice from "@/redux/features/auth/authSlice";
 import { apiSlice } from "@/redux/features/api/apiSlice";
 import { adminApi } from "@/redux/features/admin/adminApi";
-import { courseApi } from "@/redux/features/courses/coursesApi";
+import courseEditorSlice from "@/redux/features/courseEditor/courseEditorSlice";
 
 /* REDUX STORE */
 const rootReducer = combineReducers({
   global: globalReducer,
   auth: authSlice,
+  courseEditor: courseEditorSlice,
   [api.reducerPath]: api.reducer,
   [apiSlice.reducerPath]: apiSlice.reducer,
   [adminApi.reducerPath]: adminApi.reducer,
-  [courseApi.reducerPath]: courseApi.reducer,
 });
 
 export const makeStore = () => {
@@ -50,7 +50,7 @@ export const makeStore = () => {
             "meta.baseQueryMeta.response",
           ],
         },
-      }).concat(api.middleware, apiSlice.middleware, adminApi.middleware, courseApi.middleware),
+      }).concat(api.middleware, apiSlice.middleware, adminApi.middleware),
   });
 };
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -9,15 +9,15 @@ import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { motion } from 'framer-motion';
 import LessonConstructor from '@/components/laboratory/LessonConstructor';
-import { getCoursesWithStatistics } from '@/actions/practice-management';
+import { useGetTeacherCoursesQuery } from '@/redux/features/api/practiceApiSlice';
 
 interface Course {
   id: string;
   title: string;
-  description: string;
-  level: string;
-  category: string;
-  status: string;
+  description?: string;
+  level?: string;
+  category?: string;
+  status?: string;
   // Estatísticas do curso (sem challenges para lesson-constructor)
   units_count?: number;
   lessons_count?: number;
@@ -25,33 +25,20 @@ interface Course {
 
 export default function LessonConstructorPage() {
   const router = useRouter();
-  const [courses, setCourses] = useState<Course[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [loading, setLoading] = useState(true);
-
-  // Load courses on component mount
-  useEffect(() => {
-    loadCourses();
-  }, []);
-
-  const loadCourses = async () => {
-    try {
-      setLoading(true);
-      const coursesData = await getCoursesWithStatistics();
-      setCourses(coursesData || []);
-    } catch (error) {
-      console.error('Error loading courses:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  
+  // Use Redux hook to get teacher courses (including drafts)
+  const { data: coursesData, isLoading: loading, error } = useGetTeacherCoursesQuery();
+  
+  // Transform courses data to match expected interface
+  const courses = coursesData || [];
 
   // Filter courses based on search term
   const filteredCourses = courses.filter(course =>
     course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    course.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    course.level.toLowerCase().includes(searchTerm.toLowerCase())
+    (course.category && course.category.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (course.level && course.level.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const handleBackToLaboratory = () => {
@@ -64,9 +51,18 @@ export default function LessonConstructorPage() {
 
   // If a course is selected, show the lesson constructor
   if (selectedCourse) {
+    // Transform course to match LessonConstructor's expected interface
+    const lessonConstructorCourse = {
+      id: selectedCourse.id,
+      title: selectedCourse.title,
+      description: selectedCourse.description || '',
+      level: selectedCourse.level || 'Beginner',
+      category: selectedCourse.category || 'General'
+    };
+    
     return (
       <LessonConstructor 
-        course={selectedCourse} 
+        course={lessonConstructorCourse} 
         onBack={handleBackToCourseSelection}
       />
     );
@@ -430,12 +426,12 @@ export default function LessonConstructorPage() {
                         <Badge 
                           variant="outline" 
                           className={`text-xs font-medium ${
-                            course.status === 'Published' 
+                            (course.status || '').toLowerCase() === 'published' 
                               ? 'border-emerald-500/50 text-emerald-400 bg-emerald-500/10' 
                               : 'border-amber-500/50 text-amber-400 bg-amber-500/10'
                           }`}
                         >
-                          {course.status === 'Published' ? 'Publicado' : 'Rascunho'}
+                          {(course.status || '').toLowerCase() === 'published' ? 'Publicado' : 'Rascunho'}
                         </Badge>
                         <motion.div
                           whileHover={{ rotate: 15, scale: 1.2 }}
@@ -462,7 +458,7 @@ export default function LessonConstructorPage() {
                     </CardHeader>
                     <CardContent className="relative space-y-4">
                       <p className="text-gray-400 text-sm line-clamp-2 leading-relaxed">
-                        {course.description}
+                        {course.description || 'Sem descrição disponível'}
                       </p>
                       
                       {/* Course Statistics Grid */}
@@ -498,12 +494,12 @@ export default function LessonConstructorPage() {
                         <div className="flex gap-2">
                           <motion.div whileHover={{ scale: 1.05 }}>
                             <Badge variant="secondary" className="text-xs bg-gradient-to-r from-violet-500/10 to-violet-500/20 text-violet-300 border-violet-500/30 shadow-sm">
-                              {course.category}
+                              {course.category || 'General'}
                             </Badge>
                           </motion.div>
                           <motion.div whileHover={{ scale: 1.05 }}>
                             <Badge variant="secondary" className="text-xs bg-gradient-to-r from-purple-500/10 to-purple-500/20 text-purple-300 border-purple-500/30 shadow-sm">
-                              {course.level}
+                              {course.level || 'Beginner'}
                             </Badge>
                           </motion.div>
                         </div>

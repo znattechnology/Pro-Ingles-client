@@ -3,7 +3,7 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import { useDjangoAuth } from "@/hooks/useDjangoAuth";
-import { useGetAllCoursesQuery } from "@/redux/features/courses/coursesApi";
+import { useGetAllTeacherCoursesQuery } from "@/redux/features/api/coursesApiSlice";
 import Loading from "@/components/course/Loading";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,10 +26,12 @@ const TeacherDashboard = () => {
   const router = useRouter();
   const { user, isAuthenticated, isLoading: authLoading } = useDjangoAuth();
   const {
-    data: courses,
+    data: coursesResponse,
     isLoading,
     isError,
-  } = useGetAllCoursesQuery({ category: "all" });
+  } = useGetAllTeacherCoursesQuery({ category: "all" });
+  
+  const courses = coursesResponse?.data || [];
 
   // Calculate teacher stats
   const teacherStats = React.useMemo(() => {

@@ -39,7 +39,6 @@ import {
   CircleDot,
   Sparkles
 } from "lucide-react";
-import { ReduxMigrationTest } from "@/components/debug/ReduxMigrationTest";
 
 const LearnPage = () => {
   const router = useRouter();
@@ -73,17 +72,6 @@ const LearnPage = () => {
   const isLoading = useReduxMainPage ? reduxLoading : legacyIsLoading;
   const error = useReduxMainPage ? reduxError : legacyError;
 
-  // Debug migration
-  if (process.env.NODE_ENV === 'development') {
-    console.log('🏠 Main Learn Page Migration Status:', {
-      useReduxMainPage,
-      hasReduxData: !!reduxData,
-      reduxLoading,
-      reduxError,
-      activeCourse: reduxData?.activeCourse?.title,
-      timestamp: new Date().toISOString()
-    });
-  }
   
   // Legacy data loading (fallback when Redux is disabled)
   useEffect(() => {
@@ -95,65 +83,50 @@ const LearnPage = () => {
           // Check if user is authenticated
           const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
           if (!token) {
-            console.warn('No authentication token found, redirecting to login');
             router.push('/auth/signin');
             return;
           }
           
-          console.log('🔄 Legacy: Starting data fetch for learn page');
-          
           // First get user progress to check for active course
           const userProgressData = await getUserProgress();
-          console.log('🔄 Legacy: User progress result:', userProgressData);
           
           if (!userProgressData) {
-            console.warn('🔄 Legacy: No user progress data, redirecting to courses');
             router.push("/user/laboratory/learn/courses");
             return;
           }
 
           if (!userProgressData.active_course) {
-            console.warn('🔄 Legacy: No active course, redirecting to courses');
             router.push("/user/laboratory/learn/courses");
             return;
           }
 
           setLegacyUserProgress(userProgressData);
-          console.log('🔄 Legacy: User progress set successfully');
 
           // Get course data
           const courseId = userProgressData.active_course.id;
-          console.log('🔄 Legacy: Fetching data for course ID:', courseId);
           
           const [unitsData, courseProgressData] = await Promise.all([
             getUnits(courseId),
             getCourseProgress(courseId)
           ]);
-
-          console.log('🔄 Legacy: Units data received:', unitsData);
-          console.log('🔄 Legacy: Course progress data received:', courseProgressData);
           
           setLegacyUnits(unitsData || []);
           setLegacyCourseProgress(courseProgressData as any);
 
           // Get lesson percentage if there's an active lesson
           if (courseProgressData?.activeLessonId) {
-            console.log('🔄 Legacy: Fetching lesson percentage for:', courseProgressData.activeLessonId);
             const percentage = await getLessonPercentage(courseProgressData.activeLessonId);
             setLegacyLessonPercentage(percentage);
           }
 
         } catch (error: any) {
-          console.error("🔄 Legacy: Error loading learn page:", error);
           setLegacyError(error?.message || 'Failed to load learning data');
           
           // Check if it's an authentication error
           if (error?.message?.includes('401') || error?.message?.includes('Unauthorized')) {
-            console.warn('🔄 Legacy: Authentication error, redirecting to login');
             setLegacyError('Authentication required. Redirecting to login...');
             setTimeout(() => router.push('/auth/signin'), 2000);
           } else {
-            console.warn('🔄 Legacy: General error, redirecting to courses');
             setLegacyError('Failed to load course data. Redirecting to courses...');
             setTimeout(() => router.push("/user/laboratory/learn/courses"), 2000);
           }
@@ -280,7 +253,7 @@ const LearnPage = () => {
               </div>
               <div className="flex-1">
                 <h1 className="text-3xl font-bold text-white mb-1 bg-gradient-to-r from-white to-gray-300 bg-clip-text">
-                  {activeCourse?.title || 'Carregando...'} {useReduxMainPage && '🔄'}
+                  {activeCourse?.title || 'Carregando...'}
                 </h1>
                 <p className="text-customgreys-dirtyGrey">
                   Continue sua jornada de aprendizagem • {courseProgressPercentage}% concluído
@@ -485,7 +458,7 @@ const LearnPage = () => {
           <FeedWrapper>
             {/* Course Header */}
             <div className="mb-8">
-              <LearnHeader title={`${activeCourse?.title || 'Carregando...'} ${useReduxMainPage ? '🔄' : ''}`} />
+              <LearnHeader title={activeCourse?.title || 'Carregando...'} />
               
               {/* Enhanced Progress Summary */}
               {userStats.totalLessons > 0 && (
@@ -495,7 +468,7 @@ const LearnPage = () => {
                       <div className="flex items-center gap-2">
                         <CheckCircle className="w-4 h-4 text-green-400" />
                         <span className="text-white font-medium">
-                          Progresso do Curso {useReduxMainPage && '🔄'}
+                          Progresso do Curso
                         </span>
                       </div>
                       <div className="text-right">
@@ -602,10 +575,6 @@ const LearnPage = () => {
         </div>
       </div>
 
-      {/* Redux Migration Test Component (Debug Only) */}
-      {process.env.NODE_ENV === 'development' && useReduxMainPage && (
-        <ReduxMigrationTest />
-      )}
     </div>
   );
 };

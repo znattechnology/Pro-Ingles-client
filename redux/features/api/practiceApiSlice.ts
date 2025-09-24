@@ -8,6 +8,20 @@ export interface Course {
   image?: string;
   category?: string;
   level?: string;
+  // Statistics fields from Django API
+  units?: number;
+  lessons?: number;
+  challenges?: number;
+  units_count?: number;
+  lessons_count?: number;
+  challenges_count?: number;
+  totalUnits?: number;
+  total_lessons?: number;
+  total_challenges?: number;
+  total_progress?: number;
+  status?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface ChallengeOption {
@@ -75,12 +89,56 @@ export interface ChallengeProgress {
 // API endpoints
 export const practiceApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    // Get all courses
+    // Get all courses with statistics (published only - for students)
     getCourses: builder.query<Course[], void>({
       query: () => ({
         url: "practice/courses/",
         method: "GET",
+        params: { 
+          include_stats: 'true' // Include statistics for course cards
+        },
       }),
+      transformResponse: (response: any[]) => {
+        console.log('🎓 Practice courses with statistics (published only):', response);
+        // Map Django API statistics fields to expected format
+        return response.map(course => ({
+          ...course,
+          // Ensure consistent property naming for statistics
+          units: course.units_count || course.totalUnits || 0,
+          lessons: course.lessons_count || course.total_lessons || 0,
+          challenges: course.challenges_count || course.total_challenges || 0,
+          totalUnits: course.units_count || course.totalUnits || 0,
+          total_lessons: course.lessons_count || course.total_lessons || 0,
+          total_challenges: course.challenges_count || course.total_challenges || 0,
+        }));
+      },
+      providesTags: ["Course"],
+    }),
+
+    // Get all courses with statistics including drafts (for teachers)
+    getTeacherCourses: builder.query<Course[], void>({
+      query: () => ({
+        url: "practice/courses/",
+        method: "GET",
+        params: { 
+          include_stats: 'true',
+          include_drafts: 'true' // Include draft courses for teachers
+        },
+      }),
+      transformResponse: (response: any[]) => {
+        console.log('🎓 Teacher courses with statistics (including drafts):', response);
+        // Map Django API statistics fields to expected format
+        return response.map(course => ({
+          ...course,
+          // Ensure consistent property naming for statistics
+          units: course.units_count || course.totalUnits || 0,
+          lessons: course.lessons_count || course.total_lessons || 0,
+          challenges: course.challenges_count || course.total_challenges || 0,
+          totalUnits: course.units_count || course.totalUnits || 0,
+          total_lessons: course.lessons_count || course.total_lessons || 0,
+          total_challenges: course.challenges_count || course.total_challenges || 0,
+        }));
+      },
       providesTags: ["Course"],
     }),
     // Get user progress
@@ -99,7 +157,47 @@ export const practiceApiSlice = apiSlice.injectEndpoints({
         method: "PUT",
         body: updates,
       }),
-      invalidatesTags: ["UserProgress"],
+      invalidatesTags: [
+        "UserProgress",
+        "CourseUnits", 
+        "CourseUnitsWithProgress"
+      ],
+    }),
+
+    // Update active course - more specific mutation for course selection
+    updateActiveCourse: builder.mutation<UserProgress, string>({
+      queryFn: async (courseId, _queryApi, __, baseQuery) => {
+        try {
+          // First get the course object
+          const coursesResult = await baseQuery('practice/courses/');
+          if (coursesResult.error) return { error: coursesResult.error };
+          
+          const courses = coursesResult.data as any[];
+          const course = courses.find((c: any) => c.id === courseId);
+          
+          if (!course) {
+            return { error: { status: 404, data: { message: 'Course not found' } } };
+          }
+          
+          // Update user progress with the selected course
+          const updateResult = await baseQuery({
+            url: 'practice/user-progress/',
+            method: 'PUT',
+            body: { active_course: course }
+          });
+          
+          return updateResult.error ? { error: updateResult.error } : { data: updateResult.data };
+        } catch (error) {
+          return { error: { status: 500, data: { message: 'Failed to update active course' } } };
+        }
+      },
+      invalidatesTags: [
+        "UserProgress",
+        "CourseUnits", 
+        "CourseUnitsWithProgress",
+        "LessonDetail",
+        "LessonPercentage"
+      ],
     }),
 
     // Get course units
@@ -190,8 +288,10 @@ export const practiceApiSlice = apiSlice.injectEndpoints({
 
 export const {
   useGetCoursesQuery,
+  useGetTeacherCoursesQuery,
   useGetUserProgressQuery,
   useUpdateUserProgressMutation,
+  useUpdateActiveCourseMutation,
   useGetCourseUnitsQuery,
   useGetCourseUnitsWithProgressQuery,
   useGetLessonDetailQuery,
