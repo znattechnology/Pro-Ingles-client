@@ -6,120 +6,47 @@
  * 🔄 REDUX MIGRATION: This component now supports Redux with feature flags
  */
 
-import { getLesson, getUserProgress } from "@/db/django-queries";
 import { useRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
 import { Quiz } from "./quiz";
 import Loading from "@/components/course/Loading";
-import { useFeatureFlag } from '@/lib/featureFlags';
+// Direct Redux imports
 import { 
-  useGetLessonDetailQuery,
-  useGetUserProgressQuery,
-} from '@/redux/features/laboratory/laboratoryApiSlice';
-import { 
-  useLearnPageNavigation 
-} from '@/redux/features/laboratory/hooks/useMainLearnPage';
-import {
-  useFullUserProgressManagement
-} from '@/redux/features/laboratory/hooks/useUserProgress';
+  useGetLessonQuery,
+  useGetUserProgressQuery 
+} from '@/src/modules/student';
 
 const LessonPage = () => {
   const router = useRouter();
   
-  // Feature flags
-  const useReduxLesson = useFeatureFlag('REDUX_PRACTICE_SESSION');
-  const useReduxProgress = useFeatureFlag('REDUX_USER_PROGRESS');
-  
-  // Redux hooks
+  // Redux hooks - direct usage now
   const {
-    userProgress: reduxUserProgress,
-    isLoading: reduxProgressLoading,
-    error: reduxProgressError,
-    hearts: reduxHearts,
-  } = useFullUserProgressManagement();
+    data: userProgress,
+    isLoading: progressLoading,
+    error: progressError
+  } = useGetUserProgressQuery();
   
   // Get active lesson ID from user progress
-  const activeLessonId = reduxUserProgress?.active_course?.id;
+  const activeLessonId = userProgress?.active_course?.id;
   
   // Redux lesson data (only if we have an active lesson)
   const { 
-    data: reduxLesson, 
-    isLoading: reduxLessonLoading, 
-    error: reduxLessonError 
-  } = useGetLessonDetailQuery(activeLessonId, {
-    skip: !useReduxLesson || !activeLessonId,
+    data: lesson, 
+    isLoading: lessonLoading, 
+    error: lessonError 
+  } = useGetLessonQuery(activeLessonId, {
+    skip: !activeLessonId,
   });
   
-  // Legacy state
-  const [legacyLesson, setLegacyLesson] = useState(null);
-  const [legacyUserProgress, setLegacyUserProgress] = useState(null);
-  const [legacyIsLoading, setLegacyIsLoading] = useState(true);
-  
-  // Determine data source
-  const lesson = useReduxLesson ? reduxLesson : legacyLesson;
-  const userProgress = useReduxProgress ? reduxUserProgress : legacyUserProgress;
-  const isLoading = useReduxLesson ? (reduxLessonLoading || reduxProgressLoading) : legacyIsLoading;
-  const error = useReduxLesson ? (reduxLessonError || reduxProgressError) : null;
-  
-  // Navigation helpers
-  const navigation = useLearnPageNavigation();
+  const isLoading = lessonLoading || progressLoading;
+  const error = lessonError || progressError;
 
-  // Debug migration
-  if (process.env.NODE_ENV === 'development') {
-    console.log('📝 Lesson Page Migration Status:', {
-      useReduxLesson,
-      useReduxProgress,
-      hasReduxLesson: !!reduxLesson,
-      hasReduxUserProgress: !!reduxUserProgress,
-      activeLessonId,
-      reduxLessonLoading,
-      reduxProgressLoading,
-      timestamp: new Date().toISOString()
-    });
-  }
-
-  // Legacy data loading (fallback when Redux is disabled)
+  // Handle navigation and redirects
   useEffect(() => {
-    if (!useReduxLesson || !useReduxProgress) {
-      const fetchData = async () => {
-        try {
-          setLegacyIsLoading(true);
-          console.log('🔄 Legacy: Loading lesson page data...');
-          
-          const [lessonData, userProgressData] = await Promise.all([
-            getLesson(),
-            getUserProgress(),
-          ]);
-
-          if (!lessonData || !userProgressData) {
-            console.warn('🔄 Legacy: No lesson or user progress data, redirecting...');
-            router.push("/user/laboratory/learn");
-            return;
-          }
-
-          setLegacyLesson(lessonData);
-          setLegacyUserProgress(userProgressData);
-        } catch (error) {
-          console.error("🔄 Legacy: Error fetching lesson data:", error);
-          router.push("/user/laboratory/learn");
-        } finally {
-          setLegacyIsLoading(false);
-        }
-      };
-
-      fetchData();
+    if (userProgress && !progressLoading && !activeLessonId) {
+      router.push("/user/laboratory/learn");
     }
-  }, [router, useReduxLesson, useReduxProgress]);
-  
-  // Handle Redux navigation and redirects
-  useEffect(() => {
-    if (useReduxProgress && reduxUserProgress && !reduxProgressLoading) {
-      const shouldContinue = navigation.navigateToActiveCourse(router, reduxUserProgress);
-      if (!shouldContinue) {
-        return;
-      }
-    }
-  }, [useReduxProgress, reduxUserProgress, reduxProgressLoading, router, navigation]);
+  }, [userProgress, progressLoading, activeLessonId, router]);
 
   if (isLoading) {
     return <Loading />;
@@ -142,16 +69,17 @@ const LessonPage = () => {
         lesson.challenges.length) * 100
     : 0;
 
-  // Get hearts count based on source
-  const hearts = useReduxProgress ? reduxHearts?.heartsCount : (userProgress as any)?.hearts;
+  // Get hearts count from user progress
+  const hearts = (userProgress as any)?.hearts || 5;
 
   return (
     <Quiz
       initialLessonId={lesson.id}
       initialLessonChallenges={lesson.challenges || []}
-      initialHearts={hearts || 5}
+      initialHearts={hearts}
       initialPercentage={initialPercentage}
       userSubscription={null}
+      useReduxPractice={true}
     />
   );
 };

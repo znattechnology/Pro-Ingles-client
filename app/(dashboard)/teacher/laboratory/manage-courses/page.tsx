@@ -38,7 +38,7 @@ import {
   Crown,
   Brain,
 } from "lucide-react";
-import { useGetTeacherCoursesQuery } from "@/redux/features/api/practiceApiSlice";
+import { useGetTeacherCoursesQuery } from "@modules/learning/practice-courses";
 
 const ManageCoursesPage = () => {
   const router = useRouter();

@@ -2,10 +2,7 @@
 
 import { LaboratoryCard } from "./laboratory-card";
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
-import { upsertUserProgress } from "@/actions/user-progress";
-import { useUpdateActiveCourseMutation } from "@/redux/features/api/practiceApiSlice";
-import { useFeatureFlag } from "@/lib/featureFlags";
+import { useUpdateActiveCourseMutation } from "@modules/learning/practice-courses";
 import { toast } from "sonner";
 
 // Define types for Django API responses
@@ -31,10 +28,6 @@ type Props = {
 
 export const LaboratoryList = ({courses, activeCourseId, viewMode = 'grid'}: Props) => {
     const router = useRouter();
-    const [pending, startTransition] = useTransition();
-    
-    // Feature flag for Redux usage
-    const useReduxMutation = useFeatureFlag('REDUX_USER_PROGRESS');
     
     // Redux mutation for updating active course
     const [updateActiveCourse, { isLoading: isUpdatingCourse }] = useUpdateActiveCourseMutation();
@@ -120,13 +113,12 @@ export const LaboratoryList = ({courses, activeCourseId, viewMode = 'grid'}: Pro
 
     const onClick = (id: string) => {
         console.log('🔍 ONCLICK DEBUG: Function called with courseId:', id);
-        console.log('🔍 ONCLICK DEBUG: pending state:', pending, 'updating course:', isUpdatingCourse);
+        console.log('🔍 ONCLICK DEBUG: updating course:', isUpdatingCourse);
         console.log('🔍 ONCLICK DEBUG: activeCourseId:', activeCourseId);
         console.log('🔍 ONCLICK DEBUG: is same course?', id === activeCourseId);
-        console.log('🔍 ONCLICK DEBUG: useReduxMutation:', useReduxMutation);
         
-        if (pending || isUpdatingCourse) {
-            console.log('⏳ ONCLICK DEBUG: Blocked by pending/updating state');
+        if (isUpdatingCourse) {
+            console.log('⏳ ONCLICK DEBUG: Blocked by updating state');
             return;
         }
         
@@ -135,32 +127,17 @@ export const LaboratoryList = ({courses, activeCourseId, viewMode = 'grid'}: Pro
             return router.push("/user/laboratory/learn");
         }
         
-        if (useReduxMutation) {
-            console.log('🚀 ONCLICK DEBUG: Using Redux mutation for course selection');
-            updateActiveCourse(id)
-                .unwrap()
-                .then(() => {
-                    console.log('✅ ONCLICK DEBUG: Redux mutation successful, redirecting');
-                    router.push("/user/laboratory/learn");
-                })
-                .catch((error) => {
-                    console.error("❌ ONCLICK DEBUG: Redux mutation error:", error);
-                    toast.error("Erro ao selecionar curso");
-                });
-        } else {
-            console.log('🚀 ONCLICK DEBUG: Using legacy transition for course selection');
-            startTransition(async () => {
-                try {
-                    console.log('📤 ONCLICK DEBUG: Calling upsertUserProgress with courseId:', id);
-                    await upsertUserProgress(id);
-                    console.log('✅ ONCLICK DEBUG: upsertUserProgress successful, redirecting');
-                    router.push("/user/laboratory/learn");
-                } catch (error) {
-                    console.error("❌ ONCLICK DEBUG: Error selecting course:", error);
-                    toast.error("Alguma coisa não correu bem");
-                }
+        console.log('🚀 ONCLICK DEBUG: Using Redux mutation for course selection');
+        updateActiveCourse(id)
+            .unwrap()
+            .then(() => {
+                console.log('✅ ONCLICK DEBUG: Redux mutation successful, redirecting');
+                router.push("/user/laboratory/learn");
+            })
+            .catch((error) => {
+                console.error("❌ ONCLICK DEBUG: Redux mutation error:", error);
+                toast.error("Erro ao selecionar curso");
             });
-        }
     }
 
     // Function to get course statistics (from Redux API with include_stats)
@@ -205,7 +182,7 @@ export const LaboratoryList = ({courses, activeCourseId, viewMode = 'grid'}: Pro
                         totalChallenges={stats.totalChallenges}
                         progress={stats.progress}
                         onClick={onClick}
-                        disabled={pending}
+                        disabled={isUpdatingCourse}
                         active={course.id === activeCourseId}
                         viewMode={viewMode}
                     />

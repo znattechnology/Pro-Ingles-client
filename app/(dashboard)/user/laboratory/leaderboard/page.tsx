@@ -37,7 +37,7 @@ import {
   type LeaderboardEntry,
   type League,
   type Competition
-} from '@/redux/features/leaderboard/leaderboardApi';
+} from '@modules/gamification';
 
 
 export default function LeaderboardPage() {

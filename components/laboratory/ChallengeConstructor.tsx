@@ -41,7 +41,17 @@ import {
   Star,
   Trophy
 } from 'lucide-react';
-import { getCourseUnits, getUnitLessons, createPracticeChallenge, getPracticeLessonDetails, uploadAudioToS3, uploadImageToS3, updateChallengeOption, generateTranslationSuggestions, generatePronunciationExercise, generateReferenceAudio } from '@/actions/practice-management';
+import { 
+  useGetCourseUnitsQuery,
+  useGetUnitLessonsQuery,
+  useCreatePracticeChallengeMutation,
+  useGetPracticeLessonDetailsQuery,
+  useUpdateCourseOptionMutation,
+  useGenerateTranslationSuggestionsMutation,
+  uploadAudioToS3,
+  uploadImageToS3,
+  generateReferenceAudio
+} from '@modules/teacher';
 
 interface Course {
   id: string;
@@ -274,9 +284,24 @@ interface ChallengeConstructorProps {
 }
 
 export default function ChallengeConstructor({ course, onBack }: ChallengeConstructorProps) {
+  // State management (for selected unit tracking)
+  const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
+  const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
+  
+  // Redux hooks
+  const { data: unitsData, isLoading: unitsLoading, error: unitsError } = useGetCourseUnitsQuery(course.id);
+  const { data: lessonsData, isLoading: lessonsLoading } = useGetUnitLessonsQuery(selectedUnitId || '', {
+    skip: !selectedUnitId
+  });
+  const { data: lessonDetails } = useGetPracticeLessonDetailsQuery(selectedLessonId || '', {
+    skip: !selectedLessonId
+  });
+  const [createPracticeChallenge] = useCreatePracticeChallengeMutation();
+  const [updateCourseOption] = useUpdateCourseOptionMutation();
+  const [generateTranslationSuggestions] = useGenerateTranslationSuggestionsMutation();
+  
   // State management
   const [currentStep, setCurrentStep] = useState(1);
-  const [units, setUnits] = useState<Unit[]>([]);
   const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null);
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<ChallengeTemplate | null>(null);
@@ -297,6 +322,11 @@ export default function ChallengeConstructor({ course, onBack }: ChallengeConstr
   const [previewMode, setPreviewMode] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  // Get units and lessons from Redux data
+  const units = unitsData?.units || [];
+  const lessons = lessonsData || [];
+  const isLoadingData = unitsLoading || lessonsLoading;
+
   // Real-time validation
   const challengeValidation = useChallengeValidation({
     type: currentChallenge.type,
@@ -316,51 +346,26 @@ export default function ChallengeConstructor({ course, onBack }: ChallengeConstr
   const [referenceAudioUrl, setReferenceAudioUrl] = useState<string>('');
   const [generatingAudio, setGeneratingAudio] = useState(false);
 
-  // Load course units
+  // Units are loaded automatically by Redux hook
   useEffect(() => {
-    loadCourseUnits();
-  }, []);
-
-  const loadCourseUnits = async () => {
-    try {
-      setLoading(true);
-      const unitsData = await getCourseUnits(course.id);
-      setUnits(unitsData || []);
-    } catch (error) {
-      console.error('Error loading units:', error);
-    } finally {
-      setLoading(false);
+    if (unitsError) {
+      console.error('Error loading units from Redux:', unitsError);
     }
-  };
+  }, [unitsError]);
 
-  // Load lessons for selected unit
-  const loadUnitLessons = async (unitId: string) => {
-    try {
-      setLoading(true);
-      const lessonsData = await getUnitLessons(unitId);
-      const updatedUnits = units.map(unit =>
-        unit.id === unitId ? { ...unit, lessons: lessonsData || [] } : unit
-      );
-      setUnits(updatedUnits);
-    } catch (error) {
-      console.error('Error loading lessons:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Handle unit selection
-  const handleUnitSelection = async (unit: Unit) => {
+  const handleUnitSelection = (unit: Unit | any) => {
     setSelectedUnit(unit);
-    if (!unit.lessons || unit.lessons.length === 0) {
-      await loadUnitLessons(unit.id);
-    }
+    setSelectedUnitId(unit.id); // This will trigger the useGetUnitLessonsQuery hook
+    setSelectedLesson(null); // Reset selected lesson
     setCurrentStep(2);
   };
 
   // Handle lesson selection
   const handleLessonSelection = (lesson: Lesson) => {
     setSelectedLesson(lesson);
+    setSelectedLessonId(lesson.id); // This will trigger the useGetPracticeLessonDetailsQuery hook
     setCurrentStep(3);
   };
 
@@ -490,11 +495,11 @@ export default function ChallengeConstructor({ course, onBack }: ChallengeConstr
         sourceText: currentChallenge.question,
         difficultyLevel: 'intermediate',
         count: 3
-      });
+      }).unwrap();
 
-      if (result.success && result.suggestions) {
-        setAiSuggestions(result.suggestions);
-        console.log('✅ AI suggestions received:', result.suggestions);
+      if (result && Array.isArray(result)) {
+        setAiSuggestions(result);
+        console.log('✅ AI suggestions received:', result);
       } else {
         console.warn('⚠️ No suggestions received from AI');
         setAiSuggestions(['Tradução sugerida pela IA não disponível']);
@@ -515,11 +520,15 @@ export default function ChallengeConstructor({ course, onBack }: ChallengeConstr
       setPronunciationSuggestion(null);
       console.log('🎤 Generating pronunciation exercise with AI...');
       
-      const result = await generatePronunciationExercise({
-        topic: selectedLesson?.title || 'daily conversation',
-        difficultyLevel: 'intermediate',
-        exerciseType: 'sentence'
-      });
+      // TODO: Implement pronunciation exercise generation with Redux
+      // const result = await generatePronunciationExercise({
+      //   topic: selectedLesson?.title || 'daily conversation',
+      //   difficultyLevel: 'intermediate',
+      //   exerciseType: 'sentence'
+      // });
+      
+      // Temporary placeholder until API is implemented
+      const result = { success: false };
       
       if (result.success && result.exercise) {
         const exercise = result.exercise;
@@ -727,10 +736,9 @@ export default function ChallengeConstructor({ course, onBack }: ChallengeConstr
         throw new Error(`Tipo de desafio não mapeado: ${currentChallenge.type}`);
       }
       
-      // Get the next available order number by fetching current challenges from backend
-      console.log('🔄 Fetching current challenges from backend...');
-      const lessonDetails = await getPracticeLessonDetails(selectedLesson.id);
-      const existingChallenges = lessonDetails.challenges || [];
+      // Get the next available order number from the Redux lesson details
+      console.log('🔄 Getting current challenges from Redux...');
+      const existingChallenges = lessonDetails?.challenges || [];
       const maxOrder = existingChallenges.length > 0 
         ? Math.max(...existingChallenges.map((c: any) => c.order || 0))
         : 0;
@@ -752,20 +760,20 @@ export default function ChallengeConstructor({ course, onBack }: ChallengeConstr
       
       // Create the challenge first with toast notification
       const createdChallenge = await laboratoryNotifications.asyncOperation(
-        createPracticeChallenge(challengeData),
+        createPracticeChallenge(challengeData).unwrap(),
         'Criando exercício',
         selectedTemplate?.name || 'Exercício'
       );
-      console.log('✅ Challenge created successfully!');
+      console.log('✅ Challenge created successfully:', createdChallenge);
 
 
       // Handle media uploads for each option in listening challenges
-      if (currentChallenge.type === 'listening' && createdChallenge.createdOptions) {
+      if (currentChallenge.type === 'listening' && createdChallenge.options) {
         console.log('🎯 Processing media uploads for each option...');
         
         for (let i = 0; i < currentChallenge.options.length; i++) {
           const option = currentChallenge.options[i];
-          const createdOption = createdChallenge.createdOptions[i];
+          const createdOption = createdChallenge.options[i];
           
           if (!createdOption) {
             console.warn(`⚠️ Skipping option ${i + 1} - creation failed`);
@@ -812,7 +820,7 @@ export default function ChallengeConstructor({ course, onBack }: ChallengeConstr
           if (Object.keys(updateData).length > 0) {
             try {
               console.log(`🔄 Updating option ${i + 1} in database...`);
-              await updateChallengeOption(createdOption.id, updateData);
+              await updateCourseOption({ optionId: createdOption.id, data: updateData }).unwrap();
               console.log(`✅ Option ${i + 1} updated successfully in database`);
             } catch (error) {
               console.error(`❌ Failed to update option ${i + 1} in database:`, error);

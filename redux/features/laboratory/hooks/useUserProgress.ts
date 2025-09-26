@@ -6,17 +6,12 @@
  */
 
 import { useCallback } from 'react';
-import { useFeatureFlag } from '@/lib/featureFlags';
 import { 
   useGetUserProgressQuery,
   useUpdateUserProgressMutation,
   useReduceHeartsMutation,
   useRefillHeartsMutation,
 } from '../laboratoryApiSlice';
-
-// Legacy imports
-import { getUserProgress } from '@/db/django-queries';
-import { upsertUserProgress } from '@/actions/user-progress';
 
 // Types
 export interface UserProgressState {
@@ -45,82 +40,48 @@ export interface UserProgressActions {
  * Hook principal para gerenciar progresso do usuário
  */
 export const useUserProgress = (): UserProgressResult => {
-  const useRedux = useFeatureFlag('REDUX_USER_PROGRESS');
+  const { 
+    data, 
+    isLoading, 
+    error, 
+    refetch 
+  } = useGetUserProgressQuery();
   
-  if (useRedux) {
-    const { 
-      data, 
-      isLoading, 
-      error, 
-      refetch 
-    } = useGetUserProgressQuery();
-    
-    return {
-      userProgress: data || null,
-      isLoading,
-      error: error ? 'Failed to load user progress' : null,
-      refetch,
-    };
-  } else {
-    // Legacy implementation seria implementada aqui
-    // com useState e useEffect para consistência
-    return {
-      userProgress: null,
-      isLoading: false,
-      error: null,
-      refetch: () => {},
-    };
-  }
+  return {
+    userProgress: data || null,
+    isLoading,
+    error: error ? 'Failed to load user progress' : null,
+    refetch,
+  };
 };
 
 /**
  * Hook para ações de progresso do usuário
  */
 export const useUserProgressActions = (): UserProgressActions => {
-  const useRedux = useFeatureFlag('REDUX_USER_PROGRESS');
-  
   // Redux mutations
   const [updateProgress] = useUpdateUserProgressMutation();
   const [reduceHeartsRedux] = useReduceHeartsMutation();
   const [refillHeartsRedux] = useRefillHeartsMutation();
   
   const updateActiveCourse = useCallback(async (courseId: string) => {
-    if (useRedux) {
-      await updateProgress({ courseId }).unwrap();
-    } else {
-      await upsertUserProgress(courseId);
-    }
-  }, [useRedux, updateProgress]);
+    await updateProgress({ courseId }).unwrap();
+  }, [updateProgress]);
   
   const reduceHearts = useCallback(async () => {
-    if (useRedux) {
-      const result = await reduceHeartsRedux().unwrap();
-      return result;
-    } else {
-      // Legacy implementation
-      throw new Error('Legacy hearts reduction not implemented');
-    }
-  }, [useRedux, reduceHeartsRedux]);
+    const result = await reduceHeartsRedux().unwrap();
+    return result;
+  }, [reduceHeartsRedux]);
   
   const refillHearts = useCallback(async () => {
-    if (useRedux) {
-      const result = await refillHeartsRedux().unwrap();
-      return result;
-    } else {
-      // Legacy implementation
-      throw new Error('Legacy hearts refill not implemented');
-    }
-  }, [useRedux, refillHeartsRedux]);
+    const result = await refillHeartsRedux().unwrap();
+    return result;
+  }, [refillHeartsRedux]);
   
   const addPoints = useCallback((points: number) => {
-    if (useRedux) {
-      // This would trigger an optimistic update in the real implementation
-      console.log('Adding points:', points);
-    } else {
-      // Legacy implementation
-      console.log('Legacy add points:', points);
-    }
-  }, [useRedux]);
+    // This would trigger an optimistic update in the real implementation
+    console.log('Adding points:', points);
+  }, []);
   
   return {
     updateActiveCourse,
@@ -286,14 +247,13 @@ export const useFullUserProgressManagement = () => {
 };
 
 /**
- * Hook para debugging de migração do user progress
+ * Hook para debugging do user progress
  */
 export const useProgressMigrationDebug = () => {
-  const useRedux = useFeatureFlag('REDUX_USER_PROGRESS');
   const { userProgress } = useUserProgress();
   
   const debugInfo = {
-    usingRedux: useRedux,
+    usingRedux: true,
     hasProgress: !!userProgress,
     hearts: userProgress?.hearts,
     points: userProgress?.points,
@@ -302,7 +262,7 @@ export const useProgressMigrationDebug = () => {
   
   // Only log in development
   if (process.env.NODE_ENV === 'development') {
-    console.log('🔍 User Progress Migration Debug:', debugInfo);
+    console.log('🔍 User Progress Debug:', debugInfo);
   }
   
   return debugInfo;

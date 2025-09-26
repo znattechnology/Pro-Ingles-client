@@ -16,8 +16,12 @@ import {
   useGetCourseAnalyticsQuery,
 } from '../laboratoryApiSlice';
 
-// Legacy imports
-import { getPracticeCourses, createPracticeCourse, updatePracticeCourse } from '@/actions/practice-management';
+// Import Redux hooks from teacher module
+import { 
+  useGetPracticeCoursesQuery, 
+  useCreatePracticeCourseMutation, 
+  useUpdatePracticeCourseMutation 
+} from '@modules/teacher';
 
 // Types
 export interface TeacherCourse {
@@ -151,25 +155,31 @@ export const useTeacherCourseActions = (): TeacherCourseActions => {
   const [deleteCourseRedux] = useDeleteCourseTeacherMutation();
   const [publishCourseRedux] = usePublishCourseTeacherMutation();
   
+  // Practice API mutations for legacy fallback
+  const [createPractice] = useCreatePracticeCourseMutation();
+  const [updatePractice] = useUpdatePracticeCourseMutation();
+  
   const createCourse = useCallback(async (data: CourseCreationData) => {
     if (useRedux) {
       const result = await createCourseRedux(data).unwrap();
       return result;
     } else {
-      // Legacy implementation
-      return await createPracticeCourse(data);
+      // Legacy implementation using practice API
+      const result = await createPractice(data).unwrap();
+      return result;
     }
-  }, [useRedux, createCourseRedux]);
+  }, [useRedux, createCourseRedux, createPractice]);
   
   const updateCourse = useCallback(async (id: string, data: CourseUpdateData) => {
     if (useRedux) {
       const result = await updateCourseRedux({ id, data }).unwrap();
       return result;
     } else {
-      // Legacy implementation
-      return await updatePracticeCourse(id, data);
+      // Legacy implementation using practice API
+      const result = await updatePractice({ courseId: id, data }).unwrap();
+      return result;
     }
-  }, [useRedux, updateCourseRedux]);
+  }, [useRedux, updateCourseRedux, updatePractice]);
   
   const deleteCourse = useCallback(async (id: string) => {
     if (useRedux) {
@@ -185,11 +195,14 @@ export const useTeacherCourseActions = (): TeacherCourseActions => {
       const result = await publishCourseRedux({ courseId: id, publish }).unwrap();
       return result;
     } else {
-      // Legacy implementation
-      const status = publish ? 'Published' : 'Draft';
-      return await updatePracticeCourse(id, { status });
+      // Legacy implementation using practice API
+      const result = await updatePractice({ 
+        courseId: id, 
+        data: { status: publish ? 'Published' : 'Draft' } 
+      }).unwrap();
+      return result;
     }
-  }, [useRedux, publishCourseRedux]);
+  }, [useRedux, publishCourseRedux, updatePractice]);
   
   return {
     createCourse,

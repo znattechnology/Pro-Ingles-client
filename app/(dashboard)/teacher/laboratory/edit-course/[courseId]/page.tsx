@@ -22,7 +22,7 @@ import {
   Target,
   TrendingUp
 } from "lucide-react";
-import { getPracticeCourse } from "@/actions/practice-management";
+import { useGetPracticeCourseByIdQuery, useUpdatePracticeCourseMutation } from "@modules/teacher";
 
 interface Course {
   id: string;
@@ -46,9 +46,11 @@ const EditCoursePage = () => {
   const courseId = params.courseId as string;
   const { isAuthenticated } = useDjangoAuth();
   
-  const [isLoading, setIsLoading] = useState(true);
+  // Redux hooks for data fetching and mutations
+  const { data: course, isLoading } = useGetPracticeCourseByIdQuery(courseId);
+  const [updateCourse] = useUpdatePracticeCourseMutation();
+  
   const [isSaving, setIsSaving] = useState(false);
-  const [course, setCourse] = useState<Course | null>(null);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -57,55 +59,27 @@ const EditCoursePage = () => {
     status: ""
   });
 
+  // Update form data when course data is loaded
   useEffect(() => {
-    loadCourse();
-  }, [courseId]);
-
-  const loadCourse = async () => {
-    try {
-      setIsLoading(true);
-      // Aqui você implementaria a busca do curso específico
-      // Por enquanto, vou simular dados
-      const mockCourse: Course = {
-        id: courseId,
-        title: "Curso de Inglês para Medicina",
-        description: "Curso especializado em terminologia médica e comunicação em saúde",
-        category: "Medicine",
-        level: "Intermediate",
-        status: "published",
-        units: 8,
-        lessons: 24,
-        challenges: 120,
-        students: 45,
-        completionRate: 78,
-        lastUpdated: new Date().toISOString(),
-        createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
-      };
-      
-      setCourse(mockCourse);
+    if (course) {
       setFormData({
-        title: mockCourse.title,
-        description: mockCourse.description,
-        category: mockCourse.category,
-        level: mockCourse.level,
-        status: mockCourse.status
+        title: course.title || "",
+        description: course.description || "",
+        category: course.category || "",
+        level: course.level || "",
+        status: course.status || ""
       });
-    } catch (error) {
-      console.error('Error loading course:', error);
-    } finally {
-      setIsLoading(false);
     }
-  };
+  }, [course]);
 
   const handleSave = async () => {
     try {
       setIsSaving(true);
       
-      // Aqui você implementaria a atualização do curso
-      console.log('Saving course:', { courseId, ...formData });
-      
-      // Simulando delay de API
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await updateCourse({
+        courseId,
+        data: formData
+      }).unwrap();
       
       alert('Curso atualizado com sucesso!');
       router.push('/teacher/laboratory/manage-courses');

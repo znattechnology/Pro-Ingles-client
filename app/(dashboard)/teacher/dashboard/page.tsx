@@ -3,7 +3,7 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import { useDjangoAuth } from "@/hooks/useDjangoAuth";
-import { useGetAllTeacherCoursesQuery } from "@/redux/features/api/coursesApiSlice";
+import { useGetAllTeacherCoursesQuery } from "@modules/learning/video-courses";
 import Loading from "@/components/course/Loading";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

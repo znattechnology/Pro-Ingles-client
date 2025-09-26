@@ -32,7 +32,7 @@ import {
   Crown
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { getUserProgress, getPracticeCourses } from '@/actions/practice-management';
+import { useGetStudentProgressQuery, useGetPracticeCoursesQuery } from '@modules/teacher';
 import Loading from '@/components/course/Loading';
 
 interface UserStats {
@@ -68,29 +68,26 @@ interface ActiveCourse {
 
 export default function StudentDashboard() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
+  
+  // Use Redux hooks for data fetching
+  const { data: studentProgress, isLoading: progressLoading } = useGetStudentProgressQuery();
+  const { data: practiceCoursesData, isLoading: coursesLoading } = useGetPracticeCoursesQuery();
+  
   const [userStats, setUserStats] = useState<UserStats | null>(null);
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
   const [activeCourses, setActiveCourses] = useState<ActiveCourse[]>([]);
+  
+  const loading = progressLoading || coursesLoading;
 
   useEffect(() => {
-    loadDashboardData();
-  }, []);
-
-  const loadDashboardData = async () => {
-    try {
-      setLoading(true);
-      
-      // Load user progress and stats
-      const userProgress = await getUserProgress();
-      
+    if (studentProgress) {
       // Mock data for demonstration - replace with real API calls
       const mockStats: UserStats = {
-        points: userProgress?.points || 1250,
-        hearts: userProgress?.hearts || 5,
+        points: studentProgress[0]?.total_points || 1250,
+        hearts: studentProgress[0]?.hearts || 5,
         streak: 7, // days
-        completedLessons: 45,
-        totalLessons: 120,
+        completedLessons: studentProgress[0]?.completed_lessons || 45,
+        totalLessons: studentProgress[0]?.total_lessons || 120,
         weeklyGoal: 5, // lessons per week
         weeklyProgress: 3, // completed this week
         rank: 15,
@@ -145,13 +142,8 @@ export default function StudentDashboard() {
       setUserStats(mockStats);
       setRecentActivity(mockActivity);
       setActiveCourses(mockCourses);
-      
-    } catch (error) {
-      console.error('Error loading dashboard data:', error);
-    } finally {
-      setLoading(false);
     }
-  };
+  }, [studentProgress]);
 
   if (loading) {
     return <Loading />;

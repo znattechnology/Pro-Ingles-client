@@ -17,7 +17,7 @@ import {
 import { useDjangoAuth } from '@/hooks/useDjangoAuth';
 import Loading from '@/components/course/Loading';
 import { EnrolledList } from './enrolled-list';
-import { useGetUserEnrolledCoursesQuery, useGetCoursesQuery, useGetCoursesWithEnrollmentsQuery, useGetUserCourseProgressQuery } from '@/redux/features/api/coursesApiSlice';
+import { useGetUserEnrolledCoursesQuery, useGetCoursesQuery, useGetCoursesWithEnrollmentsQuery, useGetUserCourseProgressQuery } from '@modules/learning/video-courses';
 
 const MyCoursesPage = () => {
   const router = useRouter();

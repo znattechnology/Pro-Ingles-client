@@ -7,9 +7,9 @@ import { Provider } from "react-redux";
 import { setupListeners } from "@reduxjs/toolkit/query";
 import globalReducer from "@/state";
 import { api } from "@/state/api";
-import authSlice from "@/redux/features/auth/authSlice";
+import { authSlice } from "@modules/auth";
 import { apiSlice } from "@/redux/features/api/apiSlice";
-import { adminApi } from "@/redux/features/admin/adminApi";
+import { adminApi } from "@modules/admin";
 import courseEditorSlice from "@/redux/features/courseEditor/courseEditorSlice";
 
 /* REDUX STORE */

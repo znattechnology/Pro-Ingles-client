@@ -25,20 +25,23 @@ import {
 import Loading from "@/components/course/Loading";
 import CourseBanner from "@/components/course/CourseBanner";
 import { 
-  getCourseUnits,
-  createPracticeUnit,
-  updatePracticeUnit,
-  deletePracticeUnit
-} from "@/actions/practice-management";
+  useGetCourseUnitsQuery,
+  useCreatePracticeUnitMutation,
+  useUpdatePracticeUnitMutation,
+  useDeletePracticeUnitMutation
+} from "@modules/teacher";
 
 const CourseManagement = () => {
   const params = useParams();
   const router = useRouter();
   const courseId = params.courseId as string;
   
-  const [isLoading, setIsLoading] = useState(true);
+  // Redux hooks for data fetching and mutations
+  const { data: units = [], isLoading } = useGetCourseUnitsQuery(courseId);
+  const [createUnit] = useCreatePracticeUnitMutation();
+  const [deleteUnit] = useDeletePracticeUnitMutation();
+  
   const [course, setCourse] = useState<any>(null);
-  const [units, setUnits] = useState<any[]>([]);
   const [showUnitForm, setShowUnitForm] = useState(false);
   const [unitFormData, setUnitFormData] = useState({
     title: '',
@@ -47,44 +50,17 @@ const CourseManagement = () => {
   });
 
   useEffect(() => {
-    loadCourseData();
+    // For now, we'll use mock course data since we need to implement course details endpoint
+    // TODO: Replace with actual API call to get course details
+    setCourse({
+      id: courseId,
+      title: 'Curso de Prática',
+      description: 'Curso especializado para laboratório de práticas',
+      category: 'Technology',
+      level: 'Intermediate',
+      status: 'active'
+    });
   }, [courseId]);
-
-  const loadCourseData = async () => {
-    try {
-      setIsLoading(true);
-      
-      // For now, we'll use mock course data since we need to implement course details endpoint
-      // TODO: Replace with actual API call to get course details
-      setCourse({
-        id: courseId,
-        title: 'Curso de Prática',
-        description: 'Curso especializado para laboratório de práticas',
-        category: 'Technology',
-        level: 'Intermediate',
-        status: 'active'
-      });
-      
-      // Load real units data
-      const unitsData = await getCourseUnits(courseId as string);
-      setUnits(unitsData);
-      
-    } catch (error) {
-      console.error('Error loading course data:', error);
-      // Set empty course for error handling
-      setCourse({
-        id: courseId,
-        title: 'Curso não encontrado',
-        description: '',
-        category: '',
-        level: '',
-        status: 'draft'
-      });
-      setUnits([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleCreateUnit = async () => {
     try {
@@ -93,16 +69,14 @@ const CourseManagement = () => {
         return;
       }
 
-      await createPracticeUnit({
+      await createUnit({
         course: courseId as string,
         title: unitFormData.title,
         description: unitFormData.description,
         order: unitFormData.order
-      });
+      }).unwrap();
 
-      // Reload units data
-      await loadCourseData();
-      
+      // Redux automatically refetches data
       setUnitFormData({ title: '', description: '', order: units.length + 2 });
       setShowUnitForm(false);
     } catch (error) {
@@ -114,8 +88,8 @@ const CourseManagement = () => {
   const handleDeleteUnit = async (unitId: string) => {
     if (confirm('Tem certeza que deseja excluir esta unidade?')) {
       try {
-        await deletePracticeUnit(unitId);
-        await loadCourseData(); // Reload after deletion
+        await deleteUnit(unitId).unwrap();
+        // Redux automatically refetches data
       } catch (error) {
         console.error('Error deleting unit:', error);
         alert('Erro ao excluir unidade. Tente novamente.');

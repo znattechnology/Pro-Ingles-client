@@ -10,7 +10,7 @@
 import React, { useState } from 'react';
 import { List } from './list';
 import Loading from '@/components/course/Loading';
-import { useGetCoursesQuery } from '@/redux/features/api/coursesApiSlice';
+import { useGetCoursesQuery } from '@modules/learning/video-courses';
 import { useDjangoAuth } from '@/hooks/useDjangoAuth';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';

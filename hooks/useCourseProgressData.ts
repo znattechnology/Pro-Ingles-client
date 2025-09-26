@@ -4,7 +4,7 @@ import {
   useGetCourseByIdQuery,
   useGetUserCourseProgressQuery,
   useUpdateUserCourseProgressMutation,
-} from "@/redux/features/api/coursesApiSlice";
+} from "@modules/learning/video-courses";
 import { useDjangoAuth } from "@/hooks/useDjangoAuth";
 
 export const useCourseProgressData = () => {

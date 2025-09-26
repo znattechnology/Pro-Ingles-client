@@ -12,17 +12,13 @@
 
 import { FeedWrapper } from "@/components/learn/FeedWrapper";
 import { LearnHeader } from "./header";
-import { UserProgress } from "@/components/learn/UserProgress";
 import { UserProgressRedux } from "@/components/learn/UserProgressRedux";
-import { Unit } from "./unit";
 import { UnitRedux } from "./unit-redux";
-import { getUserProgress, getUnits, getCourseProgress, getLessonPercentage } from "@/db/django-queries";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import Loading from "@/components/course/Loading";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useFeatureFlag } from '@/lib/featureFlags';
 import { 
   useFullMainLearnPage,
   useLearnPageNavigation 
@@ -43,113 +39,33 @@ import {
 const LearnPage = () => {
   const router = useRouter();
   
-  // Feature flags
-  const useReduxMainPage = useFeatureFlag('REDUX_MAIN_LEARN_PAGE');
-  
   // Redux hooks
   const {
-    data: reduxData,
-    isLoading: reduxLoading,
-    error: reduxError,
-    stats: reduxStats,
-    navigation: reduxNavigation,
-    actions: reduxActions,
+    data,
+    isLoading,
+    error,
+    stats,
+    actions,
   } = useFullMainLearnPage();
   
-  // Legacy state
-  const [legacyUserProgress, setLegacyUserProgress] = useState(null);
-  const [legacyUnits, setLegacyUnits] = useState([]);
-  const [legacyCourseProgress, setLegacyCourseProgress] = useState(null);
-  const [legacyLessonPercentage, setLegacyLessonPercentage] = useState(0);
-  const [legacyIsLoading, setLegacyIsLoading] = useState(true);
-  const [legacyError, setLegacyError] = useState<string | null>(null);
-  
-  // Determine data source
-  const userProgress = useReduxMainPage ? reduxData?.userProgress : legacyUserProgress;
-  const units = useReduxMainPage ? reduxData?.units : legacyUnits;
-  const courseProgress = useReduxMainPage ? reduxData?.courseProgress : legacyCourseProgress;
-  const lessonPercentage = useReduxMainPage ? reduxData?.lessonPercentage : legacyLessonPercentage;
-  const isLoading = useReduxMainPage ? reduxLoading : legacyIsLoading;
-  const error = useReduxMainPage ? reduxError : legacyError;
+  // Extract data from Redux
+  const userProgress = data?.userProgress;
+  const units = data?.units || [];
+  const courseProgress = data?.courseProgress;
+  const lessonPercentage = data?.lessonPercentage || 0;
 
-  
-  // Legacy data loading (fallback when Redux is disabled)
-  useEffect(() => {
-    if (!useReduxMainPage) {
-      const fetchData = async () => {
-        try {
-          setLegacyIsLoading(true);
-          
-          // Check if user is authenticated
-          const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
-          if (!token) {
-            router.push('/auth/signin');
-            return;
-          }
-          
-          // First get user progress to check for active course
-          const userProgressData = await getUserProgress();
-          
-          if (!userProgressData) {
-            router.push("/user/laboratory/learn/courses");
-            return;
-          }
-
-          if (!userProgressData.active_course) {
-            router.push("/user/laboratory/learn/courses");
-            return;
-          }
-
-          setLegacyUserProgress(userProgressData);
-
-          // Get course data
-          const courseId = userProgressData.active_course.id;
-          
-          const [unitsData, courseProgressData] = await Promise.all([
-            getUnits(courseId),
-            getCourseProgress(courseId)
-          ]);
-          
-          setLegacyUnits(unitsData || []);
-          setLegacyCourseProgress(courseProgressData as any);
-
-          // Get lesson percentage if there's an active lesson
-          if (courseProgressData?.activeLessonId) {
-            const percentage = await getLessonPercentage(courseProgressData.activeLessonId);
-            setLegacyLessonPercentage(percentage);
-          }
-
-        } catch (error: any) {
-          setLegacyError(error?.message || 'Failed to load learning data');
-          
-          // Check if it's an authentication error
-          if (error?.message?.includes('401') || error?.message?.includes('Unauthorized')) {
-            setLegacyError('Authentication required. Redirecting to login...');
-            setTimeout(() => router.push('/auth/signin'), 2000);
-          } else {
-            setLegacyError('Failed to load course data. Redirecting to courses...');
-            setTimeout(() => router.push("/user/laboratory/learn/courses"), 2000);
-          }
-        } finally {
-          setLegacyIsLoading(false);
-        }
-      };
-
-      fetchData();
-    }
-  }, [router, useReduxMainPage]);
   
   // Handle Redux navigation and redirects
-  const navigation = useLearnPageNavigation();
+  const pageNavigation = useLearnPageNavigation();
   
   useEffect(() => {
-    if (useReduxMainPage && reduxData?.userProgress && !reduxLoading) {
-      const shouldContinue = navigation.navigateToActiveCourse(router, reduxData.userProgress);
+    if (data?.userProgress && !isLoading) {
+      const shouldContinue = pageNavigation.navigateToActiveCourse(router, data.userProgress);
       if (!shouldContinue) {
         return;
       }
     }
-  }, [useReduxMainPage, reduxData, reduxLoading, router, navigation]);
+  }, [data, isLoading, router, pageNavigation]);
 
   if (isLoading) {
     return <Loading />;
@@ -193,10 +109,10 @@ const LearnPage = () => {
     return null; // Will redirect via useEffect
   }
 
-  const activeCourse = useReduxMainPage ? reduxData?.activeCourse : (userProgress as any)?.active_course;
+  const activeCourse = data?.activeCourse || (userProgress as any)?.active_course;
   
-  // Get stats from Redux or calculate legacy stats
-  const userStats = useReduxMainPage ? reduxStats : {
+  // Get stats from Redux or calculate fallback stats
+  const userStats = stats || {
     hearts: (userProgress as any)?.hearts || 5,
     points: (userProgress as any)?.points || 0,
     streak: 7, // Mock data - replace with real API
@@ -218,9 +134,8 @@ const LearnPage = () => {
   };
   
   // Calculate progress percentage
-  const courseProgressPercentage = useReduxMainPage 
-    ? userStats.courseProgressPercentage 
-    : (userStats.totalLessons > 0 ? Math.round((userStats.completedLessons / userStats.totalLessons) * 100) : 0);
+  const courseProgressPercentage = userStats.courseProgressPercentage || 
+    (userStats.totalLessons > 0 ? Math.round((userStats.completedLessons / userStats.totalLessons) * 100) : 0);
   
   // Safe units array
   const safeUnits = Array.isArray(units) ? units : [];
@@ -352,19 +267,10 @@ const LearnPage = () => {
         {/* Right Sidebar - User Progress */}
         <div className="w-80 flex-shrink-0">
           <div className="sticky top-8 space-y-6">
-            {useReduxMainPage ? (
-              <UserProgressRedux
-                useRedux={true}
-                hasActiveSubscription={false}
-              />
-            ) : (
-              <UserProgress
-                activeCourse={activeCourse}
-                hearts={userStats.hearts}
-                points={userStats.points}
-                hasActiveSubscription={false}
-              />
-            )}
+            <UserProgressRedux
+              useRedux={true}
+              hasActiveSubscription={false}
+            />
 
             {/* Enhanced Daily Tips Card */}
             <Card className="relative bg-gradient-to-br from-violet-500/20 via-purple-500/15 to-violet-500/10 border-violet-500/30 hover:border-violet-400/50 transition-all duration-300 overflow-hidden group">
@@ -403,8 +309,8 @@ const LearnPage = () => {
                     variant="ghost"
                     size="sm"
                     onClick={() => {
-                      if (useReduxMainPage && reduxActions) {
-                        reduxActions.buyHearts();
+                      if (actions) {
+                        actions.buyHearts();
                       }
                       router.push('/user/laboratory/learn/shop');
                     }}
@@ -419,8 +325,8 @@ const LearnPage = () => {
                     variant="ghost"
                     size="sm"
                     onClick={() => {
-                      if (useReduxMainPage && reduxActions) {
-                        reduxActions.viewAchievements();
+                      if (actions) {
+                        actions.viewAchievements();
                       }
                       router.push('/user/laboratory/achievements');
                     }}
@@ -435,8 +341,8 @@ const LearnPage = () => {
                     variant="ghost"
                     size="sm"
                     onClick={() => {
-                      if (useReduxMainPage && reduxActions) {
-                        reduxActions.viewLeaderboard();
+                      if (actions) {
+                        actions.viewLeaderboard();
                       }
                       router.push('/user/laboratory/leaderboard');
                     }}
@@ -497,29 +403,17 @@ const LearnPage = () => {
             <div className="space-y-8">
               {safeUnits.length > 0 && safeUnits.map((unit: any) => (
                 <div key={unit.id} className="mb-10">
-                  {useReduxMainPage ? (
-                    <UnitRedux
-                      id={unit.id}
-                      order={unit.order}
-                      description={unit.description}
-                      title={unit.title}
-                      lessons={unit.lessons || []}
-                      activeLesson={(courseProgress as any)?.activeLesson}
-                      activeLessonPercentage={lessonPercentage || 0}
-                      courseId={activeCourse?.id}
-                      useRedux={true}
-                    />
-                  ) : (
-                    <Unit
-                      id={unit.id}
-                      order={unit.order}
-                      description={unit.description}
-                      title={unit.title}
-                      lessons={unit.lessons || []}
-                      activeLesson={(courseProgress as any)?.activeLesson}
-                      activeLessonPercentage={lessonPercentage || 0}
-                    />
-                  )}
+                  <UnitRedux
+                    id={unit.id}
+                    order={unit.order}
+                    description={unit.description}
+                    title={unit.title}
+                    lessons={unit.lessons || []}
+                    activeLesson={(courseProgress as any)?.activeLesson}
+                    activeLessonPercentage={lessonPercentage || 0}
+                    courseId={activeCourse?.id}
+                    useRedux={true}
+                  />
                 </div>
               ))}
             </div>

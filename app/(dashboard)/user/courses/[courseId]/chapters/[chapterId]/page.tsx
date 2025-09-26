@@ -12,7 +12,7 @@ import { useCourseProgressData } from "@/hooks/useCourseProgressData";
 import { 
   useGetChapterResourcesQuery,
   useGetChapterQuizQuery
-} from "@/redux/features/api/coursesApiSlice";
+} from "@modules/learning/video-courses";
 import InlineExercise from "@/components/laboratory/InlineExercise";
 import { 
   BookOpen, 

@@ -7,7 +7,7 @@ import { Header } from "./header";
 import { QuestionBubble } from "./question.bubble";
 import { Challenge } from "./challenge";
 import { Footer } from "./footer";
-import { upsertChallengeProgress } from "@/actions/challenge-progress";
+import { useUpdateChallengeProgressMutation } from '@/src/modules/student';
 import { toast } from "sonner";
 import { useWindowSize, useMount } from "react-use";
 import { Button } from "@/components/ui/button";
@@ -55,7 +55,7 @@ export const Quiz = ({
   initialLessonId,
   initialLessonChallenges,
   userSubscription,
-  useReduxPractice = false,
+  useReduxPractice = true, // Default to Redux now
 }: Props) => {
  const {width, height} = useWindowSize();
   
@@ -68,6 +68,9 @@ export const Quiz = ({
   const {open: openPracticeModal} = usePracticeModal();
   const [lessonId] = useState(initialLessonId);
   const [hearts, setHearts] = useState(initialHearts);
+  
+  // Redux mutations
+  const [submitChallengeProgress] = useUpdateChallengeProgressMutation();
   
   // Redux practice session hooks
   const { actions } = usePracticeSession(useReduxPractice ? initialLessonId : null);
@@ -130,7 +133,7 @@ export const Quiz = ({
       return;
     }
 
-    // Check answer with Redux or Django API
+    // Submit challenge via Redux
     startTransition(async () => {
       try {
         let response;
@@ -154,9 +157,25 @@ export const Quiz = ({
           
           console.log('🧪 Redux response transformed:', response);
         } else {
-          // Use legacy Django API
-          console.log('🧪 Using legacy API for challenge submission');
-          response = await upsertChallengeProgress(challenge.id, selectedOptions);
+          // Direct Redux API call
+          console.log('🧪 Using direct Redux API for challenge submission');
+          const directResponse = await submitChallengeProgress({
+            challenge_id: challenge.id,
+            selected_option: selectedOptions,
+            time_spent: Date.now(),
+            attempts: 1
+          }).unwrap();
+          
+          response = {
+            correct: directResponse.correct,
+            error: directResponse.success === false ? "challenge" : null,
+            data: {
+              userProgress: {
+                hearts: directResponse.heartsRemaining
+              }
+            },
+            heartsUsed: directResponse.heartsUsed || 0
+          };
         }
         
         if (response?.error === "hearts") {

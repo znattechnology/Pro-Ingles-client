@@ -17,7 +17,7 @@ import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { motion } from 'framer-motion';
 import ChallengeConstructor from '@/components/laboratory/ChallengeConstructor';
-import { useGetTeacherCoursesQuery } from '@/redux/features/api/practiceApiSlice';
+import { useGetTeacherCoursesQuery } from '@modules/learning/practice-courses';
 
 interface Course {
   id: string;

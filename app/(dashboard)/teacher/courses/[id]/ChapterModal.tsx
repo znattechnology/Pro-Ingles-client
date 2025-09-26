@@ -24,7 +24,7 @@ import {
   useCreateChapterQuizMutation,
   useDeleteChapterQuizMutation,
   useGetVideoUploadUrlMutation,
-} from "@/redux/features/api/coursesApiSlice";
+} from "@modules/learning/video-courses";
 import { useGetAvailableExercisesQuery } from "@/redux/features/laboratory/laboratoryApiSlice";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { X, BookOpen, FileText, Brain, Plus, Trash2, ExternalLink, Upload, Zap, Target, CheckCircle, Save } from "lucide-react";

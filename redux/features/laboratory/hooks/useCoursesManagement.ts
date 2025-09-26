@@ -6,7 +6,6 @@
  */
 
 import { useCallback } from 'react';
-import { useFeatureFlag } from '@/lib/featureFlags';
 import { 
   useGetLaboratoryCoursesQuery,
   useGetPracticeCoursesQuery,
@@ -17,15 +16,13 @@ import {
   useToggleCoursePublicationMutation,
 } from '../laboratoryApiSlice';
 
-// Legacy imports (direct API calls)
-import { getLaboratoryCourses, getPracticeCourses } from '@/db/django-queries';
-import { 
-  createPracticeCourse,
-  updatePracticeCourse,
-  deletePracticeCourse,
-  publishPracticeCourse,
-} from '@/actions/practice-management';
-import { upsertUserProgress } from '@/actions/user-progress';
+// Import practice management hooks
+import {
+  useCreatePracticeCourseMutation as useCreatePracticeCoursePracticeModule,
+  useUpdatePracticeCourseMutation as useUpdatePracticeCoursePracticeModule,
+  useDeletePracticeCourseMutation as useDeletePracticeCoursePracticeModule,
+  usePublishPracticeCourseMutation
+} from '@modules/teacher';
 
 // Types
 export interface CourseManagementResult {
@@ -45,35 +42,22 @@ export interface CourseActionsResult {
 
 /**
  * Hook para gerenciar cursos do laboratório (Student)
- * Escolhe automaticamente entre Redux e API legacy baseado em feature flag
+ * Usa Redux para gerenciamento de estado
  */
 export const useLaboratoryCourses = (): CourseManagementResult => {
-  const useRedux = useFeatureFlag('REDUX_COURSE_SELECTION');
+  const { 
+    data = [], 
+    isLoading, 
+    error, 
+    refetch 
+  } = useGetLaboratoryCoursesQuery();
   
-  if (useRedux) {
-    const { 
-      data = [], 
-      isLoading, 
-      error, 
-      refetch 
-    } = useGetLaboratoryCoursesQuery();
-    
-    return {
-      courses: data,
-      isLoading,
-      error: error ? 'Failed to load courses' : null,
-      refetch,
-    };
-  } else {
-    // Legacy implementation com useState e useEffect seria aqui
-    // Para simplicidade, retornando estrutura similar
-    return {
-      courses: [],
-      isLoading: false,
-      error: null,
-      refetch: () => {},
-    };
-  }
+  return {
+    courses: data,
+    isLoading,
+    error: error ? 'Failed to load courses' : null,
+    refetch,
+  };
 };
 
 /**
@@ -119,40 +103,49 @@ export const useCourseActions = (): CourseActionsResult => {
   const [deleteCourseRedux] = useDeletePracticeCourseMutation();
   const [publishCourseRedux] = useToggleCoursePublicationMutation();
   
+  // Practice module hooks for legacy fallback
+  const [createPractice] = useCreatePracticeCoursePracticeModule();
+  const [updatePractice] = useUpdatePracticeCoursePracticeModule();
+  const [deletePractice] = useDeletePracticeCoursePracticeModule();
+  const [publishPractice] = usePublishPracticeCourseMutation();
+  
   const createCourse = useCallback(async (data: any) => {
     if (useRedux) {
       const result = await createCourseRedux(data).unwrap();
       return result;
     } else {
-      return await createPracticeCourse(data);
+      const result = await createPractice(data).unwrap();
+      return result;
     }
-  }, [useRedux, createCourseRedux]);
+  }, [useRedux, createCourseRedux, createPractice]);
   
   const updateCourse = useCallback(async (id: string, data: any) => {
     if (useRedux) {
       const result = await updateCourseRedux({ id, data }).unwrap();
       return result;
     } else {
-      return await updatePracticeCourse(id, data);
+      const result = await updatePractice({ courseId: id, data }).unwrap();
+      return result;
     }
-  }, [useRedux, updateCourseRedux]);
+  }, [useRedux, updateCourseRedux, updatePractice]);
   
   const deleteCourse = useCallback(async (id: string) => {
     if (useRedux) {
       await deleteCourseRedux(id).unwrap();
     } else {
-      await deletePracticeCourse(id);
+      await deletePractice(id).unwrap();
     }
-  }, [useRedux, deleteCourseRedux]);
+  }, [useRedux, deleteCourseRedux, deletePractice]);
   
   const publishCourse = useCallback(async (id: string, publish: boolean) => {
     if (useRedux) {
       const result = await publishCourseRedux({ courseId: id, publish }).unwrap();
       return result;
     } else {
-      return await publishPracticeCourse(id, publish);
+      const result = await publishPractice({ courseId: id, publish }).unwrap();
+      return result;
     }
-  }, [useRedux, publishCourseRedux]);
+  }, [useRedux, publishCourseRedux, publishPractice]);
   
   return {
     createCourse,
@@ -166,16 +159,11 @@ export const useCourseActions = (): CourseActionsResult => {
  * Hook para seleção de curso (Student)
  */
 export const useCourseSelection = () => {
-  const useRedux = useFeatureFlag('REDUX_COURSE_SELECTION');
   const [updateProgress] = useUpdateUserProgressMutation();
   
   const selectCourse = useCallback(async (courseId: string) => {
-    if (useRedux) {
-      await updateProgress({ courseId }).unwrap();
-    } else {
-      await upsertUserProgress(courseId);
-    }
-  }, [useRedux, updateProgress]);
+    await updateProgress({ courseId }).unwrap();
+  }, [updateProgress]);
   
   return {
     selectCourse,
@@ -206,24 +194,24 @@ export const useFullCourseManagement = (userRole: 'student' | 'teacher') => {
 };
 
 /**
- * Hook para debugging e monitoramento da migração
+ * Hook para debugging e monitoramento
  */
 export const useCourseMigrationDebug = () => {
   const flags = {
-    courseSelection: useFeatureFlag('REDUX_COURSE_SELECTION'),
-    teacherManagement: useFeatureFlag('REDUX_TEACHER_MANAGEMENT'),
-    userProgress: useFeatureFlag('REDUX_USER_PROGRESS'),
+    courseSelection: true,
+    teacherManagement: true,
+    userProgress: true,
   };
   
   const status = {
     totalFlags: Object.keys(flags).length,
     activeFlags: Object.values(flags).filter(Boolean).length,
-    migrationProgress: (Object.values(flags).filter(Boolean).length / Object.keys(flags).length) * 100,
+    migrationProgress: 100,
   };
   
   // Only log in development
   if (process.env.NODE_ENV === 'development') {
-    console.log('🔍 Course Migration Debug:', { flags, status });
+    console.log('🔍 Course Debug:', { flags, status });
   }
   
   return { flags, status };

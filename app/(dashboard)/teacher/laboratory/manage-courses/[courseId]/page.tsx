@@ -44,7 +44,11 @@ import {
   X,
   AlertTriangle
 } from "lucide-react";
-import { deletePracticeCourse, publishPracticeCourse, getPracticeCourseById } from "@/actions/practice-management";
+import { 
+  useDeletePracticeCourseMutation, 
+  usePublishPracticeCourseMutation, 
+  useGetPracticeCourseByIdQuery 
+} from "@modules/teacher";
 
 interface Course {
   id: string;
@@ -79,47 +83,22 @@ const ManageCourseDetailPage = () => {
   const courseId = params.courseId as string;
   const { isAuthenticated } = useDjangoAuth();
   
-  const [isLoading, setIsLoading] = useState(true);
-  const [course, setCourse] = useState<Course | null>(null);
+  // Redux hooks for data fetching and mutations
+  const { data: course, isLoading, error } = useGetPracticeCourseByIdQuery(courseId);
+  const [deleteCourse] = useDeletePracticeCourseMutation();
+  const [publishCourse] = usePublishPracticeCourseMutation();
+  
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showPublishDialog, setShowPublishDialog] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
 
+  // Redux handles data fetching automatically, so we can remove the loadCourse function
   useEffect(() => {
-    if (isAuthenticated && courseId) {
-      loadCourse();
-    }
-  }, [courseId, isAuthenticated]);
-
-  const loadCourse = async () => {
-    try {
-      setIsLoading(true);
-      console.log('Loading course details for ID:', courseId);
-      
-      // Fetch real course data from API
-      const courseData = await getPracticeCourseById(courseId);
-      console.log('Course data loaded:', courseData);
-      console.log('🔍 Course status debug:', {
-        id: courseData?.id,
-        title: courseData?.title,
-        status: courseData?.status,
-        statusType: typeof courseData?.status
-      });
-      
-      setCourse(courseData);
-      
-      // Additional debug for button display issue
-      console.log('🔍 All course fields:', Object.keys(courseData || {}));
-      console.log('🔍 Course object full:', JSON.stringify(courseData, null, 2));
-    } catch (error) {
-      console.error('Error loading course:', error);
-      // Show error toast if course not found
+    if (error) {
       showToast('Erro ao carregar dados do curso. Verifique se o curso existe.', 'error');
-    } finally {
-      setIsLoading(false);
     }
-  };
+  }, [error]);
 
   // Toast functions
   const showToast = (message: string, type: 'success' | 'error') => {
@@ -132,7 +111,7 @@ const ManageCourseDetailPage = () => {
     
     setIsProcessing(true);
     try {
-      await deletePracticeCourse(course.id);
+      await deleteCourse(course.id).unwrap();
       setShowDeleteDialog(false);
       showToast('Curso excluído com sucesso!', 'success');
       // Redirect back to courses list after successful deletion
@@ -166,9 +145,8 @@ const ManageCourseDetailPage = () => {
     setIsProcessing(true);
     
     try {
-      await publishPracticeCourse(course.id, isPublishing);
-      // Update local course state
-      setCourse({ ...course, status: isPublishing ? 'published' : 'draft' });
+      await publishCourse({ courseId: course.id, publish: isPublishing }).unwrap();
+      // Redux automatically updates the course data
       setShowPublishDialog(false);
       showToast(
         `Curso ${isPublishing ? 'publicado' : 'despublicado'} com sucesso!`, 
@@ -181,17 +159,11 @@ const ManageCourseDetailPage = () => {
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
       
       if (errorMessage.includes('já está em rascunho')) {
-        showToast('Curso já está em rascunho! Sincronizando estado...', 'error');
-        // Update local state to match server state
-        setCourse({ ...course, status: 'draft' });
-        // Reload course data from server to ensure sync
-        loadCourse();
+        showToast('Curso já está em rascunho!', 'error');
+        // Redux automatically syncs data
       } else if (errorMessage.includes('já está publicado')) {
-        showToast('Curso já está publicado! Sincronizando estado...', 'error');
-        // Update local state to match server state
-        setCourse({ ...course, status: 'Published' });
-        // Reload course data from server to ensure sync
-        loadCourse();
+        showToast('Curso já está publicado!', 'error');
+        // Redux automatically syncs data
       } else {
         showToast(
           `Erro ao ${isPublishing ? 'publicar' : 'despublicar'} curso: ${errorMessage}`, 

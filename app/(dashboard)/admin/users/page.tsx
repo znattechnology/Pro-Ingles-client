@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/select";
 import { useDjangoAuth } from "@/hooks/useDjangoAuth";
 import Loading from "@/components/course/Loading";
-import { useGetUsersQuery, useUpdateUserRoleMutation, useToggleUserStatusMutation, useDeleteUserMutation } from "@/redux/features/admin/adminApi";
+import { useGetUsersQuery, useUpdateUserRoleMutation, useToggleUserStatusMutation, useDeleteUserMutation } from "@modules/admin";
 // Simple toast replacement
 const useToast = () => ({
   toast: ({ title, description, variant }: { title: string; description: string; variant?: string }) => {

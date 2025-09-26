@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -24,19 +24,22 @@ import {
 import Loading from "@/components/course/Loading";
 import CourseBanner from "@/components/course/CourseBanner";
 import { useDjangoAuth } from "@/hooks/useDjangoAuth";
-import { 
-  getPracticeCourses, 
-  createPracticeCourse, 
-  deletePracticeCourse 
-} from "@/actions/practice-management";
+import {
+  useGetPracticeCoursesQuery,
+  useCreatePracticeCourseMutation,
+  useDeletePracticeCourseMutation
+} from "@modules/teacher";
 import { courseToasts, enhancedToast } from "@/components/ui/enhanced-toast";
 
 const PracticeCoursesManagement = () => {
   const router = useRouter();
   const { user, isAuthenticated } = useDjangoAuth();
   
-  const [isLoading, setIsLoading] = useState(true);
-  const [courses, setCourses] = useState<any[]>([]);
+  // Use Redux hooks for data fetching
+  const { data: courses = [], isLoading } = useGetPracticeCoursesQuery();
+  const [createCourse] = useCreatePracticeCourseMutation();
+  const [deleteCourse] = useDeletePracticeCourseMutation();
+  
   const [searchTerm, setSearchTerm] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newCourseData, setNewCourseData] = useState({
@@ -46,39 +49,7 @@ const PracticeCoursesManagement = () => {
     level: 'beginner'
   });
 
-  useEffect(() => {
-    loadCourses();
-  }, []);
-
-  const loadCourses = async () => {
-    try {
-      setIsLoading(true);
-      const coursesData = await getPracticeCourses();
-      
-      // Transform Django data to match frontend expectations
-      const transformedCourses = coursesData.map((course: any) => ({
-        id: course.id,
-        title: course.title,
-        description: course.description,
-        category: course.category,
-        level: course.level,
-        status: course.status.toLowerCase(),
-        // Add mock data for units, lessons, challenges, students while we implement these endpoints
-        units: 0,
-        lessons: 0,
-        challenges: 0,
-        students: 0,
-        completionRate: 0
-      }));
-      
-      setCourses(transformedCourses);
-    } catch (error) {
-      console.error('Error loading courses:', error);
-      // Keep loading state for error handling
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Redux handles loading automatically, no need for useEffect or loadCourses
 
   const filteredCourses = courses.filter(course =>
     course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -88,19 +59,22 @@ const PracticeCoursesManagement = () => {
   const handleCreateCourse = async () => {
     try {
       if (!newCourseData.title || !newCourseData.category) {
-        enhancedToast.error('Campos obrigatórios', {
+        enhancedToast.error({
+          title: 'Campos obrigatórios',
           description: 'Por favor, preencha título e categoria.',
         });
         return;
       }
 
-      await createPracticeCourse(newCourseData);
+      await createCourse({
+        ...newCourseData,
+        teacher_email: user?.email,
+        teacher_name: user?.name,
+        created_by: user?.id
+      }).unwrap();
       
       // Show enhanced success toast
       courseToasts.created(newCourseData.title);
-      
-      // Reload courses to get updated list
-      await loadCourses();
       
       setNewCourseData({ title: '', description: '', category: '', level: 'beginner' });
       setShowCreateModal(false);
@@ -114,12 +88,10 @@ const PracticeCoursesManagement = () => {
   const handleDeleteCourse = async (courseId: string) => {
     if (confirm('Tem certeza que deseja excluir este curso?')) {
       try {
-        await deletePracticeCourse(courseId);
+        await deleteCourse(courseId).unwrap();
         
         // Show enhanced success toast
         courseToasts.deleted('Curso');
-        
-        await loadCourses(); // Reload courses after deletion
       } catch (error) {
         console.error('Error deleting course:', error);
         const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';

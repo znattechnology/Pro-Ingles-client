@@ -45,7 +45,7 @@ import {
   useGetAchievementStatsQuery,
   type Achievement,
   type AchievementStats
-} from '@/redux/features/achievements/achievementsApi';
+} from '@modules/gamification';
 
 
 export default function AchievementsPage() {

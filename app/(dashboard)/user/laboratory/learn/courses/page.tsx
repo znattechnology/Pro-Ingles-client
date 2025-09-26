@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { useFeatureFlag } from '@/lib/featureFlags';
+import React, { useState } from 'react';
 import { useLaboratoryCourses } from '@/redux/features/laboratory/hooks/useCoursesManagement';
 import { useUserProgress } from '@/redux/features/laboratory/hooks/useUserProgress';
 import { useDispatch, useSelector } from 'react-redux';
@@ -13,7 +12,6 @@ import {
   selectSearchQuery,
   selectFilters 
 } from '@/redux/features/laboratory/laboratorySlice';
-import { getLaboratoryCourses, getUserProgress } from '@/db/django-queries';
 import { LaboratoryList } from './laboratory-list';
 import Loading from '@/components/course/Loading';
 import { Card, CardContent } from '@/components/ui/card';
@@ -33,113 +31,59 @@ import {
 } from 'lucide-react';
 
 const LearnCourse = () => {
-  // Feature flags
-  const useReduxCourses = useFeatureFlag('REDUX_COURSE_SELECTION');
-  const useReduxProgress = useFeatureFlag('REDUX_USER_PROGRESS');
-  
-  
   // Redux state and dispatch
   const dispatch = useDispatch();
-  const reduxViewMode = useSelector(selectViewMode);
-  const reduxSearchQuery = useSelector(selectSearchQuery);
-  const reduxFilters = useSelector(selectFilters);
+  const viewMode = useSelector(selectViewMode);
+  const searchTerm = useSelector(selectSearchQuery);
+  const filters = useSelector(selectFilters);
   
   // Debug Redux state
   if (process.env.NODE_ENV === 'development') {
     console.log('🔍 Redux Selectors Data:', {
-      reduxViewMode,
-      reduxSearchQuery,
-      reduxFilters,
+      viewMode,
+      searchTerm,
+      filters,
       timestamp: new Date().toISOString()
     });
   }
   
   // Redux hooks
   const { 
-    courses: reduxCourses, 
-    isLoading: reduxCoursesLoading, 
-    error: reduxCoursesError,
+    courses, 
+    isLoading: coursesLoading, 
+    error: coursesError,
     refetch: refetchCourses 
   } = useLaboratoryCourses();
   
   const { 
-    userProgress: reduxUserProgress, 
-    isLoading: reduxProgressLoading, 
-    error: reduxProgressError,
+    userProgress, 
+    isLoading: progressLoading, 
+    error: progressError,
     refetch: refetchProgress 
   } = useUserProgress();
 
-  // Legacy state (for fallback)
-  const [legacyCourses, setLegacyCourses] = useState([]);
-  const [legacyUserProgress, setLegacyUserProgress] = useState(null);
-  const [legacyIsLoading, setLegacyIsLoading] = useState(true);
-  const [legacyError, setLegacyError] = useState(null);
-  
-  // UI state (using Redux when available, local state as fallback)
-  const [localSearchTerm, setLocalSearchTerm] = useState('');
-  const [localFilterLevel, setLocalFilterLevel] = useState('all');
+  // UI state
   const [sortBy, setSortBy] = useState('progress'); // progress, title, level
-  const [localViewMode, setLocalViewMode] = useState<'grid' | 'list'>('grid');
 
-  // Determine which data source to use
-  const courses = useReduxCourses ? reduxCourses : legacyCourses;
-  const userProgress = useReduxProgress ? reduxUserProgress : legacyUserProgress;
-  const isLoading = useReduxCourses ? reduxCoursesLoading : legacyIsLoading;
-  const error = useReduxCourses ? reduxCoursesError : legacyError;
+  // Determine loading and error state
+  const isLoading = coursesLoading || progressLoading;
+  const error = coursesError || progressError;
   
   // UI state management
-  const searchTerm = useReduxCourses ? reduxSearchQuery : localSearchTerm;
-  const filterLevel = useReduxCourses ? reduxFilters.level || 'all' : localFilterLevel;
-  const viewMode = useReduxCourses ? reduxViewMode : localViewMode;
+  const filterLevel = filters.level || 'all';
   
-  const setSearchTerm = (value: string) => {
-    if (useReduxCourses) {
-      dispatch(setSearchQuery(value));
-    } else {
-      setLocalSearchTerm(value);
-    }
+  const setSearchTermValue = (value: string) => {
+    dispatch(setSearchQuery(value));
   };
   
   const setFilterLevel = (value: string) => {
-    if (useReduxCourses) {
-      dispatch(setLevelFilter(value));
-    } else {
-      setLocalFilterLevel(value);
-    }
+    dispatch(setLevelFilter(value));
   };
   
   const setViewMode = (mode: 'grid' | 'list') => {
-    if (useReduxCourses) {
-      dispatch(setReduxViewMode(mode));
-    } else {
-      setLocalViewMode(mode);
-    }
+    dispatch(setReduxViewMode(mode));
   };
 
-  // Legacy data fetching (fallback when Redux is disabled)
-  useEffect(() => {
-    if (!useReduxCourses || !useReduxProgress) {
-      const fetchData = async () => {
-        try {
-          setLegacyIsLoading(true);
-          const [coursesData, userProgressData] = await Promise.all([
-            getLaboratoryCourses(),
-            getUserProgress()
-          ]);
-          
-          setLegacyCourses(coursesData);
-          setLegacyUserProgress(userProgressData);
-        } catch (err: any) {
-          console.error('Error fetching data:', err);
-          setLegacyError(err.message || 'Erro ao carregar dados');
-        } finally {
-          setLegacyIsLoading(false);
-        }
-      };
-
-      fetchData();
-    }
-  }, [useReduxCourses, useReduxProgress]);
 
   // Debug: Log laboratory courses
   React.useEffect(() => {
@@ -222,7 +166,7 @@ const LearnCourse = () => {
               </div>
               <div className="text-left">
                 <h1 className="text-4xl font-black bg-gradient-to-r from-white via-violet-200 to-purple-200 bg-clip-text text-transparent">
-                  Practice Laboratory {(useReduxCourses || useReduxProgress) && '🔄'}
+                  Practice Laboratory
                 </h1>
                 <p className="text-violet-300 text-lg font-medium">Cursos Interativos de Inglês</p>
               </div>
@@ -296,7 +240,7 @@ const LearnCourse = () => {
               type="text"
               placeholder="Pesquisar cursos do laboratório..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => setSearchTermValue(e.target.value)}
               className="pl-12 h-12 bg-customgreys-darkGrey/50 border-violet-900/30 text-white placeholder:text-gray-400 focus:border-violet-500 focus:ring-1 focus:ring-violet-500/20 transition-all duration-200 rounded-xl"
             />
           </div>
@@ -377,7 +321,7 @@ const LearnCourse = () => {
               {searchTerm && (
                 <Button 
                   onClick={() => {
-                    setSearchTerm('');
+                    setSearchTermValue('');
                     setFilterLevel('all');
                   }}
                   variant="outline"

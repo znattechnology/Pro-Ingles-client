@@ -4,8 +4,6 @@
  * Function to test course creation with hardcoded data
  */
 
-import { createPracticeCourse } from '@/actions/practice-management';
-
 export const testCourseCreationWithHardcodedData = async () => {
     console.log('🧪 TESTING COURSE CREATION WITH HARDCODED DATA...');
     
@@ -31,7 +29,29 @@ export const testCourseCreationWithHardcodedData = async () => {
     console.log('🧪 TEST DATA KEYS:', Object.keys(testData));
     
     try {
-        const result = await createPracticeCourse(testData);
+        // Use direct API call instead of Redux action
+        const API_BASE_URL = process.env.NEXT_PUBLIC_DJANGO_API_URL || 'http://localhost:8000/api/v1';
+        const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+        
+        const response = await fetch(`${API_BASE_URL}/practice/courses/create/`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+                ...testData,
+                status: testData.status || 'draft',
+                course_type: testData.course_type || 'practice',
+            }),
+        });
+        
+        if (!response.ok) {
+            throw new Error(`API call failed: ${response.status}`);
+        }
+        
+        const result = await response.json();
         console.log('🧪 TEST RESULT:', result);
         
         // Check if our fields made it through

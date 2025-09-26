@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Loading from "@/components/course/Loading";
-import { getCourseById } from "@/db/django-queries";
+import { useGetCourseDetailsQuery } from '@/src/modules/student';
 
 interface CourseSpeakingPracticeHubProps {
   courseId: string;
@@ -94,51 +94,29 @@ const getTypeIcon = (type: string) => {
 
 export default function CourseSpeakingPracticeHub({ courseId }: CourseSpeakingPracticeHubProps) {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
-  const [courseInfo, setCourseInfo] = useState(mockCourseInfo);
   const [practices, setPractices] = useState(mockCoursePractices);
 
-  useEffect(() => {
-    // Carregar dados reais do curso
-    const loadCourseData = async () => {
-      try {
-        setIsLoading(true);
-        
-        // Buscar dados reais do curso
-        const courseData = await getCourseById(courseId);
-        
-        if (courseData) {
-          // Mapear dados do curso para o formato esperado
-          const mappedCourseInfo = {
-            id: courseData.id,
-            title: courseData.title || "Curso de Inglês",
-            description: courseData.description || "Desenvolva suas habilidades em inglês",
-            level: courseData.level || "INTERMEDIATE",
-            currentUnit: courseData.currentUnit || "Unidade Atual",
-            progress: courseData.progress || 0
-          };
-          
-          setCourseInfo(mappedCourseInfo);
-        } else {
-          // Fallback para dados mock se não encontrar o curso
-          setCourseInfo(mockCourseInfo);
-        }
-        
-        // TODO: Implementar chamada para práticas específicas do curso
-        // const practicesData = await fetchCourseSpeakingPractices(courseId);
-        setPractices(mockCoursePractices);
-        
-      } catch (error) {
-        console.error('Error loading course data:', error);
-        // Usar dados mock em caso de erro
-        setCourseInfo(mockCourseInfo);
-        setPractices(mockCoursePractices);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  // Use Redux to get course data
+  const { 
+    data: courseData, 
+    isLoading, 
+    error 
+  } = useGetCourseDetailsQuery(courseId);
 
-    loadCourseData();
+  // Map course data to expected format
+  const courseInfo = courseData ? {
+    id: courseData.id,
+    title: courseData.title || "Curso de Inglês",
+    description: courseData.description || "Desenvolva suas habilidades em inglês",
+    level: courseData.level || "INTERMEDIATE",
+    currentUnit: courseData.currentUnit || "Unidade Atual",
+    progress: courseData.progress || 0
+  } : mockCourseInfo;
+
+  useEffect(() => {
+    // TODO: Implementar chamada para práticas específicas do curso via Redux
+    // const practicesData = await fetchCourseSpeakingPractices(courseId);
+    setPractices(mockCoursePractices);
   }, [courseId]);
 
   const handlePracticeClick = (practiceId: string) => {

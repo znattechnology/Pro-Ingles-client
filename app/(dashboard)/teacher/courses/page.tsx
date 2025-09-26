@@ -7,8 +7,8 @@ import {
   useCreateCourseMutation,
   useDeleteCourseMutation,
   useGetAllTeacherCoursesQuery,
-} from "@/redux/features/api/coursesApiSlice";
-import { Course } from "@/redux/features/api/coursesApiSlice";
+  Course,
+} from "@modules/learning/video-courses";
 import Loading from "@/components/course/Loading";
 import TeacherCourseCard from "@/components/course/TeacherCourseCard";
 import DeleteCourseModal from "@/components/modals/DeleteCourseModal";

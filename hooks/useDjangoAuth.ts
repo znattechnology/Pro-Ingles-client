@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useRouter } from "next/navigation";
 import { RootState } from "@/state/redux";
-import { userLoggedIn, userLoggedOut, User } from "@/redux/features/auth/authSlice";
+import { userLoggedIn, userLoggedOut, User } from "@modules/auth";
 import { getCurrentUser, isAuthenticated } from "@/lib/django-middleware";
 import { djangoAuth } from "@/lib/django-auth";
 

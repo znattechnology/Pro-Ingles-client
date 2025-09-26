@@ -32,8 +32,11 @@ import {
   Heart,
   Zap
 } from 'lucide-react';
-import { getCourseUnits, createPracticeLesson } from '@/actions/practice-management';
-import { useCreatePracticeUnitMutation } from '@/redux/features/laboratory/laboratoryApiSlice';
+import { 
+  useGetCourseUnitsQuery, 
+  useCreatePracticeLessonMutation,
+  useCreatePracticeUnitMutation 
+} from '@modules/teacher';
 import { 
   unitCreationSchema, 
   lessonCreationSchema, 
@@ -149,13 +152,17 @@ const LESSON_TEMPLATES: LessonTemplate[] = [
 export default function LessonConstructor({ course, onBack }: LessonConstructorProps) {
   // Redux hooks
   const [createPracticeUnit] = useCreatePracticeUnitMutation();
+  const { data: unitsData, isLoading: unitsLoading, refetch: refetchUnits } = useGetCourseUnitsQuery(course.id);
+  const [createLesson] = useCreatePracticeLessonMutation();
   
   // State management
   const [currentStep, setCurrentStep] = useState(1);
-  const [units, setUnits] = useState<Unit[]>([]);
   const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
-  const [loading, setLoading] = useState(false);
+  
+  // Get units from Redux - handle the CourseUnitsResponse structure
+  const units = unitsData?.units || [];
+  const loading = unitsLoading;
 
   // Unit creation state
   const [newUnitData, setNewUnitData] = useState({
@@ -178,29 +185,13 @@ export default function LessonConstructor({ course, onBack }: LessonConstructorP
   const [unitFieldTouched, setUnitFieldTouched] = useState<Record<string, boolean>>({});
   const [lessonFieldTouched, setLessonFieldTouched] = useState<Record<string, boolean>>({});
 
-  // Load course units
+  // Units are loaded automatically by Redux hook
   useEffect(() => {
-    loadCourseUnits();
-  }, []);
-
-  const loadCourseUnits = async () => {
-    try {
-      setLoading(true);
-      console.log('🔄 LessonConstructor: Loading units for course:', course.id);
-      console.log('🎯 Course details:', course);
-      
-      const unitsData = await getCourseUnits(course.id);
-      console.log('✅ Units loaded successfully:', unitsData);
-      console.log('📊 Number of units:', unitsData?.length || 0);
-      
-      setUnits(unitsData || []);
-    } catch (error) {
-      console.error('❌ Error loading units:', error);
-      laboratoryNotifications.creationError('unidades', error instanceof Error ? error.message : undefined);
-    } finally {
-      setLoading(false);
-    }
-  };
+    console.log('🔄 LessonConstructor: Units loaded from Redux for course:', course.id);
+    console.log('📊 Number of units:', units.length);
+    console.log('✅ Units data:', units);
+    console.log('📋 Full unitsData:', unitsData);
+  }, [units, course.id, unitsData]);
 
   // =============================================
   // VALIDATION FUNCTIONS
@@ -282,7 +273,12 @@ export default function LessonConstructor({ course, onBack }: LessonConstructorP
     });
 
     if (!result.success) {
-      setUnitValidationErrors(result.errors);
+      // Convert string[] to string for UI display
+      const flatErrors: Record<string, string> = {};
+      Object.entries(result.errors).forEach(([key, messages]) => {
+        flatErrors[key] = messages[0] || 'Campo inválido';
+      });
+      setUnitValidationErrors(flatErrors);
       return false;
     }
     
@@ -303,7 +299,12 @@ export default function LessonConstructor({ course, onBack }: LessonConstructorP
     });
 
     if (!result.success) {
-      setLessonValidationErrors(result.errors);
+      // Convert string[] to string for UI display
+      const flatErrors: Record<string, string> = {};
+      Object.entries(result.errors).forEach(([key, messages]) => {
+        flatErrors[key] = messages[0] || 'Campo inválido';
+      });
+      setLessonValidationErrors(flatErrors);
       return false;
     }
     
@@ -321,16 +322,59 @@ export default function LessonConstructor({ course, onBack }: LessonConstructorP
 
     // Use toast.promise for better UX
     const unitCreationPromise = (async () => {
+      // Calculate the next order number based on existing units
+      // Ensure we handle empty arrays and missing order values safely
+      const existingOrders = units.map(u => u.order || 0).filter(order => order > 0);
+      const nextOrder = existingOrders.length > 0 ? Math.max(...existingOrders) + 1 : 1;
+      
       const unitData = {
         course: course.id,
         title: newUnitData.title,
         description: newUnitData.description,
-        order: units.length + 1
+        order: nextOrder
       };
       
       console.log('📝 Unit data to create:', unitData);
+      console.log('📊 Current units array:', units);
+      console.log('📊 Units count:', units.length);
+      console.log('📊 Calculated next order:', nextOrder);
       
-      const newUnit = await createPracticeUnit({ courseId: course.id, data: unitData }).unwrap();
+      let newUnit;
+      try {
+        newUnit = await createPracticeUnit(unitData).unwrap();
+      } catch (error) {
+        console.error('❌ Unit creation failed:', error);
+        
+        // Log detailed error information for debugging
+        if (error && typeof error === 'object') {
+          console.error('❌ Error type:', typeof error);
+          console.error('❌ Error keys:', Object.keys(error));
+          
+          if ('data' in error) {
+            console.error('❌ Backend error data:', (error as any).data);
+            
+            // Check for specific Django validation errors
+            const data = (error as any).data;
+            if (data && typeof data === 'object') {
+              if ('non_field_errors' in data) {
+                console.error('❌ Non-field errors:', data.non_field_errors);
+              }
+              if ('order' in data) {
+                console.error('❌ Order validation errors:', data.order);
+              }
+              if ('title' in data) {
+                console.error('❌ Title validation errors:', data.title);
+              }
+            }
+          }
+          
+          if ('status' in error) {
+            console.error('❌ HTTP Status:', (error as any).status);
+          }
+        }
+        
+        throw error;
+      }
       console.log('✅ Unit created successfully:', newUnit);
       
       // Verify unit creation
@@ -338,7 +382,8 @@ export default function LessonConstructor({ course, onBack }: LessonConstructorP
         throw new Error('Resposta inválida da API - unidade não foi criada corretamente');
       }
       
-      setUnits([...units, newUnit as any]);
+      // Refetch units from Redux after creating new unit
+      await refetchUnits();
       setNewUnitData({ title: '', description: '', order: 1 });
       setUnitValidationErrors({});
       setUnitFieldTouched({});
@@ -381,7 +426,7 @@ export default function LessonConstructor({ course, onBack }: LessonConstructorP
       
       console.log('📝 Lesson data to create:', lessonData);
       
-      const newLesson = await createPracticeLesson(lessonData);
+      const newLesson = await createLesson(lessonData).unwrap();
       console.log('✅ Lesson created successfully:', newLesson);
       
       // Verify the lesson has required properties
@@ -389,20 +434,26 @@ export default function LessonConstructor({ course, onBack }: LessonConstructorP
         throw new Error('Resposta inválida da API - lição não foi criada corretamente');
       }
       
-      // Update local state
-      const updatedUnits = units.map(unit =>
-        unit.id === selectedUnit.id
-          ? { ...unit, lessons: [...(unit.lessons || []), newLesson] }
-          : unit
-      );
-      setUnits(updatedUnits);
+      // Refetch the units data from Redux to get updated lesson data
+      // Add small delay to ensure backend has processed the new lesson
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      // CRITICAL: Update selectedUnit with the new lesson
-      const updatedSelectedUnit = {
-        ...selectedUnit,
-        lessons: [...(selectedUnit.lessons || []), newLesson]
-      };
-      setSelectedUnit(updatedSelectedUnit);
+      const updatedUnitsData = await refetchUnits();
+      console.log('🔄 Refetch result:', updatedUnitsData);
+      
+      // Update the selectedUnit with fresh data from the refetch
+      if (updatedUnitsData.data?.units) {
+        const updatedUnit = updatedUnitsData.data.units.find(u => u.id === selectedUnit.id);
+        if (updatedUnit) {
+          setSelectedUnit(updatedUnit as any);
+          console.log('✅ Selected unit updated with new lesson data:', updatedUnit);
+          console.log('📚 Updated lessons count:', updatedUnit.lessons?.length || 0);
+        } else {
+          console.warn('⚠️ Could not find updated unit in refetch data');
+        }
+      } else {
+        console.warn('⚠️ No units data in refetch response');
+      }
       
       // Reset lesson form for next creation
       setNewLessonData({
@@ -534,7 +585,7 @@ export default function LessonConstructor({ course, onBack }: LessonConstructorP
                             : 'border-customgreys-darkerGrey bg-customgreys-primarybg hover:border-violet-400'
                         }`}
                         onClick={() => {
-                          setSelectedUnit(unit);
+                          setSelectedUnit(unit as any); // TODO: Fix type compatibility between Redux and local types
                           setCurrentStep(2);
                         }}
                       >

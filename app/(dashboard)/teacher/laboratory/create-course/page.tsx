@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useDjangoAuth } from "@/hooks/useDjangoAuth";
 import Loading from "@/components/course/Loading";
 import CourseWizard from "@/components/laboratory/CourseWizard";
-import { createPracticeCourse } from "@/actions/practice-management";
+import { useCreatePracticeCourseMutation } from "@modules/teacher";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { ChevronLeft, Sparkles, Brain } from "lucide-react";
@@ -17,6 +17,9 @@ const CreateCoursePage = () => {
   const router = useRouter();
   const { isAuthenticated, user } = useDjangoAuth();
   const [isCreating, setIsCreating] = useState(false);
+  
+  // Use Redux mutation hook
+  const [createCourse] = useCreatePracticeCourseMutation();
 
   const handleCourseCreation = async (courseData: any) => {
     try {
@@ -84,7 +87,7 @@ const CreateCoursePage = () => {
         status: apiData.status
       });
       
-      const createdCourse = await createPracticeCourse(apiData);
+      const createdCourse = await createCourse(apiData).unwrap();
       
       console.log('Course created:', createdCourse);
       

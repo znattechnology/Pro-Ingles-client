@@ -49,7 +49,7 @@ import {
   useGetTeacherLeaderboardStatsQuery,
   useGetTeacherCompetitionsQuery,
   useCreateTeacherCompetitionMutation
-} from '@/redux/features/admin/teacherLeaderboardApi';
+} from '@modules/teacher';
 
 
 

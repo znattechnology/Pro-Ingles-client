@@ -1,5 +1,5 @@
 import {createApi} from "@reduxjs/toolkit/query/react";
-import { userLoggedIn } from "../auth/authSlice";
+import { userLoggedIn } from "@modules/auth";
 import { createBaseQueryWithReauth } from './baseQueryWithReauth';
 
 const DJANGO_BASE_URL = process.env.NEXT_PUBLIC_DJANGO_API_URL || 'http://localhost:8000/api/v1';
@@ -34,6 +34,7 @@ export const apiSlice = createApi({
         'PracticeCourses',
         'PracticeCourse',
         'PracticeAnalytics',
+        'Analytics',
         'StudentProgress',
         // Chapter/Course resource tags
         'ChapterResource',

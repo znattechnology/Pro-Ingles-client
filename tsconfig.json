@@ -21,7 +21,18 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@modules/*": ["./src/modules/*"],
+      "@shared/*": ["./src/shared/*"],
+      "@core/*": ["./src/core/*"],
+      "@modules/auth": ["./src/modules/auth"],
+      "@modules/learning": ["./src/modules/learning"],
+      "@modules/learning/video-courses": ["./src/modules/learning/services/video-courses"],
+      "@modules/learning/practice-courses": ["./src/modules/learning/services/practice-courses"],
+      "@modules/gamification": ["./src/modules/gamification"],
+      "@modules/teacher": ["./src/modules/teacher"],
+      "@modules/student": ["./src/modules/student"],
+      "@modules/admin": ["./src/modules/admin"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

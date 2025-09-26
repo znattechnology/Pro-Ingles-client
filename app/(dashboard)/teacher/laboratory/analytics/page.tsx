@@ -27,52 +27,32 @@ import {
 } from "lucide-react";
 import Loading from "@/components/course/Loading";
 import { useDjangoAuth } from "@/hooks/useDjangoAuth";
-import { 
-  getPracticeAnalytics,
-  getStudentProgress
-} from "@/actions/practice-management";
+import {
+  useGetTeacherPracticeAnalyticsQuery,
+  useGetStudentProgressQuery
+} from "@modules/teacher";
 
 const LaboratoryAnalytics = () => {
   const { isAuthenticated } = useDjangoAuth();
-  const [isLoading, setIsLoading] = useState(true);
-  const [students, setStudents] = useState<any[]>([]);
-  const [analytics, setAnalytics] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTimeRange, setSelectedTimeRange] = useState("week");
   const [currentPage, setCurrentPage] = useState(1);
   const [studentsPerPage] = useState(6);
 
-  useEffect(() => {
-    loadAnalyticsData();
-  }, []);
+  // Use Redux hooks for data fetching
+  const {
+    data: analytics,
+    isLoading: analyticsLoading,
+    error: analyticsError
+  } = useGetTeacherPracticeAnalyticsQuery();
 
-  const loadAnalyticsData = async () => {
-    try {
-      setIsLoading(true);
-      
-      // Load analytics and student progress in parallel
-      const [analyticsData, studentsData] = await Promise.all([
-        getPracticeAnalytics(),
-        getStudentProgress()
-      ]);
-      
-      setAnalytics(analyticsData);
-      setStudents(studentsData);
-      
-    } catch (error) {
-      console.error('Error loading analytics:', error);
-      // Set default values for error state
-      setAnalytics({
-        total_courses: 0,
-        total_students: 0,
-        total_challenges: 0,
-        avg_completion_rate: 0
-      });
-      setStudents([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const {
+    data: students = [],
+    isLoading: studentsLoading,
+    error: studentsError
+  } = useGetStudentProgressQuery();
+
+  const isLoading = analyticsLoading || studentsLoading;
 
   const filteredStudents = students.filter(student =>
     student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -604,7 +584,7 @@ const LaboratoryAnalytics = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
-                      {students
+                      {[...students]
                         .sort((a, b) => (b.total_points || 0) - (a.total_points || 0))
                         .slice(0, 5)
                         .map((student, index) => (
@@ -627,7 +607,7 @@ const LaboratoryAnalytics = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
-                      {students
+                      {[...students]
                         .sort((a, b) => (b.average_accuracy || 0) - (a.average_accuracy || 0))
                         .slice(0, 5)
                         .map((student, index) => (
@@ -650,7 +630,7 @@ const LaboratoryAnalytics = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
-                      {students
+                      {[...students]
                         .sort((a, b) => (b.completed_lessons || 0) - (a.completed_lessons || 0))
                         .slice(0, 5)
                         .map((student) => (

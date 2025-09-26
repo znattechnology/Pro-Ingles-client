@@ -55,7 +55,7 @@ import {
   useGetTeacherAchievementStatsQuery,
   type TeacherAchievement,
   type CreateAchievementData
-} from '@/redux/features/admin/teacherAchievementsApi';
+} from '@modules/teacher';
 
 
 // Using TeacherAchievement interface from API

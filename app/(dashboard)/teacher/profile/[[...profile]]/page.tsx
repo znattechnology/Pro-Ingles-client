@@ -1,7 +1,7 @@
 "use client";
 
 import { useDjangoAuth } from "@/hooks/useDjangoAuth";
-import { useUpdateProfileMutation } from "@/redux/features/auth/authApi";
+import { useUpdateProfileMutation } from "@modules/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

@@ -14,7 +14,7 @@ import {
   useUpdateCourseMutation,
   useGetVideoUploadUrlMutation,
   useGetResourceUploadUrlMutation,
-} from "@/redux/features/api/coursesApiSlice";
+} from "@modules/learning/video-courses";
 import { useAppDispatch, useAppSelector } from "@/state/redux";
 import { 
   setSections, 

@@ -12,7 +12,7 @@ import {
   useGetCourseUnitsWithProgressQuery,
   useGetLessonDetailQuery,
   useSubmitChallengeProgressMutation,
-  useReduceHeartsMutation,
+  useReduceHeartsMutation as useReduceHeartsRedux,
 } from '../laboratoryApiSlice';
 import {
   startPracticeSession,
@@ -22,10 +22,7 @@ import {
   setSelectedLesson,
 } from '../laboratorySlice';
 
-// Legacy imports
-import { getUnits, getLesson } from '@/db/django-queries';
-import { upsertChallengeProgress } from '@/actions/challenge-progress';
-import { reduceHearts } from '@/actions/user-progress';
+// Remove legacy imports - using Redux directly now
 
 // Types
 export interface PracticeSessionState {
@@ -137,7 +134,7 @@ export const usePracticeSession = (lessonId: string | null) => {
   
   // Redux mutations
   const [submitChallengeRedux] = useSubmitChallengeProgressMutation();
-  const [reduceHeartsRedux] = useReduceHeartsMutation();
+  const [reduceHeartsRedux] = useReduceHeartsRedux();
   
   // Get lesson details
   const { lesson, challenges, isLoading, error } = useLessonDetail(lessonId);
@@ -218,14 +215,15 @@ export const usePracticeSession = (lessonId: string | null) => {
  */
 export const useHeartsManagement = () => {
   const useRedux = useFeatureFlag('REDUX_USER_PROGRESS');
-  const [reduceHeartsRedux] = useReduceHeartsMutation();
+  const [reduceHeartsRedux] = useReduceHeartsRedux();
   
   const reduceUserHearts = useCallback(async (challengeId?: string) => {
     if (useRedux) {
       const result = await reduceHeartsRedux().unwrap();
       return result;
     } else {
-      return await reduceHearts(challengeId || '');
+      // Fallback - should not be used anymore
+      throw new Error('Legacy hearts system not available');
     }
   }, [useRedux, reduceHeartsRedux]);
   
