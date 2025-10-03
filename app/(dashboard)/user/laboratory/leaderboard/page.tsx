@@ -34,10 +34,12 @@ import {
   useGetGlobalLeaderboardQuery,
   useGetLeaguesInfoQuery,
   useGetActiveCompetitionsQuery,
-  type LeaderboardEntry,
-  type League,
-  type Competition
-} from '@modules/gamification';
+} from '@/src/domains/student/leaderboard/api/studentLeaderboardApiSlice';
+import type {
+  LeaderboardEntry,
+  League,
+  Competition
+} from '@/src/domains/student/leaderboard/types';
 
 
 export default function LeaderboardPage() {

@@ -731,7 +731,7 @@ export const laboratoryApiSlice = apiSlice.injectEndpoints({
 // Export hooks
 export const {
   // Student hooks
-  useGetLaboratoryCoursesQuery,
+  // useGetLaboratoryCoursesQuery, // Moved to practice modules
   useGetUserProgressQuery,
   useUpdateUserProgressMutation,
   useGetCourseUnitsWithProgressQuery,

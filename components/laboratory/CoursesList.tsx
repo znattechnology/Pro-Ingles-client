@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import { CourseCard } from "./CourseCard";
-import { useUpdateUserProgressMutation } from "@modules/learning/practice-courses";
+import { useUpdateUserProgressMutation } from "@/src/domains/student/practice-courses/api";
 
 type Course = {
   id: string;

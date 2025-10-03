@@ -34,9 +34,9 @@ import {
 } from 'lucide-react';
 import { 
   useGetCourseUnitsQuery, 
-  useCreatePracticeLessonMutation,
-  useCreatePracticeUnitMutation 
-} from '@modules/teacher';
+  useCreateTeacherLessonMutation,
+  useCreateTeacherUnitMutation 
+} from '@/src/domains/teacher/practice-courses/api';
 import { 
   unitCreationSchema, 
   lessonCreationSchema, 
@@ -151,9 +151,9 @@ const LESSON_TEMPLATES: LessonTemplate[] = [
 
 export default function LessonConstructor({ course, onBack }: LessonConstructorProps) {
   // Redux hooks
-  const [createPracticeUnit] = useCreatePracticeUnitMutation();
+  const [createPracticeUnit] = useCreateTeacherUnitMutation();
   const { data: unitsData, isLoading: unitsLoading, refetch: refetchUnits } = useGetCourseUnitsQuery(course.id);
-  const [createLesson] = useCreatePracticeLessonMutation();
+  const [createLesson] = useCreateTeacherLessonMutation();
   
   // State management
   const [currentStep, setCurrentStep] = useState(1);
@@ -187,11 +187,10 @@ export default function LessonConstructor({ course, onBack }: LessonConstructorP
 
   // Units are loaded automatically by Redux hook
   useEffect(() => {
-    console.log('🔄 LessonConstructor: Units loaded from Redux for course:', course.id);
-    console.log('📊 Number of units:', units.length);
-    console.log('✅ Units data:', units);
-    console.log('📋 Full unitsData:', unitsData);
-  }, [units, course.id, unitsData]);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔄 LessonConstructor: Units loaded for course:', course.id, '- Count:', units.length);
+    }
+  }, [units.length, course.id]);
 
   // =============================================
   // VALIDATION FUNCTIONS
@@ -334,10 +333,9 @@ export default function LessonConstructor({ course, onBack }: LessonConstructorP
         order: nextOrder
       };
       
-      console.log('📝 Unit data to create:', unitData);
-      console.log('📊 Current units array:', units);
-      console.log('📊 Units count:', units.length);
-      console.log('📊 Calculated next order:', nextOrder);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('📝 Creating unit:', unitData.title, 'Order:', nextOrder);
+      }
       
       let newUnit;
       try {
@@ -382,8 +380,12 @@ export default function LessonConstructor({ course, onBack }: LessonConstructorP
         throw new Error('Resposta inválida da API - unidade não foi criada corretamente');
       }
       
+      // Small delay to ensure invalidation has processed
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       // Refetch units from Redux after creating new unit
       await refetchUnits();
+      
       setNewUnitData({ title: '', description: '', order: 1 });
       setUnitValidationErrors({});
       setUnitFieldTouched({});

@@ -9,8 +9,8 @@ import { useCallback } from 'react';
 import { useFeatureFlag } from '@/lib/featureFlags';
 import { 
   useGetTeacherCoursesQuery,
-  useGetPracticeAnalyticsQuery,
-} from '../laboratoryApiSlice';
+  useGetTeacherDashboardQuery as useGetPracticeAnalyticsQuery,
+} from '@/src/domains/teacher/practice-courses/api';
 import { useTeacherDashboardStats } from './useTeacherCourses';
 
 // Types

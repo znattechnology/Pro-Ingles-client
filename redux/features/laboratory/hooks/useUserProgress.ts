@@ -7,11 +7,11 @@
 
 import { useCallback } from 'react';
 import { 
-  useGetUserProgressQuery,
-  useUpdateUserProgressMutation,
-  useReduceHeartsMutation,
+  useGetStudentProgressQuery,
+  useSelectActiveCourseMutation,
+  useUseHeartMutation,
   useRefillHeartsMutation,
-} from '../laboratoryApiSlice';
+} from '@/src/domains/student/practice-courses/api/studentPracticeApiSlice';
 
 // Types
 export interface UserProgressState {
@@ -45,7 +45,7 @@ export const useUserProgress = (): UserProgressResult => {
     isLoading, 
     error, 
     refetch 
-  } = useGetUserProgressQuery();
+  } = useGetStudentProgressQuery();
   
   return {
     userProgress: data || null,
@@ -59,9 +59,9 @@ export const useUserProgress = (): UserProgressResult => {
  * Hook para ações de progresso do usuário
  */
 export const useUserProgressActions = (): UserProgressActions => {
-  // Redux mutations
-  const [updateProgress] = useUpdateUserProgressMutation();
-  const [reduceHeartsRedux] = useReduceHeartsMutation();
+  // Redux mutations using new domain APIs
+  const [updateProgress] = useSelectActiveCourseMutation();
+  const [reduceHeartsRedux] = useUseHeartMutation();
   const [refillHeartsRedux] = useRefillHeartsMutation();
   
   const updateActiveCourse = useCallback(async (courseId: string) => {
@@ -69,7 +69,7 @@ export const useUserProgressActions = (): UserProgressActions => {
   }, [updateProgress]);
   
   const reduceHearts = useCallback(async () => {
-    const result = await reduceHeartsRedux().unwrap();
+    const result = await reduceHeartsRedux({ amount: 1 }).unwrap();
     return result;
   }, [reduceHeartsRedux]);
   

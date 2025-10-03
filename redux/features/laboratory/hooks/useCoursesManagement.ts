@@ -6,23 +6,22 @@
  */
 
 import { useCallback } from 'react';
+// Import from new separated APIs
 import { 
-  useGetLaboratoryCoursesQuery,
-  useGetPracticeCoursesQuery,
-  useUpdateUserProgressMutation,
-  useCreatePracticeCourseMutation,
-  useUpdatePracticeCourseMutation,
-  useDeletePracticeCourseMutation,
-  useToggleCoursePublicationMutation,
-} from '../laboratoryApiSlice';
+  useGetAvailableCoursesQuery as useGetLaboratoryCoursesQuery, // Student laboratory courses
+  useUpdateProgressMutation as useUpdateUserProgressMutation,
+} from '@/src/domains/student/practice-courses/api/studentPracticeApiSlice';
+// TODO: Teacher imports temporariamente comentados - focando na parte do estudante
+// import {
+//   useGetTeacherPracticeCoursesQuery as useGetPracticeCoursesQuery,
+// } from '@/src/domains/teacher/practice-courses/api';
+// import {
+//   useCreateTeacherCourseMutation as useCreatePracticeCourseMutation,
+//   useUpdatePracticeCourseMutation,
+//   useDeleteTeacherCourseMutation as useDeletePracticeCourseMutation,
+//   usePublishTeacherCourseMutation as useToggleCoursePublicationMutation,
+// } from '@/src/domains/teacher/practice-courses/api';
 
-// Import practice management hooks
-import {
-  useCreatePracticeCourseMutation as useCreatePracticeCoursePracticeModule,
-  useUpdatePracticeCourseMutation as useUpdatePracticeCoursePracticeModule,
-  useDeletePracticeCourseMutation as useDeletePracticeCoursePracticeModule,
-  usePublishPracticeCourseMutation
-} from '@modules/teacher';
 
 // Types
 export interface CourseManagementResult {
@@ -50,7 +49,7 @@ export const useLaboratoryCourses = (): CourseManagementResult => {
     isLoading, 
     error, 
     refetch 
-  } = useGetLaboratoryCoursesQuery();
+  } = useGetLaboratoryCoursesQuery({ includeDrafts: true });
   
   return {
     courses: data,
@@ -62,96 +61,62 @@ export const useLaboratoryCourses = (): CourseManagementResult => {
 
 /**
  * Hook para gerenciar cursos do laboratório (Teacher)
+ * TODO: Temporariamente desabilitado - teacher hooks serão importados separadamente
  */
 export const usePracticeCourses = (): CourseManagementResult => {
-  const useRedux = useFeatureFlag('REDUX_TEACHER_MANAGEMENT');
+  // const { 
+  //   data = [], 
+  //   isLoading, 
+  //   error, 
+  //   refetch 
+  // } = useGetPracticeCoursesQuery({ includeDrafts: true });
   
-  if (useRedux) {
-    const { 
-      data = [], 
-      isLoading, 
-      error, 
-      refetch 
-    } = useGetPracticeCoursesQuery({ includeDrafts: true });
-    
-    return {
-      courses: data,
-      isLoading,
-      error: error ? 'Failed to load practice courses' : null,
-      refetch,
-    };
-  } else {
-    // Legacy implementation
-    return {
-      courses: [],
-      isLoading: false,
-      error: null,
-      refetch: () => {},
-    };
-  }
+  return {
+    courses: [],
+    isLoading: false,
+    error: null,
+    refetch: () => {},
+  };
 };
 
 /**
  * Hook para ações de curso (Teacher)
+ * TODO: Temporariamente desabilitado - teacher hooks serão importados separadamente
  */
 export const useCourseActions = (): CourseActionsResult => {
-  const useRedux = useFeatureFlag('REDUX_TEACHER_MANAGEMENT');
+  // const [createCourse] = useCreatePracticeCourseMutation();
+  // const [updateCourse] = useUpdatePracticeCourseMutation();
+  // const [deleteCourse] = useDeletePracticeCourseMutation();
+  // const [publishCourse] = useToggleCoursePublicationMutation();
   
-  // Redux mutations
-  const [createCourseRedux] = useCreatePracticeCourseMutation();
-  const [updateCourseRedux] = useUpdatePracticeCourseMutation();
-  const [deleteCourseRedux] = useDeletePracticeCourseMutation();
-  const [publishCourseRedux] = useToggleCoursePublicationMutation();
+  const createCourseAction = useCallback(async (data: any) => {
+    // const result = await createCourse(data).unwrap();
+    // return result;
+    throw new Error('Teacher functionality temporarily disabled');
+  }, []);
   
-  // Practice module hooks for legacy fallback
-  const [createPractice] = useCreatePracticeCoursePracticeModule();
-  const [updatePractice] = useUpdatePracticeCoursePracticeModule();
-  const [deletePractice] = useDeletePracticeCoursePracticeModule();
-  const [publishPractice] = usePublishPracticeCourseMutation();
+  const updateCourseAction = useCallback(async (id: string, data: any) => {
+    // const result = await updateCourse({ id, data }).unwrap();
+    // return result;
+    throw new Error('Teacher functionality temporarily disabled');
+  }, []);
   
-  const createCourse = useCallback(async (data: any) => {
-    if (useRedux) {
-      const result = await createCourseRedux(data).unwrap();
-      return result;
-    } else {
-      const result = await createPractice(data).unwrap();
-      return result;
-    }
-  }, [useRedux, createCourseRedux, createPractice]);
+  const deleteCourseAction = useCallback(async (id: string) => {
+    // await deleteCourse(id).unwrap();
+    throw new Error('Teacher functionality temporarily disabled');
+  }, []);
   
-  const updateCourse = useCallback(async (id: string, data: any) => {
-    if (useRedux) {
-      const result = await updateCourseRedux({ id, data }).unwrap();
-      return result;
-    } else {
-      const result = await updatePractice({ courseId: id, data }).unwrap();
-      return result;
-    }
-  }, [useRedux, updateCourseRedux, updatePractice]);
-  
-  const deleteCourse = useCallback(async (id: string) => {
-    if (useRedux) {
-      await deleteCourseRedux(id).unwrap();
-    } else {
-      await deletePractice(id).unwrap();
-    }
-  }, [useRedux, deleteCourseRedux, deletePractice]);
-  
-  const publishCourse = useCallback(async (id: string, publish: boolean) => {
-    if (useRedux) {
-      const result = await publishCourseRedux({ courseId: id, publish }).unwrap();
-      return result;
-    } else {
-      const result = await publishPractice({ courseId: id, publish }).unwrap();
-      return result;
-    }
-  }, [useRedux, publishCourseRedux, publishPractice]);
+  const publishCourseAction = useCallback(async (id: string, publish: boolean) => {
+    // const result = await publishCourse({ courseId: id, publish }).unwrap();
+    // return result;
+    throw new Error('Teacher functionality temporarily disabled');
+  }, []);
   
   return {
-    createCourse,
-    updateCourse,
-    deleteCourse,
-    publishCourse,
+    createCourse: createCourseAction,
+    updateCourse: updateCourseAction,
+    deleteCourse: deleteCourseAction,
+    publishCourse: publishCourseAction,
   };
 };
 

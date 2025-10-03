@@ -7,7 +7,7 @@ import { Header } from "./header";
 import { QuestionBubble } from "./question.bubble";
 import { Challenge } from "./challenge";
 import { Footer } from "./footer";
-import { useUpdateChallengeProgressMutation } from '@/src/modules/student';
+import { useSubmitChallengeMutation } from '@/src/domains/student/practice-courses/api/studentPracticeApiSlice';
 import { toast } from "sonner";
 import { useWindowSize, useMount } from "react-use";
 import { Button } from "@/components/ui/button";
@@ -70,7 +70,7 @@ export const Quiz = ({
   const [hearts, setHearts] = useState(initialHearts);
   
   // Redux mutations
-  const [submitChallengeProgress] = useUpdateChallengeProgressMutation();
+  const [submitChallengeProgress] = useSubmitChallengeMutation();
   
   // Redux practice session hooks
   const { actions } = usePracticeSession(useReduxPractice ? initialLessonId : null);

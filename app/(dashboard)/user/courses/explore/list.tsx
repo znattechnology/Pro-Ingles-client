@@ -1,21 +1,11 @@
 "use client";
 
-import { Card } from "./card";
+import { StudentCourseCard } from "@/src/domains/student/video-courses/components";
 import { useRouter } from "next/navigation";
-
-// Define types for Django API responses
-interface Course {
-    id: string;
-    title: string;
-    description?: string;
-    image?: string;
-    category?: string;
-    level?: string;
-    template?: string;
-}
+import type { StudentVideoCourse } from "@/src/domains/student/video-courses/types";
 
 type Props = {
-    courses: Course[];
+    courses: StudentVideoCourse[];
     activeCourseId?: string;
     viewMode?: 'grid' | 'list';
 };
@@ -23,29 +13,31 @@ type Props = {
 export const List = ({courses, activeCourseId, viewMode = 'grid'}: Props) => {
     const router = useRouter();
 
-    const onClick = (id: string) => {
+    const onGoToCourse = (course: StudentVideoCourse) => {
+        // Use courseId from API response (temporary fix until API/types are aligned)
+        const courseId = (course as any).courseId || course.id;
+        console.log('🔍 Navigating to course:', courseId);
+        
+        if (!courseId) {
+            console.error('❌ Course ID is missing! Course object:', course);
+            return;
+        }
+        
         // Navigate to course details page
-        router.push(`/user/courses/${id}`);
+        router.push(`/user/courses/${courseId}`);
     }
+    
     return (
         <div className={viewMode === 'grid' 
             ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" 
             : "flex flex-col gap-4"
         }>
          {courses.map((course) =>(
-            <Card
-            key={course.id}
-            id={course.id}
-            title={course.title}
-            imageSrc={course.image || '/laboratory/challenges/english-1.jpg'}
-            template={course.template || 'general'}
-            description={course.description}
-            category={course.category}
-            level={course.level}
-            onClick={onClick}
-            disabled={false}
-            active={course.id === activeCourseId}
-            viewMode={viewMode}
+            <StudentCourseCard
+                key={course.id}
+                course={course}
+                onGoToCourse={onGoToCourse}
+                viewMode={viewMode}
             />
          ))}
         </div>

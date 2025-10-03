@@ -11,9 +11,9 @@ import { useFeatureFlag } from '@/lib/featureFlags';
 import { 
   useGetCourseUnitsWithProgressQuery,
   useGetLessonDetailQuery,
-  useSubmitChallengeProgressMutation,
-  useReduceHeartsMutation as useReduceHeartsRedux,
-} from '../laboratoryApiSlice';
+  useSubmitChallengeMutation as useSubmitChallengeProgressMutation,
+  useUseHeartMutation as useReduceHeartsRedux,
+} from '@/src/domains/student/practice-courses/api/studentPracticeApiSlice';
 import {
   startPracticeSession,
   nextChallenge,

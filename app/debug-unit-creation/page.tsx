@@ -1,14 +1,14 @@
 "use client";
 
 import React, { useState } from 'react';
-import { useCreatePracticeUnitMutation, useGetCourseUnitsQuery } from '@modules/teacher';
+import { useCreateTeacherUnitMutation, useGetCourseUnitsQuery } from '@/src/domains/teacher/practice-courses/api';
 
 // Simple debug page to test unit creation
 export default function DebugUnitCreation() {
   const [courseId] = useState('65d5c5e5-9e4f-4c5a-8b3a-2f1e9d0c4b5a'); // Example course ID
   const [unitTitle, setUnitTitle] = useState('');
   const [unitDescription, setUnitDescription] = useState('');
-  const [createUnit, { isLoading: isCreating, error: createError }] = useCreatePracticeUnitMutation();
+  const [createUnit, { isLoading: isCreating, error: createError }] = useCreateTeacherUnitMutation();
   const { data: unitsData, isLoading: unitsLoading, error: unitsError, refetch } = useGetCourseUnitsQuery(courseId);
 
   const units = unitsData?.units || [];

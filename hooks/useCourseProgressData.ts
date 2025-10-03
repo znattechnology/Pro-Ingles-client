@@ -1,19 +1,19 @@
 import { useState } from "react";
 import { useParams } from "next/navigation";
 import {
-  useGetCourseByIdQuery,
-  useGetUserCourseProgressQuery,
-  useUpdateUserCourseProgressMutation,
-} from "@modules/learning/video-courses";
+  useGetVideoCourseByIdQuery,
+  useGetVideoCourseProgressQuery,
+  useUpdateVideoProgressMutation,
+} from "@/src/domains/student/video-courses/api/studentVideoCourseApiSlice";
 import { useDjangoAuth } from "@/hooks/useDjangoAuth";
 
 export const useCourseProgressData = () => {
   const { courseId, chapterId } = useParams();
   const { user, isAuthenticated, isLoading: authLoading } = useDjangoAuth();
   const [hasMarkedComplete, setHasMarkedComplete] = useState(false);
-  const [updateProgress] = useUpdateUserCourseProgressMutation();
+  const [updateProgress] = useUpdateVideoProgressMutation();
 
-  const { data: courseResponse, isLoading: courseLoading } = useGetCourseByIdQuery(
+  const { data: courseResponse, isLoading: courseLoading } = useGetVideoCourseByIdQuery(
     (courseId as string) ?? "",
     {
       skip: !courseId,
@@ -23,17 +23,17 @@ export const useCourseProgressData = () => {
   const course = courseResponse?.data;
 
   const { data: userProgressResponse, isLoading: progressLoading } =
-    useGetUserCourseProgressQuery(
+    useGetVideoCourseProgressQuery(
       {
-        userId: user?.id ?? "",
         courseId: (courseId as string) ?? "",
+        userId: user?.id ?? ""
       },
       {
         skip: !isAuthenticated || !user || !courseId,
       }
     );
 
-  const userProgress = userProgressResponse?.data;
+  const userProgress = userProgressResponse?.data?.data || userProgressResponse?.data;
 
   const isLoading = authLoading || courseLoading || progressLoading;
 

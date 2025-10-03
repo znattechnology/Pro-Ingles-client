@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,7 +17,9 @@ import {
 import { useDjangoAuth } from '@/hooks/useDjangoAuth';
 import Loading from '@/components/course/Loading';
 import { EnrolledList } from './enrolled-list';
-import { useGetUserEnrolledCoursesQuery, useGetCoursesQuery, useGetCoursesWithEnrollmentsQuery, useGetUserCourseProgressQuery } from '@modules/learning/video-courses';
+import { 
+  useGetMyVideoEnrollmentsQuery
+} from '@/src/domains/student/video-courses/api';
 
 const MyCoursesPage = () => {
   const router = useRouter();
@@ -29,86 +31,67 @@ const MyCoursesPage = () => {
   const [sortBy, setSortBy] = useState('progress'); // progress, newest, rating, title, lastAccessed
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   
-  // Fetch enrolled courses from Django API
-  const { data: enrolledCoursesData, isLoading: enrolledCoursesLoading, error: enrolledCoursesError } = useGetUserEnrolledCoursesQuery(
-    user?.id || '', 
+  // Fetch enrolled courses from Django API (using new domain API)
+  const { data: enrolledCoursesData, isLoading: enrolledCoursesLoading, error: enrolledCoursesError } = useGetMyVideoEnrollmentsQuery(
+    user?.id as string,
     { skip: !user?.id }
   );
 
-  // Fallback: Fetch all courses if enrolled courses API fails
-  const { data: allCoursesData, isLoading: allCoursesLoading } = useGetCoursesQuery(
-    {},
-    { skip: !enrolledCoursesError || !!enrolledCoursesData }
-  );
+  // Debug enrolled courses response
+  console.log('🔍 Enrolled courses data:', enrolledCoursesData);
+  console.log('🔍 Enrolled courses error:', enrolledCoursesError);
 
-  // Final fallback: Get courses with detailed enrollment data
-  const { data: detailedCoursesData, isLoading: detailedCoursesLoading } = useGetCoursesWithEnrollmentsQuery(
-    undefined,
-    { skip: !enrolledCoursesError || !!enrolledCoursesData || (!!allCoursesData && allCoursesData.data.some(c => c.enrollments !== undefined)) }
-  );
-
-  // Use enrolled courses API if available, otherwise filter from all courses
-  const finalEnrolledCoursesData = React.useMemo(() => {
+  // Only use enrolled courses data - no fallback to all available courses
+  const finalEnrolledCoursesData = useMemo(() => {
     if (enrolledCoursesData) {
       return enrolledCoursesData;
     }
     
-    if (detailedCoursesData?.data && user?.id) {
-      const enrolledCourses = detailedCoursesData.data.filter(course => 
-        course.enrollments?.some(enrollment => enrollment.userId === user.id)
-      );
-      
-      return {
-        message: 'Cursos inscritos encontrados',
-        data: enrolledCourses
-      };
-    }
+    // If there's an error or no data, return empty array
+    return { data: [] };
+  }, [enrolledCoursesData]);
 
-    if (allCoursesData?.data && user?.id) {
-      const enrolledCourses = allCoursesData.data.filter(course => {
-        return course.enrollments?.some(enrollment => enrollment.userId === user.id);
-      });
-      
-      return {
-        message: 'Cursos inscritos encontrados',
-        data: enrolledCourses
-      };
-    }
-    
-    return null;
-  }, [enrolledCoursesData, allCoursesData, detailedCoursesData, user?.id, enrolledCoursesError]);
-
-  const coursesLoading = enrolledCoursesLoading || allCoursesLoading || detailedCoursesLoading;
+  const coursesLoading = enrolledCoursesLoading;
 
   // Transform API data to match component expectations with real progress
-  const enrolledCourses = React.useMemo(() => {
-    if (!finalEnrolledCoursesData?.data) return [];
+  const enrolledCourses = useMemo(() => {
+    if (!finalEnrolledCoursesData) return [];
     
-    return finalEnrolledCoursesData.data.map(course => ({
-      id: course.courseId,
-      title: course.title,
-      description: course.description || '',
-      thumbnail: course.image || '/laboratory/challenges/english-1.jpg',
-      instructor: course.teacherName,
-      progress: 0, // Will be updated with real progress
-      totalLessons: course.total_chapters || 0,
-      completedLessons: 0, // Will be updated with real progress
-      duration: '8 semanas', // TODO: Calculate from course data
-      level: course.level,
-      category: course.category,
-      template: course.template,
-      enrolledAt: course.created_at,
-      lastAccessed: new Date().toISOString(),
-      status: 'active',
-      rating: 4.5 + Math.random() * 0.5,
-      nextLesson: 'Next Chapter'
-    }));
+    // Handle different API response structures
+    const courses = Array.isArray(finalEnrolledCoursesData) 
+      ? finalEnrolledCoursesData 
+      : finalEnrolledCoursesData.data || [];
+    
+    return courses.map((courseOrEnrollment: any) => {
+      // If it's an enrollment object, extract the course
+      const course = courseOrEnrollment.course || courseOrEnrollment;
+      
+      return {
+        id: course.courseId || course.id,
+        title: course.title,
+        description: course.description || '',
+        thumbnail: course.image || '/laboratory/challenges/english-1.jpg',
+        instructor: course.teacherName || course.instructor?.name,
+        progress: courseOrEnrollment.completion_percentage || 0,
+        totalLessons: course.total_chapters || 0,
+        completedLessons: 0, // Will be updated with real progress
+        duration: '8 semanas', // TODO: Calculate from course data
+        level: course.level,
+        category: course.category,
+        template: course.template,
+        enrolledAt: course.created_at,
+        lastAccessed: new Date().toISOString(),
+        status: 'active',
+        rating: 4.5 + Math.random() * 0.5,
+        nextLesson: 'Next Chapter'
+      };
+    });
   }, [finalEnrolledCoursesData]);
 
   // Hook customizado para buscar progresso de cada curso
-  const [coursesWithProgress, setCoursesWithProgress] = React.useState(enrolledCourses);
+  const [coursesWithProgress, setCoursesWithProgress] = useState(enrolledCourses);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const fetchProgressForCourses = async () => {
       if (!user?.id || enrolledCourses.length === 0) return;
 
@@ -183,7 +166,7 @@ const MyCoursesPage = () => {
   }, [enrolledCourses, user?.id]);
 
   // Filter and sort courses with advanced logic like explore page
-  const filteredAndSortedCourses = React.useMemo(() => {
+  const filteredAndSortedCourses = useMemo(() => {
     let filtered = coursesWithProgress.filter((course: any) => {
       const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            course.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useDjangoAuth } from "@/hooks/useDjangoAuth";
 import Loading from "@/components/course/Loading";
 import CourseWizard from "@/components/laboratory/CourseWizard";
-import { useCreatePracticeCourseMutation } from "@modules/teacher";
+import { useCreateTeacherCourseMutation } from "@/src/domains/teacher/practice-courses/api";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { ChevronLeft, Sparkles, Brain } from "lucide-react";
@@ -19,7 +19,7 @@ const CreateCoursePage = () => {
   const [isCreating, setIsCreating] = useState(false);
   
   // Use Redux mutation hook
-  const [createCourse] = useCreatePracticeCourseMutation();
+  const [createCourse] = useCreateTeacherCourseMutation();
 
   const handleCourseCreation = async (courseData: any) => {
     try {

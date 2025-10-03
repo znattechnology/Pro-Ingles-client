@@ -9,7 +9,7 @@ import { useCallback, useMemo } from 'react';
 import { useFeatureFlag } from '@/lib/featureFlags';
 import { 
   useGetCourseUnitsWithProgressQuery,
-} from '../laboratoryApiSlice';
+} from '@/src/domains/student/practice-courses/api/studentPracticeApiSlice';
 
 // Types
 export interface Lesson {

@@ -45,7 +45,7 @@ import {
   useGetAchievementStatsQuery,
   type Achievement,
   type AchievementStats
-} from '@modules/gamification';
+} from '@/src/domains/student/achievements/api';
 
 
 export default function AchievementsPage() {

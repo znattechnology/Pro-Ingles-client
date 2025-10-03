@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Loading from "@/components/course/Loading";
-import { useGetCourseDetailsQuery } from '@/src/modules/student';
+import { useGetCourseDetailQuery } from '@/src/domains/student/practice-courses/api';
 
 interface CourseListeningPracticeHubProps {
   courseId: string;
@@ -102,7 +102,7 @@ export default function CourseListeningPracticeHub({ courseId }: CourseListening
     data: courseData, 
     isLoading, 
     error 
-  } = useGetCourseDetailsQuery(courseId);
+  } = useGetCourseDetailQuery(courseId);
 
   // Map course data to expected format
   const courseInfo = courseData ? {

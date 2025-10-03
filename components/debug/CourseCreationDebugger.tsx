@@ -23,7 +23,7 @@ import {
   Clock,
   Server
 } from 'lucide-react';
-import { useGetPracticeCoursesQuery } from '@modules/teacher';
+import { useGetTeacherCoursesQuery } from '@/src/domains/teacher/practice-courses/api';
 
 interface DebugStep {
   id: string;

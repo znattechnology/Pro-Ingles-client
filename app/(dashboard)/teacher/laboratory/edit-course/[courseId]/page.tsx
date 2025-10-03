@@ -22,7 +22,8 @@ import {
   Target,
   TrendingUp
 } from "lucide-react";
-import { useGetPracticeCourseByIdQuery, useUpdatePracticeCourseMutation } from "@modules/teacher";
+import { useGetPracticeCourseByIdQuery } from "@/src/domains/teacher/practice-courses/api";
+import { updatePracticeCourseCustom, updatePracticeCourseAlternative } from "@/src/domains/teacher/practice-courses/api/customUpdateService";
 
 interface Course {
   id: string;
@@ -46,9 +47,8 @@ const EditCoursePage = () => {
   const courseId = params.courseId as string;
   const { isAuthenticated } = useDjangoAuth();
   
-  // Redux hooks for data fetching and mutations
+  // Redux hooks for data fetching only
   const { data: course, isLoading } = useGetPracticeCourseByIdQuery(courseId);
-  const [updateCourse] = useUpdatePracticeCourseMutation();
   
   const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState({
@@ -76,17 +76,39 @@ const EditCoursePage = () => {
     try {
       setIsSaving(true);
       
-      await updateCourse({
-        courseId,
-        data: formData
-      }).unwrap();
-      
-      alert('Curso atualizado com sucesso!');
-      router.push('/teacher/laboratory/manage-courses');
+      // Primeiro tenta a implementação que funcionava
+      try {
+        await updatePracticeCourseCustom(courseId, {
+          title: formData.title,
+          description: formData.description,
+          category: formData.category,
+          level: formData.level,
+          status: formData.status
+        });
+        
+        alert('✅ Curso atualizado com sucesso!');
+        router.push('/teacher/laboratory/manage-courses');
+        return;
+        
+      } catch (primaryError) {
+        console.log('🔄 Método principal falhou, tentando alternativas...', primaryError);
+        
+        // Se falhar, tenta múltiplos métodos
+        await updatePracticeCourseAlternative(courseId, {
+          title: formData.title,
+          description: formData.description,
+          category: formData.category,
+          level: formData.level,
+          status: formData.status
+        });
+        
+        alert('✅ Curso atualizado com sucesso (método alternativo)!');
+        router.push('/teacher/laboratory/manage-courses');
+      }
       
     } catch (error) {
-      console.error('Error saving course:', error);
-      alert('Erro ao salvar curso. Tente novamente.');
+      console.error('❌ Erro em todos os métodos de update:', error);
+      alert(`❌ Erro ao salvar curso: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
     } finally {
       setIsSaving(false);
     }
@@ -290,11 +312,11 @@ const EditCoursePage = () => {
               {/* Course Status */}
               <div className="bg-gradient-to-br from-violet-500/5 to-purple-500/5 backdrop-blur-xl rounded-2xl border border-violet-500/20 p-6">
                 <h3 className="text-lg font-semibold text-white mb-4">Status Atual</h3>
-                <Badge className={getStatusColor(course.status)}>
-                  {getStatusText(course.status)}
+                <Badge className={getStatusColor(course.status || 'draft')}>
+                  {getStatusText(course.status || 'draft')}
                 </Badge>
                 <p className="text-sm text-gray-400 mt-2">
-                  Atualizado: {new Date(course.lastUpdated).toLocaleDateString('pt-BR')}
+                  Atualizado: {course.updated_at ? new Date(course.updated_at).toLocaleDateString('pt-BR') : 'Data não disponível'}
                 </p>
               </div>
 

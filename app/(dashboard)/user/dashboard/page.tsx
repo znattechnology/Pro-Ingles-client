@@ -32,7 +32,7 @@ import {
   Crown
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useGetStudentProgressQuery, useGetPracticeCoursesQuery } from '@modules/teacher';
+import { useGetStudentProgressListQuery, useGetTeacherCoursesQuery } from '@/src/domains/teacher/practice-courses/api';
 import Loading from '@/components/course/Loading';
 
 interface UserStats {

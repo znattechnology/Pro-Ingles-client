@@ -8,7 +8,7 @@
  */
 
 // Direct Redux imports
-import { useGetLessonQuery, useGetUserProgressQuery } from '@/src/modules/student';
+import { useGetLessonDetailQuery, useGetStudentProgressQuery } from '@/src/domains/student/practice-courses/api';
 import { useRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
 import { Quiz } from "../quiz";
@@ -29,12 +29,12 @@ const LessonIdPage = ({ params }: Props) => {
     data: lesson, 
     isLoading: lessonLoading, 
     error: lessonError 
-  } = useGetLessonQuery(params.lessonId);
+  } = useGetLessonDetailQuery(params.lessonId);
   
   const { 
     data: userProgress, 
     isLoading: progressLoading 
-  } = useGetUserProgressQuery();
+  } = useGetStudentProgressQuery();
   
   const isLoading = lessonLoading || progressLoading;
 

@@ -6,10 +6,16 @@ import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import { Provider } from "react-redux";
 import { setupListeners } from "@reduxjs/toolkit/query";
 import globalReducer from "@/state";
-import { api } from "@/state/api";
 import { authSlice } from "@modules/auth";
 import { apiSlice } from "@/redux/features/api/apiSlice";
-import { adminApi } from "@modules/admin";
+// New domain-based APIs
+import { teacherPracticeApiSlice } from "@/src/domains/teacher/practice-courses/api";
+import { teacherVideoCourseApiSlice } from "@/src/domains/teacher/video-courses/api";
+import { studentPracticeApiSlice } from "@/src/domains/student/practice-courses/api";
+import { studentVideoCourseApiSlice } from "@/src/domains/student/video-courses/api";
+import { studentLeaderboardApiSlice } from "@/src/domains/student/leaderboard/api";
+import { studentAchievementsApiSlice } from "@/src/domains/student/achievements/api";
+// import { adminApi } from "@modules/admin"; // Temporarily disabled
 import courseEditorSlice from "@/redux/features/courseEditor/courseEditorSlice";
 
 /* REDUX STORE */
@@ -17,9 +23,17 @@ const rootReducer = combineReducers({
   global: globalReducer,
   auth: authSlice,
   courseEditor: courseEditorSlice,
-  [api.reducerPath]: api.reducer,
+  // Legacy Django API (for auth and shared features)
   [apiSlice.reducerPath]: apiSlice.reducer,
-  [adminApi.reducerPath]: adminApi.reducer,
+  // New separated APIs
+  [teacherPracticeApiSlice.reducerPath]: teacherPracticeApiSlice.reducer,
+  [teacherVideoCourseApiSlice.reducerPath]: teacherVideoCourseApiSlice.reducer,
+  [studentPracticeApiSlice.reducerPath]: studentPracticeApiSlice.reducer,
+  [studentVideoCourseApiSlice.reducerPath]: studentVideoCourseApiSlice.reducer,
+  [studentLeaderboardApiSlice.reducerPath]: studentLeaderboardApiSlice.reducer,
+  [studentAchievementsApiSlice.reducerPath]: studentAchievementsApiSlice.reducer,
+  // Admin specific API - temporarily disabled
+  // [adminApi.reducerPath]: adminApi.reducer,
 });
 
 export const makeStore = () => {
@@ -50,7 +64,14 @@ export const makeStore = () => {
             "meta.baseQueryMeta.response",
           ],
         },
-      }).concat(api.middleware, apiSlice.middleware, adminApi.middleware),
+      })
+      .concat(apiSlice.middleware)
+      .concat(teacherPracticeApiSlice.middleware)
+      .concat(teacherVideoCourseApiSlice.middleware)
+      .concat(studentPracticeApiSlice.middleware)
+      .concat(studentVideoCourseApiSlice.middleware)
+      .concat(studentLeaderboardApiSlice.middleware)
+      .concat(studentAchievementsApiSlice.middleware),
   });
 };
 

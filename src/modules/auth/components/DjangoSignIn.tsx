@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useSelector } from "react-redux";
 import { RootState } from "@/state/redux";
 import { useLoginMutation } from "../services/authApi";
+import type { User } from "@/domains/shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -140,7 +141,7 @@ const DjangoSignIn = () => {
     }
   };
 
-  const getRedirectUrl = (user: any) => {
+  const getRedirectUrl = (user: User) => {
     if (isCheckoutPage && courseId) {
       return `/checkout?step=2&id=${courseId}`;
     }
@@ -150,6 +151,7 @@ const DjangoSignIn = () => {
         return '/teacher/courses';
       case 'admin':
         return '/admin/dashboard';
+      case 'student':
       default:
         return '/user/courses/explore';
     }

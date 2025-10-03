@@ -25,10 +25,10 @@ import Loading from "@/components/course/Loading";
 import CourseBanner from "@/components/course/CourseBanner";
 import { useDjangoAuth } from "@/hooks/useDjangoAuth";
 import {
-  useGetPracticeCoursesQuery,
-  useCreatePracticeCourseMutation,
-  useDeletePracticeCourseMutation
-} from "@modules/teacher";
+  useGetTeacherCoursesQuery,
+  useCreateTeacherCourseMutation,
+  useDeleteTeacherCourseMutation
+} from "@/src/domains/teacher/practice-courses/api";
 import { courseToasts, enhancedToast } from "@/components/ui/enhanced-toast";
 
 const PracticeCoursesManagement = () => {
@@ -36,9 +36,9 @@ const PracticeCoursesManagement = () => {
   const { user, isAuthenticated } = useDjangoAuth();
   
   // Use Redux hooks for data fetching
-  const { data: courses = [], isLoading } = useGetPracticeCoursesQuery();
-  const [createCourse] = useCreatePracticeCourseMutation();
-  const [deleteCourse] = useDeletePracticeCourseMutation();
+  const { data: courses = [], isLoading } = useGetTeacherCoursesQuery({ includeDrafts: true });
+  const [createCourse] = useCreateTeacherCourseMutation();
+  const [deleteCourse] = useDeleteTeacherCourseMutation();
   
   const [searchTerm, setSearchTerm] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);

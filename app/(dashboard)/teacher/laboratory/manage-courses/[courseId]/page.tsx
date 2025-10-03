@@ -45,10 +45,10 @@ import {
   AlertTriangle
 } from "lucide-react";
 import { 
-  useDeletePracticeCourseMutation, 
-  usePublishPracticeCourseMutation, 
+  useDeleteTeacherCourseMutation, 
+  usePublishTeacherCourseMutation, 
   useGetPracticeCourseByIdQuery 
-} from "@modules/teacher";
+} from "@/src/domains/teacher/practice-courses/api";
 
 interface Course {
   id: string;
@@ -85,8 +85,8 @@ const ManageCourseDetailPage = () => {
   
   // Redux hooks for data fetching and mutations
   const { data: course, isLoading, error } = useGetPracticeCourseByIdQuery(courseId);
-  const [deleteCourse] = useDeletePracticeCourseMutation();
-  const [publishCourse] = usePublishPracticeCourseMutation();
+  const [deleteCourse] = useDeleteTeacherCourseMutation();
+  const [publishCourse] = usePublishTeacherCourseMutation();
   
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showPublishDialog, setShowPublishDialog] = useState(false);
@@ -177,6 +177,7 @@ const ManageCourseDetailPage = () => {
   };
 
   const getCategoryIcon = (category: string) => {
+    if (!category) return BookOpen;
     switch (category.toLowerCase()) {
       case 'general': return Globe;
       case 'business': return Briefcase;

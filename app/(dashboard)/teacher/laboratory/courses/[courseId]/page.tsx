@@ -26,10 +26,10 @@ import Loading from "@/components/course/Loading";
 import CourseBanner from "@/components/course/CourseBanner";
 import { 
   useGetCourseUnitsQuery,
-  useCreatePracticeUnitMutation,
-  useUpdatePracticeUnitMutation,
-  useDeletePracticeUnitMutation
-} from "@modules/teacher";
+  useCreateTeacherUnitMutation,
+  useUpdateTeacherUnitMutation,
+  useDeleteTeacherUnitMutation
+} from "@/src/domains/teacher/practice-courses/api";
 
 const CourseManagement = () => {
   const params = useParams();
@@ -38,8 +38,8 @@ const CourseManagement = () => {
   
   // Redux hooks for data fetching and mutations
   const { data: units = [], isLoading } = useGetCourseUnitsQuery(courseId);
-  const [createUnit] = useCreatePracticeUnitMutation();
-  const [deleteUnit] = useDeletePracticeUnitMutation();
+  const [createUnit] = useCreateTeacherUnitMutation();
+  const [deleteUnit] = useDeleteTeacherUnitMutation();
   
   const [course, setCourse] = useState<any>(null);
   const [showUnitForm, setShowUnitForm] = useState(false);

@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { motion } from 'framer-motion';
 import LessonConstructor from '@/components/laboratory/LessonConstructor';
-import { useGetTeacherCoursesQuery } from '@modules/learning/practice-courses';
+import { useGetTeacherCoursesQuery } from '@/src/domains/teacher/practice-courses/api';
 
 interface Course {
   id: string;
@@ -29,7 +29,7 @@ export default function LessonConstructorPage() {
   const [searchTerm, setSearchTerm] = useState('');
   
   // Use Redux hook to get teacher courses (including drafts)
-  const { data: coursesData, isLoading: loading, error } = useGetTeacherCoursesQuery();
+  const { data: coursesData, isLoading: loading, error } = useGetTeacherCoursesQuery({ includeDrafts: true });
   
   // Transform courses data to match expected interface
   const courses = coursesData || [];

@@ -45,11 +45,9 @@ import {
 import { useRouter } from 'next/navigation';
 import Loading from '@/components/course/Loading';
 import { 
-  useGetTeacherClassRankingsQuery,
-  useGetTeacherLeaderboardStatsQuery,
-  useGetTeacherCompetitionsQuery,
-  useCreateTeacherCompetitionMutation
-} from '@modules/teacher';
+  useGetTeacherDashboardQuery,
+  useGetStudentProgressListQuery
+} from '@/src/domains/teacher/practice-courses/api';
 
 
 

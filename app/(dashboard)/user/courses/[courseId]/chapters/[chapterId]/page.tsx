@@ -12,7 +12,7 @@ import { useCourseProgressData } from "@/hooks/useCourseProgressData";
 import { 
   useGetChapterResourcesQuery,
   useGetChapterQuizQuery
-} from "@modules/learning/video-courses";
+} from "@/src/domains/student/video-courses/api";
 import InlineExercise from "@/components/laboratory/InlineExercise";
 import { 
   BookOpen, 

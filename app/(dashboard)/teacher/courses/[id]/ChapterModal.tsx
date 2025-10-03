@@ -17,15 +17,15 @@ import { ChapterFormData, chapterSchema } from "@/lib/schemas";
 import { addChapter, closeChapterModal, editChapter } from "@/state";
 import { useAppDispatch, useAppSelector } from "@/state/redux";
 import { 
-  useGetChapterResourcesQuery,
-  useCreateChapterResourceMutation,
-  useDeleteChapterResourceMutation,
-  useGetChapterQuizQuery,
-  useCreateChapterQuizMutation,
-  useDeleteChapterQuizMutation,
+  useGetLessonChallengesQuery,
   useGetVideoUploadUrlMutation,
-} from "@modules/learning/video-courses";
-import { useGetAvailableExercisesQuery } from "@/redux/features/laboratory/laboratoryApiSlice";
+  useCreateChapterMutation,
+  useUpdateChapterMutation,
+  useDeleteChapterMutation,
+  useGetAllTeacherCoursesQuery,
+  CourseChapter as TeacherChapter,
+  CourseSection as TeacherSection,
+} from "@/src/domains/teacher/video-courses/api";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { X, BookOpen, FileText, Brain, Plus, Trash2, ExternalLink, Upload, Zap, Target, CheckCircle, Save } from "lucide-react";
 import React, { useEffect, useState } from "react";
@@ -50,39 +50,34 @@ const ChapterModal = () => {
     sections,
   } = useAppSelector((state) => state.global.courseEditor);
 
-  const chapter: Chapter | undefined =
+  const chapter: TeacherChapter | undefined =
     selectedSectionIndex !== null && selectedChapterIndex !== null
       ? sections[selectedSectionIndex].chapters[selectedChapterIndex]
       : undefined;
 
-  // API hooks - only call when chapter exists and modal is open
-  const { 
-    data: existingResources, 
-    isLoading: resourcesLoading 
-  } = useGetChapterResourcesQuery(
-    chapter?.chapterId || '', 
-    { skip: !chapter?.chapterId || !isChapterModalOpen }
-  );
-
-  const { 
-    data: existingQuiz, 
-    isLoading: quizLoading 
-  } = useGetChapterQuizQuery(
-    chapter?.chapterId || '', 
-    { skip: !chapter?.chapterId || !isChapterModalOpen }
-  );
-
-  const [createResource] = useCreateChapterResourceMutation();
-  const [createQuiz] = useCreateChapterQuizMutation();
-  const [deleteQuiz] = useDeleteChapterQuizMutation();
+  // API hooks from teacher video course API
   const [getVideoUploadUrl] = useGetVideoUploadUrlMutation();
+  const [createChapter] = useCreateChapterMutation();
+  const [updateChapter] = useUpdateChapterMutation();
+  const [deleteChapter] = useDeleteChapterMutation();
   
-  // Exercise integration API
+  // Video courses API from teacher (direct import)
   const { 
-    data: availableExercises, 
+    data: coursesResponse, 
     isLoading: exercisesLoading,
     error: exercisesError 
-  } = useGetAvailableExercisesQuery();
+  } = useGetAllTeacherCoursesQuery({ category: "all" });
+  
+  const teacherCourses = coursesResponse?.data || [];
+
+  // Temporary mock variables for removed functionality
+  const existingResources: any[] = [];
+  const resourcesLoading = false;
+  const existingQuiz: any = undefined;
+  const quizLoading = false;
+  const createResource = () => {};
+  const createQuiz = () => {};
+  const deleteQuiz = () => {};
 
   const methods = useForm<ChapterFormData>({
     resolver: zodResolver(chapterSchema),
@@ -1008,7 +1003,7 @@ const ChapterModal = () => {
                                     <option disabled>Erro ao carregar exercícios</option>
                                   )}
                                   
-                                  {availableExercises?.map((course: any) => (
+                                  {teacherCourses?.map((course: any) => (
                                     <optgroup key={course.id} label={`${course.category_icon || '📚'} ${course.title}`}>
                                       {course.units?.map((unit: any) => 
                                         unit.lessons?.map((lesson: any) => 
@@ -1026,7 +1021,7 @@ const ChapterModal = () => {
                                   ))}
                                   
                                   {/* Fallback options if no data */}
-                                  {!exercisesLoading && !availableExercises?.length && (
+                                  {!exercisesLoading && !teacherCourses?.length && (
                                     <>
                                       <optgroup label="🛢️ Inglês para Petróleo & Gás">
                                         <option value="oil-gas-unit-1-lesson-1-challenge-1">Lesson 1 → Challenge 1: Oil Drilling Vocabulary</option>

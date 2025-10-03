@@ -46,16 +46,17 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Loading from '@/components/course/Loading';
-import {
-  useGetTeacherAchievementsQuery,
-  useCreateAchievementMutation,
-  useUpdateAchievementMutation,
-  useDeleteAchievementMutation,
-  useToggleAchievementStatusMutation,
-  useGetTeacherAchievementStatsQuery,
-  type TeacherAchievement,
-  type CreateAchievementData
-} from '@modules/teacher';
+// TODO: Implementar funcionalidades de achievements na nova API
+// import {
+//   useGetTeacherAchievementsQuery,
+//   useCreateAchievementMutation,
+//   useUpdateAchievementMutation,
+//   useDeleteAchievementMutation,
+//   useToggleAchievementStatusMutation,
+//   useGetTeacherAchievementStatsQuery,
+//   type TeacherAchievement,
+//   type CreateAchievementData
+// } from '@modules/teacher';
 
 
 // Using TeacherAchievement interface from API

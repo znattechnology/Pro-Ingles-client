@@ -12,9 +12,9 @@ import { Quiz } from "./quiz";
 import Loading from "@/components/course/Loading";
 // Direct Redux imports
 import { 
-  useGetLessonQuery,
-  useGetUserProgressQuery 
-} from '@/src/modules/student';
+  useGetLessonDetailQuery,
+  useGetStudentProgressQuery 
+} from '@/src/domains/student/practice-courses/api';
 
 const LessonPage = () => {
   const router = useRouter();
@@ -24,7 +24,7 @@ const LessonPage = () => {
     data: userProgress,
     isLoading: progressLoading,
     error: progressError
-  } = useGetUserProgressQuery();
+  } = useGetStudentProgressQuery();
   
   // Get active lesson ID from user progress
   const activeLessonId = userProgress?.active_course?.id;
@@ -34,7 +34,7 @@ const LessonPage = () => {
     data: lesson, 
     isLoading: lessonLoading, 
     error: lessonError 
-  } = useGetLessonQuery(activeLessonId, {
+  } = useGetLessonDetailQuery(activeLessonId, {
     skip: !activeLessonId,
   });
   

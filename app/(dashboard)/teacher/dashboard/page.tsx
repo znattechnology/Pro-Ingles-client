@@ -3,7 +3,7 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import { useDjangoAuth } from "@/hooks/useDjangoAuth";
-import { useGetAllTeacherCoursesQuery } from "@modules/learning/video-courses";
+import { useGetAllTeacherCoursesQuery } from "@/src/domains/teacher/video-courses/api";
 import Loading from "@/components/course/Loading";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,6 +33,7 @@ const TeacherDashboard = () => {
   
   const courses = coursesResponse?.data || [];
 
+
   // Calculate teacher stats
   const teacherStats = React.useMemo(() => {
     if (!courses || !user?.id) return {
@@ -44,7 +45,9 @@ const TeacherDashboard = () => {
       avgRating: 0
     };
     
-    const teacherCourses = courses.filter(course => course.teacherId === user.id);
+    const teacherCourses = courses.filter(course => 
+      course.teacherId === user.id || course.teacher === user.id
+    );
     const publishedCourses = teacherCourses.filter(course => course.status === 'Published');
     const draftCourses = teacherCourses.filter(course => course.status === 'Draft');
     const totalStudents = teacherCourses.reduce((sum, course) => sum + ((course as any).enrollments?.length || 0), 0);
@@ -68,7 +71,7 @@ const TeacherDashboard = () => {
     if (!courses || !user?.id) return [];
     
     return courses
-      .filter(course => course.teacherId === user.id)
+      .filter(course => course.teacherId === user.id || course.teacher === user.id)
       .sort((a, b) => new Date(b.created_at || '2024-01-01').getTime() - new Date(a.created_at || '2024-01-01').getTime())
       .slice(0, 3);
   }, [courses, user?.id]);
@@ -247,7 +250,7 @@ const TeacherDashboard = () => {
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => router.push(`/course/${course.id}`)}
+                          onClick={() => router.push(`/course/${course.courseId || course.id}`)}
                           className="text-gray-400 hover:text-white hover:bg-violet-800/20"
                         >
                           <Eye className="w-4 h-4" />
@@ -255,7 +258,7 @@ const TeacherDashboard = () => {
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => router.push(`/teacher/courses/${course.id}`)}
+                          onClick={() => router.push(`/teacher/courses/${course.courseId || course.id}`)}
                           className="text-gray-400 hover:text-white hover:bg-violet-800/20"
                         >
                           <Edit className="w-4 h-4" />

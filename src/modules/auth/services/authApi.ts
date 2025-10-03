@@ -225,6 +225,47 @@ export const authApi = apiSlice.injectEndpoints({
           'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
         },
       }),
+      providesTags: ['User'],
+      async onQueryStarted(_, {queryFulfilled, dispatch}){
+        try {
+          const result = await queryFulfilled;
+          dispatch(
+            userLoggedIn({
+              accessToken: localStorage.getItem('access_token') || '',
+              refreshToken: localStorage.getItem('refresh_token') || '',
+              user: result.data,
+            })
+          )
+        } catch (error:any) {
+          console.log(error);
+        }
+      }
+    }),
+
+    // Alias for backward compatibility
+    loadUser: builder.query<User, void>({
+      query: () => ({
+        url: `/users/profile/`,
+        method: "GET",
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+        },
+      }),
+      providesTags: ['User'],
+      async onQueryStarted(_, {queryFulfilled, dispatch}){
+        try {
+          const result = await queryFulfilled;
+          dispatch(
+            userLoggedIn({
+              accessToken: localStorage.getItem('access_token') || '',
+              refreshToken: localStorage.getItem('refresh_token') || '',
+              user: result.data,
+            })
+          )
+        } catch (error:any) {
+          console.log(error);
+        }
+      }
     }),
 
     updateProfile: builder.mutation<User, Partial<User>>({
@@ -250,5 +291,6 @@ export const {
   useRequestPasswordResetMutation,
   useConfirmPasswordResetMutation,
   useGetProfileQuery,
+  useLoadUserQuery, // Backward compatibility alias
   useUpdateProfileMutation,
 } = authApi;

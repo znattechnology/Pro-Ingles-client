@@ -28,9 +28,9 @@ import {
 import Loading from "@/components/course/Loading";
 import { useDjangoAuth } from "@/hooks/useDjangoAuth";
 import {
-  useGetTeacherPracticeAnalyticsQuery,
-  useGetStudentProgressQuery
-} from "@modules/teacher";
+  useGetCourseAnalyticsQuery,
+  useGetStudentProgressListQuery
+} from "@/src/domains/teacher/practice-courses/api";
 
 const LaboratoryAnalytics = () => {
   const { isAuthenticated } = useDjangoAuth();

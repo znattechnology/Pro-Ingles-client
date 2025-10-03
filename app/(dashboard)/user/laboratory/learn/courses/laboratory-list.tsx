@@ -2,7 +2,7 @@
 
 import { LaboratoryCard } from "./laboratory-card";
 import { useRouter } from "next/navigation";
-import { useUpdateActiveCourseMutation } from "@modules/learning/practice-courses";
+import { useSelectActiveCourseMutation } from '@/src/domains/student/practice-courses/api/studentPracticeApiSlice';
 import { toast } from "sonner";
 
 // Define types for Django API responses
@@ -30,7 +30,7 @@ export const LaboratoryList = ({courses, activeCourseId, viewMode = 'grid'}: Pro
     const router = useRouter();
     
     // Redux mutation for updating active course
-    const [updateActiveCourse, { isLoading: isUpdatingCourse }] = useUpdateActiveCourseMutation();
+    const [selectActiveCourse, { isLoading: isUpdatingCourse }] = useSelectActiveCourseMutation();
 
     // Category-specific images for enhanced visual experience
     const categoryImages = {
@@ -128,7 +128,7 @@ export const LaboratoryList = ({courses, activeCourseId, viewMode = 'grid'}: Pro
         }
         
         console.log('🚀 ONCLICK DEBUG: Using Redux mutation for course selection');
-        updateActiveCourse(id)
+        selectActiveCourse(id)
             .unwrap()
             .then(() => {
                 console.log('✅ ONCLICK DEBUG: Redux mutation successful, redirecting');

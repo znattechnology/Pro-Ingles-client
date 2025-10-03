@@ -38,7 +38,7 @@ import {
   Crown,
   Brain,
 } from "lucide-react";
-import { useGetTeacherCoursesQuery } from "@modules/learning/practice-courses";
+import { useGetTeacherCoursesQuery } from "@/src/domains/teacher/practice-courses/api";
 
 const ManageCoursesPage = () => {
   const router = useRouter();
@@ -49,7 +49,7 @@ const ManageCoursesPage = () => {
   const useReduxTeacher = useFeatureFlag('REDUX_TEACHER_MANAGEMENT');
   
   // Practice API Redux hooks - use teacher endpoint to include drafts
-  const { data: practiceCoursesData, isLoading: practiceLoading, error: practiceError, refetch: refetchPractice } = useGetTeacherCoursesQuery();
+  const { data: practiceCoursesData, isLoading: practiceLoading, error: practiceError, refetch: refetchPractice } = useGetTeacherCoursesQuery({ includeDrafts: true });
   
   // Redux hooks
   const { courses: reduxCourses, isLoading: reduxLoading, error: reduxError, refetch } = useTeacherCourses();

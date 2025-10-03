@@ -4,11 +4,12 @@ import React, { useMemo, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useDjangoAuth } from "@/hooks/useDjangoAuth";
 import {
-  useCreateCourseMutation,
-  useDeleteCourseMutation,
   useGetAllTeacherCoursesQuery,
-  Course,
-} from "@modules/learning/video-courses";
+  useCreateTeacherVideoCourseMutation,
+  useDeleteTeacherVideoCourseMutation,
+  teacherVideoCourseApiSlice,
+} from "@/src/domains/teacher/video-courses/api";
+import { TeacherVideoCourse } from "@/src/domains/teacher/video-courses/types";
 import Loading from "@/components/course/Loading";
 import TeacherCourseCard from "@/components/course/TeacherCourseCard";
 import DeleteCourseModal from "@/components/modals/DeleteCourseModal";
@@ -17,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { notifications } from "@/lib/toast";
+import { useDispatch } from "react-redux";
 import {
   Search,
   Plus,
@@ -24,11 +26,14 @@ import {
   List as ListIcon,
   BookOpen,
   Loader2,
-  Filter
+  Filter,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 
-const TeacherCoursesPage = () => {
+const TeacherVideoCoursesPage = () => {
   const router = useRouter();
+  const dispatch = useDispatch();
   const { user, isAuthenticated, isLoading: authLoading } = useDjangoAuth();
   const {
     data: coursesResponse,
@@ -38,8 +43,9 @@ const TeacherCoursesPage = () => {
   
   const courses = coursesResponse?.data || [];
 
-  const [createCourse] = useCreateCourseMutation();
-  const [deleteCourse] = useDeleteCourseMutation();
+
+  const [createCourse] = useCreateTeacherVideoCourseMutation();
+  const [deleteCourse] = useDeleteTeacherVideoCourseMutation();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -48,15 +54,21 @@ const TeacherCoursesPage = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [isCreatingCourse, setIsCreatingCourse] = useState(false);
   
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [coursesPerPage, setCoursesPerPage] = useState(12);
+  
   // Delete modal state
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [courseToDelete, setCourseToDelete] = useState<Course | null>(null);
+  const [courseToDelete, setCourseToDelete] = useState<TeacherVideoCourse | null>(null);
   const [isDeletingCourse, setIsDeletingCourse] = useState(false);
 
 
-  const filteredAndSortedCourses = useMemo(() => {
-    if (!courses) return [];
 
+  const { filteredCourses, paginatedCourses, totalPages, totalCourses } = useMemo(() => {
+    if (!courses) return { filteredCourses: [], paginatedCourses: [], totalPages: 0, totalCourses: 0 };
+
+    // Filter courses
     let filtered = courses.filter((course) => {
       // Only show courses created by the current teacher
       if (course.teacherId !== user?.id) return false;
@@ -77,7 +89,7 @@ const TeacherCoursesPage = () => {
     filtered.sort((a: any, b: any) => {
       switch (sortBy) {
         case 'enrollments':
-          return (b.enrollments?.length || 0) - (a.enrollments?.length || 0);
+          return (b.students || 0) - (a.students || 0);
         case 'title':
           return a.title.localeCompare(b.title);
         case 'status':
@@ -87,16 +99,40 @@ const TeacherCoursesPage = () => {
       }
     });
 
-    return filtered;
-  }, [courses, searchTerm, selectedCategory, selectedStatus, sortBy, user?.id]);
+    // Calculate pagination
+    const totalPages = Math.ceil(filtered.length / coursesPerPage);
+    const startIndex = (currentPage - 1) * coursesPerPage;
+    const endIndex = startIndex + coursesPerPage;
+    const paginatedCourses = filtered.slice(startIndex, endIndex);
 
-  const handleEdit = (course: Course) => {
-    router.push(`/teacher/courses/${course.id}`, {
+    return {
+      filteredCourses: filtered,
+      paginatedCourses,
+      totalPages,
+      totalCourses: filtered.length
+    };
+  }, [courses, searchTerm, selectedCategory, selectedStatus, sortBy, user?.id, currentPage, coursesPerPage]);
+
+  // Reset to first page when filters change
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedCategory, selectedStatus, sortBy]);
+
+  const handleEdit = (course: TeacherVideoCourse) => {
+    console.log('🔍 handleEdit called with course:', course);
+    const courseId = course.courseId || course.id;
+    console.log('🔍 Extracted courseId for edit:', courseId);
+    if (!courseId) {
+      console.error('❌ Course ID is missing for course:', course);
+      return;
+    }
+    console.log('🔍 Redirecting to edit page:', `/teacher/courses/${courseId}`);
+    router.push(`/teacher/courses/${courseId}`, {
       scroll: false,
     });
   };
 
-  const handleDelete = (course: Course) => {
+  const handleDelete = (course: TeacherVideoCourse) => {
     setCourseToDelete(course);
     setIsDeleteModalOpen(true);
   };
@@ -130,14 +166,19 @@ const TeacherCoursesPage = () => {
     }
   };
 
-  const handleViewCourse = (course: Course) => {
+  const handleViewCourse = (course: TeacherVideoCourse) => {
     // Navigate to course preview or public view
-    router.push(`/course/${course.id}`);
+    const courseId = course.courseId || course.id;
+    if (!courseId) {
+      console.error('❌ Course ID is missing for course:', course);
+      return;
+    }
+    router.push(`/course/${courseId}`);
   };
 
   const handleCreateCourse = async () => {
     if (!user) {
-      alert('Usuário não encontrado. Por favor, faça login novamente.');
+      notifications.error('Usuário não encontrado. Por favor, faça login novamente.');
       return;
     }
 
@@ -146,22 +187,30 @@ const TeacherCoursesPage = () => {
     setIsCreatingCourse(true);
     
     try {
-      const result = await createCourse({}).unwrap();
-      const courseId = result.data.id || result.data.courseId;
+      // Use minimal data like the working version
+      const result = await createCourse({
+        title: 'Novo Curso',
+        course_type: 'video'
+      }).unwrap();
+      
+      // Handle different response structures - ID está em result.data
+      const courseId = result.data?.courseId || result.data?.id || result.courseId || result.id;
       
       if (courseId) {
+        // Force invalidate the teacher courses list cache
+        dispatch(teacherVideoCourseApiSlice.util.invalidateTags(['TeacherVideoCourse']));
+        
         // Show success toast
-        notifications.success("Novo curso criado com sucesso! 🎉 Redirecionando para edição...");
+        notifications.success("Novo curso criado com sucesso! 🎉 Redirecionando...");
         
-        // Small delay to ensure the user sees the loading state and toast
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        router.push(`/teacher/courses/${courseId}`, {
-          scroll: false,
-        });
+        // Small delay to ensure the user sees the toast
+        setTimeout(() => {
+          router.push(`/teacher/courses/${courseId}`, {
+            scroll: false,
+          });
+        }, 1500);
       } else {
-        notifications.error("Erro ao obter ID do curso criado. Recarregando página...");
-        window.location.reload();
+        notifications.error("Erro ao obter ID do curso criado.");
       }
     } catch (error) {
       console.error('Error creating course:', error);
@@ -270,7 +319,7 @@ const TeacherCoursesPage = () => {
       
       {/* Enhanced Courses Grid */}
       <div className="max-w-7xl mx-auto px-6 py-8">
-        {filteredAndSortedCourses.length === 0 ? (
+        {totalCourses === 0 ? (
           <Card className="bg-customgreys-secondarybg border-customgreys-darkerGrey">
             <CardContent className="flex flex-col items-center justify-center py-16">
               <BookOpen className="h-16 w-16 text-customgreys-dirtyGrey mb-4 opacity-50" />
@@ -281,14 +330,15 @@ const TeacherCoursesPage = () => {
                 }
               </h3>
               <p className="text-customgreys-dirtyGrey text-center mb-6">
-                {courses.filter(course => course.teacherId === user?.id).length === 0 
+                {filteredCourses.length === 0 && courses.filter(course => course.teacherId === user?.id).length === 0
                   ? 'Comece criando seu primeiro curso'
                   : 'Tente ajustar seus filtros ou termo de pesquisa'
                 }
               </p>
               <div className="flex gap-3">
-                {courses.filter(course => course.teacherId === user?.id).length === 0 ? (
+                {filteredCourses.length === 0 && courses.filter(course => course.teacherId === user?.id).length === 0 ? (
                   <Button 
+                    type="button"
                     onClick={handleCreateCourse}
                     disabled={isCreatingCourse}
                     className="bg-violet-600 hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -323,14 +373,39 @@ const TeacherCoursesPage = () => {
         ) : (
           <>
             <div className="mb-6 flex items-center justify-between flex-wrap gap-4">
-              <p className="text-gray-300">
-                {filteredAndSortedCourses.length === 1 
-                  ? '1 curso encontrado' 
-                  : `${filteredAndSortedCourses.length} cursos encontrados`}
-              </p>
+              <div className="flex flex-col gap-1">
+                <p className="text-gray-300">
+                  {totalCourses === 1 
+                    ? '1 curso encontrado' 
+                    : `${totalCourses} cursos encontrados`}
+                </p>
+                {totalPages > 1 && (
+                  <p className="text-sm text-gray-400">
+                    Página {currentPage} de {totalPages} • Mostrando {paginatedCourses.length} cursos
+                  </p>
+                )}
+              </div>
               
               {/* Sort and View Controls */}
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 flex-wrap">
+                {/* Courses per page dropdown */}
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-400">Por página:</span>
+                  <select
+                    value={coursesPerPage}
+                    onChange={(e) => {
+                      setCoursesPerPage(Number(e.target.value));
+                      setCurrentPage(1);
+                    }}
+                    className="bg-customgreys-darkGrey border border-violet-900/30 text-white text-sm rounded-lg px-3 py-2 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20"
+                  >
+                    <option value={6}>6</option>
+                    <option value={12}>12</option>
+                    <option value={24}>24</option>
+                    <option value={48}>48</option>
+                  </select>
+                </div>
+                
                 {/* Sort Dropdown */}
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-gray-400">Ordenar:</span>
@@ -368,6 +443,7 @@ const TeacherCoursesPage = () => {
 
                 {/* Create Course Button */}
                 <Button
+                  type="button"
                   onClick={handleCreateCourse}
                   disabled={isCreatingCourse}
                   className="bg-violet-600 hover:bg-violet-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
@@ -391,9 +467,9 @@ const TeacherCoursesPage = () => {
               ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' 
               : 'grid-cols-1'
             }`}>
-              {filteredAndSortedCourses.map((course) => (
+              {paginatedCourses.map((course) => (
                 <TeacherCourseCard
-                  key={course.id}
+                  key={course.courseId || course.id}
                   course={course as any}
                   onEdit={handleEdit}
                   onDelete={handleDelete}
@@ -403,6 +479,66 @@ const TeacherCoursesPage = () => {
                 />
               ))}
             </div>
+            
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="mt-8 flex items-center justify-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="bg-customgreys-darkGrey border-violet-900/30 text-white hover:bg-violet-600 hover:border-violet-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft className="w-4 h-4 mr-1" />
+                  Anterior
+                </Button>
+                
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                    // Show first page, last page, current page, and adjacent pages
+                    const isVisible = 
+                      page === 1 || 
+                      page === totalPages || 
+                      (page >= currentPage - 1 && page <= currentPage + 1);
+                      
+                    if (!isVisible) {
+                      // Show ellipsis for gaps
+                      if (page === currentPage - 2 || page === currentPage + 2) {
+                        return <span key={page} className="px-2 text-gray-400">...</span>;
+                      }
+                      return null;
+                    }
+                    
+                    return (
+                      <Button
+                        key={page}
+                        variant={page === currentPage ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setCurrentPage(page)}
+                        className={page === currentPage 
+                          ? "bg-violet-600 text-white border-violet-500 hover:bg-violet-700" 
+                          : "bg-customgreys-darkGrey border-violet-900/30 text-white hover:bg-violet-600 hover:border-violet-500"
+                        }
+                      >
+                        {page}
+                      </Button>
+                    );
+                  })}
+                </div>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="bg-customgreys-darkGrey border-violet-900/30 text-white hover:bg-violet-600 hover:border-violet-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Próxima
+                  <ChevronRight className="w-4 h-4 ml-1" />
+                </Button>
+              </div>
+            )}
           </>
         )}
       </div>
@@ -424,4 +560,4 @@ const TeacherCoursesPage = () => {
   );
 };
 
-export default TeacherCoursesPage;
+export default TeacherVideoCoursesPage;

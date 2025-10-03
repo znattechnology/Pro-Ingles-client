@@ -7,9 +7,9 @@
 import { useCallback } from 'react';
 import { useFeatureFlag } from '@/lib/featureFlags';
 import { 
-  useSyncChapterProgressMutation,
-  useSubmitExerciseProgressMutation 
-} from '../laboratoryApiSlice';
+  useSubmitChallengeMutation as useSyncChapterProgressMutation,
+  useSubmitChallengeMutation as useSubmitExerciseProgressMutation 
+} from '@/src/domains/student/practice-courses/api/studentPracticeApiSlice';
 
 export interface ProgressSyncResult {
   syncChapterCompletion: (chapterId: string, exerciseId: string, completed: boolean) => Promise<void>;

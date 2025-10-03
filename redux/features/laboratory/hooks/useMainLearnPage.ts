@@ -9,9 +9,13 @@ import { useCallback, useMemo, useEffect } from 'react';
 import { useFeatureFlag } from '@/lib/featureFlags';
 import { 
   useGetCourseUnitsWithProgressQuery,
-  useGetUserProgressQuery,
-} from '../laboratoryApiSlice';
-import { useUserProgress } from './useUserProgress';
+  useGetStudentProgressQuery as useGetUserProgressQuery,
+  studentPracticeApiSlice,
+} from '@/src/domains/student/practice-courses/api/studentPracticeApiSlice';
+
+// Debug: Verificar se a API está sendo importada corretamente
+console.log('🔍 API Debug - studentPracticeApiSlice reducerPath:', studentPracticeApiSlice.reducerPath);
+// import { useUserProgress } from './useUserProgress'; // Temporarily disabled to debug
 
 // Legacy imports
 import { getUnits, getCourseProgress, getLessonPercentage } from '@/db/django-queries';
@@ -49,11 +53,11 @@ export const useMainLearnPage = (): LearnPageResult => {
   
   // Get user progress (sempre Redux se habilitado)
   const { 
-    userProgress, 
+    data: userProgress, 
     isLoading: userProgressLoading, 
     error: userProgressError, 
     refetch: refetchUserProgress 
-  } = useUserProgress();
+  } = useGetUserProgressQuery();
   
   // Get course units if we have an active course
   const activeCourseId = userProgress?.active_course?.id;

@@ -5,8 +5,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
-  useGetExerciseByIdQuery
-} from '@/redux/features/laboratory/laboratoryApiSlice';
+  useGetLessonDetailQuery as useGetExerciseByIdQuery
+} from '@/src/domains/student/practice-courses/api/studentPracticeApiSlice';
 import { useProgressSync } from '@/redux/features/laboratory/hooks/useProgressSync';
 import { 
   Target, 

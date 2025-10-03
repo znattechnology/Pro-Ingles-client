@@ -14,6 +14,7 @@ import {
   useUpdateCourseMutation,
   useGetVideoUploadUrlMutation,
   useGetResourceUploadUrlMutation,
+  coursesApiSlice,
 } from "@modules/learning/video-courses";
 import { useAppDispatch, useAppSelector } from "@/state/redux";
 import { 
@@ -25,7 +26,8 @@ import {
   setCreatingChapterLoading,
   setSavingCourseLoading,
   setCreatingSectionUI,
-  setCreatingChapterUI
+  setCreatingChapterUI,
+  setSelectedSection
 } from "@/redux/features/courseEditor/courseEditorSlice";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, Plus, Check, BookOpen, Image, Layers, Play, Eye, Sparkles, ChevronRight, Settings, Upload, X, Video } from "lucide-react";
@@ -67,6 +69,10 @@ const CourseEditor = () => {
 
   const dispatch = useAppDispatch();
   const { sections, loading, ui } = useAppSelector((state) => state.courseEditor);
+  
+  // Debug logs for Redux state (can be removed after testing)
+  // console.log('🔍 Redux UI State:', ui);
+  // console.log('🔍 Current sections:', sections.length);
   
   // State for image preview
   const [currentImage, setCurrentImage] = useState<string>("");
@@ -778,6 +784,9 @@ const CourseEditor = () => {
       // Show success toast
       notifications.success(`Curso "${data.courseTitle}" atualizado com sucesso! ✅`);
 
+      // Force invalidate the teacher courses list cache
+      dispatch(coursesApiSlice.util.invalidateTags(['Course']));
+      
       refetch();
     } catch (error) {
       console.error("Failed to update course:", error);
@@ -1022,6 +1031,13 @@ const CourseEditor = () => {
               <div className="text-center">
                 <h3 className="text-2xl font-bold text-white mb-2">Estrutura do Curso</h3>
                 <p className="text-white/60">Organize o conteúdo em seções para uma melhor experiência de aprendizado</p>
+                {sections.length > 0 && !ui.selectedSectionId && (
+                  <div className="mt-4 p-3 bg-yellow-500/10 border border-yellow-400/30 rounded-lg">
+                    <p className="text-yellow-300 text-sm">
+                      👆 <strong>Clique em uma seção</strong> para selecioná-la antes de avançar
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Sections List */}
@@ -1033,7 +1049,12 @@ const CourseEditor = () => {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.1 }}
-                      className="bg-customgreys-darkGrey/50 border border-violet-500/20 rounded-xl p-6 hover:border-violet-400/40 transition-all duration-200"
+                      onClick={() => dispatch(setSelectedSection(section.sectionId))}
+                      className={`cursor-pointer rounded-xl p-6 transition-all duration-200 ${
+                        ui.selectedSectionId === section.sectionId
+                          ? 'bg-violet-500/20 border-2 border-violet-400 shadow-lg shadow-violet-500/20'
+                          : 'bg-customgreys-darkGrey/50 border border-violet-500/20 hover:border-violet-400/40 hover:bg-violet-500/10'
+                      }`}
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
@@ -1055,9 +1076,16 @@ const CourseEditor = () => {
                             <span className="text-xs text-emerald-400">✨ Pronta</span>
                           </div>
                         </div>
-                        <Badge variant="outline" className="border-violet-400/30 text-violet-400 bg-violet-500/10">
-                          Seção {index + 1}
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          {ui.selectedSectionId === section.sectionId && (
+                            <Badge className="bg-violet-500 text-white border-violet-400">
+                              ✓ Selecionada
+                            </Badge>
+                          )}
+                          <Badge variant="outline" className="border-violet-400/30 text-violet-400 bg-violet-500/10">
+                            Seção {index + 1}
+                          </Badge>
+                        </div>
                       </div>
                     </motion.div>
                   ))}
@@ -1179,16 +1207,19 @@ const CourseEditor = () => {
               <Button
                 type="button"
                 onClick={() => {
-                  if (sections.length > 0) {
+                  if (sections.length > 0 && ui.selectedSectionId) {
                     markStepComplete(3);
                     setCurrentStep(4);
                   }
                 }}
-                disabled={sections.length === 0}
+                disabled={sections.length === 0 || !ui.selectedSectionId}
                 className="px-6 py-3 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white font-semibold rounded-xl disabled:opacity-50"
               >
-                Próximo: Capítulos e Vídeos
-                <ChevronRight className="w-4 h-4 ml-2" />
+                {!ui.selectedSectionId && sections.length > 0 
+                  ? 'Selecione uma seção primeiro' 
+                  : 'Próximo: Capítulos e Vídeos'
+                }
+                {ui.selectedSectionId && <ChevronRight className="w-4 h-4 ml-2" />}
               </Button>
             </div>
           </motion.div>
@@ -1205,6 +1236,13 @@ const CourseEditor = () => {
             <div className="text-center">
               <h3 className="text-2xl font-bold text-white mb-2">Capítulos e Vídeos</h3>
               <p className="text-white/60">Adicione conteúdo aos seus capítulos</p>
+              {ui.selectedSectionId && (
+                <div className="mt-4 p-3 bg-violet-500/10 border border-violet-400/30 rounded-lg">
+                  <p className="text-violet-300 text-sm">
+                    Editando seção: <strong>{sections.find(s => s.sectionId === ui.selectedSectionId)?.sectionTitle}</strong>
+                  </p>
+                </div>
+              )}
             </div>
 
             {sections.length > 0 ? (
@@ -1215,7 +1253,11 @@ const CourseEditor = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: sectionIndex * 0.1 }}
-                    className="bg-customgreys-darkGrey/50 border border-violet-500/20 rounded-xl p-6 hover:border-violet-400/40 transition-all duration-200"
+                    className={`rounded-xl p-6 transition-all duration-200 ${
+                      ui.selectedSectionId === section.sectionId
+                        ? 'bg-violet-500/20 border-2 border-violet-400 shadow-lg shadow-violet-500/20'
+                        : 'bg-customgreys-darkGrey/30 border border-violet-500/10 opacity-50'
+                    }`}
                   >
                     {/* Section Header */}
                     <div className="flex items-center justify-between mb-6">
@@ -1230,6 +1272,11 @@ const CourseEditor = () => {
                       </div>
                       
                       <div className="flex items-center gap-2">
+                        {ui.selectedSectionId === section.sectionId && (
+                          <Badge className="bg-violet-500 text-white">
+                            ✓ Selecionada
+                          </Badge>
+                        )}
                         <Button
                           type="button"
                           onClick={() => handleDeleteSection(section.sectionId)}
@@ -1239,7 +1286,7 @@ const CourseEditor = () => {
                         >
                           <X className="w-4 h-4" />
                         </Button>
-                        {ui.isCreatingChapter !== section.sectionId && (
+                        {ui.isCreatingChapter !== section.sectionId && ui.selectedSectionId === section.sectionId && (
                           <Button
                             type="button"
                             onClick={() => dispatch(setCreatingChapterUI(section.sectionId))}
@@ -1404,7 +1451,8 @@ const CourseEditor = () => {
                     )}
 
                     {/* Inline Chapter Creation */}
-                    {ui.isCreatingChapter === section.sectionId && (
+                    {/* Chapter creation debug logs removed */}
+                    {ui.isCreatingChapter === section.sectionId && ui.selectedSectionId === section.sectionId && (
                       <motion.div
                         initial={{ opacity: 0, y: 20, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -1693,7 +1741,7 @@ const CourseEditor = () => {
                     )}
 
                     {/* Empty State for Section */}
-                    {section.chapters?.length === 0 && ui.isCreatingChapter !== section.sectionId && (
+                    {section.chapters?.length === 0 && ui.isCreatingChapter !== section.sectionId && ui.selectedSectionId === section.sectionId && (
                       <div className="text-center py-8 border-2 border-dashed border-violet-400/30 rounded-xl">
                         <div className="w-12 h-12 bg-violet-500/20 rounded-lg flex items-center justify-center mx-auto mb-4">
                           <Play className="w-6 h-6 text-violet-400" />

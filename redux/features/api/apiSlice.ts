@@ -1,5 +1,4 @@
 import {createApi} from "@reduxjs/toolkit/query/react";
-import { userLoggedIn } from "@modules/auth";
 import { createBaseQueryWithReauth } from './baseQueryWithReauth';
 
 const DJANGO_BASE_URL = process.env.NEXT_PUBLIC_DJANGO_API_URL || 'http://localhost:8000/api/v1';
@@ -43,28 +42,8 @@ export const apiSlice = createApi({
         'QuizSummary'
     ],
     endpoints: (builder)=> ({
-        loadUser:builder.query({
-            query:()=>({
-                url:"/users/profile/",
-                method: "GET"
-            }),
-            providesTags: ['User'],
-            async onQueryStarted(_, {queryFulfilled, dispatch}){
-                try {
-                    const result = await queryFulfilled;
-                    dispatch(
-                        userLoggedIn({
-                            accessToken: localStorage.getItem('access_token') || '',
-                            refreshToken: localStorage.getItem('refresh_token') || '',
-                            user: result.data,
-                        })
-                    )
-                } catch (error:any) {
-                    console.log(error);
-                }
-            }
-        })
+        // Base API slice - endpoints moved to specific domain APIs
     }),
 });
 
-export const {useLoadUserQuery} = apiSlice;
+// Hooks exported from domain-specific API slices

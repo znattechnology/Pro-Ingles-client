@@ -10,7 +10,7 @@
 import React, { useState } from 'react';
 import { List } from './list';
 import Loading from '@/components/course/Loading';
-import { useGetCoursesQuery } from '@modules/learning/video-courses';
+import { useGetAvailableVideoCoursesQuery } from '@/src/domains/student/video-courses/api';
 import { useDjangoAuth } from '@/hooks/useDjangoAuth';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -35,41 +35,10 @@ const LearnCourse = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   // Fetch courses from Django API (only video courses for exploration)
-  const { data: coursesData, isLoading, error } = useGetCoursesQuery({ 
-    course_type: 'video' // Explicitly request video courses for exploration
-  });
+  const { data: coursesData, isLoading, error } = useGetAvailableVideoCoursesQuery({});
   
-  // Transform API data to match component expectations
-  const courses = React.useMemo(() => {
-    if (!coursesData?.data) return [];
-    
-    // Debug: Log course types
-    if (process.env.NODE_ENV === 'development') {
-      console.log('🎥 Video Courses (Explore Page):', coursesData.data.map(c => ({
-        title: c.title,
-        course_type: c.course_type || 'undefined',
-        id: c.courseId
-      })));
-    }
-    
-    return coursesData.data.map(course => ({
-      id: course.courseId, // Use courseId as the primary identifier
-      title: course.title,
-      description: course.description || '',
-      image: course.image || '/laboratory/challenges/english-1.jpg',
-      instructor: course.teacherName,
-      price: course.price,
-      level: course.level,
-      category: course.category,
-      template: course.template,
-      status: course.status,
-      totalEnrollments: course.total_enrollments || 0,
-      rating: 4.5 + Math.random() * 0.5, // TODO: Add real ratings
-      totalChapters: course.total_chapters || 0,
-      duration: `${course.total_chapters || 8} aulas`,
-      created_at: course.created_at
-    }));
-  }, [coursesData]);
+  // Get video courses directly from API
+  const courses = coursesData?.data || [];
 
   // Filter and sort courses
   const filteredAndSortedCourses = React.useMemo(() => {

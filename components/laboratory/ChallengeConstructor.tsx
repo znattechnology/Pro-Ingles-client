@@ -44,14 +44,12 @@ import {
 import { 
   useGetCourseUnitsQuery,
   useGetUnitLessonsQuery,
-  useCreatePracticeChallengeMutation,
+  useCreateTeacherChallengeMutation,
   useGetPracticeLessonDetailsQuery,
-  useUpdateCourseOptionMutation,
-  useGenerateTranslationSuggestionsMutation,
-  uploadAudioToS3,
-  uploadImageToS3,
-  generateReferenceAudio
-} from '@modules/teacher';
+  useUpdateChallengeOptionMutation,
+  useGenerateTranslationSuggestionsMutation
+} from '@/src/domains/teacher/practice-courses/api';
+import { uploadAudioToS3, uploadImageToS3, generateReferenceAudio } from '@modules/teacher';
 
 interface Course {
   id: string;
@@ -296,8 +294,8 @@ export default function ChallengeConstructor({ course, onBack }: ChallengeConstr
   const { data: lessonDetails } = useGetPracticeLessonDetailsQuery(selectedLessonId || '', {
     skip: !selectedLessonId
   });
-  const [createPracticeChallenge] = useCreatePracticeChallengeMutation();
-  const [updateCourseOption] = useUpdateCourseOptionMutation();
+  const [createPracticeChallenge] = useCreateTeacherChallengeMutation();
+  const [updateCourseOption] = useUpdateChallengeOptionMutation();
   const [generateTranslationSuggestions] = useGenerateTranslationSuggestionsMutation();
   
   // State management
