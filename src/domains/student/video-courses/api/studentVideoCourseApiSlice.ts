@@ -1,5 +1,5 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
-import { sharedBaseQuery } from '../../../shared/api/baseQuery';
+import { studentVideoCoursesBaseQuery } from '../../../shared/api/baseQuery';
 import type {
   StudentVideoCourse,
   CourseEnrollment,
@@ -64,7 +64,7 @@ export interface ChapterQuiz {
 // Student Video Course API slice
 export const studentVideoCourseApiSlice = createApi({
   reducerPath: 'studentVideoCourseApi',
-  baseQuery: sharedBaseQuery,
+  baseQuery: studentVideoCoursesBaseQuery,
   tagTypes: [
     'StudentVideoCourse',
     'CourseEnrollment',
@@ -84,7 +84,7 @@ export const studentVideoCourseApiSlice = createApi({
     
     getAvailableVideoCourses: builder.query<{ data: StudentVideoCourse[]; total: number }, CourseSearchParams>({
       query: (params = {}) => ({
-        url: '/courses/',
+        url: '/',
         params: {
           ...params,
           status: 'Published', // Only published courses for students
@@ -94,7 +94,7 @@ export const studentVideoCourseApiSlice = createApi({
     }),
 
     getVideoCourseById: builder.query<StudentVideoCourse, string>({
-      query: (courseId) => `/courses/${courseId}/`,
+      query: (courseId) => `/${courseId}/`,
       providesTags: (result, error, courseId) => [
         { type: 'StudentVideoCourse', id: courseId },
       ],
@@ -138,7 +138,7 @@ export const studentVideoCourseApiSlice = createApi({
     }),
 
     getMyVideoEnrollments: builder.query<{message: string, data: any[]}, string>({
-      query: (userId) => `/courses/users/${userId}/enrolled/`,
+      query: (userId) => `/users/${userId}/enrolled/`,
       providesTags: ['CourseEnrollment'],
     }),
 
@@ -152,7 +152,7 @@ export const studentVideoCourseApiSlice = createApi({
     // ===== COURSE PROGRESS =====
     
     getVideoCourseProgress: builder.query<{message: string, data: any}, {courseId: string, userId: string}>({
-      query: ({courseId, userId}) => `/courses/users/${userId}/progress/${courseId}/`,
+      query: ({courseId, userId}) => `/users/${userId}/progress/${courseId}/`,
       providesTags: (result, error, {courseId}) => [
         { type: 'VideoProgress', id: courseId },
       ],
@@ -188,7 +188,7 @@ export const studentVideoCourseApiSlice = createApi({
     // ===== COURSE CONTENT =====
     
     getVideoCourseSections: builder.query<any[], string>({
-      query: (courseId) => `/courses/${courseId}/sections/`,
+      query: (courseId) => `/${courseId}/sections/`,
       providesTags: (result, error, courseId) => [
         { type: 'StudentVideoCourse', id: courseId },
       ],

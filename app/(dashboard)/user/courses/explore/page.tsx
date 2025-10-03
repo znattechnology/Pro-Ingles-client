@@ -38,7 +38,10 @@ const LearnCourse = () => {
   const { data: coursesData, isLoading, error } = useGetAvailableVideoCoursesQuery({});
   
   // Get video courses directly from API
-  const courses = coursesData?.data || [];
+  // Handle both paginated format and direct array format
+  const courses = Array.isArray(coursesData?.data) 
+    ? coursesData.data 
+    : coursesData?.data?.results || [];
 
   // Filter and sort courses
   const filteredAndSortedCourses = React.useMemo(() => {

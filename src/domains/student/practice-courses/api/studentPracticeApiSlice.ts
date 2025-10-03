@@ -1,5 +1,5 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
-import { sharedBaseQuery } from '../../../shared/api/baseQuery';
+import { studentPracticeCoursesBaseQuery } from '../../../shared/api/baseQuery';
 import type {
   StudentPracticeCourse,
   StudentUserProgress,
@@ -43,7 +43,7 @@ export interface LessonDetail {
 // Student Practice Course API slice
 export const studentPracticeApiSlice = createApi({
   reducerPath: 'studentPracticeApi',
-  baseQuery: sharedBaseQuery,
+  baseQuery: studentPracticeCoursesBaseQuery,
   tagTypes: [
     'StudentCourse',
     'StudentProgress',
@@ -62,7 +62,7 @@ export const studentPracticeApiSlice = createApi({
     
     getAvailableCourses: builder.query<StudentPracticeCourse[], void>({
       query: () => ({
-        url: '/practice/courses/',
+        url: '/courses/',
         params: { 
           include_stats: 'true',
           published_only: 'true' // Only published courses for students
@@ -81,7 +81,7 @@ export const studentPracticeApiSlice = createApi({
     }),
 
     getCourseDetail: builder.query<StudentPracticeCourse, string>({
-      query: (courseId) => `/practice/courses/${courseId}/`,
+      query: (courseId) => `/courses/${courseId}/`,
       providesTags: (result, error, courseId) => [
         { type: 'StudentCourse', id: courseId },
       ],
@@ -90,7 +90,7 @@ export const studentPracticeApiSlice = createApi({
     // ===== USER PROGRESS MANAGEMENT =====
     
     getStudentProgress: builder.query<StudentUserProgress, void>({
-      query: () => '/practice/user-progress/',
+      query: () => '/user-progress/',
       transformResponse: (response: any) => ({
         ...response,
         hearts: response.hearts || 5,
@@ -108,7 +108,7 @@ export const studentPracticeApiSlice = createApi({
           console.log('🔍 selectActiveCourse: Starting for courseId:', courseId);
           
           // First get the course object
-          const coursesResult = await baseQuery('practice/courses/');
+          const coursesResult = await baseQuery('courses/');
           console.log('🔍 selectActiveCourse: Courses result:', coursesResult);
           
           if (coursesResult.error) {
@@ -128,7 +128,7 @@ export const studentPracticeApiSlice = createApi({
           // Update user progress with the selected course
           console.log('🔍 selectActiveCourse: Updating user progress with course:', course);
           const updateResult = await baseQuery({
-            url: 'practice/user-progress/',
+            url: 'user-progress/',
             method: 'PUT',
             body: { active_course: course }
           });
@@ -149,7 +149,7 @@ export const studentPracticeApiSlice = createApi({
 
     updateProgress: builder.mutation<StudentUserProgress, ProgressUpdateData>({
       query: (data) => ({
-        url: '/practice/user-progress/',
+        url: '/user-progress/',
         method: 'PUT',
         body: data,
       }),
@@ -159,13 +159,13 @@ export const studentPracticeApiSlice = createApi({
     // ===== HEARTS SYSTEM =====
     
     getHeartsStatus: builder.query<HeartsSystem, void>({
-      query: () => '/practice/hearts-status/',
+      query: () => '/hearts-status/',
       providesTags: ['StudentProgress'],
     }),
 
     useHeart: builder.mutation<{ hearts: number }, void>({
       query: () => ({
-        url: '/practice/reduce-hearts/',
+        url: '/reduce-hearts/',
         method: 'POST',
       }),
       invalidatesTags: ['StudentProgress'],
@@ -186,7 +186,7 @@ export const studentPracticeApiSlice = createApi({
 
     refillHearts: builder.mutation<{ hearts: number }, HeartAction>({
       query: (data) => ({
-        url: '/practice/refill-hearts/',
+        url: '/refill-hearts/',
         method: 'POST',
         body: data,
       }),
@@ -209,7 +209,7 @@ export const studentPracticeApiSlice = createApi({
     // ===== COURSE CONTENT & PROGRESS =====
     
     getCourseUnitsWithProgress: builder.query<CourseUnitsWithProgress, string>({
-      query: (courseId) => `/practice/courses/${courseId}/units-with-progress/`,
+      query: (courseId) => `/courses/${courseId}/units-with-progress/`,
       transformResponse: (response: any) => {
         if (response.units && Array.isArray(response.units)) {
           return {
@@ -246,7 +246,7 @@ export const studentPracticeApiSlice = createApi({
     }),
 
     getLessonDetail: builder.query<LessonDetail, string>({
-      query: (lessonId) => `/practice/lessons/${lessonId}/`,
+      query: (lessonId) => `/lessons/${lessonId}/`,
       transformResponse: (response: any) => ({
         ...response,
         challenges: response.challenges || [],
@@ -260,7 +260,7 @@ export const studentPracticeApiSlice = createApi({
     }),
 
     getLessonProgress: builder.query<{ percentage: number; completed_challenges: number; total_challenges: number }, string>({
-      query: (lessonId) => `/practice/lessons/${lessonId}/percentage/`,
+      query: (lessonId) => `/lessons/${lessonId}/percentage/`,
       providesTags: (result, error, lessonId) => [
         { type: 'StudentLesson', id: lessonId },
       ],
@@ -290,7 +290,7 @@ export const studentPracticeApiSlice = createApi({
         };
         console.log('🔍 submitChallenge: Adapted body data:', bodyData);
         return {
-          url: "practice/challenge-progress/",
+          url: "challenge-progress/",
           method: "POST",
           body: bodyData,
         };
@@ -307,7 +307,7 @@ export const studentPracticeApiSlice = createApi({
     
     startLearningSession: builder.mutation<LearningSession, { courseId: string; lessonId?: string }>({
       query: (data) => ({
-        url: '/practice/learning-sessions/',
+        url: '/learning-sessions/',
         method: 'POST',
         body: data,
       }),
@@ -316,7 +316,7 @@ export const studentPracticeApiSlice = createApi({
 
     endLearningSession: builder.mutation<SessionSummary, string>({
       query: (sessionId) => ({
-        url: `/practice/learning-sessions/${sessionId}/end/`,
+        url: `/learning-sessions/${sessionId}/end/`,
         method: 'POST',
       }),
       invalidatesTags: ['StudentSession', 'StudentProgress', 'StudentAnalytics'],
@@ -325,18 +325,18 @@ export const studentPracticeApiSlice = createApi({
     // ===== ACHIEVEMENTS & GAMIFICATION =====
     
     getStudentAchievements: builder.query<StudentAchievement[], void>({
-      query: () => '/practice/achievements/',
+      query: () => '/achievements/',
       providesTags: ['StudentAchievement'],
     }),
 
     getStudyStreak: builder.query<StudyStreak, void>({
-      query: () => '/practice/study-streak/',
+      query: () => '/study-streak/',
       providesTags: ['StudentStreak'],
     }),
 
     getLeaderboard: builder.query<StudentLeaderboard, { timeframe?: 'week' | 'month' | 'all' }>({
       query: ({ timeframe = 'week' } = {}) => ({
-        url: '/practice/leaderboard/',
+        url: '/leaderboard/',
         params: { timeframe },
       }),
       providesTags: ['StudentLeaderboard'],
@@ -345,25 +345,25 @@ export const studentPracticeApiSlice = createApi({
     // ===== PERSONALIZED RECOMMENDATIONS =====
     
     getPracticeRecommendations: builder.query<PracticeRecommendation[], void>({
-      query: () => '/practice/recommendations/',
+      query: () => '/recommendations/',
       providesTags: ['StudentAnalytics'],
     }),
 
     getStudentAnalytics: builder.query<StudentAnalytics, void>({
-      query: () => '/practice/student-analytics/',
+      query: () => '/student-analytics/',
       providesTags: ['StudentAnalytics'],
     }),
 
     // ===== REVIEW & PRACTICE =====
     
     getWeakSkills: builder.query<Array<{ skill: string; accuracy: number; recommendation: string }>, void>({
-      query: () => '/practice/weak-skills/',
+      query: () => '/weak-skills/',
       providesTags: ['StudentAnalytics'],
     }),
 
     markLessonCompleted: builder.mutation<any, { lessonId: string; score?: number; timeSpent?: number }>({
       query: (data) => ({
-        url: '/practice/complete-lesson/',
+        url: '/complete-lesson/',
         method: 'POST',
         body: {
           lesson_id: data.lessonId,
@@ -378,7 +378,7 @@ export const studentPracticeApiSlice = createApi({
     
     followUser: builder.mutation<any, string>({
       query: (userId) => ({
-        url: '/practice/follow-user/',
+        url: '/follow-user/',
         method: 'POST',
         body: { user_id: userId },
       }),
@@ -387,7 +387,7 @@ export const studentPracticeApiSlice = createApi({
 
     unfollowUser: builder.mutation<any, string>({
       query: (userId) => ({
-        url: '/practice/unfollow-user/',
+        url: '/unfollow-user/',
         method: 'POST',
         body: { user_id: userId },
       }),
