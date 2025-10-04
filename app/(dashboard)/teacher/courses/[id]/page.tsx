@@ -10,12 +10,11 @@ import {
   uploadCourseImage,
 } from "@/lib/utils";
 import {
-  useGetCourseDetailsQuery,
-  useUpdateCourseMutation,
+  useGetTeacherCourseByIdQuery,
+  useUpdateTeacherVideoCourseMutation,
   useGetVideoUploadUrlMutation,
-  useGetResourceUploadUrlMutation,
-  coursesApiSlice,
-} from "@modules/learning/video-courses";
+  teacherVideoCourseApiSlice,
+} from "@/src/domains/teacher/video-courses/api";
 import { useAppDispatch, useAppSelector } from "@/state/redux";
 import { 
   setSections, 
@@ -61,11 +60,10 @@ const CourseEditor = () => {
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
-  const { data: courseResponse, refetch } = useGetCourseDetailsQuery(id);
-  const course = courseResponse?.data;
+  const { data: courseResponse, refetch } = useGetTeacherCourseByIdQuery(id);
+  const course = courseResponse;
   const [getVideoUploadUrl] = useGetVideoUploadUrlMutation();
-  const [getResourceUploadUrl] = useGetResourceUploadUrlMutation();
-  const [updateCourse] = useUpdateCourseMutation();
+  const [updateCourse] = useUpdateTeacherVideoCourseMutation();
 
   const dispatch = useAppDispatch();
   const { sections, loading, ui } = useAppSelector((state) => state.courseEditor);
@@ -254,7 +252,7 @@ const CourseEditor = () => {
       console.log('📹 Upload URL obtained:', response);
       
       // Upload file to S3
-      const uploadResponse = await fetch(response.data.uploadUrl, {
+      const uploadResponse = await fetch(response.uploadUrl, {
         method: 'PUT',
         body: file,
         headers: {
@@ -267,7 +265,7 @@ const CourseEditor = () => {
       }
       
       // Extract clean URL (remove query params)
-      const videoUrl = response.data.uploadUrl.split('?')[0];
+      const videoUrl = response.uploadUrl.split('?')[0];
       
       console.log('✅ Video uploaded successfully! URL:', videoUrl);
       
@@ -477,7 +475,7 @@ const CourseEditor = () => {
           }).unwrap();
           
           // Upload to S3
-          const uploadResponse = await fetch(response.data.uploadUrl, {
+          const uploadResponse = await fetch(response.uploadUrl, {
             method: "PUT",
             headers: {
               "Content-Type": videoFile.type,
@@ -492,7 +490,7 @@ const CourseEditor = () => {
           console.log(`Video uploaded successfully for chapter ${chapterId}`);
           
           // Update chapter with video URL in Redux state
-          const videoUrl = response.data.uploadUrl.split('?')[0]; // Remove query params to get clean S3 URL
+          const videoUrl = response.uploadUrl.split('?')[0]; // Remove query params to get clean S3 URL
           dispatch(updateChapterInSection({
             sectionId: targetSection.sectionId,
             chapterId: chapterId,
@@ -613,7 +611,7 @@ const CourseEditor = () => {
           }).unwrap();
           
           // Upload to S3
-          await fetch(response.data.uploadUrl, {
+          await fetch(response.uploadUrl, {
             method: "PUT",
             headers: {
               "Content-Type": file.type,
@@ -785,7 +783,7 @@ const CourseEditor = () => {
       notifications.success(`Curso "${data.courseTitle}" atualizado com sucesso! ✅`);
 
       // Force invalidate the teacher courses list cache
-      dispatch(coursesApiSlice.util.invalidateTags(['Course']));
+      dispatch(teacherVideoCourseApiSlice.util.invalidateTags(['TeacherVideoCourse']));
       
       refetch();
     } catch (error) {

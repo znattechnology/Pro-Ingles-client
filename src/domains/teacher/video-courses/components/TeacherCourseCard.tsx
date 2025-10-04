@@ -8,8 +8,6 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { 
-  Pencil, 
-  Trash2, 
   Eye, 
   Users, 
   Calendar,
@@ -32,7 +30,6 @@ import { formatDate } from '../../../shared/utils';
 interface TeacherCourseCardProps {
   course: TeacherVideoCourse;
   onEdit: (course: TeacherVideoCourse) => void;
-  onDelete: (course: TeacherVideoCourse) => void;
   onView?: (course: TeacherVideoCourse) => void;
   isOwner: boolean;
   viewMode?: 'grid' | 'list';
@@ -41,7 +38,6 @@ interface TeacherCourseCardProps {
 const TeacherCourseCard = ({
   course,
   onEdit,
-  onDelete,
   onView,
   isOwner,
   viewMode = 'grid',
@@ -194,15 +190,7 @@ const TeacherCourseCard = ({
                         onClick={() => onEdit(course)}
                         className="text-gray-400 hover:text-white hover:bg-violet-800/20 p-2"
                       >
-                        <Pencil className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => onDelete(course)}
-                        className="text-gray-400 hover:text-red-400 hover:bg-red-800/20 p-2"
-                      >
-                        <Trash2 className="w-4 h-4" />
+                        <Settings className="w-4 h-4" />
                       </Button>
                     </div>
                   )}
@@ -279,30 +267,17 @@ const TeacherCourseCard = ({
                 </Button>
               )}
               {isOwner && (
-                <>
-                  <Button 
-                    className="bg-violet-600/80 hover:bg-violet-700 text-white backdrop-blur-sm"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onEdit(course);
-                    }}
-                  >
-                    <Settings className="w-4 h-4 mr-1" />
-                    Gerenciar
-                  </Button>
-                  <Button 
-                    className="bg-red-600/80 hover:bg-red-700 text-white backdrop-blur-sm border border-red-500/30"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDelete(course);
-                    }}
-                  >
-                    <Trash2 className="w-4 h-4 mr-1" />
-                    Deletar
-                  </Button>
-                </>
+                <Button 
+                  className="bg-violet-600/80 hover:bg-violet-700 text-white backdrop-blur-sm"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit(course);
+                  }}
+                >
+                  <Settings className="w-4 h-4 mr-1" />
+                  Gerenciar
+                </Button>
               )}
             </div>
           </div>
@@ -367,33 +342,6 @@ const TeacherCourseCard = ({
             </div>
           )}
           
-          {/* Action Buttons */}
-          {isOwner && (
-            <div className="flex gap-2">
-              <Button
-                className="flex-1 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEdit(course);
-                }}
-              >
-                <Pencil className="w-4 h-4 mr-2" />
-                Editar
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="border-red-500/30 text-red-400 hover:text-white hover:bg-red-800/20 hover:border-red-500"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDelete(course);
-                }}
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
-            </div>
-          )}
           
           {!isOwner && (
             <div className="text-center py-2">

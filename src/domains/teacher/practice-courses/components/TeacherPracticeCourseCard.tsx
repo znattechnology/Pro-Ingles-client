@@ -8,8 +8,6 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { 
-  Pencil, 
-  Trash2, 
   Eye, 
   Users, 
   Calendar,
@@ -30,7 +28,6 @@ import { formatDate, calculateCourseProgress } from '../utils';
 interface TeacherPracticeCourseCardProps {
   course: TeacherPracticeCourse;
   onEdit: (course: TeacherPracticeCourse) => void;
-  onDelete: (course: TeacherPracticeCourse) => void;
   onView?: (course: TeacherPracticeCourse) => void;
   onManageContent?: (course: TeacherPracticeCourse) => void;
   isOwner: boolean;
@@ -40,7 +37,6 @@ interface TeacherPracticeCourseCardProps {
 const TeacherPracticeCourseCard = ({
   course,
   onEdit,
-  onDelete,
   onView,
   onManageContent,
   isOwner,
@@ -158,15 +154,7 @@ const TeacherPracticeCourseCard = ({
                         onClick={() => onEdit(course)}
                         className="text-gray-400 hover:text-white hover:bg-violet-800/20 p-2"
                       >
-                        <Pencil className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => onDelete(course)}
-                        className="text-gray-400 hover:text-red-400 hover:bg-red-800/20 p-2"
-                      >
-                        <Trash2 className="w-4 h-4" />
+                        <Settings className="w-4 h-4" />
                       </Button>
                     </div>
                   )}
@@ -352,28 +340,6 @@ const TeacherPracticeCourseCard = ({
                   Conteúdo
                 </Button>
               )}
-              <Button
-                variant="outline"
-                size="sm"
-                className="border-violet-500/30 text-violet-400 hover:text-white hover:bg-violet-800/20 hover:border-violet-500"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEdit(course);
-                }}
-              >
-                <Settings className="w-4 h-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="border-red-500/30 text-red-400 hover:text-white hover:bg-red-800/20 hover:border-red-500"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDelete(course);
-                }}
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
             </div>
           )}
           

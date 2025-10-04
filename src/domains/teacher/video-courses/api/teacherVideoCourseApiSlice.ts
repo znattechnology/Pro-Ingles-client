@@ -1,5 +1,5 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
-import { sharedBaseQuery } from '../../../shared/api/baseQuery';
+import { teacherVideoCoursesBaseQuery } from '../../../shared/api/baseQuery';
 import {
   TeacherVideoCourse,
   CreateVideoCourseData,
@@ -18,7 +18,7 @@ import {
 // Teacher Video Course API slice
 export const teacherVideoCourseApiSlice = createApi({
   reducerPath: 'teacherVideoCourseApi',
-  baseQuery: sharedBaseQuery,
+  baseQuery: teacherVideoCoursesBaseQuery,
   tagTypes: [
     'TeacherVideoCourse',
     'VideoSection',
@@ -33,7 +33,7 @@ export const teacherVideoCourseApiSlice = createApi({
     getAllTeacherCourses: builder.query<{ data: TeacherVideoCourse[] }, { category?: string }>({
       query: ({ category = 'all' } = {}) => {
         return {
-          url: '/courses/',
+          url: '/',
           params: { 
             view_mode: 'teacher_courses',
             include_drafts: true, 
@@ -79,7 +79,15 @@ export const teacherVideoCourseApiSlice = createApi({
     }),
 
     getTeacherCourseById: builder.query<TeacherVideoCourse, string>({
-      query: (courseId) => `/courses/${courseId}/`,
+      query: (courseId) => `/${courseId}/`,
+      transformResponse: (response: any) => {
+        // Se a resposta tem o formato {message, data}, extrair apenas data
+        if (response && response.data) {
+          return response.data;
+        }
+        // Caso contrário, retornar como está
+        return response;
+      },
       providesTags: (result, error, courseId) => [
         { type: 'TeacherVideoCourse', id: courseId },
       ],
@@ -87,7 +95,7 @@ export const teacherVideoCourseApiSlice = createApi({
 
     createTeacherVideoCourse: builder.mutation<TeacherVideoCourse, CreateVideoCourseData>({
       query: (courseData) => ({
-        url: '/courses/',
+        url: '/',
         method: 'POST',
         body: courseData,
       }),
@@ -96,7 +104,7 @@ export const teacherVideoCourseApiSlice = createApi({
 
     updateTeacherVideoCourse: builder.mutation<TeacherVideoCourse, UpdateVideoCourseData>({
       query: ({ courseId, ...data }) => ({
-        url: `/courses/${courseId}/`,
+        url: `/${courseId}/`,
         method: 'PATCH',
         body: data,
       }),
@@ -108,16 +116,21 @@ export const teacherVideoCourseApiSlice = createApi({
 
     deleteTeacherVideoCourse: builder.mutation<void, string>({
       query: (courseId) => ({
-        url: `/courses/${courseId}/`,
+        url: `/${courseId}/`,
         method: 'DELETE',
       }),
+      transformResponse: (response: any) => {
+        // Para DELETE, o response pode ser vazio ou ter formato {message}
+        // Retornamos void conforme esperado
+        return;
+      },
       invalidatesTags: ['TeacherVideoCourse'],
     }),
 
     // ===== SECTION MANAGEMENT =====
 
     getCourseSections: builder.query<CourseSection[], string>({
-      query: (courseId) => `/courses/${courseId}/sections/`,
+      query: (courseId) => `/${courseId}/sections/`,
       providesTags: (result, error, courseId) => [
         { type: 'VideoSection', id: courseId },
       ],
@@ -194,7 +207,7 @@ export const teacherVideoCourseApiSlice = createApi({
 
     getVideoUploadUrl: builder.mutation<VideoUploadResponse, VideoUploadRequest>({
       query: ({ courseId, chapterId, sectionId, fileName, fileType }) => ({
-        url: `/courses/${courseId}/sections/${sectionId}/chapters/${chapterId}/get-upload-url/`,
+        url: `/${courseId}/sections/${sectionId}/chapters/${chapterId}/get-upload-url/`,
         method: 'POST',
         body: { fileName, fileType },
       }),
@@ -218,10 +231,17 @@ export const teacherVideoCourseApiSlice = createApi({
 
     publishVideoCourse: builder.mutation<TeacherVideoCourse, { courseId: string; publish: boolean }>({
       query: ({ courseId, publish }) => ({
-        url: `/courses/${courseId}/`,
+        url: `/${courseId}/`,
         method: 'PATCH',
         body: { status: publish ? 'Published' : 'Draft' },
       }),
+      transformResponse: (response: any) => {
+        // Se a resposta tem o formato {message, data}, extrair apenas data
+        if (response && response.data) {
+          return response.data;
+        }
+        return response;
+      },
       invalidatesTags: (result, error, { courseId }) => [
         { type: 'TeacherVideoCourse', id: courseId },
         'TeacherVideoCourse',

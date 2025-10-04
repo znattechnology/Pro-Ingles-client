@@ -6,7 +6,7 @@ import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import { Provider } from "react-redux";
 import { setupListeners } from "@reduxjs/toolkit/query";
 import globalReducer from "@/state";
-import { authSlice } from "@modules/auth";
+import { authSlice } from "@/src/domains/auth";
 import { apiSlice } from "@/redux/features/api/apiSlice";
 // New domain-based APIs
 import { teacherPracticeApiSlice } from "@/src/domains/teacher/practice-courses/api";

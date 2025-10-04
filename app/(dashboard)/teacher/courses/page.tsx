@@ -6,13 +6,11 @@ import { useDjangoAuth } from "@/hooks/useDjangoAuth";
 import {
   useGetAllTeacherCoursesQuery,
   useCreateTeacherVideoCourseMutation,
-  useDeleteTeacherVideoCourseMutation,
   teacherVideoCourseApiSlice,
 } from "@/src/domains/teacher/video-courses/api";
 import { TeacherVideoCourse } from "@/src/domains/teacher/video-courses/types";
 import Loading from "@/components/course/Loading";
 import TeacherCourseCard from "@/components/course/TeacherCourseCard";
-import DeleteCourseModal from "@/components/modals/DeleteCourseModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -45,7 +43,6 @@ const TeacherVideoCoursesPage = () => {
 
 
   const [createCourse] = useCreateTeacherVideoCourseMutation();
-  const [deleteCourse] = useDeleteTeacherVideoCourseMutation();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -58,10 +55,6 @@ const TeacherVideoCoursesPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [coursesPerPage, setCoursesPerPage] = useState(12);
   
-  // Delete modal state
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [courseToDelete, setCourseToDelete] = useState<TeacherVideoCourse | null>(null);
-  const [isDeletingCourse, setIsDeletingCourse] = useState(false);
 
 
 
@@ -132,39 +125,6 @@ const TeacherVideoCoursesPage = () => {
     });
   };
 
-  const handleDelete = (course: TeacherVideoCourse) => {
-    setCourseToDelete(course);
-    setIsDeleteModalOpen(true);
-  };
-
-  const handleConfirmDelete = async () => {
-    if (!courseToDelete) return;
-
-    setIsDeletingCourse(true);
-    
-    try {
-      await deleteCourse(courseToDelete.id).unwrap();
-      
-      // Close modal and reset state
-      setIsDeleteModalOpen(false);
-      setCourseToDelete(null);
-      
-      // Show success message (you can replace with a toast if you have one)
-      console.log('Curso deletado com sucesso');
-    } catch (error) {
-      console.error('Error deleting course:', error);
-      alert('Erro ao deletar curso. Tente novamente.');
-    } finally {
-      setIsDeletingCourse(false);
-    }
-  };
-
-  const handleCloseDeleteModal = () => {
-    if (!isDeletingCourse) {
-      setIsDeleteModalOpen(false);
-      setCourseToDelete(null);
-    }
-  };
 
   const handleViewCourse = (course: TeacherVideoCourse) => {
     // Navigate to course preview or public view
@@ -173,7 +133,8 @@ const TeacherVideoCoursesPage = () => {
       console.error('❌ Course ID is missing for course:', course);
       return;
     }
-    router.push(`/course/${courseId}`);
+    // Navigate to the new video course management page
+    router.push(`/teacher/laboratory/video-courses/${courseId}`);
   };
 
   const handleCreateCourse = async () => {
@@ -472,7 +433,6 @@ const TeacherVideoCoursesPage = () => {
                   key={course.courseId || course.id}
                   course={course as any}
                   onEdit={handleEdit}
-                  onDelete={handleDelete}
                   onView={handleViewCourse}
                   isOwner={course.teacherId === user?.id}
                   viewMode={viewMode}
@@ -543,19 +503,6 @@ const TeacherVideoCoursesPage = () => {
         )}
       </div>
 
-      {/* Delete Course Modal */}
-      <DeleteCourseModal
-        isOpen={isDeleteModalOpen}
-        onClose={handleCloseDeleteModal}
-        onConfirm={handleConfirmDelete}
-        course={courseToDelete || {
-          id: "test",
-          title: "Curso de Teste",
-          status: "Published",
-          enrollments: [1, 2, 3]
-        }}
-        isDeleting={isDeletingCourse}
-      />
     </div>
   );
 };

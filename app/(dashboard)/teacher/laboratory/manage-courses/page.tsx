@@ -640,26 +640,6 @@ const ManageCoursesPage = () => {
                       
                       {/* Bottom Section */}
                       <div className="space-y-3">
-                        {/* Action Buttons */}
-                        <div className="flex gap-2">
-                          <Button
-                            className="flex-1 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white transition-all duration-200"
-                            size="sm"
-                            onClick={() => router.push(`/teacher/laboratory/manage-courses/${course.id}`)}
-                          >
-                            <Settings className="w-4 h-4 mr-2" />
-                            Gerenciar
-                          </Button>
-                          
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => router.push(`/teacher/laboratory/edit-course/${course.id}`)}
-                            className="border-violet-500/30 text-gray-400 hover:text-white hover:bg-violet-800/20"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                        </div>
                       </div>
                     </div>
                     

@@ -22,17 +22,18 @@
     ],
     "paths": {
       "@/*": ["./*"],
-      "@modules/*": ["./src/modules/*"],
+      "@modules/*": ["./src/modules2/*"],
       "@shared/*": ["./src/shared/*"],
       "@core/*": ["./src/core/*"],
-      "@modules/auth": ["./src/modules/auth"],
-      "@modules/learning": ["./src/modules/learning"],
-      "@modules/learning/video-courses": ["./src/modules/learning/services/video-courses"],
-      "@modules/learning/practice-courses": ["./src/modules/learning/services/practice-courses"],
-      "@modules/gamification": ["./src/modules/gamification"],
-      "@modules/teacher": ["./src/modules/teacher"],
-      "@modules/student": ["./src/modules/student"],
-      "@modules/admin": ["./src/modules/admin"]
+      "@domains/*": ["./src/domains/*"],
+      "@modules/auth": ["./src/domains/auth"],
+      "@modules/learning": ["./src/modules2/learning"],
+      "@modules/learning/video-courses": ["./src/domains/teacher/video-courses"],
+      "@modules/learning/practice-courses": ["./src/domains/teacher/practice-courses"],
+      "@modules/gamification": ["./src/modules2/gamification2"],
+      "@modules/teacher": ["./src/domains/teacher"],
+      "@modules/student": ["./src/domains/student"],
+      "@modules/admin": ["./src/modules2/admin"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
