@@ -67,6 +67,7 @@ const VideoCoursePage = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showPublishModal, setShowPublishModal] = useState(false);
   const [publishModalType, setPublishModalType] = useState<'normal' | 'with_students'>('normal');
+  const [deleteModalType, setDeleteModalType] = useState<'normal' | 'blocked'>('normal');
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
   const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
 
@@ -93,6 +94,20 @@ const VideoCoursePage = () => {
     }
     
     setShowPublishModal(true);
+  };
+
+  // Handle delete button click with ethical verification
+  const handleDeleteButtonClick = () => {
+    if (!course) return;
+    
+    // If course has enrolled students, block deletion
+    if (enrolledStudentsCount > 0) {
+      setDeleteModalType('blocked');
+    } else {
+      setDeleteModalType('normal');
+    }
+    
+    setShowDeleteModal(true);
   };
 
   const handlePublishToggle = async () => {
@@ -294,7 +309,7 @@ const VideoCoursePage = () => {
               </Button>
 
               <Button
-                onClick={() => setShowDeleteModal(true)}
+                onClick={handleDeleteButtonClick}
                 disabled={isDeleting}
                 variant="destructive"
                 className="bg-red-600 hover:bg-red-700"
@@ -560,7 +575,7 @@ const VideoCoursePage = () => {
                 </Button>
 
                 <Button
-                  onClick={() => setShowDeleteModal(true)}
+                  onClick={handleDeleteButtonClick}
                   disabled={isDeleting}
                   variant="destructive"
                   className="w-full bg-red-600 hover:bg-red-700 text-white"
@@ -581,24 +596,61 @@ const VideoCoursePage = () => {
           <Card className="bg-customgreys-secondarybg border-red-500/30 max-w-md w-full">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
-                <AlertTriangle className="w-5 h-5 text-red-500" />
-                Confirmar Exclusão
+                <AlertTriangle className={`w-5 h-5 ${deleteModalType === 'blocked' ? 'text-orange-400' : 'text-red-500'}`} />
+                {deleteModalType === 'blocked' ? 'Deleção Bloqueada - Proteger Estudantes' : 'Confirmar Exclusão'}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="text-gray-300">
-                <p className="mb-2">
-                  Tem certeza que deseja deletar o curso <strong>"{course?.title}"</strong>?
-                </p>
-                <p className="text-red-400 text-sm">
-                  ⚠️ Esta ação é <strong>irreversível</strong> e irá deletar:
-                </p>
-                <ul className="text-red-400 text-sm mt-2 ml-4 space-y-1">
-                  <li>• Todas as seções e capítulos</li>
-                  <li>• Todo o conteúdo do curso</li>
-                  <li>• Progresso dos alunos matriculados</li>
-                </ul>
-              </div>
+              {deleteModalType === 'blocked' ? (
+                <div className="text-gray-300">
+                  <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-4 mb-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Users className="w-5 h-5 text-orange-400" />
+                      <span className="font-semibold text-orange-300">
+                        {enrolledStudentsCount} estudante{enrolledStudentsCount > 1 ? 's' : ''} matriculado{enrolledStudentsCount > 1 ? 's' : ''}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-300">
+                      Este curso possui estudantes que dependem do acesso ao conteúdo.
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="text-sm">
+                      <strong className="text-orange-300">🛡️ Proteção Ética:</strong>
+                    </div>
+                    <p className="text-sm text-gray-300">
+                      Por razões éticas, não é possível deletar cursos com estudantes matriculados. 
+                      Isso protege o investimento e progresso dos alunos.
+                    </p>
+                    
+                    <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
+                      <p className="text-sm text-blue-300">
+                        <strong>Alternativas:</strong>
+                      </p>
+                      <ul className="text-sm text-gray-300 mt-2 ml-4 space-y-1">
+                        <li>• Despublicar o curso (fechar para novos alunos)</li>
+                        <li>• Aguardar que todos os alunos concluam</li>
+                        <li>• Editar o conteúdo em vez de deletar</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-gray-300">
+                  <p className="mb-2">
+                    Tem certeza que deseja deletar o curso <strong>"{course?.title}"</strong>?
+                  </p>
+                  <p className="text-red-400 text-sm">
+                    ⚠️ Esta ação é <strong>irreversível</strong> e irá deletar:
+                  </p>
+                  <ul className="text-red-400 text-sm mt-2 ml-4 space-y-1">
+                    <li>• Todas as seções e capítulos</li>
+                    <li>• Todo o conteúdo do curso</li>
+                    <li>• Progresso dos alunos matriculados</li>
+                  </ul>
+                </div>
+              )}
 
               <div className="flex gap-3 pt-4">
                 <Button
@@ -607,25 +659,27 @@ const VideoCoursePage = () => {
                   variant="outline"
                   className="flex-1 bg-customgreys-darkGrey border-gray-600 text-white hover:bg-gray-700"
                 >
-                  Cancelar
+                  {deleteModalType === 'blocked' ? 'Entendi' : 'Cancelar'}
                 </Button>
-                <Button
-                  onClick={handleDeleteCourse}
-                  disabled={isDeleting}
-                  className="flex-1 bg-red-600 hover:bg-red-700 text-white"
-                >
-                  {isDeleting ? (
-                    <>
-                      <div className="w-4 h-4 mr-2 animate-spin border-2 border-white border-t-transparent rounded-full" />
-                      Deletando...
-                    </>
-                  ) : (
-                    <>
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      Deletar Curso
-                    </>
-                  )}
-                </Button>
+                {deleteModalType === 'normal' && (
+                  <Button
+                    onClick={handleDeleteCourse}
+                    disabled={isDeleting}
+                    className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                  >
+                    {isDeleting ? (
+                      <>
+                        <div className="w-4 h-4 mr-2 animate-spin border-2 border-white border-t-transparent rounded-full" />
+                        Deletando...
+                      </>
+                    ) : (
+                      <>
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Deletar Curso
+                      </>
+                    )}
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>

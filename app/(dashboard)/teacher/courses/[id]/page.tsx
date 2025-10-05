@@ -100,6 +100,10 @@ const CourseEditor = () => {
   const [selectedVideoFile, setSelectedVideoFile] = useState<File | null>(null);
   const [pendingVideoUploads, setPendingVideoUploads] = useState<{[chapterId: string]: File}>({});
   
+  // Video upload progress states
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+  
   // Resource states
   const [selectedResourceFiles, setSelectedResourceFiles] = useState<File[]>([]);
   const [pendingResourceUploads, setPendingResourceUploads] = useState<{[resourceId: string]: {file: File, type: string}}>({});
@@ -163,6 +167,14 @@ const CourseEditor = () => {
       console.log('Course ID:', course.id);
       console.log('Course courseId:', course.courseId);
       
+      console.log('Resetting form with course data:', {
+        courseTitle: course.title,
+        courseDescription: course.description,
+        courseCategory: course.category,
+        courseStatus: course.status === "Published",
+        courseImage: course.image || "",
+      });
+      
       methods.reset({
         courseTitle: course.title,
         courseDescription: course.description,
@@ -170,6 +182,12 @@ const CourseEditor = () => {
         courseStatus: course.status === "Published",
         courseImage: course.image || "",
       });
+      
+      // Verify the form was reset correctly
+      setTimeout(() => {
+        const formValues = methods.getValues();
+        console.log('Form values after reset:', formValues);
+      }, 100);
       console.log('Raw course.sections:', course.sections);
       
       // Debug: log chapter video information
@@ -228,58 +246,102 @@ const CourseEditor = () => {
     }
   };
 
-  // Function to handle immediate video upload when user selects file
+  // Function to handle video file selection using existing presigned URL approach
   const handleVideoSelection = async (file: File) => {
-    console.log('📹 Video selected, starting immediate upload...');
+    console.log('📹 Video selected, uploading using presigned URL...');
     
     try {
-      // Generate temporary valid UUIDs for upload (Django requires valid UUIDs)
-      const tempCourseId = id;
-      const tempSectionId = generateUUID(); // Generate valid UUID
-      const tempChapterId = generateUUID(); // Generate valid UUID
+      // Reset progress and start upload state
+      setUploadProgress(0);
+      setIsUploading(true);
       
-      console.log('🔧 Using temp IDs:', { tempCourseId, tempSectionId, tempChapterId });
+      // Use temporary IDs to get presigned URL - this is the working approach
+      const tempSectionId = generateUUID();
+      const tempChapterId = generateUUID();
       
-      // Get upload URL from Django
-      const response = await getVideoUploadUrl({
-        courseId: tempCourseId,
-        sectionId: tempSectionId, 
+      console.log('📹 Getting presigned URL with temp IDs:', { tempSectionId, tempChapterId });
+      
+      // Get upload URL from Django (returns presigned S3 URL)
+      const urlResponse = await getVideoUploadUrl({
+        courseId: id,
+        sectionId: tempSectionId,
         chapterId: tempChapterId,
         fileName: file.name,
         fileType: file.type,
       }).unwrap();
       
-      console.log('📹 Upload URL obtained:', response);
+      console.log('📹 Presigned URL response:', urlResponse);
       
-      // Upload file to S3
-      const uploadResponse = await fetch(response.uploadUrl, {
-        method: 'PUT',
-        body: file,
-        headers: {
-          'Content-Type': file.type,
-        },
-      });
+      // Extract upload URL from Django response structure
+      const uploadUrl = urlResponse.data?.uploadUrl || urlResponse.uploadUrl;
+      const finalVideoUrl = urlResponse.data?.videoUrl || urlResponse.videoUrl;
       
-      if (!uploadResponse.ok) {
-        throw new Error(`Upload failed: ${uploadResponse.statusText}`);
+      if (!uploadUrl) {
+        console.error('No upload URL in response:', urlResponse);
+        throw new Error('Upload URL not returned from server');
       }
       
-      // Extract clean URL (remove query params)
-      const videoUrl = response.uploadUrl.split('?')[0];
+      console.log('📹 Upload URL:', uploadUrl);
+      console.log('📹 Final video URL:', finalVideoUrl);
       
-      console.log('✅ Video uploaded successfully! URL:', videoUrl);
+      // Upload to S3 with progress tracking using XMLHttpRequest
+      await new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        
+        // Track upload progress
+        xhr.upload.addEventListener('progress', (event) => {
+          if (event.lengthComputable) {
+            const percentComplete = Math.round((event.loaded / event.total) * 100);
+            setUploadProgress(percentComplete);
+            console.log(`📹 Upload progress: ${percentComplete}%`);
+          }
+        });
+        
+        // Handle upload completion
+        xhr.addEventListener('load', () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            console.log('✅ S3 upload completed successfully');
+            resolve();
+          } else {
+            reject(new Error(`S3 upload failed: ${xhr.statusText}`));
+          }
+        });
+        
+        // Handle upload errors
+        xhr.addEventListener('error', () => {
+          reject(new Error('S3 upload failed due to network error'));
+        });
+        
+        // Configure and start the upload
+        xhr.open('PUT', uploadUrl);
+        xhr.setRequestHeader('Content-Type', file.type);
+        xhr.send(file);
+      });
       
-      // Store URL in state for chapter creation
+      // Use the final video URL or extract clean URL from upload URL
+      const videoUrl = finalVideoUrl || uploadUrl.split('?')[0];
+      
+      console.log('✅ Video uploaded successfully to S3! URL:', videoUrl);
+      
+      // Store the uploaded video URL for use in chapter creation
       setUploadedVideoUrl(videoUrl);
+      setSelectedVideoFile(null); // Clear file since it's uploaded
       
-      // Show success message
-      notifications.success(`✅ Vídeo enviado com sucesso! Agora você pode criar o capítulo.`);
+      // Show success notification with upload completion
+      notifications.success('🎉 Vídeo enviado com sucesso! Agora você pode criar o capítulo.');
       
     } catch (error) {
       console.error('❌ Error uploading video:', error);
-      notifications.error(`Erro ao enviar vídeo: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+      notifications.error('❌ Erro ao enviar vídeo. Tente novamente.');
+      setSelectedVideoFile(file); // Keep file for retry
+      setUploadedVideoUrl("");
+    } finally {
+      // Reset upload state
+      setIsUploading(false);
+      setUploadProgress(0);
     }
   };
+
 
   const handleCreateSection = async () => {
     if (newSectionTitle.trim()) {
@@ -328,15 +390,17 @@ const CourseEditor = () => {
       
       try {
       const chapterId = generateUUID(); // Generate valid UUID
+      
+      // Create chapter with uploaded video URL if available
       const newChapter = {
         chapterId,
         title: newChapterTitle.trim(),
         description: newChapterDescription.trim(),
         content: newChapterDescription.trim(),
-        videoUrl: uploadedVideoUrl || null, // Use uploaded video URL
-        video: uploadedVideoUrl || "", // Django field - use uploaded video URL
+        videoUrl: uploadedVideoUrl || "", // Use already uploaded video URL
+        video: uploadedVideoUrl || "", // Django field - use already uploaded video URL
         type: newChapterType,
-        hasVideo: !!uploadedVideoUrl, // Track if there's a video URL
+        hasVideo: !!uploadedVideoUrl, // Set to true if we have video URL
         // Additional fields for different types
         transcript: "",
         quiz_enabled: newChapterType === "Quiz",
@@ -344,10 +408,7 @@ const CourseEditor = () => {
         practice_lesson: newChapterType === "Exercise" ? "" : undefined,
       };
       
-      console.log('📹 Creating chapter with video URL:', uploadedVideoUrl);
-      
-      // Video upload is already done when user selected the file
-      // uploadedVideoUrl contains the S3 URL ready to be used
+      console.log('📹 Creating chapter with pre-uploaded video URL:', uploadedVideoUrl);
       
       // Store resource files for upload later
       if (selectedResourceFiles.length > 0) {
@@ -378,6 +439,30 @@ const CourseEditor = () => {
       });
       
       dispatch(setSections(updatedSections));
+      
+      // Auto-save after chapter creation to persist video URL to backend
+      if (uploadedVideoUrl) {
+        try {
+          console.log(`📹 Auto-saving chapter with video URL: ${uploadedVideoUrl}`);
+          const autoSaveData = {
+            title: course?.title || "",
+            description: course?.description || "",
+            category: course?.category || "",
+            status: course?.status || "Draft",
+            course_type: "video",
+            sections: updatedSections
+          };
+          
+          await updateCourse({
+            courseId: id,
+            ...autoSaveData,
+          }).unwrap();
+          
+          console.log(`✅ Chapter with video URL auto-saved successfully`);
+        } catch (error) {
+          console.error('❌ Auto-save failed after chapter creation:', error);
+        }
+      }
       
       // Show success toast
       const chapterTypeLabel = newChapterType === "Text" ? "Texto" :
@@ -776,7 +861,7 @@ const CourseEditor = () => {
 
       await updateCourse({
         courseId: id,
-        courseData: courseData,
+        ...courseData,
       }).unwrap();
 
       // Show success toast
@@ -1536,7 +1621,27 @@ const CourseEditor = () => {
                                     border border-indigo-500/30 rounded-lg bg-customgreys-darkGrey/50
                                     hover:border-indigo-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200"
                                 />
-                                {selectedVideoFile && (
+                                
+                                {/* Video Upload Progress */}
+                                {isUploading && (
+                                  <div className="mt-4 p-4 bg-violet-900/20 border border-violet-600/30 rounded-lg">
+                                    <div className="flex items-center justify-center space-x-3 mb-3">
+                                      <div className="w-6 h-6 border-3 border-violet-400 border-t-transparent rounded-full animate-spin"></div>
+                                      <span className="text-violet-300 font-semibold">📹 Fazendo upload do vídeo...</span>
+                                    </div>
+                                    <div className="w-full bg-violet-900/30 rounded-full h-3">
+                                      <div 
+                                        className="bg-gradient-to-r from-violet-400 to-purple-400 h-3 rounded-full transition-all duration-300" 
+                                        style={{width: `${uploadProgress}%`}}
+                                      ></div>
+                                    </div>
+                                    <div className="text-center mt-2">
+                                      <span className="text-violet-300 text-sm font-medium">{uploadProgress}%</span>
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                {selectedVideoFile && !isUploading && (
                                   <div className="mt-3 p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
                                     <div className="flex items-center gap-2">
                                       <Video className="w-4 h-4 text-emerald-400" />

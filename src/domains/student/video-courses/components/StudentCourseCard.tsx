@@ -9,8 +9,9 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import { Play, Clock, BookOpen, Star, Users } from "lucide-react";
-import { formatPrice, cn } from "@/lib/utils";
+import { Play, Clock, BookOpen, Star, Users, TrendingUp, Award, Eye } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 import type { StudentVideoCourse } from '../types';
 
 interface StudentCourseCardProps {
@@ -99,12 +100,8 @@ const StudentCourseCard = ({
                   )}
                 </div>
                 
-                {/* Price and Action */}
+                {/* Action Button */}
                 <div className="flex items-center gap-3 flex-shrink-0">
-                  <span className="text-white font-bold text-lg">
-                    {formatPrice(course.price)}
-                  </span>
-                  
                   <Button
                     className={cn(
                       "px-4 py-2",
@@ -114,7 +111,7 @@ const StudentCourseCard = ({
                     )}
                     size="sm"
                   >
-                    {isEnrolled ? 'Continuar' : 'Começar'}
+                    {isEnrolled ? 'Continuar' : 'Ver Curso'}
                   </Button>
                 </div>
               </div>
@@ -125,113 +122,167 @@ const StudentCourseCard = ({
     );
   }
 
-  // Grid view (default)
+  // Grid view (default) - Modern Design
   return (
-    <Card className="flex flex-col w-full h-[340px] xl:h-[380px] border-none bg-customgreys-primarybg overflow-hidden cursor-pointer hover:bg-white-100/10 transition duration-200 group" 
-          onClick={() => onGoToCourse(course)}>
-      <CardHeader className="course-card__header relative p-0">
-        <div className="relative">
-          <Image
-            src={course.image || "/placeholder.png"}
-            alt={course.title}
-            width={400}
-            height={200}
-            className="w-full h-[180px] object-cover transition-transform group-hover:scale-105"
-            priority
-          />
-          
-          {/* Overlay for enrolled courses */}
-          {isEnrolled && (
-            <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-              <Button className="bg-white/20 hover:bg-white/30 text-white backdrop-blur-sm">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      whileHover={{ y: -8 }}
+      className="h-full"
+    >
+      <Card 
+        className="group relative flex flex-col h-full overflow-hidden bg-customgreys-secondarybg rounded-2xl border border-violet-500/20 hover:border-violet-400/40 transition-all duration-500 cursor-pointer hover:shadow-2xl hover:shadow-violet-500/10 hover:scale-[1.02]" 
+        onClick={() => onGoToCourse(course)}
+      >
+        {/* Background Effects */}
+        <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        <div className="absolute -top-10 -right-10 w-20 h-20 bg-violet-400/10 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        
+        <CardHeader className="relative p-0 overflow-hidden">
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent z-10" />
+            <Image
+              src={course.image || "/placeholder.png"}
+              alt={course.title}
+              width={400}
+              height={200}
+              className="w-full h-[200px] object-cover transition-all duration-700 group-hover:scale-110"
+              priority
+            />
+            
+            {/* Floating Action on Hover */}
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.8 }}
+              whileHover={{ opacity: 1, scale: 1 }}
+              className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 z-20"
+            >
+              <Button className="bg-violet-600/90 hover:bg-violet-500 text-white backdrop-blur-sm shadow-lg border border-violet-400/30 transform hover:scale-105 transition-all duration-200">
                 <Play className="w-5 h-5 mr-2" />
-                Continuar Curso
+                {isEnrolled ? 'Continuar Curso' : 'Ver Curso'}
               </Button>
-            </div>
-          )}
+            </motion.div>
 
-          {/* Progress bar overlay for enrolled courses */}
-          {isEnrolled && showProgress && progress > 0 && (
-            <div className="absolute bottom-0 left-0 right-0 bg-black/50 p-2">
-              <div className="flex items-center justify-between text-xs text-white mb-1">
-                <span>Progresso</span>
-                <span>{progress}%</span>
+            {/* Modern Progress Bar */}
+            {isEnrolled && showProgress && (typeof progress === 'number' && progress > 0) && (
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-r from-black/80 to-black/60 backdrop-blur-sm p-3 z-20">
+                <div className="flex items-center justify-between text-xs text-white mb-2">
+                  <span className="font-medium">Progresso</span>
+                  <span className="font-bold">{typeof progress === 'number' ? progress : 0}%</span>
+                </div>
+                <div className="w-full bg-white/20 rounded-full h-2 overflow-hidden">
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: `${typeof progress === 'number' ? progress : 0}%` }}
+                    transition={{ duration: 1, ease: "easeOut" }}
+                    className="bg-gradient-to-r from-violet-400 to-purple-400 h-2 rounded-full shadow-lg"
+                  />
+                </div>
               </div>
-              <div className="w-full bg-gray-600 rounded-full h-1">
-                <div 
-                  className="bg-violet-400 h-1 rounded-full transition-all duration-300"
-                  style={{ width: `${progress}%` }}
-                />
+            )}
+
+            {/* Modern Badges - Status no canto esquerdo */}
+            {isEnrolled && (
+              <div className="absolute top-4 left-4 z-20">
+                <Badge className="bg-gradient-to-r from-violet-600 to-purple-600 text-white border-none shadow-lg">
+                  <Award className="w-3 h-3 mr-1" />
+                  Inscrito
+                </Badge>
               </div>
-            </div>
-          )}
+            )}
+            
+            {/* Level Badge - Canto direito */}
+            {course.level && (
+              <div className="absolute top-4 right-4 z-20">
+                <Badge variant="outline" className="bg-black/60 text-white border-white/30 backdrop-blur-sm">
+                  {course.level}
+                </Badge>
+              </div>
+            )}
 
-          {/* Level badge */}
-          {course.level && (
-            <div className="absolute top-3 right-3">
-              <Badge variant="outline" className="bg-black/50 text-white border-white/30 backdrop-blur-sm">
-                {course.level}
-              </Badge>
-            </div>
-          )}
+          </div>
+        </CardHeader>
 
-          {/* Enrolled badge */}
-          {isEnrolled && (
-            <div className="absolute top-3 left-3">
-              <Badge className="bg-violet-600 text-white">
-                Inscrito
-              </Badge>
-            </div>
-          )}
-        </div>
-      </CardHeader>
+        <CardContent className="flex-1 p-6 relative z-10">
+          <div className="space-y-4">
+            {/* Course Title */}
+            <CardTitle className="text-lg font-bold line-clamp-2 text-white group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-violet-400 group-hover:to-purple-400 group-hover:bg-clip-text transition-all duration-300">
+              {course.title}
+            </CardTitle>
 
-      <CardContent className="flex-grow flex flex-col justify-between w-full h-full p-6">
-        <div className="space-y-3">
-          <CardTitle className="text-md lg:text-lg font-semibold line-clamp-2 text-white group-hover:text-violet-300 transition-colors">
-            {course.title}: {course.description}
-          </CardTitle>
-
-          {/* Teacher info */}
-          <div className="flex items-center gap-2">
-            <Avatar className="w-5 h-5">
-              <AvatarImage alt={course.teacherName} />
-              <AvatarFallback className="bg-violet-600 text-white text-xs">
-                {course.teacherName?.[0]}
-              </AvatarFallback>
-            </Avatar>
-            <p className="text-sm text-violet-400">
-              {course.teacherName}
+            {/* Course Description */}
+            <p className="text-sm text-gray-400 line-clamp-2 leading-relaxed">
+              {course.description}
             </p>
-          </div>
 
-          {/* Course stats */}
-          <div className="flex items-center gap-4 text-xs text-gray-400">
-            <div className="flex items-center gap-1">
-              <Users className="w-3 h-3" />
-              <span>{course.total_students || 0}</span>
+            {/* Teacher Info */}
+            <div className="flex items-center gap-3">
+              <Avatar className="w-8 h-8 border border-violet-400/30">
+                <AvatarImage alt={(course as any).teacherName} />
+                <AvatarFallback className="bg-gradient-to-br from-violet-600 to-purple-600 text-white text-sm font-semibold">
+                  {(course as any).teacherName?.[0] || 'P'}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="text-sm font-medium text-violet-400">
+                  {(course as any).teacherName || 'Professor'}
+                </p>
+                <p className="text-xs text-gray-500">
+                  Instrutor
+                </p>
+              </div>
             </div>
-            <div className="flex items-center gap-1">
-              <Star className="w-3 h-3" />
-              <span>{course.rating || 4.8}</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Clock className="w-3 h-3" />
-              <span>{course.duration || '2h 30min'}</span>
-            </div>
-          </div>
-        </div>
 
-        <CardFooter className="p-0 flex justify-between items-center mt-4">
-          <div className="text-sm bg-customgreys-secondarybg rounded-full px-3 py-2 text-gray-400">
-            {course.category}
+            {/* Modern Stats Grid */}
+            <div className="grid grid-cols-3 gap-3 pt-2">
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-1 text-blue-400 mb-1">
+                  <Users className="w-3 h-3" />
+                  <span className="text-xs font-bold">{(course as any).total_students || 0}</span>
+                </div>
+                <div className="text-xs text-gray-500">Alunos</div>
+              </div>
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-1 text-yellow-400 mb-1">
+                  <Star className="w-3 h-3" />
+                  <span className="text-xs font-bold">
+                    {course.rating ? Number(course.rating).toFixed(1) : '4.8'}
+                  </span>
+                </div>
+                <div className="text-xs text-gray-500">Avaliação</div>
+              </div>
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-1 text-green-400 mb-1">
+                  <Clock className="w-3 h-3" />
+                  <span className="text-xs font-bold">{course.duration || '2h'}</span>
+                </div>
+                <div className="text-xs text-gray-500">Duração</div>
+              </div>
+            </div>
           </div>
-          <span className="text-white font-bold text-lg">
-            {formatPrice(course.price)}
-          </span>
+        </CardContent>
+
+        <CardFooter className="p-6 pt-0 relative z-10">
+          <div className="w-full flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="bg-gradient-to-r from-violet-500/20 to-purple-500/20 border border-violet-400/30 rounded-full px-3 py-1.5">
+                <span className="text-xs font-medium text-violet-300">
+                  {course.category}
+                </span>
+              </div>
+            </div>
+            
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              className="flex items-center gap-1 text-violet-400"
+            >
+              <Eye className="w-4 h-4" />
+              <span className="text-sm font-medium">Ver Mais</span>
+            </motion.div>
+          </div>
         </CardFooter>
-      </CardContent>
-    </Card>
+      </Card>
+    </motion.div>
   );
 };
 

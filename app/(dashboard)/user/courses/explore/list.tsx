@@ -2,6 +2,7 @@
 
 import { StudentCourseCard } from "@/src/domains/student/video-courses/components";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 import type { StudentVideoCourse } from "@/src/domains/student/video-courses/types";
 
 type Props = {
@@ -27,19 +28,41 @@ export const List = ({courses, activeCourseId, viewMode = 'grid'}: Props) => {
         router.push(`/user/courses/${courseId}`);
     }
     
+    // Animation variants for staggered entrance
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: {
+                staggerChildren: 0.1
+            }
+        }
+    };
+
     return (
-        <div className={viewMode === 'grid' 
-            ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" 
-            : "flex flex-col gap-4"
-        }>
-         {courses.map((course) =>(
-            <StudentCourseCard
+        <motion.div 
+            className={viewMode === 'grid' 
+                ? "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6" 
+                : "flex flex-col gap-4"
+            }
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+        >
+         {courses.map((course, index) =>(
+            <motion.div
                 key={course.id}
-                course={course}
-                onGoToCourse={onGoToCourse}
-                viewMode={viewMode}
-            />
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1, duration: 0.6 }}
+            >
+                <StudentCourseCard
+                    course={course}
+                    onGoToCourse={onGoToCourse}
+                    viewMode={viewMode}
+                />
+            </motion.div>
          ))}
-        </div>
+        </motion.div>
     )
 }

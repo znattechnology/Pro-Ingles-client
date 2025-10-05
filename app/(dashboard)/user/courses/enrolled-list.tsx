@@ -4,6 +4,7 @@ import { EnrolledCard } from "./enrolled-card";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { toast } from "sonner";
+import { motion } from "framer-motion";
 
 // Define types for enrolled courses
 interface EnrolledCourse {
@@ -74,35 +75,57 @@ export const EnrolledList = ({courses, activeCourseId, viewMode = 'grid'}: Props
         });
     }
 
+    // Animation variants for staggered entrance
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: {
+                staggerChildren: 0.1
+            }
+        }
+    };
+
     return (
-        <div className={viewMode === 'grid' 
-            ? "grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6" 
-            : "flex flex-col gap-4"
-        }>
-         {courses.map((course) =>(
-            <EnrolledCard
-            key={course.id}
-            id={course.id}
-            title={course.title}
-            imageSrc={course.thumbnail || '/laboratory/challenges/english-1.jpg'}
-            template={course.template || 'general'}
-            description={course.description}
-            category={course.category}
-            level={course.level}
-            instructor={course.instructor}
-            progress={course.progress}
-            totalLessons={course.totalLessons}
-            completedLessons={course.completedLessons}
-            duration={course.duration}
-            status={course.status}
-            rating={course.rating}
-            nextLesson={course.nextLesson}
-            onClick={onClick}
-            disabled={pending}
-            active={course.id === activeCourseId}
-            viewMode={viewMode}
-            />
+        <motion.div 
+            className={viewMode === 'grid' 
+                ? "grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6" 
+                : "flex flex-col gap-4"
+            }
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+        >
+         {courses.map((course, index) =>(
+            <motion.div
+                key={course.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1, duration: 0.6 }}
+            >
+                <EnrolledCard
+                id={course.id}
+                title={course.title}
+                imageSrc={course.thumbnail || '/laboratory/challenges/english-1.jpg'}
+                template={course.template || 'general'}
+                description={course.description}
+                category={course.category}
+                level={course.level}
+                instructor={course.instructor}
+                progress={course.progress}
+                totalLessons={course.totalLessons}
+                completedLessons={course.completedLessons}
+                duration={course.duration}
+                status={course.status}
+                rating={course.rating}
+                nextLesson={course.nextLesson}
+                onClick={onClick}
+                disabled={pending}
+                active={course.id === activeCourseId}
+                viewMode={viewMode}
+                />
+            </motion.div>
          ))}
-        </div>
+        </motion.div>
     )
 }

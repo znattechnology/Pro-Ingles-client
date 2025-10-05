@@ -384,7 +384,7 @@ export const uploadCourseImage = async (
   }
 };
 
-async function uploadVideo(
+export async function uploadVideo(
   chapter: Chapter,
   courseId: string,
   sectionId: string,

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useDjangoAuth } from "@/hooks/useDjangoAuth";
 import {
@@ -14,19 +14,21 @@ import TeacherCourseCard from "@/components/course/TeacherCourseCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { notifications } from "@/lib/toast";
 import { useDispatch } from "react-redux";
+import { motion } from "framer-motion";
 import {
   Search,
   Plus,
   Grid3X3,
   List as ListIcon,
-  BookOpen,
   Loader2,
-  Filter,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Users,
+  Globe,
+  Video,
+  Play
 } from "lucide-react";
 
 const TeacherVideoCoursesPage = () => {
@@ -154,8 +156,8 @@ const TeacherVideoCoursesPage = () => {
         course_type: 'video'
       }).unwrap();
       
-      // Handle different response structures - ID está em result.data
-      const courseId = result.data?.courseId || result.data?.id || result.courseId || result.id;
+      // Handle different response structures - ID está em result
+      const courseId = result.courseId || result.id;
       
       if (courseId) {
         // Force invalidate the teacher courses list cache
@@ -212,125 +214,230 @@ const TeacherVideoCoursesPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-customgreys-primarybg">
-      {/* Enhanced Header Section */}
-      <div className="relative bg-gradient-to-br from-customgreys-secondarybg via-customgreys-primarybg to-customgreys-secondarybg border-b border-violet-900/30">
+    <div className="min-h-screen bg-customgreys-primarybg text-white">
+      {/* Hero Section */}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="relative px-6 py-6"
+      >
         {/* Background Effects */}
-        <div className="absolute inset-0 bg-gradient-to-r from-violet-500/5 to-purple-500/5" />
-        <div className="absolute inset-0 opacity-[0.02] pointer-events-none">
-          <div className="h-full w-full bg-[linear-gradient(rgba(139,92,246,.1)_1px,transparent_1px),linear-gradient(90deg,rgba(139,92,246,.1)_1px,transparent_1px)] bg-[size:4rem_4rem]" />
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-20 -right-40 w-60 h-60 bg-violet-600/8 rounded-full blur-3xl" />
+          <div className="absolute -bottom-10 -left-40 w-60 h-60 bg-purple-600/8 rounded-full blur-3xl" />
         </div>
-        
-        <div className="relative max-w-7xl mx-auto px-6 py-8">
 
-          
-          {/* Compact Search and Filters */}
-          <div className="bg-customgreys-primarybg/40 backdrop-blur-sm rounded-lg border border-violet-900/30 p-4 mb-6">
-            {/* Search Bar */}
-            <div className="relative mb-3">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                type="text"
-                placeholder="Pesquisar meus cursos..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 h-10 bg-customgreys-darkGrey/50 border-violet-900/30 text-white placeholder:text-gray-400 focus:border-violet-500 focus:ring-1 focus:ring-violet-500/20 transition-all duration-200 rounded-md text-sm"
-              />
-            </div>
+        <div className="relative max-w-7xl mx-auto">
+          <div className="flex items-start justify-start mb-6">
+            <motion.div
+              initial={{ x: -20, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.2 }}
+            >
+              <Button 
+                variant="ghost"
+                onClick={() => router.push('/teacher/laboratory')}
+                className="text-gray-400 hover:text-white hover:bg-violet-600/20 transition-all text-sm"
+              >
+                <ChevronLeft className="h-4 w-4 mr-2" />
+                Voltar ao Laboratório
+              </Button>
+            </motion.div>
+          </div>
+
+          <div className="text-center">
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+              className="inline-flex items-center gap-2 bg-violet-500/10 border border-violet-500/20 rounded-full px-4 py-1.5 mb-4"
+            >
+              <Video className="w-4 h-4 text-violet-400" />
+              <span className="text-violet-300 font-medium text-sm">Cursos em Vídeo</span>
+            </motion.div>
             
-            {/* Dropdown Filters */}
-            <div className="flex flex-wrap items-center gap-4 text-sm">
-              {/* Status Filter Dropdown */}
-              <div className="flex items-center gap-2">
-                <Filter className="w-4 h-4 text-gray-400" />
-                <span className="text-gray-400">Status:</span>
-                <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                  <SelectTrigger className="w-[120px] h-8 bg-customgreys-darkGrey/50 border-violet-900/30 text-white focus:border-violet-500 focus:ring-1 focus:ring-violet-500/20">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-customgreys-secondarybg border-violet-900/30">
-                    <SelectItem value="all" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20">Todos</SelectItem>
-                    <SelectItem value="Published" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20">Publicado</SelectItem>
-                    <SelectItem value="Draft" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20">Rascunho</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              {/* Category Filter Dropdown */}
-              <div className="flex items-center gap-2">
-                <span className="text-gray-400">Categoria:</span>
-                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                  <SelectTrigger className="w-[160px] h-8 bg-customgreys-darkGrey/50 border-violet-900/30 text-white focus:border-violet-500 focus:ring-1 focus:ring-violet-500/20">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-customgreys-secondarybg border-violet-900/30">
-                    <SelectItem value="all" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20">Todas</SelectItem>
-                    <SelectItem value="petroleo-gas" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20">🛢️ Petróleo & Gás</SelectItem>
-                    <SelectItem value="bancario" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20">🏦 Bancário</SelectItem>
-                    <SelectItem value="ti-telecomunicacoes" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20">💻 TI & Telecom</SelectItem>
-                    <SelectItem value="executivo" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20">👔 Executivo</SelectItem>
-                    <SelectItem value="ai-personal-tutor" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20">🤖 IA Personal</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+            <motion.h1 
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.3, duration: 0.6 }}
+              className="text-2xl md:text-3xl font-bold mb-3"
+            >
+              Meus <span className="bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent">Cursos</span>
+            </motion.h1>
+            
+            <motion.p 
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.4, duration: 0.6 }}
+              className="text-base text-gray-300 max-w-xl mx-auto leading-relaxed"
+            >
+              Crie, gerencie e monitore o desempenho dos seus cursos em vídeo
+            </motion.p>
           </div>
         </div>
-      </div>
-      
-      {/* Enhanced Courses Grid */}
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        {totalCourses === 0 ? (
-          <Card className="bg-customgreys-secondarybg border-customgreys-darkerGrey">
-            <CardContent className="flex flex-col items-center justify-center py-16">
-              <BookOpen className="h-16 w-16 text-customgreys-dirtyGrey mb-4 opacity-50" />
-              <h3 className="text-xl font-semibold text-white mb-2">
-                {courses.filter(course => course.teacherId === user?.id).length === 0 
-                  ? 'Nenhum curso criado ainda' 
-                  : 'Nenhum curso encontrado'
-                }
-              </h3>
-              <p className="text-customgreys-dirtyGrey text-center mb-6">
-                {filteredCourses.length === 0 && courses.filter(course => course.teacherId === user?.id).length === 0
-                  ? 'Comece criando seu primeiro curso'
-                  : 'Tente ajustar seus filtros ou termo de pesquisa'
-                }
-              </p>
-              <div className="flex gap-3">
-                {filteredCourses.length === 0 && courses.filter(course => course.teacherId === user?.id).length === 0 ? (
-                  <Button 
-                    type="button"
-                    onClick={handleCreateCourse}
-                    disabled={isCreatingCourse}
-                    className="bg-violet-600 hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isCreatingCourse ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Criando...
-                      </>
-                    ) : (
-                      <>
-                        <Plus className="w-4 h-4 mr-2" />
-                        Criar Primeiro Curso
-                      </>
-                    )}
-                  </Button>
-                ) : (
-                  <Button 
-                    onClick={() => {
-                      setSearchTerm('');
-                      setSelectedCategory('all');
-                      setSelectedStatus('all');
-                    }}
-                    className="bg-violet-600 hover:bg-violet-700"
-                  >
-                    Limpar Filtros
-                  </Button>
-                )}
+      </motion.div>
+
+      {/* Main Content */}
+      <div className="px-6 pb-12 pt-8">
+        <div className="max-w-7xl mx-auto space-y-10">
+
+          {/* Filters and Search */}
+          <motion.div
+            initial={{ y: 40, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.5, duration: 0.6 }}
+            className="bg-gradient-to-br from-violet-500/5 to-purple-500/5 backdrop-blur-xl rounded-2xl border border-violet-500/20 p-5"
+          >
+            <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+              <div className="flex items-center space-x-2 flex-1 w-full sm:max-w-md">
+                <div className="relative flex-1">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input 
+                    placeholder="Buscar cursos..."
+                    className="pl-8 bg-customgreys-secondarybg border-customgreys-darkerGrey text-white placeholder:text-gray-400 focus:border-violet-500"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
               </div>
-            </CardContent>
-          </Card>
+            
+              <div className="flex space-x-2">
+                {[{value: 'all', label: 'Todos'}, {value: 'Published', label: 'Publicado'}, {value: 'Draft', label: 'Rascunho'}].map((status) => (
+                  <Button
+                    key={status.value}
+                    variant={selectedStatus === status.value ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setSelectedStatus(status.value)}
+                    className={selectedStatus === status.value 
+                      ? 'bg-violet-600 hover:bg-violet-700 text-white' 
+                      : 'border-customgreys-darkerGrey bg-customgreys-darkGrey text-gray-300 hover:bg-violet-600/10 hover:border-violet-500 hover:text-white'
+                    }
+                  >
+                    {status.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+          {/* Summary Cards */}
+          <motion.div
+            initial={{ y: 40, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.6, duration: 0.6 }}
+            className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8"
+          >
+            <motion.div
+              whileHover={{ y: -4 }}
+              className="text-center p-6 rounded-2xl bg-gradient-to-br from-violet-500/10 to-purple-500/10 border border-violet-500/20"
+            >
+              <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-violet-500/20 flex items-center justify-center">
+                <Video className="w-6 h-6 text-violet-400" />
+              </div>
+              <div className="text-3xl font-bold text-white mb-1">
+                {totalCourses}
+              </div>
+              <div className="text-sm text-gray-400">Total de Cursos</div>
+            </motion.div>
+            
+            <motion.div
+              whileHover={{ y: -4 }}
+              className="text-center p-6 rounded-2xl bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/20"
+            >
+              <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-blue-500/20 flex items-center justify-center">
+                <Users className="w-6 h-6 text-blue-400" />
+              </div>
+              <div className="text-3xl font-bold text-white mb-1">
+                {courses.filter(course => course.teacherId === user?.id).reduce((sum, course) => sum + (course.total_enrollments || 0), 0)}
+              </div>
+              <div className="text-sm text-gray-400">Estudantes Ativos</div>
+            </motion.div>
+            
+            <motion.div
+              whileHover={{ y: -4 }}
+              className="text-center p-6 rounded-2xl bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/20"
+            >
+              <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-green-500/20 flex items-center justify-center">
+                <Play className="w-6 h-6 text-green-400" />
+              </div>
+              <div className="text-3xl font-bold text-white mb-1">
+                {courses.filter(course => course.teacherId === user?.id).reduce((sum, course) => sum + (course.total_sections || 0), 0)}
+              </div>
+              <div className="text-sm text-gray-400">Total Seções</div>
+            </motion.div>
+            
+            <motion.div
+              whileHover={{ y: -4 }}
+              className="text-center p-6 rounded-2xl bg-gradient-to-br from-orange-500/10 to-red-500/10 border border-orange-500/20"
+            >
+              <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-orange-500/20 flex items-center justify-center">
+                <Globe className="w-6 h-6 text-orange-400" />
+              </div>
+              <div className="text-3xl font-bold text-white mb-1">
+                {courses.filter(course => course.teacherId === user?.id && course.status === 'Published').length}
+              </div>
+              <div className="text-sm text-gray-400">Publicados</div>
+            </motion.div>
+          </motion.div>
+
+          {/* Courses Grid */}
+          {totalCourses === 0 ? (
+            <motion.div
+              initial={{ y: 40, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.8, duration: 0.6 }}
+            >
+              <Card className="bg-gradient-to-br from-violet-500/5 to-purple-500/5 backdrop-blur-xl border border-violet-500/20">
+                <CardContent className="text-center py-16">
+                  <div className="bg-violet-500/20 rounded-full p-6 mx-auto mb-6 w-fit">
+                    <Video className="h-16 w-16 text-violet-400" />
+                  </div>
+                  <h3 className="text-2xl font-bold mb-3 text-white">
+                    {courses.filter(course => course.teacherId === user?.id).length === 0 
+                      ? 'Nenhum curso criado ainda' 
+                      : 'Nenhum curso encontrado'
+                    }
+                  </h3>
+                  <p className="text-gray-300 mb-6 max-w-md mx-auto">
+                    {filteredCourses.length === 0 && courses.filter(course => course.teacherId === user?.id).length === 0
+                      ? 'Comece criando seu primeiro curso em vídeo'
+                      : 'Tente ajustar seus filtros ou termo de pesquisa'
+                    }
+                  </p>
+                  {filteredCourses.length === 0 && courses.filter(course => course.teacherId === user?.id).length === 0 ? (
+                    <Button 
+                      type="button"
+                      onClick={handleCreateCourse}
+                      disabled={isCreatingCourse}
+                      className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white px-8 py-3 rounded-xl shadow-xl transition-all duration-300"
+                    >
+                      {isCreatingCourse ? (
+                        <>
+                          <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                          Criando...
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="h-5 w-5 mr-2" />
+                          Criar Primeiro Curso
+                        </>
+                      )}
+                    </Button>
+                  ) : (
+                    <Button 
+                      onClick={() => {
+                        setSearchTerm('');
+                        setSelectedCategory('all');
+                        setSelectedStatus('all');
+                      }}
+                      className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white px-8 py-3 rounded-xl shadow-xl transition-all duration-300"
+                    >
+                      Limpar Filtros
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
+            </motion.div>
         ) : (
           <>
             <div className="mb-6 flex items-center justify-between flex-wrap gap-4">
@@ -424,21 +531,32 @@ const TeacherVideoCoursesPage = () => {
               </div>
             </div>
             
-            <div className={`grid gap-6 ${viewMode === 'grid' 
-              ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' 
-              : 'grid-cols-1'
-            }`}>
-              {paginatedCourses.map((course) => (
-                <TeacherCourseCard
+            <motion.div
+              initial={{ y: 40, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.7, duration: 0.6 }}
+              className={`grid gap-6 ${viewMode === 'grid' 
+                ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' 
+                : 'grid-cols-1'
+              }`}
+            >
+              {paginatedCourses.map((course, index) => (
+                <motion.div
                   key={course.courseId || course.id}
-                  course={course as any}
-                  onEdit={handleEdit}
-                  onView={handleViewCourse}
-                  isOwner={course.teacherId === user?.id}
-                  viewMode={viewMode}
-                />
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.1 * index, duration: 0.3 }}
+                >
+                  <TeacherCourseCard
+                    course={course as any}
+                    onEdit={handleEdit}
+                    onView={handleViewCourse}
+                    isOwner={course.teacherId === user?.id}
+                    viewMode={viewMode}
+                  />
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
             
             {/* Pagination Controls */}
             {totalPages > 1 && (
@@ -501,6 +619,7 @@ const TeacherVideoCoursesPage = () => {
             )}
           </>
         )}
+        </div>
       </div>
 
     </div>

@@ -31,8 +31,11 @@ import {
   TrendingUp,
   Zap
 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 const Course = () => {
+  const router = useRouter();
   const {
     user,
     course,
@@ -49,6 +52,10 @@ const Course = () => {
   const [quizStarted, setQuizStarted] = useState(false);
   const [selectedTab, setSelectedTab] = useState<string>("Notes");
   const [isMarkingComplete, setIsMarkingComplete] = useState(false);
+  const [showNextVideoCountdown, setShowNextVideoCountdown] = useState(false);
+  const [countdownSeconds, setCountdownSeconds] = useState(5);
+  const [nextChapter, setNextChapter] = useState<any>(null);
+  const [shouldAutoplay, setShouldAutoplay] = useState(false);
   
   // Check if chapter is already completed and update local state
   const chapterCompleted = isChapterCompleted();
@@ -111,6 +118,155 @@ const Course = () => {
   };
 
   const playerRef = useRef<ReactPlayer>(null);
+  const countdownRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Function to find the next chapter
+  const findNextChapter = () => {
+    if (!course?.sections || !currentChapter) return null;
+
+    for (let sectionIndex = 0; sectionIndex < course.sections.length; sectionIndex++) {
+      const section = course.sections[sectionIndex];
+      const chapterIndex = section.chapters.findIndex(
+        (chapter: any) => chapter.chapterId === currentChapter.chapterId
+      );
+
+      if (chapterIndex !== -1) {
+        // Found current chapter, now find next
+        if (chapterIndex < section.chapters.length - 1) {
+          // Next chapter in same section
+          return {
+            chapter: section.chapters[chapterIndex + 1],
+            section: section
+          };
+        } else if (sectionIndex < course.sections.length - 1) {
+          // First chapter of next section
+          const nextSection = course.sections[sectionIndex + 1];
+          if (nextSection.chapters.length > 0) {
+            return {
+              chapter: nextSection.chapters[0],
+              section: nextSection
+            };
+          }
+        }
+      }
+    }
+    return null;
+  };
+
+  // Function to start countdown and auto-navigate to next chapter
+  const startNextChapterCountdown = () => {
+    const next = findNextChapter();
+    if (!next) return;
+
+    setNextChapter(next);
+    setShowNextVideoCountdown(true);
+    setCountdownSeconds(5);
+
+    let seconds = 5;
+    countdownRef.current = setInterval(() => {
+      seconds--;
+      setCountdownSeconds(seconds);
+
+      if (seconds <= 0) {
+        // Navigate to next chapter with autoplay
+        console.log('🚀 Navigating to next chapter with autoplay');
+        const nextUrl = `/user/courses/${course?.courseId}/chapters/${next.chapter.chapterId}?autoplay=true`;
+        console.log('📍 Next URL:', nextUrl);
+        
+        router.push(nextUrl);
+        setShowNextVideoCountdown(false);
+        if (countdownRef.current) {
+          clearInterval(countdownRef.current);
+        }
+      }
+    }, 1000);
+  };
+
+  // Function to cancel countdown
+  const cancelCountdown = () => {
+    if (countdownRef.current) {
+      clearInterval(countdownRef.current);
+      countdownRef.current = null;
+    }
+    setShowNextVideoCountdown(false);
+    setCountdownSeconds(5);
+  };
+
+  // Check for autoplay parameter in URL
+  React.useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const autoplay = urlParams.get('autoplay');
+    console.log('🔍 Checking autoplay parameter:', autoplay);
+    console.log('📍 Current URL:', window.location.href);
+    
+    if (autoplay === 'true') {
+      console.log('✅ Autoplay detected! Setting shouldAutoplay to true');
+      setShouldAutoplay(true);
+      
+      // Remove autoplay parameter from URL without triggering navigation
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
+      console.log('🔄 URL cleaned:', newUrl);
+    } else {
+      console.log('❌ No autoplay parameter found');
+      setShouldAutoplay(false);
+    }
+  }, [currentChapter?.chapterId]);
+
+  // Additional effect to ensure autoplay state is properly set
+  React.useEffect(() => {
+    console.log('🎮 shouldAutoplay state changed to:', shouldAutoplay);
+    
+    // Fallback: If autoplay is true but video hasn't started after a delay, try to start it
+    if (shouldAutoplay && playerRef.current) {
+      const timer = setTimeout(() => {
+        console.log('⏰ Autoplay fallback triggered - attempting to play video');
+        if (playerRef.current && shouldAutoplay) {
+          try {
+            // Try to get the internal player and call play
+            const internalPlayer = playerRef.current.getInternalPlayer();
+            if (internalPlayer && typeof internalPlayer.play === 'function') {
+              console.log('🎯 Calling internal player.play()');
+              internalPlayer.play().catch((error: any) => {
+                console.log('❌ Autoplay blocked by browser:', error);
+              });
+            }
+          } catch (error) {
+            console.log('⚠️ Fallback autoplay failed:', error);
+          }
+        }
+      }, 1000); // Wait 1 second before trying fallback
+      
+      return () => clearTimeout(timer);
+    }
+  }, [shouldAutoplay]);
+
+  // Cleanup countdown on unmount and add fullscreen event listeners
+  React.useEffect(() => {
+    const handleFullscreenChange = () => {
+      // Force re-render when fullscreen state changes
+      // This ensures the overlay positioning is correct
+      console.log('🖥️ Fullscreen state changed:', isFullscreen());
+    };
+
+    // Add fullscreen event listeners for different browsers
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+
+    return () => {
+      if (countdownRef.current) {
+        clearInterval(countdownRef.current);
+      }
+      
+      // Cleanup fullscreen event listeners
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
+    };
+  }, []);
 
   // Function to mark chapter as completed using the hook's mutation
   const markChapterAsCompleted = async () => {
@@ -181,6 +337,7 @@ const Course = () => {
   };
 
   const handleProgress = ({ played }: { played: number }) => {
+    // Auto-complete chapter at 80%
     if (
       played >= 0.8 &&
       !hasMarkedComplete &&
@@ -198,12 +355,90 @@ const Course = () => {
     }
   };
 
+  // Handle video end - start countdown to next chapter
+  const handleVideoEnd = async () => {
+    console.log('🎬 Video ended! Starting countdown to next chapter...');
+    
+    // Check if we're in fullscreen mode and exit if we are
+    if (isFullscreen()) {
+      console.log('📺 Exiting fullscreen to show countdown...');
+      await exitFullscreen();
+      // Small delay to ensure fullscreen exit is complete
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+    
+    // Mark current chapter as completed if not already
+    if (!hasMarkedComplete && currentChapter && currentSection) {
+      setHasMarkedComplete(true);
+      updateChapterProgress(
+        currentSection.sectionId,
+        currentChapter.chapterId,
+        true
+      );
+    }
+
+    // Start countdown for next chapter
+    const next = findNextChapter();
+    if (next && next.chapter.type === 'Video' && next.chapter.video) {
+      // Only auto-play if next chapter is also a video
+      startNextChapterCountdown();
+    }
+  };
+
+  // Check if document is in fullscreen mode
+  const isFullscreen = () => {
+    return !!(
+      document.fullscreenElement ||
+      (document as any).webkitFullscreenElement ||
+      (document as any).mozFullScreenElement ||
+      (document as any).msFullscreenElement
+    );
+  };
+
+  // Exit fullscreen function
+  const exitFullscreen = async () => {
+    try {
+      if (document.exitFullscreen) {
+        await document.exitFullscreen();
+      } else if ((document as any).webkitExitFullscreen) {
+        await (document as any).webkitExitFullscreen();
+      } else if ((document as any).mozCancelFullScreen) {
+        await (document as any).mozCancelFullScreen();
+      } else if ((document as any).msExitFullscreen) {
+        await (document as any).msExitFullscreen();
+      }
+    } catch (error) {
+      console.log('Error exiting fullscreen:', error);
+    }
+  };
+
   if (isLoading) return <Loading />;
   if (!user) return <div>Please sign in to view this course.</div>;
   if (!course || !userProgress) return <div>Error loading course</div>;
 
   return (
     <div className="min-h-screen bg-customgreys-primarybg">
+      {/* CSS for countdown animation */}
+      <style jsx>{`
+        @keyframes slideInFromRight {
+          from {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+        @keyframes pulse {
+          0%, 100% {
+            transform: scale(1);
+          }
+          50% {
+            transform: scale(1.05);
+          }
+        }
+      `}</style>
       {/* Compact Header Section */}
       <div className="relative bg-gradient-to-r from-customgreys-secondarybg to-customgreys-primarybg border-b border-violet-900/30">
         <div className="absolute inset-0 bg-gradient-to-r from-violet-500/5 to-purple-500/5" />
@@ -302,11 +537,12 @@ const Course = () => {
           </div>
         )}
 
-      {/* Main Content Area */}
-      <div className="max-w-7xl mx-auto px-6 pt-6 pb-8">
-        {/* Enhanced Content Card */}
-        <div className="bg-customgreys-primarybg/40 backdrop-blur-sm rounded-xl border border-violet-900/30 mb-8">
-          <div className="aspect-video w-full relative overflow-hidden rounded-xl">
+      {/* Main Content Area - Full Width */}
+      <div className="max-w-6xl mx-auto px-6 pt-4 pb-8">
+        {/* Video Content */}
+        <div className="w-full">
+          <div className="bg-customgreys-primarybg/40 backdrop-blur-sm rounded-xl border border-violet-900/30 mb-6">
+            <div className="aspect-video w-full relative overflow-hidden rounded-xl max-h-[500px]">
             {/* Enhanced Video Player */}
             {currentChapter?.video && currentChapter.video.trim() !== "" ? (
               <div className="w-full h-full relative">
@@ -316,16 +552,47 @@ const Course = () => {
                   controls
                   width="100%"
                   height="100%"
+                  playing={shouldAutoplay}
                   onProgress={handleProgress}
+                  onEnded={handleVideoEnd}
+                  onReady={() => {
+                    console.log('🎬 ReactPlayer ready, shouldAutoplay:', shouldAutoplay);
+                    console.log('🎥 Video URL:', currentChapter.video);
+                  }}
+                  onStart={() => {
+                    console.log('▶️ Video started playing!');
+                    // Reset autoplay after video starts
+                    if (shouldAutoplay) {
+                      console.log('🔄 Resetting shouldAutoplay to false');
+                      setShouldAutoplay(false);
+                    }
+                  }}
+                  onPlay={() => {
+                    console.log('📺 Video play event triggered');
+                  }}
+                  onPause={() => {
+                    console.log('⏸️ Video paused');
+                  }}
                   config={{
                     file: {
                       attributes: {
                         controlsList: "nodownload",
+                        autoPlay: shouldAutoplay,
                       },
                     },
+                    youtube: {
+                      playerVars: {
+                        autoplay: shouldAutoplay ? 1 : 0,
+                      }
+                    },
+                    vimeo: {
+                      playerOptions: {
+                        autoplay: shouldAutoplay
+                      }
+                    }
                   }}
                 />
-                {/* Modern Video Controls Overlay */}
+
                 <div className="absolute bottom-4 right-4 flex gap-3">
                   {currentChapter?.transcript && (
                     <Button
@@ -476,8 +743,8 @@ const Course = () => {
           </div>
         </div>
 
-        {/* Enhanced Tabs Section */}
-        <div className="bg-customgreys-primarybg/40 backdrop-blur-sm rounded-xl border border-violet-900/30 p-6">
+          {/* Tabs Section */}
+          <div className="bg-customgreys-primarybg/40 backdrop-blur-sm rounded-xl border border-violet-900/30 p-6">
           <Tabs 
             value={selectedTab} 
             onValueChange={setSelectedTab}
@@ -1059,9 +1326,143 @@ const Course = () => {
               </CardContent>
             </Card>
           )}
-
+          </div>
         </div>
+
       </div>
+
+      {/* Netflix-style Bottom Right Countdown */}
+      {showNextVideoCountdown && nextChapter && (
+        <div 
+          style={{ 
+            position: 'fixed',
+            bottom: '20px',
+            right: '20px',
+            zIndex: 999999999,
+            backgroundColor: 'rgba(0, 0, 0, 0.9)',
+            color: 'white',
+            padding: '16px 20px',
+            borderRadius: '12px',
+            fontSize: '14px',
+            fontFamily: 'system-ui, -apple-system, sans-serif',
+            minWidth: '300px',
+            maxWidth: '350px',
+            border: '2px solid rgba(139, 92, 246, 0.5)',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.7)',
+            backdropFilter: 'blur(15px)',
+            WebkitBackdropFilter: 'blur(15px)',
+            pointerEvents: 'auto',
+            isolation: 'isolate',
+            animation: 'slideInFromRight 0.3s ease-out'
+          }}
+        >
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '12px',
+            marginBottom: '12px'
+          }}>
+            <div style={{ 
+              width: '50px',
+              height: '50px',
+              borderRadius: '50%',
+              backgroundColor: 'rgba(139, 92, 246, 0.3)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '20px',
+              fontWeight: 'bold',
+              color: '#8B5CF6',
+              border: '3px solid rgba(139, 92, 246, 0.7)',
+              animation: 'pulse 1s infinite',
+              boxShadow: '0 0 20px rgba(139, 92, 246, 0.3)'
+            }}>
+              {countdownSeconds}
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ 
+                fontSize: '11px', 
+                color: '#9CA3AF',
+                marginBottom: '2px'
+              }}>
+                Próximo episódio
+              </div>
+              <div style={{ 
+                fontSize: '13px',
+                color: '#FFFFFF',
+                fontWeight: '500',
+                lineHeight: '1.3',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap'
+              }}>
+                {nextChapter.chapter.title}
+              </div>
+            </div>
+          </div>
+          
+          <div style={{ 
+            display: 'flex', 
+            gap: '8px',
+            alignItems: 'center'
+          }}>
+            <button
+              onClick={cancelCountdown}
+              style={{
+                padding: '6px 12px',
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+                borderRadius: '4px',
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                color: '#FFFFFF',
+                fontSize: '11px',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                fontWeight: '500'
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+              }}
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={() => {
+                console.log('👆 User clicked "Assistir agora" button');
+                cancelCountdown();
+                const nextUrl = `/user/courses/${course?.courseId}/chapters/${nextChapter.chapter.chapterId}?autoplay=true`;
+                console.log('📍 Manual navigation URL:', nextUrl);
+                router.push(nextUrl);
+              }}
+              style={{
+                padding: '6px 16px',
+                border: 'none',
+                borderRadius: '4px',
+                backgroundColor: '#FFFFFF',
+                color: '#000000',
+                fontSize: '11px',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                fontWeight: '600',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.backgroundColor = '#F3F4F6';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.backgroundColor = '#FFFFFF';
+              }}
+            >
+              <span style={{ fontSize: '10px' }}>▶</span>
+              Assistir agora
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

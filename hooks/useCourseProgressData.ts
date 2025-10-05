@@ -3,16 +3,16 @@ import { useParams } from "next/navigation";
 import {
   useGetVideoCourseByIdQuery,
   useGetVideoCourseProgressQuery,
-  useUpdateVideoProgressMutation,
+  studentVideoCourseApiSlice,
 } from "@/src/domains/student/video-courses/api/studentVideoCourseApiSlice";
 import { useDjangoAuth } from "@/hooks/useDjangoAuth";
+import { useAppDispatch } from "@/redux/hooks";
 
 export const useCourseProgressData = () => {
   const { courseId, chapterId } = useParams();
   const { user, isAuthenticated, isLoading: authLoading } = useDjangoAuth();
   const [hasMarkedComplete, setHasMarkedComplete] = useState(false);
-  const [updateProgress] = useUpdateVideoProgressMutation();
-
+  const dispatch = useAppDispatch();
   const { data: courseResponse, isLoading: courseLoading } = useGetVideoCourseByIdQuery(
     (courseId as string) ?? "",
     {
@@ -79,15 +79,48 @@ export const useCourseProgressData = () => {
     ];
 
     try {
-      await updateProgress({
+      console.log('🔄 Updating chapter progress via correct endpoint:', {
         userId: user.id,
-        courseId: (courseId as string) ?? "",
-        data: {
-          sections: updatedSections,
-        },
-      }).unwrap();
+        courseId,
+        sectionId,
+        chapterId,
+        completed
+      });
+
+      const token = localStorage.getItem('access_token');
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_DJANGO_API_URL}/student/video-courses/users/${user.id}/progress/${courseId}/update/`,
+        {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            sections: updatedSections,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.error('❌ Progress update failed:', response.status, errorData);
+        throw new Error(`Failed to update progress: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('✅ Chapter progress updated successfully:', result);
+
+      // Invalidate the progress query to refresh the data
+      dispatch(
+        studentVideoCourseApiSlice.util.invalidateTags([
+          { type: 'VideoProgress', id: courseId as string },
+          'VideoProgress'
+        ])
+      );
+      
     } catch (error) {
-      console.error('Error updating chapter progress:', error);
+      console.error('❌ Error updating chapter progress:', error);
       throw error;
     }
   };

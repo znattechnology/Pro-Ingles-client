@@ -47,7 +47,8 @@ import {
 import { 
   useDeleteTeacherCourseMutation, 
   usePublishTeacherCourseMutation, 
-  useGetPracticeCourseByIdQuery 
+  useGetPracticeCourseByIdQuery,
+  useGetStudentProgressListQuery
 } from "@/src/domains/teacher/practice-courses/api";
 
 interface Course {
@@ -85,11 +86,14 @@ const ManageCourseDetailPage = () => {
   
   // Redux hooks for data fetching and mutations
   const { data: course, isLoading, error } = useGetPracticeCourseByIdQuery(courseId);
+  const { data: studentProgress, isLoading: studentsLoading } = useGetStudentProgressListQuery(courseId);
   const [deleteCourse] = useDeleteTeacherCourseMutation();
   const [publishCourse] = usePublishTeacherCourseMutation();
   
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showPublishDialog, setShowPublishDialog] = useState(false);
+  const [publishModalType, setPublishModalType] = useState<'normal' | 'with_students'>('normal');
+  const [deleteModalType, setDeleteModalType] = useState<'normal' | 'blocked'>('normal');
   const [isProcessing, setIsProcessing] = useState(false);
   const [toast, setToast] = useState<{message: string, type: 'success' | 'error'} | null>(null);
 
@@ -104,6 +108,39 @@ const ManageCourseDetailPage = () => {
   const showToast = (message: string, type: 'success' | 'error') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 4000);
+  };
+
+  // Get number of enrolled students
+  const enrolledStudentsCount = studentProgress?.length || course?.students || 0;
+
+  // Handle publish button click with ethical verification
+  const handlePublishButtonClick = () => {
+    if (!course) return;
+    
+    const isCurrentlyPublished = course.status.toLowerCase() === 'published';
+    
+    // If trying to unpublish (despublicar) and has students, show special modal
+    if (isCurrentlyPublished && enrolledStudentsCount > 0) {
+      setPublishModalType('with_students');
+    } else {
+      setPublishModalType('normal');
+    }
+    
+    setShowPublishDialog(true);
+  };
+
+  // Handle delete button click with ethical verification
+  const handleDeleteButtonClick = () => {
+    if (!course) return;
+    
+    // If course has enrolled students, block deletion
+    if (enrolledStudentsCount > 0) {
+      setDeleteModalType('blocked');
+    } else {
+      setDeleteModalType('normal');
+    }
+    
+    setShowDeleteDialog(true);
   };
 
   const handleDeleteCourse = async () => {
@@ -129,41 +166,37 @@ const ManageCourseDetailPage = () => {
   const handlePublishCourse = async () => {
     if (!course) return;
     
-    const isPublishing = course.status.toLowerCase() === 'draft';
-    
-    // Validate action
-    if (isPublishing && course.status.toLowerCase() !== 'draft') {
-      showToast('Curso já está publicado!', 'error');
-      return;
-    }
-    
-    if (!isPublishing && course.status.toLowerCase() !== 'published') {
-      showToast('Curso já está em rascunho!', 'error');
-      return;
-    }
+    const isCurrentlyPublished = course.status.toLowerCase() === 'published';
+    const isPublishing = !isCurrentlyPublished;
     
     setIsProcessing(true);
+    setShowPublishDialog(false);
     
     try {
-      await publishCourse({ courseId: course.id, publish: isPublishing }).unwrap();
-      // Redux automatically updates the course data
-      setShowPublishDialog(false);
-      showToast(
-        `Curso ${isPublishing ? 'publicado' : 'despublicado'} com sucesso!`, 
-        'success'
-      );
+      if (isCurrentlyPublished && enrolledStudentsCount > 0 && publishModalType === 'with_students') {
+        // Ethical approach: Close for new enrollments instead of unpublishing
+        await publishCourse({ courseId: course.id, publish: false }).unwrap();
+        showToast(
+          `🔒 Curso fechado para novas inscrições! ${enrolledStudentsCount} estudante${enrolledStudentsCount > 1 ? 's' : ''} matriculado${enrolledStudentsCount > 1 ? 's' : ''} mantêm acesso.`,
+          'success'
+        );
+      } else {
+        // Normal publish/unpublish flow
+        await publishCourse({ courseId: course.id, publish: isPublishing }).unwrap();
+        showToast(
+          `Curso ${isPublishing ? 'publicado' : 'despublicado'} com sucesso!`, 
+          'success'
+        );
+      }
     } catch (error) {
       console.error(`Error ${isPublishing ? 'publishing' : 'unpublishing'} course:`, error);
       
-      // Handle specific error messages
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
       
       if (errorMessage.includes('já está em rascunho')) {
         showToast('Curso já está em rascunho!', 'error');
-        // Redux automatically syncs data
       } else if (errorMessage.includes('já está publicado')) {
         showToast('Curso já está publicado!', 'error');
-        // Redux automatically syncs data
       } else {
         showToast(
           `Erro ao ${isPublishing ? 'publicar' : 'despublicar'} curso: ${errorMessage}`, 
@@ -172,7 +205,6 @@ const ManageCourseDetailPage = () => {
       }
     } finally {
       setIsProcessing(false);
-      setShowPublishDialog(false);
     }
   };
 
@@ -280,11 +312,11 @@ const ManageCourseDetailPage = () => {
               <div className="flex items-center gap-4 text-sm text-gray-400">
                 <span className="flex items-center gap-1">
                   <Calendar className="h-4 w-4" />
-                  Criado: {new Date(course.createdAt).toLocaleDateString('pt-BR')}
+                  Criado: {new Date(course.created_at).toLocaleDateString('pt-BR')}
                 </span>
                 <span className="flex items-center gap-1">
                   <Eye className="h-4 w-4" />
-                  Atualizado: {new Date(course.lastUpdated).toLocaleDateString('pt-BR')}
+                  Atualizado: {new Date(course.updated_at).toLocaleDateString('pt-BR')}
                 </span>
               </div>
             </div>
@@ -385,14 +417,7 @@ const ManageCourseDetailPage = () => {
                 
                 {/* Publish/Unpublish Button */}
                 <Button 
-                  onClick={() => {
-                    console.log('🔍 Button click debug:', {
-                      courseStatus: course.status,
-                      isDraft: course.status === 'draft',
-                      courseId: course.id
-                    });
-                    setShowPublishDialog(true);
-                  }}
+                  onClick={handlePublishButtonClick}
                   className={`w-full justify-start border text-white transition-all duration-200 shadow-lg ${
                     course.status.toLowerCase() === 'draft' 
                       ? "bg-green-600 hover:bg-green-700 border-green-500"
@@ -444,7 +469,7 @@ const ManageCourseDetailPage = () => {
                 {/* Delete Button */}
                 <div className="pt-2 border-t border-gray-600/50">
                   <Button 
-                    onClick={() => setShowDeleteDialog(true)}
+                    onClick={handleDeleteButtonClick}
                     className="w-full justify-start bg-red-600 hover:bg-red-700 border border-red-500 text-white transition-all duration-200 shadow-lg"
                   >
                     <Trash2 className="h-4 w-4 mr-3" />
@@ -483,7 +508,7 @@ const ManageCourseDetailPage = () => {
               
               <div className="bg-gradient-to-br from-orange-500/10 to-red-500/10 rounded-xl p-4 border border-orange-500/20">
                 <h3 className="text-sm font-medium text-orange-400 mb-2">Template</h3>
-                <p className="text-white font-semibold capitalize">{course.template}</p>
+                <p className="text-white font-semibold capitalize">{course.course_type === 'practice' ? 'Laboratório' : 'Outro'}</p>
               </div>
             </div>
 
@@ -522,17 +547,17 @@ const ManageCourseDetailPage = () => {
                 <div className="space-y-3">
                   <div>
                     <span className="text-sm text-gray-400">Nome:</span>
-                    <p className="text-white font-medium">{course.teacherName || 'Não definido'}</p>
+                    <p className="text-white font-medium">{course.teacher_name || 'Não definido'}</p>
                   </div>
                   {course.teacher && (
                     <>
                       <div>
                         <span className="text-sm text-gray-400">Email:</span>
-                        <p className="text-white font-medium">{course.teacher.email}</p>
+                        <p className="text-white font-medium">{course.teacher_email || 'Não disponível'}</p>
                       </div>
                       <div>
-                        <span className="text-sm text-gray-400">Username:</span>
-                        <p className="text-white font-medium">@{course.teacher.username}</p>
+                        <span className="text-sm text-gray-400">ID:</span>
+                        <p className="text-white font-medium">{course.teacher_id || 'Não disponível'}</p>
                       </div>
                     </>
                   )}
@@ -583,13 +608,52 @@ const ManageCourseDetailPage = () => {
         <DialogContent className="bg-customgreys-secondarybg border-red-900/30 text-white">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-red-400">
-              <AlertTriangle className="w-5 h-5" />
-              Confirmar Exclusão
+              <AlertTriangle className={`w-5 h-5 ${deleteModalType === 'blocked' ? 'text-orange-400' : 'text-red-400'}`} />
+              {deleteModalType === 'blocked' ? 'Deleção Bloqueada - Proteger Estudantes' : 'Confirmar Exclusão'}
             </DialogTitle>
             <DialogDescription className="text-gray-300">
-              Tem certeza que deseja excluir o curso <strong>"{course?.title}"</strong>?
-              <br />
-              <span className="text-red-400 text-sm">Esta ação não pode ser desfeita e você será redirecionado para a lista de cursos.</span>
+              {deleteModalType === 'blocked' ? (
+                <>
+                  <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-4 mb-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Users className="w-5 h-5 text-orange-400" />
+                      <span className="font-semibold text-orange-300">
+                        {enrolledStudentsCount} estudante{enrolledStudentsCount > 1 ? 's' : ''} matriculado{enrolledStudentsCount > 1 ? 's' : ''}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-300">
+                      Este curso possui estudantes que dependem do acesso ao conteúdo.
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="text-sm">
+                      <strong className="text-orange-300">🛡️ Proteção Ética:</strong>
+                    </div>
+                    <p className="text-sm text-gray-300">
+                      Por razões éticas, não é possível deletar cursos com estudantes matriculados. 
+                      Isso protege o investimento e progresso dos alunos.
+                    </p>
+                    
+                    <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
+                      <p className="text-sm text-blue-300">
+                        <strong>Alternativas:</strong>
+                      </p>
+                      <ul className="text-sm text-gray-300 mt-2 ml-4 space-y-1">
+                        <li>• Despublicar o curso (fechar para novos alunos)</li>
+                        <li>• Aguardar que todos os alunos concluam</li>
+                        <li>• Editar o conteúdo em vez de deletar</li>
+                      </ul>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  Tem certeza que deseja excluir o curso <strong>"{course?.title}"</strong>?
+                  <br />
+                  <span className="text-red-400 text-sm">Esta ação não pode ser desfeita e você será redirecionado para a lista de cursos.</span>
+                </>
+              )}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2">
@@ -599,25 +663,27 @@ const ManageCourseDetailPage = () => {
               disabled={isProcessing}
               className="border-gray-600 text-gray-300 hover:bg-gray-800"
             >
-              Cancelar
+              {deleteModalType === 'blocked' ? 'Entendi' : 'Cancelar'}
             </Button>
-            <Button
-              onClick={handleDeleteCourse}
-              disabled={isProcessing}
-              className="bg-red-600 hover:bg-red-700 text-white"
-            >
-              {isProcessing ? (
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Excluindo...
-                </div>
-              ) : (
-                <>
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Excluir
-                </>
-              )}
-            </Button>
+            {deleteModalType === 'normal' && (
+              <Button
+                onClick={handleDeleteCourse}
+                disabled={isProcessing}
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                {isProcessing ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Excluindo...
+                  </div>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Excluir
+                  </>
+                )}
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -627,7 +693,12 @@ const ManageCourseDetailPage = () => {
         <DialogContent className="bg-customgreys-secondarybg border-violet-900/30 text-white">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-violet-400">
-              {course?.status.toLowerCase() === 'draft' ? (
+              {publishModalType === 'with_students' ? (
+                <>
+                  <AlertTriangle className="w-5 h-5 text-orange-400" />
+                  <span className="text-orange-400">Proteger Estudantes Inscritos</span>
+                </>
+              ) : course?.status.toLowerCase() === 'draft' ? (
                 <>
                   <Send className="w-5 h-5" />
                   Publicar Curso
@@ -640,7 +711,45 @@ const ManageCourseDetailPage = () => {
               )}
             </DialogTitle>
             <DialogDescription className="text-gray-300">
-              {course?.status.toLowerCase() === 'draft' ? (
+              {publishModalType === 'with_students' ? (
+                <>
+                  <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-4 mb-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Users className="w-5 h-5 text-orange-400" />
+                      <span className="font-semibold text-orange-300">
+                        {enrolledStudentsCount} estudante{enrolledStudentsCount > 1 ? 's' : ''} matriculado{enrolledStudentsCount > 1 ? 's' : ''}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-300">
+                      Este curso possui estudantes que dependem do acesso ao conteúdo.
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="text-sm">
+                      <strong className="text-orange-300">🛡️ Abordagem Ética:</strong>
+                    </div>
+                    <ul className="text-sm space-y-2 ml-4">
+                      <li className="flex items-start gap-2">
+                        <CheckCircle className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
+                        <span>Estudantes atuais <strong>mantêm acesso completo</strong></span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <X className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" />
+                        <span>Novas inscrições serão <strong>bloqueadas</strong></span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <FileEdit className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
+                        <span>Você pode continuar <strong>editando o conteúdo</strong></span>
+                      </li>
+                    </ul>
+                  </div>
+                  
+                  <p className="text-sm text-gray-400 mt-4">
+                    Deseja fechar este curso para novas inscrições, mantendo o acesso dos estudantes atuais?
+                  </p>
+                </>
+              ) : course?.status.toLowerCase() === 'draft' ? (
                 <>
                   Tem certeza que deseja publicar o curso <strong>"{course?.title}"</strong>?
                   <br />
@@ -667,19 +776,32 @@ const ManageCourseDetailPage = () => {
             <Button
               onClick={handlePublishCourse}
               disabled={isProcessing}
-              className={course?.status.toLowerCase() === 'draft' 
-                ? "bg-green-600 hover:bg-green-700 text-white"
-                : "bg-yellow-600 hover:bg-yellow-700 text-white"
+              className={
+                publishModalType === 'with_students' 
+                  ? "bg-orange-600 hover:bg-orange-700 text-white"
+                  : course?.status.toLowerCase() === 'draft' 
+                    ? "bg-green-600 hover:bg-green-700 text-white"
+                    : "bg-yellow-600 hover:bg-yellow-700 text-white"
               }
             >
               {isProcessing ? (
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  {course?.status.toLowerCase() === 'draft' ? 'Publicando...' : 'Despublicando...'}
+                  {publishModalType === 'with_students' 
+                    ? 'Fechando...' 
+                    : course?.status.toLowerCase() === 'draft' 
+                      ? 'Publicando...' 
+                      : 'Despublicando...'
+                  }
                 </div>
               ) : (
                 <>
-                  {course?.status.toLowerCase() === 'draft' ? (
+                  {publishModalType === 'with_students' ? (
+                    <>
+                      <AlertTriangle className="w-4 h-4 mr-2" />
+                      Fechar para Novos
+                    </>
+                  ) : course?.status.toLowerCase() === 'draft' ? (
                     <>
                       <Send className="w-4 h-4 mr-2" />
                       Publicar
