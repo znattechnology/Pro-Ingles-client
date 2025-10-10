@@ -6,7 +6,7 @@ node_modules/
 .env.*
 
 # Build do Next.js
-client/.next/
+ProEnglish-client/.next/
 
 # Arquivos do sistema
 .DS_Store
@@ -15,3 +15,11 @@ Thumbs.db
 # Configurações de IDE
 .vscode/
 
+node_modules
+.next
+dist
+build
+.DS_Store
+*.log
+*.mp4
+*.zip
