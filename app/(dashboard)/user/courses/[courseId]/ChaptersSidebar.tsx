@@ -5,12 +5,50 @@ import {
   FileText,
   CheckCircle,
   Trophy,
+  Video,
+  Brain,
+  Target,
+  Upload
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "@/components/ui/sidebar";
 import Loading from "@/components/course/Loading";
 import { useCourseProgressData } from "@/hooks/useCourseProgressData";
+
+// Helper function to get chapter icon based on type
+const getChapterIcon = (chapter: any) => {
+  switch (chapter.type) {
+    case 'Video':
+      return <Video className="w-4 h-4 text-blue-400" />;
+    case 'Quiz':
+      return <Brain className="w-4 h-4 text-purple-400" />;
+    case 'Exercise':
+      return <Target className="w-4 h-4 text-emerald-400" />;
+    case 'Text':
+    default:
+      return <FileText className="w-4 h-4 text-gray-400" />;
+  }
+};
+
+// Helper function to get chapter status badge
+const getChapterStatusBadge = (chapter: any) => {
+  switch (chapter.type) {
+    case 'Video':
+      return chapter.video && chapter.video.trim() !== "" ? (
+        <span className="text-xs text-blue-300 bg-blue-500/20 px-2 py-0.5 rounded">Vídeo ✓</span>
+      ) : (
+        <span className="text-xs text-amber-300 bg-amber-500/20 px-2 py-0.5 rounded">Sem vídeo</span>
+      );
+    case 'Quiz':
+      return <span className="text-xs text-purple-300 bg-purple-500/20 px-2 py-0.5 rounded">Quiz</span>;
+    case 'Exercise':
+      return <span className="text-xs text-emerald-300 bg-emerald-500/20 px-2 py-0.5 rounded">Practice Lab</span>;
+    case 'Text':
+    default:
+      return <span className="text-xs text-gray-300 bg-gray-500/20 px-2 py-0.5 rounded">Leitura</span>;
+  }
+};
 
 const ChaptersSidebar = () => {
   const router = useRouter();
@@ -295,17 +333,23 @@ const Chapter = ({
           {index + 1}
         </div>
       )}
-      <span
-        className={cn("flex-1 text-sm text-gray-500", {
-          "text-gray-500 line-through": isCompleted,
-          "text-secondary-700": isCurrentChapter,
-        })}
-      >
-        {chapter.title}
-      </span>
-      {chapter.type === "Text" && (
-        <FileText className="text-gray-500 ml-2 w-4 h-4" />
-      )}
+      
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 mb-1">
+          {getChapterIcon(chapter)}
+          <span
+            className={cn("text-sm text-gray-500 truncate", {
+              "text-gray-500 line-through": isCompleted,
+              "text-secondary-700": isCurrentChapter,
+            })}
+          >
+            {chapter.title}
+          </span>
+        </div>
+        <div className="flex items-center justify-between">
+          {getChapterStatusBadge(chapter)}
+        </div>
+      </div>
     </li>
   );
 };

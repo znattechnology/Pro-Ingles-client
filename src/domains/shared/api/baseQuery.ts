@@ -90,7 +90,9 @@ export const createStudentVideoCoursesBaseQuery = () => {
   });
 
   return async (args: string | FetchArgs, api: BaseQueryApi, extraOptions: any) => {
-    console.log('🎓 Student Video Courses API Call:', args);
+    const fullUrl = typeof args === 'string' ? `${DJANGO_BASE_URL}/student/video-courses${args}` : `${DJANGO_BASE_URL}/student/video-courses${args.url}`;
+    console.log('🎓 STUDENT API - Full URL:', fullUrl);
+    console.log('🎓 STUDENT API - Args:', args);
     let result = await baseQuery(args, api, extraOptions);
 
     // Handle 401 errors with token refresh (same logic as shared)
@@ -207,6 +209,9 @@ export const createTeacherVideoCoursesBaseQuery = () => {
   });
 
   return async (args: string | FetchArgs, api: BaseQueryApi, extraOptions: any) => {
+    const fullUrl = typeof args === 'string' ? `${DJANGO_BASE_URL}/teacher/video-courses${args}` : `${DJANGO_BASE_URL}/teacher/video-courses${args.url}`;
+    console.log('👨‍🏫 TEACHER API - Full URL:', fullUrl);
+    console.log('👨‍🏫 TEACHER API - Args:', args);
     let result = await baseQuery(args, api, extraOptions);
 
     // Handle 401 errors with token refresh (same logic as shared)

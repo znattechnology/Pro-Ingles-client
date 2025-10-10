@@ -94,7 +94,29 @@ export const studentVideoCourseApiSlice = createApi({
     }),
 
     getVideoCourseById: builder.query<StudentVideoCourse, string>({
-      query: (courseId) => `/${courseId}/`,
+      query: (courseId) => ({
+        url: `/${courseId}/`,
+        params: {
+          include_chapter_data: true, // Request full chapter data including quiz_data, practice_selection
+        },
+      }),
+      transformResponse: (response: any) => {
+        console.log('🎓 Student API Response (full):', response);
+        
+        // Se a resposta tem o formato {message, data}, extrair apenas data
+        if (response && response.data) {
+          console.log('🎓 Course sections:', response.data.sections);
+          if (response.data.sections && response.data.sections[0]) {
+            console.log('🎓 First section chapters:', response.data.sections[0].chapters);
+            if (response.data.sections[0].chapters && response.data.sections[0].chapters[0]) {
+              console.log('🎓 First chapter details:', response.data.sections[0].chapters[0]);
+            }
+          }
+          return response.data;
+        }
+        // Caso contrário, retornar como está
+        return response;
+      },
       providesTags: (result, error, courseId) => [
         { type: 'StudentVideoCourse', id: courseId },
       ],

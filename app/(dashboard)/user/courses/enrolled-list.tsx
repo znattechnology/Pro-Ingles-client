@@ -54,14 +54,39 @@ export const EnrolledList = ({courses, activeCourseId, viewMode = 'grid'}: Props
                     const courseData = await response.json();
                     const course = courseData.data;
                     
-                    // Find first section and its first chapter
-                    const firstSection = course.sections?.[0];
-                    const firstChapter = firstSection?.chapters?.[0];
+                    console.log('🔍 Course data structure:', {
+                        courseId: id,
+                        title: course.title,
+                        sectionsCount: course.sections?.length,
+                        sections: course.sections?.map((s: any, idx: number) => ({
+                            index: idx,
+                            id: s.sectionId,
+                            title: s.sectionTitle,
+                            chaptersCount: s.chapters?.length,
+                            chapters: s.chapters?.map((c: any) => ({
+                                id: c.chapterId,
+                                title: c.title,
+                                type: c.type
+                            }))
+                        }))
+                    });
+                    
+                    // Find first section that has chapters and its first chapter
+                    const firstSectionWithChapters = course.sections?.find((section: any) => 
+                        section.chapters && section.chapters.length > 0
+                    );
+                    const firstChapter = firstSectionWithChapters?.chapters?.[0];
+                    
+                    console.log('🎯 First section with chapters:', firstSectionWithChapters);
+                    console.log('🎯 First chapter:', firstChapter);
                     
                     if (firstChapter) {
-                        console.log('Navigating to:', `/user/courses/${id}/chapters/${firstChapter.chapterId}`);
+                        console.log('✅ Navigating to:', `/user/courses/${id}/chapters/${firstChapter.chapterId}`);
                         router.push(`/user/courses/${id}/chapters/${firstChapter.chapterId}`);
                         return;
+                    } else {
+                        console.log('❌ No first chapter found');
+                        console.log('❌ Course sections:', course.sections);
                     }
                 }
                 

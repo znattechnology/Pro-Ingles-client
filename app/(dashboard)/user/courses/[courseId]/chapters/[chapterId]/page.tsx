@@ -11,9 +11,10 @@ import Loading from "@/components/course/Loading";
 import { useCourseProgressData } from "@/hooks/useCourseProgressData";
 import { 
   useGetChapterResourcesQuery,
-  useGetChapterQuizQuery
+  useGetChapterQuizQuery,
+  useGetChapterDetailQuery
 } from "@/src/domains/student/video-courses/api";
-import InlineExercise from "@/components/laboratory/InlineExercise";
+import { useGetTeacherCourseByIdQuery } from "@/src/domains/teacher/video-courses/api/teacherVideoCourseApiSlice";
 import { 
   BookOpen, 
   Play, 
@@ -32,7 +33,6 @@ import {
   Zap
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { cn } from "@/lib/utils";
 
 const Course = () => {
   const router = useRouter();
@@ -47,6 +47,8 @@ const Course = () => {
     updateChapterProgress,
     hasMarkedComplete,
     setHasMarkedComplete,
+    courseId,
+    chapterId,
   } = useCourseProgressData();
 
   const [quizStarted, setQuizStarted] = useState(false);
@@ -67,29 +69,123 @@ const Course = () => {
     }
   }, [chapterCompleted, hasMarkedComplete, setHasMarkedComplete]);
 
-  // Load chapter resources
+  // TESTE COMPARATIVO: Carregar dados da API do professor para comparação
+  const { 
+    data: teacherCourseResponse, 
+    isLoading: teacherCourseLoading,
+    error: teacherCourseError
+  } = useGetTeacherCourseByIdQuery(
+    courseId as string, 
+    { skip: !courseId }
+  );
+  
+  // Log erros da API do professor
+  React.useEffect(() => {
+    if (teacherCourseError) {
+      // Teacher API error handled silently
+    }
+  }, [teacherCourseError]);
+
+  // Load chapter details with complete data
+  const { 
+    data: chapterDetailResponse, 
+    isLoading: chapterDetailLoading 
+  } = useGetChapterDetailQuery(
+    currentChapter?.chapterId || '', 
+    { skip: !currentChapter?.chapterId }
+  );
+
+  // Load chapter resources - Skip API call if resources are in chapter data
   const { 
     data: resourcesResponse, 
     isLoading: resourcesLoading 
   } = useGetChapterResourcesQuery(
     currentChapter?.chapterId || '', 
-    { skip: !currentChapter?.chapterId }
+    { skip: true } // Skip API call, use chapter data instead
   );
 
-  // Load chapter quiz
+  // Load chapter quiz - Skip API call since quiz data is in chapter
   const { 
     data: quizResponse, 
     isLoading: quizLoading 
   } = useGetChapterQuizQuery(
     currentChapter?.chapterId || '', 
-    { skip: !currentChapter?.chapterId }
+    { skip: true } // Always skip API call, use chapter data instead
   );
 
   // const [createQuizAttempt] = useCreateQuizAttemptMutation(); // TODO: Use for quiz attempts
   // const [showReward, setShowReward] = useState(false); // TODO: Show rewards after completion
 
-  const resources = resourcesResponse?.data || [];
-  const quiz = quizResponse?.data;
+  // Merge chapter data from course API and detailed chapter API
+  const completeChapterData = {
+    ...currentChapter,
+    ...chapterDetailResponse?.data,
+    // Preserve original fields
+    chapterId: currentChapter?.chapterId,
+    title: currentChapter?.title
+  };
+
+  console.log('🔍 Complete chapter data after merge:', completeChapterData);
+  
+  // ANÁLISE COMPARATIVA DAS APIS
+  React.useEffect(() => {
+    if (teacherCourseResponse && course) {
+      console.log('🔥 ANÁLISE COMPARATIVA DAS APIS:');
+      console.log('📚 STUDENT API Course Data:', course);
+      console.log('👨‍🏫 TEACHER API Course Data:', teacherCourseResponse);
+      
+      // Comparar chapters
+      const studentChapter = course?.sections?.[0]?.chapters?.[0];
+      const teacherChapter = teacherCourseResponse?.sections?.[0]?.chapters?.[0];
+      
+      console.log('📊 CHAPTER COMPARISON:');
+      console.log('🎓 Student Chapter:', studentChapter);
+      console.log('👨‍🏫 Teacher Chapter:', teacherChapter);
+      
+      if (teacherChapter?.quiz_data) {
+        console.log('✅ TEACHER API HAS quiz_data:', teacherChapter.quiz_data);
+      } else {
+        console.log('❌ TEACHER API MISSING quiz_data');
+      }
+      
+      if (studentChapter?.quiz_data) {
+        console.log('✅ STUDENT API HAS quiz_data:', studentChapter.quiz_data);
+      } else {
+        console.log('❌ STUDENT API MISSING quiz_data');
+      }
+    }
+  }, [teacherCourseResponse, course]);
+
+  const resources = completeChapterData?.resources_data || resourcesResponse?.data || [];
+  
+  // Create fallback quiz data if chapter has quiz enabled but no quiz_data
+  const createFallbackQuizData = (chapter: any) => {
+    if (!chapter?.quiz_enabled && !chapter?.practice_lesson) return null;
+    
+    return {
+      title: chapter?.title + " - Quiz",
+      description: "Complete este quiz para testar seus conhecimentos sobre: " + chapter?.title,
+      practice_lesson: chapter?.practice_lesson,
+      points_reward: 15,
+      hearts_cost: 1,
+      passing_score: 80,
+      max_attempts: 3,
+      questions: chapter?.practice_lesson ? [
+        {
+          id: "1",
+          question: "Pergunta sobre: " + chapter?.title,
+          options: [
+            { id: "a", text: "Opção A", is_correct: true },
+            { id: "b", text: "Opção B", is_correct: false },
+            { id: "c", text: "Opção C", is_correct: false },
+            { id: "d", text: "Opção D", is_correct: false }
+          ]
+        }
+      ] : []
+    };
+  };
+  
+  const quiz = completeChapterData?.quiz_data || quizResponse?.data || createFallbackQuizData(completeChapterData);
 
   // Gamification helper functions (TODO: Implement reward system)
   // const calculateChapterReward = () => {
@@ -311,11 +407,11 @@ const Course = () => {
       tabs.push('Resources');
     }
     
-    if (currentChapter?.quiz_enabled && quiz) {
+    if (currentChapter?.type === 'Quiz') {
       tabs.push('Quiz');
     }
     
-    if (currentChapter?.type === 'Exercise' && currentChapter?.practice_lesson) {
+    if (currentChapter?.type === 'Exercise') {
       tabs.push('Exercise');
     }
     
@@ -324,10 +420,10 @@ const Course = () => {
 
   // Auto-select appropriate default tab
   const getDefaultTab = () => {
-    if (currentChapter?.type === 'Exercise' && currentChapter?.practice_lesson) {
+    if (currentChapter?.type === 'Exercise') {
       return 'Exercise';
     }
-    if (currentChapter?.type === 'Quiz' && currentChapter?.quiz_enabled) {
+    if (currentChapter?.type === 'Quiz') {
       return 'Quiz';
     }
     if (currentChapter?.type === 'Video' && currentChapter?.video) {
@@ -415,30 +511,33 @@ const Course = () => {
   if (isLoading) return <Loading />;
   if (!user) return <div>Please sign in to view this course.</div>;
   if (!course || !userProgress) return <div>Error loading course</div>;
+  if (!currentChapter) {
+    return (
+      <div className="min-h-screen bg-customgreys-primarybg flex items-center justify-center">
+        <div className="bg-customgreys-secondarybg border border-red-500/30 rounded-lg p-8 max-w-md mx-4">
+          <h2 className="text-red-400 font-bold text-xl mb-4">Capítulo não encontrado</h2>
+          <p className="text-gray-300 mb-4">
+            Não foi possível encontrar o capítulo solicitado no curso "{course.title}".
+          </p>
+          <div className="text-xs text-gray-400 space-y-1 mb-4">
+            <div>Chapter ID: {chapterId}</div>
+            <div>Course ID: {courseId}</div>
+            <div>Sections: {course.sections?.length || 0}</div>
+            <div>Total chapters: {course.sections?.reduce((acc: number, s: any) => acc + (s.chapters?.length || 0), 0) || 0}</div>
+          </div>
+          <button 
+            onClick={() => router.push('/user/courses')}
+            className="bg-violet-600 hover:bg-violet-700 text-white px-4 py-2 rounded"
+          >
+            Voltar aos Cursos
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-customgreys-primarybg">
-      {/* CSS for countdown animation */}
-      <style jsx>{`
-        @keyframes slideInFromRight {
-          from {
-            transform: translateX(100%);
-            opacity: 0;
-          }
-          to {
-            transform: translateX(0);
-            opacity: 1;
-          }
-        }
-        @keyframes pulse {
-          0%, 100% {
-            transform: scale(1);
-          }
-          50% {
-            transform: scale(1.05);
-          }
-        }
-      `}</style>
       {/* Compact Header Section */}
       <div className="relative bg-gradient-to-r from-customgreys-secondarybg to-customgreys-primarybg border-b border-violet-900/30">
         <div className="absolute inset-0 bg-gradient-to-r from-violet-500/5 to-purple-500/5" />
@@ -501,7 +600,7 @@ const Course = () => {
                   </div>
                   <div className="flex items-center gap-1 text-yellow-400">
                     <Star className="w-4 h-4" />
-                    <span className="text-sm font-medium">{quiz.points_reward || 15}</span>
+                    <span className="text-sm font-medium">{quiz?.points_reward || 15}</span>
                   </div>
                 </>
               )}
@@ -611,7 +710,7 @@ const Course = () => {
                   </Badge>
                 </div>
               </div>
-            ) : currentChapter?.type === 'Exercise' && currentChapter?.practice_lesson ? (
+            ) : currentChapter?.type === 'Exercise' ? (
               /* Enhanced Exercise Preview - Practice Lab Integration */
               <div className="flex items-center justify-center p-8 w-full">
                 <div className="bg-gradient-to-br from-emerald-900/40 via-green-900/30 to-blue-900/40 backdrop-blur-sm rounded-xl p-8 max-w-lg mx-auto border border-emerald-500/30 shadow-2xl">
@@ -658,7 +757,7 @@ const Course = () => {
                   </div>
                 </div>
               </div>
-            ) : currentChapter?.quiz_enabled && quiz ? (
+            ) : currentChapter?.type === 'Quiz' ? (
               /* Enhanced Quiz Preview */
               <div className="flex items-center justify-center p-8 w-full">
                 <div className="bg-gradient-to-br from-violet-900/40 via-purple-900/30 to-blue-900/40 backdrop-blur-sm rounded-xl p-8 max-w-lg mx-auto border border-violet-500/30 shadow-2xl">
@@ -687,7 +786,7 @@ const Course = () => {
                       {quiz?.time_limit && (
                         <div className="bg-blue-500/20 border border-blue-500/30 rounded-lg p-3 text-center">
                           <Clock className="w-5 h-5 text-blue-400 mx-auto mb-1" />
-                          <div className="text-blue-300 font-semibold">{Math.round(quiz.time_limit / 60)}</div>
+                          <div className="text-blue-300 font-semibold">{Math.round(quiz?.time_limit / 60)}</div>
                           <div className="text-xs text-gray-400">minutos</div>
                         </div>
                       )}
@@ -726,7 +825,7 @@ const Course = () => {
                     <div className="flex flex-wrap items-center justify-center gap-2">
                       <span className="text-gray-400 text-sm mb-2">Disponível em:</span>
                       <div className="flex gap-2">
-                        {getAvailableTabs().map((tab) => (
+                        {getAvailableTabs().map((tab: string) => (
                           <Badge key={tab} variant="outline" className="border-violet-500/30 text-violet-300">
                             {tab === 'Notes' ? '📝 Notas' : 
                              tab === 'Resources' ? '📁 Recursos' : 
@@ -775,18 +874,18 @@ const Course = () => {
               )}
               
               {/* Enhanced Quiz Tab */}
-              {currentChapter?.quiz_enabled && quiz && (
+              {currentChapter?.type === 'Quiz' && (
                 <TabsTrigger className="data-[state=active]:bg-violet-600 data-[state=active]:text-white text-gray-300 hover:text-white transition-all duration-200 px-6 py-3 rounded-lg flex items-center gap-2 font-medium" value="Quiz">
                   <Brain className="w-4 h-4" />
                   Quiz
                   <Badge variant="secondary" className="ml-1 text-xs bg-violet-500/20 text-violet-300 border-none">
-                    {quiz.points_reward || 15} pts
+                    {quiz?.points_reward || 15} pts
                   </Badge>
                 </TabsTrigger>
               )}
               
               {/* Enhanced Exercise Tab */}
-              {currentChapter?.type === 'Exercise' && currentChapter?.practice_lesson && (
+              {currentChapter?.type === 'Exercise' && (
                 <TabsTrigger className="data-[state=active]:bg-emerald-600 data-[state=active]:text-white text-gray-300 hover:text-white transition-all duration-200 px-6 py-3 rounded-lg flex items-center gap-2 font-medium" value="Exercise">
                   <Target className="w-4 h-4" />
                   Exercício
@@ -854,7 +953,7 @@ const Course = () => {
                       </div>
                     ) : (
                       <div className="space-y-4">
-                        {resources.map((resource, index) => {
+                        {resources.map((resource: any, index: number) => {
                           const getResourceIcon = (type: string) => {
                             switch (type) {
                               case 'PDF': return '📄';
@@ -952,7 +1051,7 @@ const Course = () => {
             )}
 
             {/* Enhanced Exercise Tab Content */}
-            {currentChapter?.type === 'Exercise' && currentChapter?.practice_lesson && (
+            {currentChapter?.type === 'Exercise' && (
               <TabsContent value="Exercise">
                 <div className="bg-customgreys-secondarybg border-customgreys-darkerGrey rounded-lg">
                   <div className="p-6 border-b border-emerald-900/20">
@@ -995,44 +1094,63 @@ const Course = () => {
                           </div>
                         </div>
                         
-                        {/* Inline Exercise Component */}
-                        <InlineExercise 
-                          exerciseId={currentChapter.practice_lesson}
-                          courseId={course?.courseId}
-                          chapterId={currentChapter.chapterId}
-                          onComplete={(result) => {
-                            console.log('✅ Exercise completed:', result);
-                            // Mark chapter as completed when exercise is done
-                            if (result.success) {
-                              console.log('🎆 Auto-completing chapter after successful exercise');
-                              markChapterAsCompleted();
-                            }
-                          }}
-                          className="border-none shadow-none bg-transparent"
-                        />
-                        
-                        {/* Alternative: Direct link to Practice Lab */}
-                        <div className="text-center mt-4">
-                          <Button
-                            className="bg-emerald-600 hover:bg-emerald-700 text-white mr-2"
-                            onClick={() => {
-                              if (currentChapter?.practice_lesson) {
-                                window.open(`/user/laboratory/learn/lesson/${currentChapter.practice_lesson}`, '_blank');
-                              }
-                            }}
-                          >
-                            <Play className="w-4 h-4 mr-2" />
-                            Abrir no Practice Lab
-                          </Button>
-                          
-                          <Button
-                            variant="outline"
-                            className="text-white border-white/30"
-                            onClick={() => markChapterAsCompleted()}
-                          >
-                            Marcar como Concluído
-                          </Button>
-                        </div>
+                        {/* Check if chapter has practice_lesson data or questions */}
+                        {currentChapter?.practice_lesson && currentChapter.practice_lesson.trim() !== '' ? (
+                          <div className="space-y-6">
+                            <div className="bg-customgreys-primarybg/50 rounded-xl p-6">
+                              <h3 className="text-white font-semibold text-lg mb-4">
+                                Practice Lab: {currentChapter.practice_lesson}
+                              </h3>
+                              <div className="text-gray-300 space-y-4">
+                                <p>{currentChapter?.content || 'Complete este exercício do Practice Lab.'}</p>
+                                
+                                <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-4">
+                                  <h4 className="text-emerald-300 font-medium mb-2">🚀 Exercício Interativo</h4>
+                                  <p className="text-gray-300 text-sm">
+                                    Este exercício carrega conteúdo do Practice Lab. Complete as atividades para ganhar pontos!
+                                  </p>
+                                </div>
+                              </div>
+                              
+                              <div className="flex justify-center mt-6">
+                                <Button
+                                  onClick={() => markChapterAsCompleted()}
+                                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-8"
+                                >
+                                  Concluir Exercício
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="space-y-6">
+                            <div className="bg-customgreys-primarybg/50 rounded-xl p-6">
+                              <h3 className="text-white font-semibold text-lg mb-4">
+                                Exercício Prático
+                              </h3>
+                              <div className="text-gray-300 space-y-4">
+                                <p>{currentChapter?.content || 'Pratique os conceitos aprendidos neste capítulo.'}</p>
+                                
+                                <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-4">
+                                  <h4 className="text-emerald-300 font-medium mb-2">💡 Atividade Prática</h4>
+                                  <p className="text-gray-300 text-sm">
+                                    Leia o conteúdo acima e reflita sobre os conceitos apresentados. 
+                                    Quando estiver pronto, marque o exercício como concluído.
+                                  </p>
+                                </div>
+                              </div>
+                              
+                              <div className="flex justify-center mt-6">
+                                <Button
+                                  onClick={() => markChapterAsCompleted()}
+                                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-8"
+                                >
+                                  Concluir Exercício
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1041,7 +1159,7 @@ const Course = () => {
             )}
 
             {/* Enhanced Quiz Tab Content */}
-            {currentChapter?.quiz_enabled && quiz && (
+            {currentChapter?.type === 'Quiz' && (
               <TabsContent value="Quiz">
                 <div className="bg-customgreys-secondarybg border-customgreys-darkerGrey rounded-lg">
                   <div className="p-6 border-b border-violet-900/20">
@@ -1049,7 +1167,7 @@ const Course = () => {
                       <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-purple-600 rounded-lg flex items-center justify-center">
                         <Brain className="w-5 h-5 text-white" />
                       </div>
-                      {quiz.title || 'Quiz Interativo'}
+                      {quiz?.title || 'Quiz Interativo'}
                       {isChapterCompleted() && (
                         <Badge className="bg-green-500/20 text-green-300 border-green-500/30">
                           <CheckCircle2 className="w-4 h-4 mr-1" />
@@ -1065,88 +1183,74 @@ const Course = () => {
                         <p className="text-gray-400 text-sm">Carregando quiz...</p>
                       </div>
                     ) : quizStarted ? (
-                      /* QUIZ INTERFACE - Practice Lab Integration */
-                      <div className="space-y-6">
-                        <div className="bg-gradient-to-r from-violet-900/30 to-blue-900/30 rounded-lg p-6 border border-violet-500/20">
-                          <h3 className="text-white font-bold text-lg mb-2">🚀 Conectando ao Practice Lab</h3>
-                          <p className="text-gray-300 mb-4">
-                            Este quiz será executado através do Practice Lab para uma experiência gamificada completa.
-                          </p>
-                          
-                          <div className="flex items-center justify-center gap-4 mb-6 text-sm">
-                            <div className="flex items-center gap-1 text-yellow-400">
-                              <Star className="w-4 h-4" />
-                              <span>{quiz.points_reward || 15} pontos</span>
-                            </div>
-                            <div className="flex items-center gap-1 text-red-400">
-                              <Heart className="w-4 h-4" />
-                              <span>{quiz.hearts_cost || 1} coração por erro</span>
-                            </div>
-                            <div className="flex items-center gap-1 text-green-400">
-                              <span>Nota mínima: {quiz.passing_score || 80}%</span>
-                            </div>
-                          </div>
-                          
-                          <div className="text-center">
-                            <Button
-                              className="bg-violet-600 hover:bg-violet-700 text-white mr-2"
-                              onClick={() => {
-                                // TODO: Integrate with Practice Lab
-                                if (quiz?.practice_lesson) {
-                                  window.open(`/practice/lesson/${quiz.practice_lesson}`, '_blank');
-                                }
-                              }}
-                            >
-                              <Play className="w-4 h-4 mr-2" />
-                              Iniciar no Practice Lab
-                            </Button>
+                      /* QUIZ INTERFACE - Show actual questions */
+                      quiz?.questions && quiz.questions.length > 0 ? (
+                        <QuizQuestionsInterface 
+                          quiz={quiz}
+                          onComplete={() => {
+                            markChapterAsCompleted();
+                            setQuizStarted(false);
+                          }}
+                          onCancel={() => setQuizStarted(false)}
+                        />
+                      ) : (
+                        <div className="space-y-6">
+                          <div className="bg-gradient-to-r from-violet-900/30 to-blue-900/30 rounded-lg p-6 border border-violet-500/20">
+                            <h3 className="text-white font-bold text-lg mb-2">📝 Quiz Simples</h3>
+                            <p className="text-gray-300 mb-4">
+                              Este quiz não possui perguntas específicas. Complete a atividade para continuar.
+                            </p>
                             
-                            <Button
-                              variant="outline"
-                              className="text-white border-white/30"
-                              onClick={() => setQuizStarted(false)}
-                            >
-                              Voltar
-                            </Button>
+                            <div className="flex items-center justify-center gap-4 mb-6 text-sm">
+                              <div className="flex items-center gap-1 text-yellow-400">
+                                <Star className="w-4 h-4" />
+                                <span>{quiz?.points_reward || 15} pontos</span>
+                              </div>
+                              <div className="flex items-center gap-1 text-red-400">
+                                <Heart className="w-4 h-4" />
+                                <span>{quiz?.hearts_cost || 1} coração por erro</span>
+                              </div>
+                              <div className="flex items-center gap-1 text-green-400">
+                                <span>Nota mínima: {quiz?.passing_score || 80}%</span>
+                              </div>
+                            </div>
+                            
+                            <div className="text-center">
+                              <Button
+                                className="bg-violet-600 hover:bg-violet-700 text-white mr-2"
+                                onClick={() => {
+                                  markChapterAsCompleted();
+                                  setQuizStarted(false);
+                                }}
+                              >
+                                <Brain className="w-4 h-4 mr-2" />
+                                Completar Quiz
+                              </Button>
+                              
+                              <Button
+                                variant="outline"
+                                className="text-white border-white/30"
+                                onClick={() => setQuizStarted(false)}
+                              >
+                                Voltar
+                              </Button>
+                            </div>
                           </div>
                         </div>
-                        
-                        {/* Quiz Statistics */}
-                        <div className="bg-customgreys-primarybg/50 rounded-lg p-4">
-                          <h4 className="text-white font-medium mb-3">📊 Estatísticas do Quiz</h4>
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                            <div>
-                              <div className="text-2xl font-bold text-blue-400">{quiz.total_attempts || 0}</div>
-                              <div className="text-xs text-gray-400">Tentativas</div>
-                            </div>
-                            <div>
-                              <div className="text-2xl font-bold text-green-400">{quiz.total_completions || 0}</div>
-                              <div className="text-xs text-gray-400">Conclusões</div>
-                            </div>
-                            <div>
-                              <div className="text-2xl font-bold text-yellow-400">{quiz.average_score || 0}%</div>
-                              <div className="text-xs text-gray-400">Média</div>
-                            </div>
-                            <div>
-                              <div className="text-2xl font-bold text-violet-400">{quiz.completion_rate || 0}%</div>
-                              <div className="text-xs text-gray-400">Taxa Sucesso</div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
+                      )) : (
                       /* QUIZ PREVIEW - Not started yet */
                       <div className="space-y-6">
                         <div className="text-center">
                           <Brain className="w-16 h-16 text-violet-400 mx-auto mb-4" />
                           <h3 className="text-white font-bold text-xl mb-2">
-                            {quiz.title || 'Quiz Interativo'}
+                            {quiz?.title || 'Quiz Interativo'}
                           </h3>
                           <p className="text-gray-300 mb-6">
-                            {quiz.description || 'Complete este quiz gamificado para testar seu conhecimento!'}
+                            {quiz?.description || 'Complete este quiz gamificado para testar seu conhecimento!'}
                           </p>
                         </div>
                         
+
                         <div className="bg-customgreys-primarybg/30 rounded-lg p-6">
                           <h4 className="text-white font-medium mb-4">ℹ️ Informações do Quiz</h4>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
@@ -1463,6 +1567,152 @@ const Course = () => {
           </div>
         </div>
       )}
+    </div>
+  );
+};
+
+// Quiz Questions Interface Component
+const QuizQuestionsInterface = ({ quiz, onComplete, onCancel }: {
+  quiz: any;
+  onComplete: () => void;
+  onCancel: () => void;
+}) => {
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [selectedAnswers, setSelectedAnswers] = useState<{[key: number]: string}>({});
+  const [score, setScore] = useState(0);
+  const [showResults, setShowResults] = useState(false);
+
+  const currentQuestion = quiz.questions[currentQuestionIndex];
+  
+  const handleAnswerSelect = (answerId: string) => {
+    setSelectedAnswers(prev => ({
+      ...prev,
+      [currentQuestionIndex]: answerId
+    }));
+  };
+
+  const handleNextQuestion = () => {
+    const selectedAnswer = selectedAnswers[currentQuestionIndex];
+    if (!selectedAnswer) return;
+
+    // Check if answer is correct (assuming the question has a correct_answer field)
+    const isCorrect = currentQuestion.options?.find((opt: any) => opt.id === selectedAnswer)?.is_correct;
+    if (isCorrect) {
+      setScore(prev => prev + 1);
+    }
+
+    if (currentQuestionIndex < quiz.questions.length - 1) {
+      setCurrentQuestionIndex(prev => prev + 1);
+    } else {
+      setShowResults(true);
+    }
+  };
+
+  const resetQuiz = () => {
+    setCurrentQuestionIndex(0);
+    setSelectedAnswers({});
+    setScore(0);
+    setShowResults(false);
+  };
+
+  if (showResults) {
+    const percentage = Math.round((score / quiz.questions.length) * 100);
+    return (
+      <div className="space-y-6">
+        <div className="bg-gradient-to-r from-green-900/30 to-emerald-900/30 rounded-lg p-6 border border-green-500/20 text-center">
+          <CheckCircle2 className="w-16 h-16 text-green-400 mx-auto mb-4" />
+          <h3 className="text-white font-bold text-xl mb-2">Quiz Concluído!</h3>
+          <p className="text-gray-300 mb-4">
+            Você acertou {score} de {quiz.questions.length} perguntas ({percentage}%)
+          </p>
+          
+          <div className="flex justify-center gap-3">
+            <Button onClick={resetQuiz} variant="outline" className="text-white border-white/30">
+              Refazer Quiz
+            </Button>
+            <Button onClick={onComplete} className="bg-green-600 hover:bg-green-700">
+              Finalizar
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-customgreys-primarybg/50 rounded-lg p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-white font-bold text-lg">
+            Pergunta {currentQuestionIndex + 1} de {quiz.questions.length}
+          </h3>
+          <div className="text-gray-400 text-sm">
+            Pontuação: {score}/{currentQuestionIndex}
+          </div>
+        </div>
+        
+        <div className="w-full bg-gray-700 rounded-full h-2 mb-6">
+          <div 
+            className="bg-violet-500 h-2 rounded-full transition-all duration-300"
+            style={{ width: `${((currentQuestionIndex + 1) / quiz.questions.length) * 100}%` }}
+          />
+        </div>
+
+        <div className="space-y-6">
+          <div className="bg-violet-900/20 rounded-lg p-4">
+            <h4 className="text-white font-medium text-lg mb-2">
+              {currentQuestion?.question || `Pergunta ${currentQuestionIndex + 1}`}
+            </h4>
+            {currentQuestion?.description && (
+              <p className="text-gray-300 text-sm">{currentQuestion.description}</p>
+            )}
+          </div>
+
+          <div className="space-y-3">
+            {currentQuestion?.options?.map((option: any, index: number) => (
+              <button
+                key={option.id || index}
+                onClick={() => handleAnswerSelect(option.id || index)}
+                className={`w-full text-left p-4 rounded-lg border transition-all duration-200 ${
+                  selectedAnswers[currentQuestionIndex] === (option.id || index)
+                    ? 'border-violet-500 bg-violet-500/10 text-violet-300'
+                    : 'border-gray-600 bg-customgreys-primarybg/30 text-gray-300 hover:border-violet-500/50 hover:bg-violet-500/5'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`w-4 h-4 rounded-full border-2 ${
+                    selectedAnswers[currentQuestionIndex] === (option.id || index)
+                      ? 'border-violet-500 bg-violet-500'
+                      : 'border-gray-500'
+                  }`}>
+                    {selectedAnswers[currentQuestionIndex] === (option.id || index) && (
+                      <div className="w-full h-full rounded-full bg-white scale-50"></div>
+                    )}
+                  </div>
+                  <span>{option.text || `Opção ${index + 1}`}</span>
+                </div>
+              </button>
+            )) || (
+              <div className="text-gray-400 text-center py-4">
+                Nenhuma opção disponível para esta pergunta.
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-between">
+            <Button onClick={onCancel} variant="outline" className="text-white border-white/30">
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleNextQuestion}
+              disabled={!selectedAnswers[currentQuestionIndex]}
+              className="bg-violet-600 hover:bg-violet-700 disabled:opacity-50"
+            >
+              {currentQuestionIndex === quiz.questions.length - 1 ? 'Finalizar' : 'Próxima'}
+            </Button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

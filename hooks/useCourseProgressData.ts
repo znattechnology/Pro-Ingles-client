@@ -13,14 +13,24 @@ export const useCourseProgressData = () => {
   const { user, isAuthenticated, isLoading: authLoading } = useDjangoAuth();
   const [hasMarkedComplete, setHasMarkedComplete] = useState(false);
   const dispatch = useAppDispatch();
-  const { data: courseResponse, isLoading: courseLoading } = useGetVideoCourseByIdQuery(
+  const { data: courseResponse, isLoading: courseLoading, error: courseError } = useGetVideoCourseByIdQuery(
     (courseId as string) ?? "",
     {
       skip: !courseId,
     }
   );
 
-  const course = courseResponse?.data;
+  const course = courseResponse; // courseResponse já é transformado na API
+  
+  // Debug logging
+  console.log('📚 Course hook debug:', {
+    courseId,
+    chapterId,
+    courseResponse,
+    course,
+    courseError,
+    courseLoading
+  });
 
   const { data: userProgressResponse, isLoading: progressLoading } =
     useGetVideoCourseProgressQuery(
@@ -125,6 +135,21 @@ export const useCourseProgressData = () => {
     }
   };
 
+  const markChapterAsCompleted = async () => {
+    if (!currentSection || !currentChapter) return;
+    
+    try {
+      await updateChapterProgress(
+        currentSection.sectionId,
+        currentChapter.chapterId,
+        true
+      );
+      setHasMarkedComplete(true);
+    } catch (error) {
+      console.error('Error marking chapter as completed:', error);
+    }
+  };
+
   return {
     user,
     courseId,
@@ -136,6 +161,7 @@ export const useCourseProgressData = () => {
     isLoading,
     isChapterCompleted,
     updateChapterProgress,
+    markChapterAsCompleted,
     hasMarkedComplete,
     setHasMarkedComplete,
   };

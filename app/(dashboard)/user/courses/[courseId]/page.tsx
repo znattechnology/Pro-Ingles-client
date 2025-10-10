@@ -25,7 +25,9 @@ import {
   ChevronRight,
   Video,
   FileText,
-  HelpCircle
+  HelpCircle,
+  Target,
+  Brain
 } from 'lucide-react';
 import { useDjangoAuth } from '@/hooks/useDjangoAuth';
 import Loading from '@/components/course/Loading';
@@ -141,7 +143,10 @@ const CourseDetailsPage = () => {
       case 'Video':
         return <Video className="h-4 w-4 text-blue-400" />;
       case 'Quiz':
-        return <HelpCircle className="h-4 w-4 text-yellow-400" />;
+        return <Brain className="h-4 w-4 text-purple-400" />;
+      case 'Exercise':
+        return <Target className="h-4 w-4 text-emerald-400" />;
+      case 'Text':
       default:
         return <FileText className="h-4 w-4 text-gray-400" />;
     }
@@ -370,11 +375,12 @@ const CourseDetailsPage = () => {
                                     variant="outline" 
                                     className={`
                                       ${chapter.type === 'Video' ? 'border-blue-500/50 text-blue-300' : ''}
-                                      ${chapter.type === 'Quiz' ? 'border-yellow-500/50 text-yellow-300' : ''}
+                                      ${chapter.type === 'Quiz' ? 'border-purple-500/50 text-purple-300' : ''}
+                                      ${chapter.type === 'Exercise' ? 'border-emerald-500/50 text-emerald-300' : ''}
                                       ${chapter.type === 'Text' ? 'border-gray-500/50 text-gray-300' : ''}
                                     `}
                                   >
-                                    {chapter.type}
+                                    {chapter.type === 'Exercise' ? 'Practice Lab' : chapter.type}
                                   </Badge>
                                 </div>
                               ))}

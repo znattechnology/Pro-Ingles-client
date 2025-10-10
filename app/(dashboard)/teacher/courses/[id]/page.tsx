@@ -15,6 +15,7 @@ import {
   useGetVideoUploadUrlMutation,
   teacherVideoCourseApiSlice,
 } from "@/src/domains/teacher/video-courses/api";
+import { getResourceUploadUrl } from "@/src/domains/teacher/video-courses/services";
 import { useAppDispatch, useAppSelector } from "@/state/redux";
 import { 
   setSections, 
@@ -37,6 +38,7 @@ import { useForm } from "react-hook-form";
 import { motion } from "framer-motion";
 import ChapterModal from "./ChapterModal";
 import SectionModal from "./SectionModal";
+import { RichTextEditor, QuizBuilder, QuizData, AdvancedPracticeCourseSelector, AdvancedPracticeSelection } from "@/src/domains/teacher/video-courses/components";
 
 // UUID generation function
 const generateUUID = () => {
@@ -97,6 +99,26 @@ const CourseEditor = () => {
   
   // State to store uploaded video URL for new chapter creation
   const [uploadedVideoUrl, setUploadedVideoUrl] = useState<string>("");
+  
+  // State for quiz data
+  const [quizData, setQuizData] = useState<QuizData | null>(null);
+  
+  // State for practice course selection
+  const [practiceSelection, setPracticeSelection] = useState<AdvancedPracticeSelection | null>(null);
+  
+  // Clear quiz data when chapter type changes away from Quiz
+  useEffect(() => {
+    if (newChapterType !== "Quiz") {
+      setQuizData(null);
+    }
+  }, [newChapterType]);
+  
+  // Clear practice selection when chapter type changes away from Exercise
+  useEffect(() => {
+    if (newChapterType !== "Exercise") {
+      setPracticeSelection(null);
+    }
+  }, [newChapterType]);
   const [selectedVideoFile, setSelectedVideoFile] = useState<File | null>(null);
   const [pendingVideoUploads, setPendingVideoUploads] = useState<{[chapterId: string]: File}>({});
   
@@ -395,6 +417,7 @@ const CourseEditor = () => {
       const newChapter = {
         chapterId,
         title: newChapterTitle.trim(),
+        chapterTitle: newChapterTitle.trim(), // Backend compatibility
         description: newChapterDescription.trim(),
         content: newChapterDescription.trim(),
         videoUrl: uploadedVideoUrl || "", // Use already uploaded video URL
@@ -404,11 +427,23 @@ const CourseEditor = () => {
         // Additional fields for different types
         transcript: "",
         quiz_enabled: newChapterType === "Quiz",
+        quiz_data: newChapterType === "Quiz" && quizData ? quizData : undefined,
         resources_data: [],
         practice_lesson: newChapterType === "Exercise" ? "" : undefined,
+        practice_selection: newChapterType === "Exercise" && practiceSelection ? practiceSelection : undefined,
       };
       
-      console.log('📹 Creating chapter with pre-uploaded video URL:', uploadedVideoUrl);
+      console.log('📹 Creating chapter with full data:', {
+        chapterId,
+        title: newChapterTitle.trim(),
+        type: newChapterType,
+        hasQuizData: !!quizData,
+        quizData: quizData,
+        hasPracticeSelection: !!practiceSelection,
+        practiceSelection: practiceSelection,
+        videoUrl: uploadedVideoUrl,
+        content: newChapterDescription.trim()
+      });
       
       // Store resource files for upload later
       if (selectedResourceFiles.length > 0) {
@@ -477,6 +512,8 @@ const CourseEditor = () => {
       setSelectedVideoFile(null);
       setSelectedResourceFiles([]);
       setUploadedVideoUrl(""); // Clear uploaded video URL
+      setQuizData(null); // Clear quiz data
+      setPracticeSelection(null); // Clear practice selection
       dispatch(setCreatingChapterUI(null));
       
       // Mark step as complete if this is the first chapter across all sections
@@ -502,6 +539,8 @@ const CourseEditor = () => {
     setNewChapterType("Text");
     setSelectedVideoFile(null);
     setSelectedResourceFiles([]);
+    setQuizData(null); // Clear quiz data
+    setPracticeSelection(null); // Clear practice selection
     dispatch(setCreatingChapterUI(null));
   };
 
@@ -532,9 +571,13 @@ const CourseEditor = () => {
 
   // Function to upload pending videos
   const uploadPendingVideos = async () => {
+    console.log('🎬 uploadPendingVideos: Starting to upload pending videos');
+    console.log('🎬 Pending uploads:', Object.keys(pendingVideoUploads));
+    
     const failedUploads: string[] = [];
     
     for (const [chapterId, videoFile] of Object.entries(pendingVideoUploads)) {
+      console.log(`🎬 Processing upload for chapter ${chapterId}`);
       try {
         // Find the section and chapter
         let targetSection = null;
@@ -635,7 +678,7 @@ const CourseEditor = () => {
 
             await updateCourse({
               courseId: id,
-              courseData: autoSaveData,
+              ...autoSaveData,
             }).unwrap();
             
             console.log(`✅ Video URL auto-saved successfully for chapter ${chapterId}`);
@@ -693,10 +736,10 @@ const CourseEditor = () => {
             fileName: file.name,
             fileType: file.type,
             resourceType: type,
-          }).unwrap();
+          });
           
           // Upload to S3
-          await fetch(response.uploadUrl, {
+          await fetch((response as any).data?.uploadUrl || (response as any).uploadUrl, {
             method: "PUT",
             headers: {
               "Content-Type": file.type,
@@ -819,12 +862,19 @@ const CourseEditor = () => {
 
   const onSubmit = async (data: CourseFormData) => {
     console.log('💾 Saving course - onSubmit called');
+    console.log('💾 Form data received:', data);
     
     try {
+      console.log('💾 Step 1: Setting saving state to true');
       dispatch(setSavingCourseLoading(true));
       
+      console.log('💾 Step 2: Starting to upload pending videos');
       // First upload any pending videos
       await uploadPendingVideos();
+      console.log('💾 Step 2 completed: Pending videos uploaded');
+      
+      console.log('💾 Step 3: Processing sections data');
+      console.log('💾 Current sections from Redux:', sections);
       
       // Use sections directly from Redux state (which comes from API after auto-save)
       const sectionsWithVideoUrls = sections.map(section => ({
@@ -834,10 +884,17 @@ const CourseEditor = () => {
           const videoUrl = chapter.video || chapter.videoUrl || "";
           
           console.log(`📹 Chapter ${chapter.chapterId} final data:`, {
+            title: chapter.title,
+            description: chapter.description,
+            content: chapter.content,
+            type: chapter.type,
             video: chapter.video,
             videoUrl: chapter.videoUrl,
             finalVideoUrl: videoUrl,
-            hasVideo: chapter.hasVideo
+            hasVideo: chapter.hasVideo,
+            quiz_enabled: chapter.quiz_enabled,
+            quiz_data: chapter.quiz_data,
+            practice_selection: chapter.practice_selection
           });
 
           return {
@@ -847,7 +904,10 @@ const CourseEditor = () => {
           };
         }) || []
       }));
+      
+      console.log('💾 Step 3 completed: Sections processed');
 
+      console.log('💾 Step 4: Creating course data object');
       const courseData = {
         title: data.courseTitle,
         description: data.courseDescription,
@@ -857,28 +917,42 @@ const CourseEditor = () => {
         sections: sectionsWithVideoUrls
       };
       
-      console.log('Sending courseData to Django:', JSON.stringify(courseData, null, 2));
+      console.log('💾 Step 4 completed: Course data object created');
+      console.log('💾 Sending courseData to Django:', JSON.stringify(courseData, null, 2));
 
+      console.log('💾 Step 5: Starting API call to updateCourse');
       await updateCourse({
         courseId: id,
         ...courseData,
       }).unwrap();
+      console.log('💾 Step 5 completed: API call successful');
 
+      console.log('💾 Step 6: Showing success notification');
       // Show success toast
       notifications.success(`Curso "${data.courseTitle}" atualizado com sucesso! ✅`);
 
+      console.log('💾 Step 7: Invalidating cache and refetching data');
       // Force invalidate the teacher courses list cache
       dispatch(teacherVideoCourseApiSlice.util.invalidateTags(['TeacherVideoCourse']));
       
       refetch();
+      console.log('💾 All steps completed successfully!');
     } catch (error) {
-      console.error("Failed to update course:", error);
+      console.error("💾 ERROR: Failed to update course:", error);
+      console.error("💾 ERROR: Error details:", {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        errorType: typeof error,
+        errorValue: error
+      });
       
       // Show error toast
       const errorMessage = error instanceof Error ? error.message : "Erro desconhecido";
       notifications.error(`Erro ao atualizar o curso. ${errorMessage}. Tente novamente.`);
     } finally {
+      console.log('💾 Finally block: Setting saving state to false');
       dispatch(setSavingCourseLoading(false));
+      console.log('💾 Save process completely finished');
     }
   };
 
@@ -1092,7 +1166,7 @@ const CourseEditor = () => {
                   markStepComplete(2);
                   setCurrentStep(3);
                 }}
-                disabled={uploadingImage || (!imageReady && !currentImage && !course?.image)}
+                disabled={uploadingImage || (!imageReady && !currentImage)}
                 className="px-6 py-3 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white font-semibold rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {uploadingImage ? 'Fazendo upload...' : 'Próximo: Estrutura do Curso'}
@@ -1499,16 +1573,37 @@ const CourseEditor = () => {
                                 </div>
                                 
                                 <div className="flex items-center gap-3">
-                                  {chapter.hasVideo || chapter.videoUrl || chapter.video || pendingVideoUploads[chapter.chapterId] ? (
-                                    <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/30">
-                                      <Video className="w-3 h-3 mr-1" />
-                                      Vídeo ✓
+                                  {/* Chapter Type Badge */}
+                                  {chapter.type === "Text" && (
+                                    <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/30">
+                                      <BookOpen className="w-3 h-3 mr-1" />
+                                      Texto
                                     </Badge>
-                                  ) : (
-                                    <Badge className="bg-amber-500/20 text-amber-300 border-amber-500/30">
-                                      <Upload className="w-3 h-3 mr-1" />
-                                      Sem vídeo
+                                  )}
+                                  {chapter.type === "Quiz" && (
+                                    <Badge className="bg-purple-500/20 text-purple-300 border-purple-500/30">
+                                      <Sparkles className="w-3 h-3 mr-1" />
+                                      Quiz
                                     </Badge>
+                                  )}
+                                  {chapter.type === "Exercise" && (
+                                    <Badge className="bg-cyan-500/20 text-cyan-300 border-cyan-500/30">
+                                      <Layers className="w-3 h-3 mr-1" />
+                                      Exercício
+                                    </Badge>
+                                  )}
+                                  {chapter.type === "Video" && (
+                                    chapter.hasVideo || chapter.videoUrl || chapter.video || pendingVideoUploads[chapter.chapterId] ? (
+                                      <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/30">
+                                        <Video className="w-3 h-3 mr-1" />
+                                        Vídeo ✓
+                                      </Badge>
+                                    ) : (
+                                      <Badge className="bg-amber-500/20 text-amber-300 border-amber-500/30">
+                                        <Upload className="w-3 h-3 mr-1" />
+                                        Sem vídeo
+                                      </Badge>
+                                    )
                                   )}
                                   <span className="text-xs text-violet-400 font-medium">
                                     Cap. {chapterIndex + 1}
@@ -1679,50 +1774,29 @@ const CourseEditor = () => {
                               <label className="text-white text-sm font-medium mb-2 block">
                                 Conteúdo do capítulo *
                               </label>
-                              <textarea
+                              <RichTextEditor
                                 value={newChapterDescription}
-                                onChange={(e) => setNewChapterDescription(e.target.value)}
-                                placeholder="Digite o conteúdo textual do capítulo..."
-                                rows={6}
-                                className="w-full px-4 py-3 bg-customgreys-darkGrey/50 border border-indigo-500/30 rounded-lg text-white placeholder:text-gray-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200 resize-none"
+                                onChange={setNewChapterDescription}
+                                placeholder="Digite o conteúdo textual do capítulo... Use Markdown para formatação!"
+                                rows={8}
                               />
                             </div>
                           )}
                           
                           {/* Quiz Configuration - Show for Quiz type */}
                           {newChapterType === "Quiz" && (
-                            <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-lg p-6">
-                              <div className="flex items-center gap-3 mb-4">
-                                <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center">
-                                  <span className="text-white text-sm">🧠</span>
-                                </div>
-                                <div>
-                                  <h4 className="text-white font-semibold">Quiz Interativo</h4>
-                                  <p className="text-purple-300 text-sm">Quiz gamificado conectado ao Practice Lab</p>
-                                </div>
-                              </div>
-                              <p className="text-gray-300 text-sm">
-                                O quiz será configurado automaticamente com base no conteúdo do capítulo.
-                              </p>
-                            </div>
+                            <QuizBuilder
+                              initialData={quizData || undefined}
+                              onChange={setQuizData}
+                            />
                           )}
                           
                           {/* Exercise Configuration - Show for Exercise type */}
                           {newChapterType === "Exercise" && (
-                            <div className="bg-gradient-to-r from-emerald-500/10 to-green-500/10 border border-emerald-500/20 rounded-lg p-6">
-                              <div className="flex items-center gap-3 mb-4">
-                                <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center">
-                                  <span className="text-white text-sm">⚡</span>
-                                </div>
-                                <div>
-                                  <h4 className="text-white font-semibold">Exercício do Practice Lab</h4>
-                                  <p className="text-emerald-300 text-sm">Exercício prático com IA e gamificação</p>
-                                </div>
-                              </div>
-                              <p className="text-gray-300 text-sm">
-                                Os exercícios serão selecionados automaticamente do Practice Lab.
-                              </p>
-                            </div>
+                            <AdvancedPracticeCourseSelector
+                              initialSelection={practiceSelection || undefined}
+                              onChange={setPracticeSelection}
+                            />
                           )}
                           
                           {/* Resources Section - Available for all chapter types */}

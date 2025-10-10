@@ -49,11 +49,18 @@ export interface CourseChapter {
   section: string;
   chapterTitle: string;
   content?: string;
+  description?: string;
   type: 'video' | 'text' | 'quiz' | 'exercise';
   order: number;
   video?: string;
   videoUrl?: string;
   freePreview?: boolean;
+  // Quiz specific fields
+  quiz_enabled?: boolean;
+  quiz_data?: any; // QuizData from QuizBuilder
+  // Practice course integration fields
+  practice_lesson?: string;
+  practice_selection?: any; // PracticeSelection from PracticeCourseSelector
 }
 
 // Course creation/update data for video courses
@@ -91,9 +98,18 @@ export interface CreateChapterData {
   section: string;
   chapterTitle: string;
   content?: string;
+  description?: string;
   type: 'video' | 'text' | 'quiz' | 'exercise';
   order: number;
   freePreview?: boolean;
+  video?: string;
+  videoUrl?: string;
+  // Quiz specific fields
+  quiz_enabled?: boolean;
+  quiz_data?: any; // QuizData from QuizBuilder
+  // Practice course integration fields
+  practice_lesson?: string;
+  practice_selection?: any; // PracticeSelection from PracticeCourseSelector
 }
 
 export interface UpdateChapterData extends Partial<CreateChapterData> {

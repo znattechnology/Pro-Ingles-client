@@ -50,8 +50,11 @@ export interface StudentVideoCourse extends BaseCourse {
 
 export interface StudentVideoSection {
   id: string;
+  sectionId: string; // For compatibility with existing code
   title: string;
+  sectionTitle?: string; // For compatibility
   description?: string;
+  sectionDescription?: string; // For compatibility
   order: number;
   duration?: number; // in minutes
   chapters: StudentVideoChapter[];
@@ -61,15 +64,22 @@ export interface StudentVideoSection {
 
 export interface StudentVideoChapter {
   id: string;
+  chapterId: string; // For compatibility with existing code
   title: string;
+  chapterTitle?: string; // For compatibility
   description?: string;
+  content?: string;
   type: 'video' | 'text' | 'quiz' | 'exercise' | 'resource';
   videoUrl?: string;
+  video?: string; // For compatibility
   duration?: number; // in seconds
   order: number;
   is_free_preview?: boolean;
+  freePreview?: boolean; // For compatibility
   is_locked?: boolean;
   completed?: boolean;
+  hasVideo?: boolean;
+  transcript?: string;
   progress?: {
     watched_duration: number;
     completion_percentage: number;
@@ -77,6 +87,14 @@ export interface StudentVideoChapter {
   };
   resources?: ChapterResource[];
   quiz?: ChapterQuiz;
+  // Quiz specific fields - matching teacher interface
+  quiz_enabled?: boolean;
+  quiz_data?: any; // QuizData from QuizBuilder
+  // Practice course integration fields - matching teacher interface
+  practice_lesson?: string;
+  practice_selection?: any; // PracticeSelection from PracticeCourseSelector
+  // Resources
+  resources_data?: any[];
   notes_count?: number;
   bookmarks_count?: number;
 }

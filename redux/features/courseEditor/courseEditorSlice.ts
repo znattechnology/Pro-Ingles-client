@@ -21,8 +21,10 @@ export interface CourseChapter {
   hasVideo?: boolean;
   transcript?: string;
   quiz_enabled?: boolean;
+  quiz_data?: any; // QuizData from QuizBuilder
   resources_data?: any[];
   practice_lesson?: string;
+  practice_selection?: any; // PracticeSelection from PracticeCourseSelector
 }
 
 interface CourseEditorState {
