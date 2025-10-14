@@ -1,0 +1,1 @@
+export interface AdminPlaceholder { message: string; }
