@@ -17,6 +17,9 @@ export * from './services'
 // Types
 export * from './types'
 
+// Utils
+export * from './utils'
+
 // Re-export commonly used items with cleaner names
 // Components will be added as they are migrated
 // export { CourseBuilder } from './components/CourseBuilder'

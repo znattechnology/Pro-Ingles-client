@@ -17,7 +17,6 @@ import { ChapterFormData, chapterSchema } from "@/lib/schemas";
 import { addChapter, closeChapterModal, editChapter } from "@/state";
 import { useAppDispatch, useAppSelector } from "@/state/redux";
 import { 
-  useGetLessonChallengesQuery,
   useGetVideoUploadUrlMutation,
   useCreateChapterMutation,
   useUpdateChapterMutation,
