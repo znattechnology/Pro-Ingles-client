@@ -136,7 +136,7 @@ export default function AdminSubscriptionReportsPage() {
       await new Promise(resolve => setTimeout(resolve, 1000));
       setReportData(mockData);
 
-    } catch (_err) {
+    } catch {
       setError('Erro ao carregar relatórios');
     } finally {
       setLoading(false);

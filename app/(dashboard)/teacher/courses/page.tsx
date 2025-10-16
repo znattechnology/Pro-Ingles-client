@@ -64,7 +64,7 @@ const TeacherVideoCoursesPage = () => {
     if (!courses) return { filteredCourses: [], paginatedCourses: [], totalPages: 0, totalCourses: 0 };
 
     // Filter courses
-    let filtered = courses.filter((course) => {
+    const filtered = courses.filter((course) => {
       // Only show courses created by the current teacher
       if (course.teacherId !== user?.id) return false;
       

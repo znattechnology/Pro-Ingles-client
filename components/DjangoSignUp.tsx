@@ -27,7 +27,7 @@ const DjangoSignUp = () => {
     email: '',
     password: '',
     password_confirm: '',
-    role: 'student' as 'student'
+    role: 'student' as const
   });
   
   const [showPassword, setShowPassword] = useState(false);

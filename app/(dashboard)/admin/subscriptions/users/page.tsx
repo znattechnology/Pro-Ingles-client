@@ -125,11 +125,11 @@ export default function AdminSubscriptionUsersPage() {
           const statsData = await statsResponse.json();
           setStats(statsData);
         }
-      } catch (err) {
+      } catch {
         console.warn('Failed to load stats, continuing without them');
       }
 
-    } catch (err) {
+    } catch {
       setError('Erro de conexão');
     } finally {
       setLoading(false);

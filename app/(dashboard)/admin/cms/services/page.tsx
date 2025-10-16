@@ -195,7 +195,7 @@ export default function CMSServicesPage() {
         description: "Serviço excluído com sucesso.",
       })
       
-    } catch (_err) {
+    } catch {
       toast({
         title: "❌ Erro",
         description: "Erro ao excluir serviço.",

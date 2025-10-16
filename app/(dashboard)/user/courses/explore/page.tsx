@@ -46,7 +46,7 @@ const LearnCourse = () => {
 
   // Filter and sort courses
   const filteredAndSortedCourses = React.useMemo(() => {
-    let filtered = courses.filter((course: any) => {
+    const filtered = courses.filter((course: any) => {
       const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            course.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            course.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||

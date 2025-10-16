@@ -51,7 +51,7 @@ const TeacherBilling = () => {
   const { filteredData, stats } = useMemo(() => {
     if (!transactions) return { filteredData: [], stats: { totalAmount: 0, totalTransactions: 0, averageTransaction: 0 } };
 
-    let filtered = transactions.filter((transaction) => {
+    const filtered = transactions.filter((transaction) => {
       // Payment type filter
       const matchesPaymentType = paymentType === "all" || transaction.paymentProvider === paymentType;
       

@@ -104,7 +104,7 @@ export default function AdminSubscriptionPlansPage() {
       } else {
         setError('Falha ao carregar planos');
       }
-    } catch (_err) {
+    } catch {
       setError('Erro de conexão');
     } finally {
       setLoading(false);
@@ -179,7 +179,7 @@ export default function AdminSubscriptionPlansPage() {
       } else {
         setError('Falha ao salvar plano');
       }
-    } catch (_err) {
+    } catch {
       setError('Erro ao salvar plano');
     } finally {
       setSaving(false);
@@ -200,7 +200,7 @@ export default function AdminSubscriptionPlansPage() {
       } else {
         setError('Falha ao deletar plano');
       }
-    } catch (_err) {
+    } catch {
       setError('Erro ao deletar plano');
     }
   };

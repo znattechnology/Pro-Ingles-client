@@ -182,7 +182,7 @@ export default function CMSCompaniesPage() {
         description: "Empresa excluída com sucesso.",
       })
       
-    } catch (_err) {
+    } catch {
       toast({
         title: "❌ Erro",
         description: "Erro ao excluir empresa.",

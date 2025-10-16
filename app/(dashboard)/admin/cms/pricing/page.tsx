@@ -178,7 +178,7 @@ export default function CMSPricingPage() {
         description: "Plano excluído com sucesso.",
       })
       
-    } catch (_err) {
+    } catch {
       toast({
         title: "❌ Erro",
         description: "Erro ao excluir plano.",

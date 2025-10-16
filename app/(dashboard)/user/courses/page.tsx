@@ -171,7 +171,7 @@ const MyCoursesPage = () => {
 
   // Filter and sort courses with advanced logic like explore page
   const filteredAndSortedCourses = useMemo(() => {
-    let filtered = coursesWithProgress.filter((course: any) => {
+    const filtered = coursesWithProgress.filter((course: any) => {
       const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            course.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            course.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||

@@ -145,7 +145,7 @@ export default function AdminPromoCodesPage() {
         }
       });
 
-    } catch (_err) {
+    } catch {
       setError('Erro ao carregar códigos promocionais');
     } finally {
       setLoading(false);
@@ -237,7 +237,7 @@ export default function AdminPromoCodesPage() {
       } else {
         setError('Falha ao criar código promocional');
       }
-    } catch (_err) {
+    } catch {
       setError('Erro ao criar código promocional');
     } finally {
       setSaving(false);
@@ -257,7 +257,7 @@ export default function AdminPromoCodesPage() {
       } else {
         setError('Falha ao deletar código');
       }
-    } catch (_err) {
+    } catch {
       setError('Erro ao deletar código');
     }
   };

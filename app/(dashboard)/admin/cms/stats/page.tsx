@@ -169,7 +169,7 @@ export default function CMSStatsPage() {
         description: "Estatística excluída com sucesso.",
       })
       
-    } catch (_err) {
+    } catch {
       toast({
         title: "❌ Erro",
         description: "Erro ao excluir estatística.",
