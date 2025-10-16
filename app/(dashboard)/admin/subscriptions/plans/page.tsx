@@ -18,7 +18,6 @@ import {
   DollarSign,
   Users,
   Settings,
-  Check,
   AlertCircle,
   Zap,
   Heart,
@@ -105,7 +104,7 @@ export default function AdminSubscriptionPlansPage() {
       } else {
         setError('Falha ao carregar planos');
       }
-    } catch (err) {
+    } catch (_err) {
       setError('Erro de conexão');
     } finally {
       setLoading(false);
@@ -180,7 +179,7 @@ export default function AdminSubscriptionPlansPage() {
       } else {
         setError('Falha ao salvar plano');
       }
-    } catch (err) {
+    } catch (_err) {
       setError('Erro ao salvar plano');
     } finally {
       setSaving(false);
@@ -201,7 +200,7 @@ export default function AdminSubscriptionPlansPage() {
       } else {
         setError('Falha ao deletar plano');
       }
-    } catch (err) {
+    } catch (_err) {
       setError('Erro ao deletar plano');
     }
   };

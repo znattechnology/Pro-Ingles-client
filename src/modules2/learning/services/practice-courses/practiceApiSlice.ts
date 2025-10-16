@@ -187,7 +187,7 @@ export const practiceApiSlice = apiSlice.injectEndpoints({
           });
           
           return updateResult.error ? { error: updateResult.error } : { data: updateResult.data };
-        } catch (error) {
+        } catch (_error) {
           return { error: { status: 500, data: { message: 'Failed to update active course' } } };
         }
       },

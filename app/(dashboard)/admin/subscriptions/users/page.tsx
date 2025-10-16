@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -14,16 +14,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Crown,
   Users,
   Search,
   Filter,
-  Calendar,
   DollarSign,
   User,
   Mail,
-  Phone,
-  MapPin,
   Clock,
   AlertCircle,
   CheckCircle,
@@ -52,7 +48,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import Link from "next/link";
 
 interface UserSubscription {
   id: string;

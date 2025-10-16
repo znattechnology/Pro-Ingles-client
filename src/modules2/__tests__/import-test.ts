@@ -12,13 +12,9 @@ import { Gamification } from '../gamification'
 import { Teacher } from '../teacher'
 import { Admin } from '../admin'
 
-// Test namespace imports
-import * as AuthModule from '../auth'
 import * as LearningModule from '../learning'
 import * as GamificationModule from '../gamification'
 
-// Test main modules export
-import { Auth as AuthFromMain, Learning as LearningFromMain } from '../index'
 
 console.log('✅ All imports successful!')
 console.log('📦 Modules loaded:', {

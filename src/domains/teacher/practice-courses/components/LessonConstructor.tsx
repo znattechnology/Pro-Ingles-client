@@ -13,22 +13,18 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   ArrowLeft, 
   ArrowRight, 
   Play, 
-  Pause, 
   Plus, 
   Trash2, 
   Eye, 
   Edit3, 
-  Save, 
   BookOpen, 
   CheckCircle, 
   Circle,
   Target,
-  Trophy,
   Heart,
   Zap
 } from 'lucide-react';
@@ -40,10 +36,7 @@ import {
 import { 
   unitCreationSchema, 
   lessonCreationSchema, 
-  validateSafely, 
-  validateField,
-  type UnitCreationData,
-  type LessonCreationData 
+  validateSafely
 } from '@/lib/validations';
 import { laboratoryNotifications } from '@/lib/toast';
 

@@ -387,7 +387,7 @@ export const teacherPracticeApiSlice = createApi({
     }),
 
     createTeacherChallenge: builder.mutation<PracticeChallenge, CreatePracticeChallengeData>({
-      query: ({ options, ...challengeData }) => ({
+      query: ({ options: _options, ...challengeData }) => ({
         url: '/teacher/practice-courses/challenges/',
         method: 'POST',
         credentials: 'include' as const,

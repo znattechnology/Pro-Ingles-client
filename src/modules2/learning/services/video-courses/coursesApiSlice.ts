@@ -211,7 +211,7 @@ export const coursesApiSlice = apiSlice.injectEndpoints({
               data: detailedCourses
             }
           };
-        } catch (error) {
+        } catch (_error) {
           return { error: { status: 500, data: { message: 'Error fetching courses with enrollments' } } };
         }
       },

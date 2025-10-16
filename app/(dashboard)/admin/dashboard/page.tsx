@@ -6,9 +6,7 @@ import {
   BookOpen,
   DollarSign,
   GraduationCap,
-  UserCheck,
   TrendingUp,
-  Calendar,
   ArrowRight,
 } from "lucide-react";
 import {

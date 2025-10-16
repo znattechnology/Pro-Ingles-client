@@ -3,9 +3,6 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -15,20 +12,15 @@ import {
 } from "@/components/ui/select";
 import {
   BarChart3,
-  TrendingUp,
-  Calendar,
   DollarSign,
   Users,
   Crown,
-  Filter,
   Download,
   RefreshCw,
   FileText,
   PieChart,
   LineChart,
   AlertCircle,
-  CheckCircle,
-  Clock,
   Target,
   ArrowUp,
   ArrowDown,
@@ -85,7 +77,6 @@ export default function AdminSubscriptionReportsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState("last_30_days");
-  const [reportType, setReportType] = useState("overview");
 
   // Fetch report data
   const fetchReportData = async () => {
@@ -145,7 +136,7 @@ export default function AdminSubscriptionReportsPage() {
       await new Promise(resolve => setTimeout(resolve, 1000));
       setReportData(mockData);
 
-    } catch (err) {
+    } catch (_err) {
       setError('Erro ao carregar relatórios');
     } finally {
       setLoading(false);

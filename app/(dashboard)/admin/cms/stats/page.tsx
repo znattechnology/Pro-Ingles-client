@@ -169,7 +169,7 @@ export default function CMSStatsPage() {
         description: "Estatística excluída com sucesso.",
       })
       
-    } catch (err) {
+    } catch (_err) {
       toast({
         title: "❌ Erro",
         description: "Erro ao excluir estatística.",
@@ -185,18 +185,6 @@ export default function CMSStatsPage() {
     setIsDialogOpen(true)
   }
 
-  const getSectionLabel = (section: string) => {
-    return SECTION_OPTIONS.find(opt => opt.value === section)?.label || section
-  }
-
-  const getSectionBadgeColor = (section: string) => {
-    switch (section) {
-      case 'hero': return 'bg-violet-100 text-violet-800 dark:bg-violet-900 dark:text-violet-300'
-      case 'about': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300'
-      case 'footer': return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300'
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300'
-    }
-  }
 
   if (loading) {
     return (

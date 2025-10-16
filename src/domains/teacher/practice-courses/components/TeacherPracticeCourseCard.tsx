@@ -13,13 +13,11 @@ import {
   Calendar,
   BookOpen,
   Target,
-  Clock,
   Settings,
   Brain,
   Trophy,
   CheckCircle,
   AlertCircle,
-  Plus
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { TeacherPracticeCourse } from '../types';
@@ -68,7 +66,6 @@ const TeacherPracticeCourseCard = ({
   const progress = calculateCourseProgress(course);
   const totalStudents = course.enrollments?.length || 0;
   const totalUnits = course.units_count || 0;
-  const totalLessons = course.lessons_count || 0;
   const totalChallenges = course.challenges_count || 0;
 
   if (viewMode === 'list') {

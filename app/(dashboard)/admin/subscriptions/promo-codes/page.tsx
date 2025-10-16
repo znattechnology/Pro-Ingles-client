@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -23,15 +23,9 @@ import {
   Edit,
   Trash2,
   Copy,
-  Calendar,
-  Percent,
   DollarSign,
-  Users,
   AlertCircle,
   CheckCircle,
-  Clock,
-  RefreshCw,
-  Download,
   MoreHorizontal,
   Eye,
   Gift,
@@ -64,7 +58,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 
 interface PromoCode {
@@ -87,21 +80,6 @@ interface PromoCode {
   first_time_only: boolean;
 }
 
-interface PromoCodeUsage {
-  id: string;
-  user: {
-    email: string;
-    name: string;
-  };
-  promo_code: {
-    code: string;
-  };
-  used_at: string;
-  discount_applied: string;
-  original_amount: string;
-  final_amount: string;
-}
-
 interface PromoCodeStats {
   total_codes: number;
   active_codes: number;
@@ -116,14 +94,12 @@ interface PromoCodeStats {
 
 export default function AdminPromoCodesPage() {
   const [promoCodes, setPromoCodes] = useState<PromoCode[]>([]);
-  const [usage, setUsage] = useState<PromoCodeUsage[]>([]);
   const [stats, setStats] = useState<PromoCodeStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [editingCode, setEditingCode] = useState<PromoCode | null>(null);
   const [saving, setSaving] = useState(false);
 
   const [newCode, setNewCode] = useState({
@@ -153,14 +129,8 @@ export default function AdminPromoCodesPage() {
         console.error('Failed to fetch promo codes:', codesResponse.status);
       }
 
-      // Fetch usage data
-      const usageResponse = await fetch('/api/v1/subscriptions?endpoint=admin-promo-code-usage');
-      if (usageResponse.ok) {
-        const usageData = await usageResponse.json();
-        setUsage(usageData.results || usageData || []);
-      } else {
-        console.warn('Failed to fetch usage data, continuing without it');
-      }
+      // Usage data endpoint not implemented yet
+      console.warn('Usage data endpoint not implemented yet');
 
       // Mock stats for now
       setStats({
@@ -175,7 +145,7 @@ export default function AdminPromoCodesPage() {
         }
       });
 
-    } catch (err) {
+    } catch (_err) {
       setError('Erro ao carregar códigos promocionais');
     } finally {
       setLoading(false);
@@ -267,7 +237,7 @@ export default function AdminPromoCodesPage() {
       } else {
         setError('Falha ao criar código promocional');
       }
-    } catch (err) {
+    } catch (_err) {
       setError('Erro ao criar código promocional');
     } finally {
       setSaving(false);
@@ -287,7 +257,7 @@ export default function AdminPromoCodesPage() {
       } else {
         setError('Falha ao deletar código');
       }
-    } catch (err) {
+    } catch (_err) {
       setError('Erro ao deletar código');
     }
   };

@@ -568,6 +568,7 @@ export default function ChallengeConstructor({ course, onBack }: ChallengeConstr
       if (result.audioUrl) {
         setReferenceAudioUrl(result.audioUrl);
         console.log('✅ Reference audio generated successfully');
+        laboratoryNotifications.success('Áudio de referência gerado com sucesso!');
       } else {
         throw new Error('No audio URL received');
       }
@@ -815,7 +816,7 @@ export default function ChallengeConstructor({ course, onBack }: ChallengeConstr
           }
           
           // Update option in database with media URLs
-          if (Object.keys(updateData).length > 0) {
+          if (Object.keys(updateData).length > 0 && createdOption.id) {
             try {
               console.log(`🔄 Updating option ${i + 1} in database...`);
               await updateCourseOption({ optionId: createdOption.id, data: updateData }).unwrap();

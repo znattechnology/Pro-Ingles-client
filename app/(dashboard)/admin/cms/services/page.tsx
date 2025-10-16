@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -96,7 +96,6 @@ export default function CMSServicesPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [newFeature, setNewFeature] = useState('')
-  const [newTopic, setNewTopic] = useState('')
   const { toast } = useToast()
 
   useEffect(() => {
@@ -196,7 +195,7 @@ export default function CMSServicesPage() {
         description: "Serviço excluído com sucesso.",
       })
       
-    } catch (err) {
+    } catch (_err) {
       toast({
         title: "❌ Erro",
         description: "Erro ao excluir serviço.",
@@ -210,7 +209,6 @@ export default function CMSServicesPage() {
   const openEditDialog = (service: ServiceItem | null = null) => {
     setEditingService(service || { ...emptyService, order: services.length })
     setNewFeature('')
-    setNewTopic('')
     setIsDialogOpen(true)
   }
 
@@ -230,21 +228,6 @@ export default function CMSServicesPage() {
     } : null)
   }
 
-  const addTopic = () => {
-    if (!newTopic.trim() || !editingService) return
-    setEditingService(prev => prev ? {
-      ...prev,
-      curriculum_topics: [...prev.curriculum_topics, newTopic.trim()]
-    } : null)
-    setNewTopic('')
-  }
-
-  const removeTopic = (index: number) => {
-    setEditingService(prev => prev ? {
-      ...prev,
-      curriculum_topics: prev.curriculum_topics.filter((_, i) => i !== index)
-    } : null)
-  }
 
   const getServiceTypeLabel = (type: string) => {
     return SERVICE_TYPE_OPTIONS.find(opt => opt.value === type)?.label || type

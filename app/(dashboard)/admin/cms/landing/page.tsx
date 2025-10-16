@@ -4,21 +4,17 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { 
-  Globe, 
   Star, 
   Building, 
   DollarSign,
   Users,
   MessageSquare,
-  Megaphone,
-  Search,
   ExternalLink,
   Edit,
   Eye,
   RefreshCw
 } from "lucide-react"
 import Link from 'next/link'
-import Image from 'next/image'
 
 export default async function CMSLandingPage() {
   const cmsData = await fetchLandingPageData()

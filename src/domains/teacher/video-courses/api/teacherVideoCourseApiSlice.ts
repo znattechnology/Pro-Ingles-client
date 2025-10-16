@@ -119,7 +119,7 @@ export const teacherVideoCourseApiSlice = createApi({
         url: `/${courseId}/`,
         method: 'DELETE',
       }),
-      transformResponse: (response: any) => {
+      transformResponse: (_response: any) => {
         // Para DELETE, o response pode ser vazio ou ter formato {message}
         // Retornamos void conforme esperado
         return;

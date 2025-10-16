@@ -10,7 +10,7 @@ import {
   PracticeChallenge,
   PracticeAnalytics 
 } from '../types';
-import { formatDuration, formatPercentage, capitalizeFirst } from '../../../shared/utils';
+import { formatPercentage, capitalizeFirst } from '../../../shared/utils';
 
 // Date formatting utility
 export const formatDate = (date: string | Date): string => {

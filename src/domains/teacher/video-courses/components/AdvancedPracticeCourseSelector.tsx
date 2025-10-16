@@ -8,8 +8,6 @@ import {
   Search,
   BookOpen,
   ChevronRight,
-  Check,
-  Users,
   Clock,
   Trophy,
   Target,
@@ -18,7 +16,6 @@ import {
   Minus,
   ShoppingCart,
   X,
-  Filter,
   Zap,
   Brain,
   Headphones,
@@ -498,7 +495,7 @@ export const AdvancedPracticeCourseSelector: React.FC<AdvancedPracticeCourseSele
               </div>
             )}
 
-            {filteredChallenges.map((challenge, index) => {
+            {filteredChallenges.map((challenge) => {
               const isSelected = selectedChallenges.some(c => c.id === challenge.id);
               
               return (

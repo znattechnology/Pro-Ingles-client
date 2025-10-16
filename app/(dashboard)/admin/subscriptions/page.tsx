@@ -11,8 +11,7 @@ import {
   TrendingUp, 
   BarChart3,
   Receipt,
-  Settings,
-  Plus
+  Settings
 } from "lucide-react";
 import Link from "next/link";
 

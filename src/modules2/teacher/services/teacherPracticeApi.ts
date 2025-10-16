@@ -317,7 +317,7 @@ export const teacherPracticeApi = apiSlice.injectEndpoints({
 
     // Challenge Management
     createPracticeChallenge: builder.mutation<PracticeChallenge, CreatePracticeChallengeData>({
-      query: ({ options, ...challengeData }) => ({
+      query: ({ options: _options, ...challengeData }) => ({
         url: '/practice/challenges/',
         method: 'POST',
         credentials: 'include' as const,

@@ -13,13 +13,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useChallengeValidation } from '@/hooks/useFormValidation';
-import { validateChallenge } from '@/lib/validations';
 import { laboratoryNotifications } from '@/lib/toast';
 import { 
   ArrowLeft, 
-  ArrowRight, 
   Plus, 
   Trash2, 
   Play, 
@@ -29,7 +26,6 @@ import {
   X,
   Volume2,
   Mic,
-  Image as ImageIcon,
   Type,
   Languages,
   Target,
@@ -49,14 +45,6 @@ import {
   useUpdateChallengeOptionMutation,
   useGenerateTranslationSuggestionsMutation
 } from '../api';
-import { uploadAudioToS3, uploadImageToS3, generateReferenceAudio } from '@modules/teacher';
-import type {
-  TeacherPracticeCourse,
-  PracticeUnit,
-  PracticeLesson,
-  ChallengeOption,
-  PracticeChallenge
-} from '../types';
 
 interface Course {
   id: string;
@@ -319,8 +307,6 @@ export default function ChallengeConstructor({ course, onBack }: ChallengeConstr
 
   // Get units and lessons from Redux data
   const units = unitsData?.units || [];
-  const lessons = lessonsData || [];
-  const isLoadingData = unitsLoading || lessonsLoading;
 
   // Real-time validation
   const challengeValidation = useChallengeValidation({
