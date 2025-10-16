@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,7 +10,7 @@ import {
   TrendingUp, 
   Calendar, 
   Target, 
-  Award, 
+ 
   Clock, 
   Volume2,
   MessageCircle,
@@ -23,9 +23,6 @@ import {
   BarChart3,
   PieChart,
   Activity,
-  Users,
-  Globe,
-  Headphones,
   BookOpen
 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -129,7 +126,7 @@ const mockProgressData = {
 };
 
 export default function SpeakingProgressDashboard() {
-  const [selectedTimeframe, setSelectedTimeframe] = useState("week");
+  // const [selectedTimeframe, setSelectedTimeframe] = useState("week");
   const router = useRouter();
 
   const getScoreColor = (score: number) => {

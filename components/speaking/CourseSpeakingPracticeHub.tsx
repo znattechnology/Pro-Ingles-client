@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -10,7 +10,7 @@ import {
   MessageCircle, 
   Volume2, 
   TrendingUp, 
-  Heart, 
+ 
   Zap, 
   Clock, 
   Flame,
@@ -99,8 +99,7 @@ export default function CourseSpeakingPracticeHub({ courseId }: CourseSpeakingPr
   // Use Redux to get course data
   const { 
     data: courseData, 
-    isLoading, 
-    error 
+    isLoading
   } = useGetCourseDetailQuery(courseId);
 
   // Map course data to expected format

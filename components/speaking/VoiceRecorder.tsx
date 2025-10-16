@@ -6,11 +6,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { 
   Mic, 
-  MicOff, 
+ 
   Square, 
   Play, 
   Pause,
-  Volume2,
   RotateCcw
 } from "lucide-react";
 
