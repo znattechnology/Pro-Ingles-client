@@ -12,7 +12,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Target, Plus, Search, Brain, Sparkles, Zap, Users, TrendingUp, Wand2, Layers, Trophy } from 'lucide-react';
+import { ArrowLeft, Target, Plus, Search, Zap, Users, TrendingUp, Trophy } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { motion } from 'framer-motion';
@@ -39,7 +39,7 @@ export default function ChallengeConstructorPage() {
   const [searchTerm, setSearchTerm] = useState('');
   
   // Use Redux hook to get teacher courses (including drafts)
-  const { data: coursesData, isLoading: loading, error } = useGetTeacherCoursesQuery({ includeDrafts: true });
+  const { data: coursesData, isLoading: loading } = useGetTeacherCoursesQuery({ includeDrafts: true });
   
   // Transform courses data to match expected interface
   const courses = coursesData || [];

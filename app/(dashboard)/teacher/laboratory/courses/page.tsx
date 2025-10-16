@@ -14,12 +14,7 @@ import {
   Edit, 
   Trash2, 
   Eye, 
-  Search,
-  BookOpen,
-  Users,
-  Target,
-  TrendingUp,
-  Settings
+  Search
 } from "lucide-react";
 import Loading from "@/components/course/Loading";
 import CourseBanner from "@/components/course/CourseBanner";

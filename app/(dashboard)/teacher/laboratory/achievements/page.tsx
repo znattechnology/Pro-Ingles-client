@@ -25,8 +25,6 @@ import {
   Target, 
   Flame, 
   BookOpen, 
-  Clock, 
-  Zap,
   Award,
   Users,
   ArrowLeft,
@@ -36,13 +34,10 @@ import {
   Eye,
   Save,
   X,
-  Settings,
   Filter,
   Search,
-  BarChart3,
   CheckCircle,
-  AlertCircle,
-  Info
+  AlertCircle
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Loading from '@/components/course/Loading';
@@ -59,6 +54,44 @@ import Loading from '@/components/course/Loading';
 // } from '@modules/teacher';
 
 
+// Temporary interface until API is implemented
+interface TeacherAchievement {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  category: string;
+  rarity: 'common' | 'rare' | 'epic' | 'legendary';
+  points: number;
+  requirement_type: string;
+  requirement_target: number;
+  requirement_unit: string;
+  is_secret: boolean;
+  is_active: boolean;
+  unlocked_count: number;
+}
+
+interface CreateAchievementData {
+  title: string;
+  description: string;
+  icon: string;
+  category: string;
+  rarity: 'common' | 'rare' | 'epic' | 'legendary';
+  points: number;
+  requirement_type: string;
+  requirement_target: number;
+  requirement_unit: string;
+  is_secret: boolean;
+}
+
+// Temporary mock functions until API is implemented
+const useGetTeacherAchievementsQuery = () => ({ data: [], isLoading: false });
+const useGetTeacherAchievementStatsQuery = () => ({ data: null });
+const useCreateAchievementMutation = () => [async () => ({ unwrap: () => Promise.resolve() })];
+const useUpdateAchievementMutation = () => [async () => ({ unwrap: () => Promise.resolve() })];
+const useDeleteAchievementMutation = () => [async () => ({ unwrap: () => Promise.resolve() })];
+const useToggleAchievementStatusMutation = () => [async () => ({ unwrap: () => Promise.resolve() })];
+
 // Using TeacherAchievement interface from API
 type Achievement = TeacherAchievement;
 
@@ -66,7 +99,7 @@ export default function TeacherAchievementsPage() {
   const router = useRouter();
   
   // API hooks
-  const { data: achievements = [], isLoading, refetch } = useGetTeacherAchievementsQuery();
+  const { data: achievements = [], isLoading } = useGetTeacherAchievementsQuery();
   const { data: statsData } = useGetTeacherAchievementStatsQuery();
   const [createAchievement] = useCreateAchievementMutation();
   const [updateAchievement] = useUpdateAchievementMutation();

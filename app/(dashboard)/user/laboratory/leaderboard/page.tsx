@@ -11,11 +11,10 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
+// import { Progress } from '@/components/ui/progress'; // TODO: Use Progress component
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Trophy, 
-  Crown, 
   Star, 
   Flame, 
   Users, 
@@ -67,7 +66,7 @@ export default function LeaderboardPage() {
   const currentUser = leaderboardData?.currentUser || null;
 
 
-  const getChangeIcon = (change: string, amount?: number) => {
+  const getChangeIcon = (change: string, _amount?: number) => {
     switch (change) {
       case 'up':
         return <ArrowUp className="w-4 h-4 text-green-400" />;
@@ -182,7 +181,7 @@ export default function LeaderboardPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {leaderboard.slice(0, 10).map((entry, index) => (
+                {leaderboard.slice(0, 10).map((entry, _index) => (
                   <div
                     key={entry.id}
                     className={`flex items-center gap-4 p-4 rounded-lg border transition-colors ${

@@ -1,16 +1,14 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
 import { 
   Mic, 
   Headphones, 
   BookOpen, 
-  Target, 
   TrendingUp, 
   Search,
   Plus,
@@ -18,10 +16,6 @@ import {
   Users,
   ArrowLeft,
   ChevronRight,
-  Star,
-  Play,
-  Zap,
-  Clock,
   Filter,
   Grid3X3,
   List as ListIcon

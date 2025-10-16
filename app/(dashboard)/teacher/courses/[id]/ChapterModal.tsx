@@ -18,12 +18,12 @@ import { addChapter, closeChapterModal, editChapter } from "@/state";
 import { useAppDispatch, useAppSelector } from "@/state/redux";
 import { 
   useGetVideoUploadUrlMutation,
-  useCreateChapterMutation,
-  useUpdateChapterMutation,
-  useDeleteChapterMutation,
   useGetAllTeacherCoursesQuery,
   CourseChapter as TeacherChapter,
-  CourseSection as TeacherSection,
+  // TODO: Re-enable when implementing CRUD operations
+  // useCreateChapterMutation,
+  // useUpdateChapterMutation,
+  // useDeleteChapterMutation,
 } from "@/src/domains/teacher/video-courses/api";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { X, BookOpen, FileText, Brain, Plus, Trash2, ExternalLink, Upload, Zap, Target, CheckCircle, Save } from "lucide-react";
@@ -56,9 +56,10 @@ const ChapterModal = () => {
 
   // API hooks from teacher video course API
   const [getVideoUploadUrl] = useGetVideoUploadUrlMutation();
-  const [createChapter] = useCreateChapterMutation();
-  const [updateChapter] = useUpdateChapterMutation();
-  const [deleteChapter] = useDeleteChapterMutation();
+  // TODO: Implement chapter CRUD operations
+  // const [createChapter] = useCreateChapterMutation();
+  // const [updateChapter] = useUpdateChapterMutation();
+  // const [deleteChapter] = useDeleteChapterMutation();
   
   // Video courses API from teacher (direct import)
   const { 

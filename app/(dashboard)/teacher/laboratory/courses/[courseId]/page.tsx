@@ -18,16 +18,13 @@ import {
   BookOpen, 
   List,
   Target,
-  Settings,
   Eye,
-  Users
 } from "lucide-react";
 import Loading from "@/components/course/Loading";
 import CourseBanner from "@/components/course/CourseBanner";
 import { 
   useGetCourseUnitsQuery,
   useCreateTeacherUnitMutation,
-  useUpdateTeacherUnitMutation,
   useDeleteTeacherUnitMutation
 } from "@/src/domains/teacher/practice-courses/api";
 

@@ -8,7 +8,7 @@ import CourseWizard from "@/components/laboratory/CourseWizard";
 import { useCreateTeacherCourseMutation } from "@/src/domains/teacher/practice-courses/api";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { ChevronLeft, Sparkles, Brain } from "lucide-react";
+import { ChevronLeft, Brain } from "lucide-react";
 import { courseToasts } from "@/components/ui/enhanced-toast";
 import "@/utils/testCourseCreation"; // Load test utilities
 import "@/utils/testApiDirect"; // Load direct API test utilities

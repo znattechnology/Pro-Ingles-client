@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,7 +10,6 @@ import {
   TrendingUp, 
   Calendar, 
   Target, 
-  Award, 
   Clock, 
   Volume2,
   Headphones,
@@ -24,8 +23,6 @@ import {
   BarChart3,
   PieChart,
   Activity,
-  Users,
-  BookOpen,
   MessageCircle
 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -174,7 +171,8 @@ const mockProgressData = {
 };
 
 export default function ListeningProgressDashboard() {
-  const [selectedTimeframe, setSelectedTimeframe] = useState("week");
+  // TODO: Implement timeframe selection
+  // const [selectedTimeframe, setSelectedTimeframe] = useState("week");
   const router = useRouter();
 
   const getScoreColor = (score: number) => {
@@ -183,6 +181,7 @@ export default function ListeningProgressDashboard() {
     return "text-red-400";
   };
 
+  // TODO: Implement score background color function
   const getScoreBg = (score: number) => {
     if (score >= 85) return "bg-green-500";
     if (score >= 70) return "bg-yellow-500";

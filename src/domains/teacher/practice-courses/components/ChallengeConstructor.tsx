@@ -272,10 +272,11 @@ export default function ChallengeConstructor({ course, onBack }: ChallengeConstr
   const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
   
   // Redux hooks
-  const { data: unitsData, isLoading: unitsLoading, error: unitsError } = useGetCourseUnitsQuery(course.id);
-  const { data: lessonsData, isLoading: lessonsLoading } = useGetUnitLessonsQuery(selectedUnitId || '', {
-    skip: !selectedUnitId
-  });
+  const { data: unitsData, error: unitsError } = useGetCourseUnitsQuery(course.id);
+  // TODO: Use lessons data when implementing lesson selection
+  // const { data: lessonsData } = useGetUnitLessonsQuery(selectedUnitId || '', {
+  //   skip: !selectedUnitId
+  // });
   const { data: lessonDetails } = useGetPracticeLessonDetailsQuery(selectedLessonId || '', {
     skip: !selectedLessonId
   });

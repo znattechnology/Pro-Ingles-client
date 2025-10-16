@@ -88,8 +88,8 @@ const CourseEditor = () => {
   const [newSectionTitle, setNewSectionTitle] = useState("");
   const [newSectionDescription, setNewSectionDescription] = useState("");
   
-  // Cache for recently uploaded video URLs (to handle timing issues with API)
-  const [recentVideoUploads, setRecentVideoUploads] = useState<Record<string, {url: string, timestamp: number}>>({});
+  // TODO: Implement cache for recently uploaded video URLs (to handle timing issues with API)
+  // const [recentVideoUploads, setRecentVideoUploads] = useState<Record<string, {url: string, timestamp: number}>>({});
 
   // State for inline chapter creation
   // Note: isCreatingChapter now comes from Redux ui.isCreatingChapter
@@ -629,14 +629,14 @@ const CourseEditor = () => {
             }
           }));
           
-          // Cache the video URL for this chapter to handle timing issues
-          setRecentVideoUploads(prev => ({
-            ...prev,
-            [chapterId]: {
-              url: videoUrl,
-              timestamp: Date.now()
-            }
-          }));
+          // TODO: Cache the video URL for this chapter to handle timing issues
+          // setRecentVideoUploads(prev => ({
+          //   ...prev,
+          //   [chapterId]: {
+          //     url: videoUrl,
+          //     timestamp: Date.now()
+          //   }
+          // }));
 
           // Immediately save the video URL to Django backend to prevent data loss on refresh
           try {

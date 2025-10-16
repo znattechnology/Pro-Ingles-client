@@ -27,10 +27,11 @@ import {
 } from "lucide-react";
 import Loading from "@/components/course/Loading";
 import { useDjangoAuth } from "@/hooks/useDjangoAuth";
-import {
-  useGetCourseAnalyticsQuery,
-  useGetStudentProgressListQuery
-} from "@/src/domains/teacher/practice-courses/api";
+// TODO: Import actual API hooks when implemented
+// import {
+//   useGetCourseAnalyticsQuery,
+//   useGetStudentProgressListQuery
+// } from "@/src/domains/teacher/practice-courses/api";
 
 const LaboratoryAnalytics = () => {
   const { isAuthenticated } = useDjangoAuth();
@@ -39,18 +40,43 @@ const LaboratoryAnalytics = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [studentsPerPage] = useState(6);
 
-  // Use Redux hooks for data fetching
-  const {
-    data: analytics,
-    isLoading: analyticsLoading,
-    error: analyticsError
-  } = useGetTeacherPracticeAnalyticsQuery();
-
-  const {
-    data: students = [],
-    isLoading: studentsLoading,
-    error: studentsError
-  } = useGetStudentProgressQuery();
+  // Temporary mock data until API is implemented
+  const analyticsLoading = false;
+  const studentsLoading = false;
+  
+  const analytics = {
+    total_students: 156,
+    total_courses: 12,
+    total_challenges: 489,
+    avg_completion_rate: 78
+  };
+  
+  const students = [
+    {
+      id: '1',
+      name: 'Maria Silva',
+      email: 'maria@email.com',
+      total_points: 2450,
+      hearts: 4,
+      completed_lessons: 28,
+      total_lessons: 40,
+      last_activity: '2 hours ago',
+      average_accuracy: 89,
+      active_course: 'English Basics'
+    },
+    {
+      id: '2',
+      name: 'João Santos',
+      email: 'joao@email.com',
+      total_points: 1890,
+      hearts: 5,
+      completed_lessons: 22,
+      total_lessons: 35,
+      last_activity: '1 day ago',
+      average_accuracy: 76,
+      active_course: 'Advanced Grammar'
+    }
+  ];
 
   const isLoading = analyticsLoading || studentsLoading;
 

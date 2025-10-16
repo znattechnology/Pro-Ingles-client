@@ -22,30 +22,25 @@ import {
   Flame, 
   BookOpen, 
   Clock, 
-  Zap,
   Award,
   Calendar,
   Users,
   ArrowLeft,
   Lock,
   CheckCircle,
-  Sparkles,
-  Brain,
-  Rocket,
-  TrendingUp,
   X,
   Info,
-  Share,
-  Download
+  Share
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Loading from '@/components/course/Loading';
-import { 
-  useGetUserAchievementsQuery,
-  useGetAchievementStatsQuery,
-  type Achievement,
-  type AchievementStats
-} from '@/src/domains/student/achievements/api';
+// TODO: Import actual API hooks when implemented
+// import { 
+//   useGetUserAchievementsQuery,
+//   useGetAchievementStatsQuery,
+//   type Achievement,
+//   type AchievementStats
+// } from '@/src/domains/student/achievements/api';
 
 
 export default function AchievementsPage() {
@@ -54,16 +49,30 @@ export default function AchievementsPage() {
   const [selectedAchievement, setSelectedAchievement] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // RTK Query hooks for real data
-  const { 
-    data: achievements = [], 
-    isLoading: achievementsLoading 
-  } = useGetUserAchievementsQuery();
+  // TODO: RTK Query hooks for real data when API is implemented
+  // const { 
+  //   data: achievements = [], 
+  //   isLoading: achievementsLoading 
+  // } = useGetUserAchievementsQuery();
+  // 
+  // const { 
+  //   data: stats, 
+  //   isLoading: statsLoading 
+  // } = useGetAchievementStatsQuery();
   
-  const { 
-    data: stats, 
-    isLoading: statsLoading 
-  } = useGetAchievementStatsQuery();
+  // Mock data for now
+  const achievements: any[] = [];
+  const stats = { 
+    totalPoints: 0, 
+    completedAchievements: 0, 
+    totalAchievements: 0,
+    totalUnlocked: 0,
+    totalAvailable: 0,
+    rareAchievements: 0,
+    recentUnlocked: 0
+  };
+  const achievementsLoading = false;
+  const statsLoading = false;
 
   const isLoading = achievementsLoading || statsLoading;
 
