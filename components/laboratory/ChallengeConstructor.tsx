@@ -889,7 +889,7 @@ export default function ChallengeConstructor({ course, onBack }: ChallengeConstr
       {/* Challenge Content */}
       <div className="text-center mb-8">
         <h3 className="text-2xl font-bold text-white mb-4">
-          {currentChallenge.question || 'Digite sua pergunta aqui'}
+          {currentChallenge.question || 'Introduza a sua pergunta aqui'}
         </h3>
         
         {selectedTemplate?.id === 'speaking' && (
@@ -1261,7 +1261,7 @@ export default function ChallengeConstructor({ course, onBack }: ChallengeConstr
                               Pergunta Principal
                             </h4>
                             <p className="text-sm">
-                              Digite sua pergunta no campo "Pergunta" acima. Ex: "Ouça e escolha o animal correto"
+                              Introduza a sua pergunta no campo "Pergunta" acima. Ex: "Ouça e escolha o animal correto"
                             </p>
                           </div>
                           

@@ -84,7 +84,7 @@ const mockProgressData = {
     {
       id: "first_conversation",
       title: "Primeira Conversa",
-      description: "Complete sua primeira sessão de conversação",
+      description: "Complete a sua primeira sessão de conversação",
       icon: MessageCircle,
       earned: true,
       earnedDate: "2024-01-10"
@@ -181,7 +181,7 @@ export default function SpeakingProgressDashboard() {
                 </div>
                 Progresso Speaking
               </h1>
-              <p className="text-gray-300 mt-1">Acompanhe sua evolução na prática de conversação</p>
+              <p className="text-gray-300 mt-1">Acompanhe a sua evolução na prática de conversação</p>
             </div>
           </div>
           
@@ -396,7 +396,7 @@ export default function SpeakingProgressDashboard() {
                         <span className="text-white font-semibold">Ganhe Confiança</span>
                       </div>
                       <p className="text-gray-300 text-sm">
-                        Pratique mais diálogos simples para aumentar sua confiança (80%).
+                        Pratique mais diálogos simples para aumentar a sua confiança (80%).
                       </p>
                     </div>
                   </div>

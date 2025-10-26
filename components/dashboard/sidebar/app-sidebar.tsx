@@ -46,9 +46,7 @@ import {
   ArrowUp,
   Receipt,
   Globe,
-  DollarSign,
-  FileText,
-  Edit
+  DollarSign
 } from "lucide-react";
 
 import {
@@ -125,7 +123,11 @@ const navLinks = {
     },
     {
       title: "Perfil",
-      url: "/user/profile",
+
+
+
+      
+      url: "Perfil",
       icon:  User,
       isActive: true,
       items: [
@@ -136,107 +138,110 @@ const navLinks = {
       ],
     },
     {
-      title: "Practice Lab",
-      url: "/user/laboratory/learn",
+      title: "Aprendizado",
+      url: "/user/learn",
       icon: Target,
       isActive: true,
       items: [
         {
           title: "Praticar",
-          url: "/user/laboratory/learn/courses",
+          url: "/user/learn",
           icon: Target,
         },
         {
           title: "Classificações", 
-          url: "/user/laboratory/leaderboard",
+          url: "/user/leaderboard",
           icon: Trophy,
         },
         {
           title: "Conquistas",
-          url: "/user/laboratory/achievements",
+          url: "/user/achievements",
           icon: Award,
         },
         {
           title: "Loja",
-          url: "/user/laboratory/learn/shop",
+          url: "/user/learn/shop",
           icon: Zap,
         },
       ],
     },
     {
       title: "Speaking Practice",
-      url: "/user/laboratory/speaking",
+      url: "/user/speaking",
       icon: Mic,
       isActive: true,
       items: [
         {
           title: "Praticar Conversação",
-          url: "/user/laboratory/speaking/practice",
+          url: "/user/speaking/practice",
           icon: MessageCircle,
         },
         {
           title: "Exercícios de Pronúncia", 
-          url: "/user/laboratory/speaking/pronunciation",
+          url: "/user/speaking/pronunciation",
           icon: Volume2,
         },
         {
-          title: "Práticas por Curso",
-          url: "/user/laboratory/learn/courses",
-          icon: BookOpen,
-        },
-        {
           title: "Meu Progresso",
-          url: "/user/laboratory/speaking/progress",
+          url: "/user/speaking/progress",
           icon: TrendingUp,
         },
         {
           title: "Conquistas",
-          url: "/user/laboratory/speaking/achievements", 
+          url: "/user/speaking/achievements", 
           icon: Award,
         },
       ],
     },
     {
       title: "Listening Practice",
-      url: "/user/laboratory/listening",
+      url: "/user/listening",
       icon: Headphones,
       isActive: true,
       items: [
         {
           title: "Compreensão Auditiva",
-          url: "/user/laboratory/listening/practice",
+          url: "/user/listening/practice",
           icon: Headphones,
         },
         {
           title: "Ditado",
-          url: "/user/laboratory/listening/dictation",
+          url: "/user/listening/dictation",
           icon: PenTool,
         },
         {
-          title: "Práticas por Curso",
-          url: "/user/laboratory/learn/courses",
-          icon: BookOpen,
-        },
-        {
           title: "Sotaques",
-          url: "/user/laboratory/listening/accents",
+          url: "/user/listening/accents",
           icon: Globe,
         },
         {
           title: "Meu Progresso",
-          url: "/user/laboratory/listening/progress",
+          url: "/user/listening/progress",
           icon: TrendingUp,
         },
       ],
     },
     {
-      title: "Configurações",
+      title: "Laboratório",
+      url: "/user/laboratory",
+      icon: FlaskConical,
+      isActive: true,
+      items: [
+        {
+          title: "Exercícios",
+          url: "/user/laboratory",
+          icon: FlaskConical,
+        },
+      ],
+    },
+    {
+      title: "Definições",
       url: "/user/settings",
       icon:  Settings,
       isActive: true,
       items: [
         {
-          title: "Configurações",
+          title: "Definições",
           url: "/user/settings",
         },
       ],
@@ -247,13 +252,13 @@ const navLinks = {
   teacher: [
     {
       title: "Dashboard",
-      url: "/teacher/dashboard",
+      url: "/teacher/courses",
       icon: LayoutDashboard,
       isActive: true,
       items: [
         {
           title: "Visão Geral",
-          url: "/teacher/dashboard",
+          url: "/teacher/courses",
         },
       ],
     },
@@ -283,59 +288,13 @@ const navLinks = {
     },
     {
       title: "Perfil",
-      url: "/teacher/profile",
+      url: "Perfil",
       icon:  User,
       isActive: true,
       items: [
         {
           title: "Perfil",
           url: "/teacher/profile",
-        },
-      ],
-    },
-    {
-      title: "Speaking Management",
-      url: "/teacher/laboratory/speaking",
-      icon: Mic,
-      isActive: true,
-      items: [
-        {
-          title: "Gerenciar Exercícios",
-          url: "/teacher/laboratory/speaking/exercises",
-          icon: MessageCircle,
-        },
-        {
-          title: "Práticas por Curso",
-          url: "/teacher/laboratory/course-practices",
-          icon: BookOpen,
-        },
-        {
-          title: "Analytics",
-          url: "/teacher/laboratory/speaking/analytics",
-          icon: BarChart3,
-        },
-      ],
-    },
-    {
-      title: "Listening Management",
-      url: "/teacher/laboratory/listening",
-      icon: Headphones,
-      isActive: true,
-      items: [
-        {
-          title: "Gerenciar Exercícios",
-          url: "/teacher/laboratory/listening/exercises",
-          icon: Headphones,
-        },
-        {
-          title: "Práticas por Curso",
-          url: "/teacher/laboratory/course-practices",
-          icon: BookOpen,
-        },
-        {
-          title: "Analytics",
-          url: "/teacher/laboratory/listening/analytics",
-          icon: BarChart3,
         },
       ],
     },
@@ -371,16 +330,6 @@ const navLinks = {
           icon: Target,
         },
         {
-          title: "Gestão de Conquistas",
-          url: "/teacher/laboratory/achievements",
-          icon: Trophy,
-        },
-        {
-          title: "Rankings & Competições",
-          url: "/teacher/laboratory/leaderboard",
-          icon: Crown,
-        },
-        {
           title: "Analytics",
           url: "/teacher/laboratory/analytics",
           icon: BarChart3,
@@ -388,13 +337,13 @@ const navLinks = {
       ],
     },
     {
-      title: "Configurações",
+      title: "Definições",
       url: "/teacher/settings",
       icon:  Settings,
       isActive: true,
       items: [
         {
-          title: "Configurações",
+          title: "Definições",
           url: "/teacher/settings",
         },
       ],
@@ -414,13 +363,13 @@ const navLinks = {
       ],
     },
     {
-      title: "Usuários",
+      title: "Utilizadores",
       url: "/admin/users",
       icon: Users,
       isActive: true,
       items: [
         {
-          title: "Gerenciar Usuários",
+          title: "Gerir Utilizadores",
           url: "/admin/users",
         },
       ],
@@ -449,7 +398,7 @@ const navLinks = {
           icon: Crown,
         },
         {
-          title: "Usuários Assinantes",
+          title: "Utilizadores Assinantes",
           url: "/admin/subscriptions/users",
           icon: Users,
         },
@@ -465,92 +414,7 @@ const navLinks = {
         },
       ],
     },
-    {
-      title: "CMS",
-      url: "/admin/cms",
-      icon: FileText,
-      isActive: true,
-      items: [
-        {
-          title: "Gerenciar Conteúdo",
-          url: "/admin/cms",
-          icon: Edit,
-        },
-        {
-          title: "Landing Page",
-          url: "/admin/cms/landing",
-          icon: Globe,
-        },
-      ],
-    },
   ],
-};
-
-// Função utilitária para determinar se um link está ativo
-const isLinkActive = (currentPath: string, linkUrl: string): boolean => {
-  // 1. Match exato sempre tem prioridade máxima
-  if (currentPath === linkUrl) return true;
-  
-  // 2. URLs específicas primeiro (mais específico vence)
-  // Ordenar por especificidade (URLs mais longas primeiro)
-  const specificRoutes = [
-    "/user/courses/explore",
-    "/user/laboratory/learn/shop",
-    "/user/laboratory/speaking/practice",
-    "/user/laboratory/speaking/pronunciation", 
-    "/user/laboratory/speaking/progress",
-    "/user/laboratory/speaking/achievements",
-    "/user/laboratory/listening/practice",
-    "/user/laboratory/listening/dictation",
-    "/user/laboratory/listening/accents",
-    "/user/laboratory/listening/progress",
-    "/teacher/laboratory/create-course",
-    "/teacher/laboratory/manage-courses",
-    "/teacher/laboratory/lesson-constructor",
-    "/teacher/laboratory/challenge-constructor",
-    "/teacher/laboratory/achievements",
-    "/teacher/laboratory/analytics",
-    "/admin/subscriptions/plans",
-    "/admin/subscriptions/users",
-    "/admin/subscriptions/reports",
-    "/admin/subscriptions/promo-codes",
-    "/admin/cms/landing"
-  ];
-  
-  // Verificar rotas específicas primeiro
-  for (const route of specificRoutes) {
-    if (linkUrl === route && currentPath === route) {
-      return true;
-    }
-  }
-  
-  // 3. Rotas que permitem sub-paths (menos específicas)
-  const parentRoutes = [
-    "/user/courses",
-    "/teacher/courses",
-    "/admin/courses", 
-    "/user/laboratory/learn",
-    "/teacher/laboratory",
-    "/admin/users",
-    "/admin/subscriptions",
-    "/admin/cms",
-    "/user/laboratory/speaking",
-    "/user/laboratory/listening",
-    "/user/laboratory"
-  ];
-  
-  // Verificar se é uma rota pai que deve ativar com sub-paths
-  if (parentRoutes.includes(linkUrl)) {
-    // Exclusões específicas
-    if (linkUrl === "/user/courses" && currentPath.includes("/explore")) return false;
-    if (linkUrl === "/teacher/courses" && currentPath.includes("/explore")) return false;
-    
-    // Ativar se o path atual começa com o URL do link + "/"
-    if (currentPath.startsWith(linkUrl + "/")) return true;
-  }
-  
-  // 4. Para todos os outros, apenas match exato
-  return false;
 };
 
 const AppSidebar = React.memo(() => {
@@ -590,7 +454,7 @@ const AppSidebar = React.memo(() => {
               <Collapsible
                 key={item.title}
                 asChild
-                defaultOpen={false}
+                defaultOpen={item.isActive}
                 className="group/collapsible"
               >
                 <SidebarMenuItem>
@@ -606,38 +470,8 @@ const AppSidebar = React.memo(() => {
                   </CollapsibleTrigger>
                   <CollapsibleContent>
                     <SidebarMenuSub className="ml-4 border-l border-violet-900/20">
-                      {item.items?.map((subItem, index) => {
-                         // Calcular se este link deve estar ativo
-                         const isActive = (() => {
-                           // Se todos os outros links da mesma seção não são ativos, verificar este
-                           const allLinksInSection = item.items || [];
-                           
-                           // Encontrar o melhor match (mais específico primeiro)
-                           let bestMatch = null;
-                           let bestMatchLength = 0;
-                           
-                           for (const link of allLinksInSection) {
-                             if (pathname === link.url) {
-                               // Match exato tem prioridade máxima
-                               bestMatch = link;
-                               break;
-                             } else if (pathname.startsWith(link.url + "/")) {
-                               // Match com sub-path, o mais longo vence
-                               if (link.url.length > bestMatchLength) {
-                                 bestMatch = link;
-                                 bestMatchLength = link.url.length;
-                               }
-                             }
-                           }
-                           
-                           return bestMatch?.url === subItem.url;
-                         })();
-                         
-                         // Debug temporário
-                         if (process.env.NODE_ENV === 'development') {
-                           console.log(`Link: ${subItem.title} (${subItem.url}) | Current: ${pathname} | Active: ${isActive}`);
-                         }
-                         
+                      {item.items?.map((subItem) => {
+                         const isActive = pathname.startsWith(subItem.url);
                           return (
                             <SidebarMenuSubItem key={subItem.title} className="pl-4 py-1">
                               <SidebarMenuSubButton 

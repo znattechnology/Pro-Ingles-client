@@ -15,4 +15,4 @@ export * as videoCourses from './video-courses';
 export * as practiceCourses from './practice-courses';
 
 // Note: We intentionally don't re-export hooks directly to avoid confusion
-// Use specific paths like '@modules/learning/video-courses' instead
+// Use specific paths like '@modules/learning/video-courses' insteadeste

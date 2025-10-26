@@ -16,11 +16,11 @@ export const sidebarLinks = [
     ],
   },
   {
-    title: "Usuários",
+    title: "Utilizadores",
     url: "/dashboard/users",
     icon: Users,
     items: [
-      { title: "Usuários", url: "/dashboard/users/users" },
+      { title: "Utilizadores", url: "/dashboard/users/users" },
       { title: "Faturas", url: "/dashboard/users/faturas" },
       { title: "Equipa", url: "/dashboard/users/team" },
     ],
@@ -52,7 +52,7 @@ export const sidebarLinks = [
     icon: BarChart2,
     items: [
       { title: "Cursos", url: "/dashboard/analityc/course-analitcs" },
-      { title: "Usuários", url: "/dashboard/analityc/users-analitcs" },
+      { title: "Utilizadores", url: "/dashboard/analityc/users-analitcs" },
       { title: "Compras", url: "/dashboard/analityc/orders-analitcs" },
     ],
   },
@@ -140,9 +140,9 @@ export const exploreWorlds = [
 
 
 export const startingFeatures = [
-  'Find a world that suits you and you want to enter',
-  'Enter the world by reading basmalah to be safe',
-  'No need to beat around the bush, just stay on the gas and have fun',
+  'Encontre um mundo que se adeque ao seu perfil e que queira explorar',
+  'Entre no mundo da aprendizagem de inglês com segurança e confiança',
+  'Não precisa de rodeios, mantenha-se focado e divirta-se enquanto aprende',
 ];
 
 export const newFeatures = [
@@ -154,30 +154,30 @@ export const newFeatures = [
   },
   {
     imgUrl: '/headset.svg',
-    title: 'More realistic',
+    title: 'Mais realista',
     subtitle:
-        'In the latest update, your eyes are narrow, making the world more realistic than ever',
+        'Na última actualização, a experiência tornou-se mais realista do que nunca, proporcionando aprendizagem imersiva',
   },
 ];
 
 export const insights = [
   {
     imgUrl: '/planet-06.png',
-    title: 'The launch of the Metaverse makes Elon musk ketar-ketir',
+    title: 'A revolução do ensino digital chegou a Angola',
     subtitle:
-        'Magna etiam tempor orci eu lobortis elementum nibh tellus molestie. Diam maecenas sed enim ut sem viverra alique.',
+        'Tecnologia avançada de ensino de inglês adaptada à realidade angolana. Aprenda com metodologias inovadoras e conteúdo localizado.',
   },
   {
     imgUrl: '/planet-07.png',
-    title: '7 tips to easily master the madness of the Metaverse',
+    title: '7 dicas para dominar facilmente o inglês angolano',
     subtitle:
-        'Vitae congue eu consequat ac felis donec. Et magnis dis parturient montes nascetur ridiculus mus. Convallis tellus id interdum',
+        'Descubra as melhores técnicas adaptadas para o contexto angolano. Metodologias comprovadas que aceleram o seu aprendizado de inglês.',
   },
   {
     imgUrl: '/planet-08.png',
-    title: 'With one platform you can explore the whole world virtually',
+    title: 'Com uma plataforma pode explorar o mundo todo virtualmente',
     subtitle:
-        'Quam quisque id diam vel quam elementum. Viverra nam libero justo laoreet sit amet cursus sit. Mauris in aliquam sem',
+        'Acesso global a oportunidades internacionais. Conecte-se com o mundo através do inglês e expanda os seus horizontes profissionais.',
   },
 ];
 
@@ -208,28 +208,28 @@ export const navigation = [
   },
   {
     id: "1",
-    title: "Pricing",
+    title: "Preços",
     url: "#pricing",
   },
   {
     id: "2",
-    title: "How to use",
+    title: "Como usar",
     url: "#how-to-use",
   },
   {
     id: "3",
-    title: "Roadmap",
+    title: "Roteiro",
     url: "#roadmap",
   },
   {
     id: "4",
-    title: "New account",
+    title: "Nova conta",
     url: "#signup",
     onlyMobile: true,
   },
   {
     id: "5",
-    title: "Sign in",
+    title: "Iniciar sessão",
     url: "#login",
     onlyMobile: true,
   },

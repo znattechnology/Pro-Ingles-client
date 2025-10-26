@@ -311,7 +311,7 @@ export const QuizBuilder: React.FC<QuizBuilderProps> = ({
                     <Input
                       value={question.question}
                       onChange={(e) => updateQuestion(question.id, { question: e.target.value })}
-                      placeholder="Digite sua pergunta aqui..."
+                      placeholder="Introduza a sua pergunta aqui..."
                       className="bg-customgreys-darkGrey/50 border-purple-500/30 text-white"
                     />
                   </div>

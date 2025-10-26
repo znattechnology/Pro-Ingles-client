@@ -92,7 +92,7 @@ export default function SpeakingPracticeHub() {
             <h1 className="text-4xl font-bold text-white">Speaking Practice</h1>
           </div>
           <p className="text-gray-300 text-lg max-w-2xl mx-auto">
-            Melhore sua pronúncia e fluência com nossa IA avançada. 
+            Melhore a sua pronúncia e fluência com a nossa IA avançada. 
             Pratique conversação e receba feedback personalizado.
           </p>
         </div>

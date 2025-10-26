@@ -162,7 +162,7 @@ export default function StudentDashboard() {
               Bem-vindo de volta! 👋
             </h1>
             <p className="text-customgreys-dirtyGrey">
-              Continue sua jornada de aprendizagem • Nível {userStats?.level}
+              Continue a sua jornada de aprendizagem • Nível {userStats?.level}
             </p>
           </div>
           <div className="flex items-center gap-4">
@@ -418,7 +418,7 @@ export default function StudentDashboard() {
                   {userStats?.streak} dias seguidos!
                 </h3>
                 <p className="text-orange-200 text-sm mb-4">
-                  Continue sua sequência hoje para ganhar pontos extras
+                  Continue a sua sequência hoje para ganhar pontos extras
                 </p>
                 <Button
                   onClick={() => router.push('/user/laboratory/learn')}

@@ -171,7 +171,7 @@ const LearnPage = () => {
                   {activeCourse?.title || 'Carregando...'}
                 </h1>
                 <p className="text-customgreys-dirtyGrey">
-                  Continue sua jornada de aprendizagem • {courseProgressPercentage}% concluído
+                  Continue a sua jornada de aprendizagem • {courseProgressPercentage}% concluído
                 </p>
               </div>
             </div>

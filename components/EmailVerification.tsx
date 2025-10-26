@@ -7,7 +7,7 @@ import { RootState } from "@/state/redux";
 import { 
   useVerifyEmailMutation, 
   useResendVerificationCodeMutation 
-} from "@/src/domains/auth";
+} from "@/redux/features/auth/authApi";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -41,6 +41,7 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({
   const [verifyEmail, { isLoading: isVerifying }] = useVerifyEmailMutation();
   const [resendCode, { isLoading: isResending }] = useResendVerificationCodeMutation();
 
+  
   // Countdown timer for resend button
   useEffect(() => {
     if (countdown > 0) {
@@ -101,7 +102,7 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({
       setError(errorMessage);
       toast.error(errorMessage);
     }
-  };
+  }; 
 
   const handleResendCode = async () => {
     if (!email) {

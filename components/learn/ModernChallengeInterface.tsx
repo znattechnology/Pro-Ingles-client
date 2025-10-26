@@ -441,7 +441,7 @@ export default function ModernChallengeInterface({
               <textarea
                 value={selectedAnswer as string}
                 onChange={(e) => setSelectedAnswer(e.target.value)}
-                placeholder="Digite sua tradução... (A IA aceita várias formas corretas)"
+                placeholder="Introduza a sua tradução... (A IA aceita várias formas corretas)"
                 className="w-full p-4 bg-customgreys-secondarybg border-2 border-customgreys-darkerGrey rounded-lg text-white placeholder-customgreys-dirtyGrey focus:border-violet-500 focus:outline-none resize-none transition-colors"
                 rows={3}
               />
@@ -491,7 +491,7 @@ export default function ModernChallengeInterface({
             <textarea
               value={selectedAnswer as string}
               onChange={(e) => setSelectedAnswer(e.target.value)}
-              placeholder="Digite o que você ouviu..."
+              placeholder="Introduza o que ouviu..."
               className="w-full p-4 bg-customgreys-secondarybg border-2 border-customgreys-darkerGrey rounded-lg text-white placeholder-customgreys-dirtyGrey focus:border-violet-500 focus:outline-none resize-none"
               rows={3}
             />

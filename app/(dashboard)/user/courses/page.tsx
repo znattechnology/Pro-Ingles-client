@@ -403,7 +403,7 @@ const MyCoursesPage = () => {
               <p className="text-gray-400 text-center mb-6 max-w-md">
                 {searchTerm 
                   ? 'Tente ajustar seu termo de pesquisa ou filtros' 
-                  : 'Explore nosso catálogo e comece sua jornada de aprendizado hoje mesmo!'
+                  : 'Explore nosso catálogo e comece a sua jornada de aprendizado hoje mesmo!'
                 }
               </p>
               <div className="flex gap-3">
