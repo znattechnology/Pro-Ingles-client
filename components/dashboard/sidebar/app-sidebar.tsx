@@ -139,28 +139,28 @@ const navLinks = {
     },
     {
       title: "Aprendizado",
-      url: "/user/learn",
+      url: "/user/laboratory/learn",
       icon: Target,
       isActive: true,
       items: [
         {
           title: "Praticar",
-          url: "/user/learn",
+          url: "/user/laboratory/learn",
           icon: Target,
         },
         {
           title: "Classificações", 
-          url: "/user/leaderboard",
+          url: "/user/laboratory/leaderboard",
           icon: Trophy,
         },
         {
           title: "Conquistas",
-          url: "/user/achievements",
+          url: "/user/laboratory/achievements",
           icon: Award,
         },
         {
           title: "Loja",
-          url: "/user/learn/shop",
+          url: "/user/laboratory/learn/shop",
           icon: Zap,
         },
       ],

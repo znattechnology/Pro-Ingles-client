@@ -158,16 +158,16 @@ export const UnitRedux = ({
       <div className='flex items-center flex-col relative'>
         {/* Unit Progress Indicator (Redux only) */}
         {useReduxUnits && unitProgress && (
-          <div className="w-full max-w-md mb-4 p-3 bg-violet-500/10 rounded-lg border border-violet-500/20">
+          <div className="w-full max-w-md mb-4 p-3 sm:p-4 bg-violet-500/10 rounded-lg border border-violet-500/20">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-violet-400 text-sm font-medium">Progresso da Unidade 🔄</span>
-              <span className="text-white text-sm font-bold">
+              <span className="text-violet-400 text-xs sm:text-sm font-medium">Progresso da Unidade 🔄</span>
+              <span className="text-white text-xs sm:text-sm font-bold">
                 {unitProgress.completedLessons}/{unitProgress.totalLessons}
               </span>
             </div>
-            <div className="w-full bg-customgreys-darkGrey rounded-full h-2">
+            <div className="w-full bg-customgreys-darkGrey rounded-full h-2 sm:h-3">
               <div 
-                className="bg-gradient-to-r from-violet-500 to-purple-500 h-2 rounded-full transition-all duration-500"
+                className="bg-gradient-to-r from-violet-500 to-purple-500 h-2 sm:h-3 rounded-full transition-all duration-500"
                 style={{ width: `${unitProgress.progressPercentage}%` }}
               />
             </div>
@@ -184,11 +184,11 @@ export const UnitRedux = ({
         
         {/* Unit Locked Message (NEVER show for first unit) */}
         {isUnitLocked && !isFirstUnit && (
-          <div className="w-full max-w-md mb-6 p-4 bg-gray-500/10 rounded-lg border border-gray-500/20">
+          <div className="w-full max-w-md mb-6 p-4 sm:p-6 bg-gray-500/10 rounded-lg border border-gray-500/20">
             <div className="text-center">
-              <div className="text-4xl mb-2">🔒</div>
-              <h4 className="text-gray-400 font-semibold mb-2">Unidade Bloqueada</h4>
-              <p className="text-gray-500 text-sm">
+              <div className="text-3xl sm:text-4xl mb-2">🔒</div>
+              <h4 className="text-gray-400 font-semibold mb-2 text-sm sm:text-base">Unidade Bloqueada</h4>
+              <p className="text-gray-500 text-xs sm:text-sm leading-relaxed">
                 Complete todas as lições da unidade anterior para desbloquear esta unidade.
               </p>
             </div>
@@ -208,14 +208,14 @@ export const UnitRedux = ({
         
         {/* Unit Actions (Redux only) */}
         {useReduxUnits && unitProgress?.isCompleted && (
-          <div className="mt-4 p-3 bg-green-500/10 rounded-lg border border-green-500/20">
+          <div className="mt-4 p-3 sm:p-4 bg-green-500/10 rounded-lg border border-green-500/20">
             <div className="text-center">
-              <div className="text-green-400 text-sm font-medium mb-2">
+              <div className="text-green-400 text-xs sm:text-sm font-medium mb-2">
                 🎉 Unidade Concluída! 🔄
               </div>
               <button
                 onClick={() => unlockNextUnit(id)}
-                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white text-xs px-3 py-1 rounded-lg transition-all duration-200"
+                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white text-xs sm:text-sm px-3 sm:px-4 py-2 rounded-lg transition-all duration-200 min-h-[36px]"
               >
                 Desbloquear Próxima Unidade
               </button>
@@ -225,11 +225,11 @@ export const UnitRedux = ({
         
         {/* Empty state for units with no lessons */}
         {safeLessons.length === 0 && (
-          <div className="text-center py-8 px-4">
-            <div className="text-customgreys-dirtyGrey text-sm mb-2">
+          <div className="text-center py-6 sm:py-8 px-4">
+            <div className="text-customgreys-dirtyGrey text-xs sm:text-sm mb-2">
               {useReduxUnits ? '🔄 Esta unidade ainda não possui lições' : 'Esta unidade ainda não possui lições'}
             </div>
-            <div className="text-customgreys-darkGrey text-xs">
+            <div className="text-customgreys-darkGrey text-xs leading-relaxed">
               Aguarde enquanto o conteúdo é preparado
             </div>
           </div>

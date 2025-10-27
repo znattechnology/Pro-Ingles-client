@@ -76,7 +76,7 @@ export const UserProgress = ({
       {/* Stats Cards */}
       <div className="grid grid-cols-1 gap-3">
         {/* Points Card */}
-        <Link href="/user/learn/shop">
+        <Link href="/user/laboratory/learn/shop">
           <Card className="bg-gradient-to-br from-yellow-500/10 to-orange-500/5 border-yellow-500/20 hover:border-yellow-500/40 transition-all duration-300 group cursor-pointer">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
@@ -98,7 +98,7 @@ export const UserProgress = ({
         </Link>
 
         {/* Hearts Card */}
-        <Link href="/user/learn/shop">
+        <Link href="/user/laboratory/learn/shop">
           <Card className={`bg-gradient-to-br from-red-500/10 to-pink-500/5 border-red-500/20 hover:border-red-500/40 transition-all duration-300 group cursor-pointer ${
             hearts <= 1 ? 'animate-pulse' : ''
           }`}>
@@ -161,7 +161,7 @@ export const UserProgress = ({
                 className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white text-xs w-full"
                 asChild
               >
-                <Link href="/user/learn/shop">
+                <Link href="/user/laboratory/learn/shop">
                   Recarregar Corações
                 </Link>
               </Button>

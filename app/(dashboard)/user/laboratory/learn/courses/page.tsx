@@ -157,69 +157,69 @@ const LearnCourse = () => {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(168,85,247,0.08),transparent_70%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,rgba(236,72,153,0.06),transparent_70%)]" />
         
-        <div className="relative max-w-7xl mx-auto px-6 py-12">
-          <div className="text-center space-y-6">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+          <div className="text-center space-y-4 sm:space-y-6">
             {/* Icon and Title */}
-            <div className="flex items-center justify-center space-x-4">
-              <div className="bg-gradient-to-br from-violet-600 to-purple-600 p-4 rounded-2xl shadow-2xl">
-                <Target className="h-8 w-8 text-white" />
+            <div className="flex flex-col sm:flex-row items-center justify-center space-y-3 sm:space-y-0 sm:space-x-4">
+              <div className="bg-gradient-to-br from-violet-600 to-purple-600 p-3 sm:p-4 rounded-2xl shadow-2xl">
+                <Target className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
               </div>
-              <div className="text-left">
-                <h1 className="text-4xl font-black bg-gradient-to-r from-white via-violet-200 to-purple-200 bg-clip-text text-transparent">
+              <div className="text-center sm:text-left">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-black bg-gradient-to-r from-white via-violet-200 to-purple-200 bg-clip-text text-transparent">
                   Practice Laboratory
                 </h1>
-                <p className="text-violet-300 text-lg font-medium">Cursos Interativos de Inglês</p>
+                <p className="text-violet-300 text-sm sm:text-base lg:text-lg font-medium">Cursos Interativos de Inglês</p>
               </div>
             </div>
             
             {/* Description */}
-            <p className="text-gray-300 text-lg max-w-3xl mx-auto leading-relaxed">
+            <p className="text-gray-300 text-sm sm:text-base lg:text-lg max-w-3xl mx-auto leading-relaxed px-4 sm:px-0">
               Pratique inglês de forma interativa com exercícios gamificados, desafios personalizados e progresso em tempo real. 
               Cada curso foi desenvolvido para maximizar seu aprendizado através da prática ativa.
             </p>
             
             {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto mt-8">
-              <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-violet-500/20">
-                <div className="flex items-center gap-3">
-                  <div className="bg-violet-500/20 p-2 rounded-lg">
-                    <BookOpen className="h-5 w-5 text-violet-400" />
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 max-w-4xl mx-auto mt-6 sm:mt-8">
+              <div className="bg-white/5 backdrop-blur-sm rounded-xl p-3 sm:p-4 border border-violet-500/20">
+                <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
+                  <div className="bg-violet-500/20 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
+                    <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 text-violet-400" />
                   </div>
-                  <div>
-                    <p className="text-2xl font-bold text-white">{courses.length}</p>
+                  <div className="text-center sm:text-left">
+                    <p className="text-lg sm:text-xl lg:text-2xl font-bold text-white">{courses.length}</p>
                     <p className="text-xs text-gray-400">Cursos</p>
                   </div>
                 </div>
               </div>
-              <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-blue-500/20">
-                <div className="flex items-center gap-3">
-                  <div className="bg-blue-500/20 p-2 rounded-lg">
-                    <Target className="h-5 w-5 text-blue-400" />
+              <div className="bg-white/5 backdrop-blur-sm rounded-xl p-3 sm:p-4 border border-blue-500/20">
+                <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
+                  <div className="bg-blue-500/20 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
+                    <Target className="h-4 w-4 sm:h-5 sm:w-5 text-blue-400" />
                   </div>
-                  <div>
-                    <p className="text-2xl font-bold text-white">500+</p>
+                  <div className="text-center sm:text-left">
+                    <p className="text-lg sm:text-xl lg:text-2xl font-bold text-white">500+</p>
                     <p className="text-xs text-gray-400">Lições</p>
                   </div>
                 </div>
               </div>
-              <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-yellow-500/20">
-                <div className="flex items-center gap-3">
-                  <div className="bg-yellow-500/20 p-2 rounded-lg">
-                    <Zap className="h-5 w-5 text-yellow-400" />
+              <div className="bg-white/5 backdrop-blur-sm rounded-xl p-3 sm:p-4 border border-yellow-500/20">
+                <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
+                  <div className="bg-yellow-500/20 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
+                    <Zap className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-400" />
                   </div>
-                  <div>
-                    <p className="text-2xl font-bold text-white">2000+</p>
+                  <div className="text-center sm:text-left">
+                    <p className="text-lg sm:text-xl lg:text-2xl font-bold text-white">2000+</p>
                     <p className="text-xs text-gray-400">Desafios</p>
                   </div>
                 </div>
               </div>
-              <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-green-500/20">
-                <div className="flex items-center gap-3">
-                  <div className="bg-green-500/20 p-2 rounded-lg">
-                    <Users className="h-5 w-5 text-green-400" />
+              <div className="bg-white/5 backdrop-blur-sm rounded-xl p-3 sm:p-4 border border-green-500/20">
+                <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
+                  <div className="bg-green-500/20 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
+                    <Users className="h-4 w-4 sm:h-5 sm:w-5 text-green-400" />
                   </div>
-                  <div>
-                    <p className="text-2xl font-bold text-white">10k+</p>
+                  <div className="text-center sm:text-left">
+                    <p className="text-lg sm:text-xl lg:text-2xl font-bold text-white">10k+</p>
                     <p className="text-xs text-gray-400">Estudantes</p>
                   </div>
                 </div>
@@ -230,30 +230,30 @@ const LearnCourse = () => {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-6 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Search and Filters */}
-        <div className="bg-customgreys-secondarybg/40 backdrop-blur-sm rounded-xl border border-violet-900/30 p-6 mb-8">
+        <div className="bg-customgreys-secondarybg/40 backdrop-blur-sm rounded-xl border border-violet-900/30 p-4 sm:p-6 mb-6 sm:mb-8">
           {/* Search Bar */}
           <div className="relative mb-4">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <Search className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
             <Input
               type="text"
-              placeholder="Pesquisar cursos do laboratório..."
+              placeholder="Pesquisar cursos..."
               value={searchTerm}
               onChange={(e) => setSearchTermValue(e.target.value)}
-              className="pl-12 h-12 bg-customgreys-darkGrey/50 border-violet-900/30 text-white placeholder:text-gray-400 focus:border-violet-500 focus:ring-1 focus:ring-violet-500/20 transition-all duration-200 rounded-xl"
+              className="pl-10 sm:pl-12 h-10 sm:h-12 bg-customgreys-darkGrey/50 border-violet-900/30 text-white placeholder:text-gray-400 focus:border-violet-500 focus:ring-1 focus:ring-violet-500/20 transition-all duration-200 rounded-xl text-sm sm:text-base"
             />
           </div>
           
           {/* Filters and Controls */}
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
+          <div className="space-y-3 sm:space-y-0 sm:flex sm:flex-wrap sm:items-center sm:justify-between sm:gap-4">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               {/* Level Filter */}
               <div className="flex items-center gap-2">
-                <Filter className="w-4 h-4 text-gray-400" />
-                <span className="text-gray-400 text-sm">Nível:</span>
+                <Filter className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                <span className="text-gray-400 text-xs sm:text-sm flex-shrink-0">Nível:</span>
                 <Select value={filterLevel} onValueChange={setFilterLevel}>
-                  <SelectTrigger className="w-[140px] h-9 bg-customgreys-darkGrey/50 border-violet-900/30 text-white focus:border-violet-500 focus:ring-1 focus:ring-violet-500/20">
+                  <SelectTrigger className="w-full sm:w-[140px] h-8 sm:h-9 bg-customgreys-darkGrey/50 border-violet-900/30 text-white focus:border-violet-500 focus:ring-1 focus:ring-violet-500/20 text-xs sm:text-sm">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-customgreys-secondarybg border-violet-900/30">
@@ -267,11 +267,11 @@ const LearnCourse = () => {
               
               {/* Sort */}
               <div className="flex items-center gap-2">
-                <span className="text-gray-400 text-sm">Ordenar:</span>
+                <span className="text-gray-400 text-xs sm:text-sm flex-shrink-0">Ordenar:</span>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="bg-customgreys-darkGrey/50 border border-violet-900/30 text-white text-sm rounded-lg px-3 py-2 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20"
+                  className="flex-1 sm:flex-none bg-customgreys-darkGrey/50 border border-violet-900/30 text-white text-xs sm:text-sm rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 min-w-[120px]"
                 >
                   <option value="progress">Progresso</option>
                   <option value="title">A-Z</option>
@@ -281,22 +281,24 @@ const LearnCourse = () => {
             </div>
             
             {/* View Mode Toggle */}
-            <div className="flex items-center bg-customgreys-darkGrey/50 border border-violet-900/30 rounded-lg p-1">
+            <div className="flex items-center bg-customgreys-darkGrey/50 border border-violet-900/30 rounded-lg p-1 w-full sm:w-auto justify-center sm:justify-start">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setViewMode('grid')}
-                className={`p-2 ${viewMode === 'grid' ? 'bg-violet-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                className={`p-2 sm:p-2 flex-1 sm:flex-none ${viewMode === 'grid' ? 'bg-violet-600 text-white' : 'text-gray-400 hover:text-white'}`}
               >
                 <Grid3X3 className="w-4 h-4" />
+                <span className="ml-2 sm:hidden text-xs">Grade</span>
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setViewMode('list')}
-                className={`p-2 ${viewMode === 'list' ? 'bg-violet-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                className={`p-2 sm:p-2 flex-1 sm:flex-none ${viewMode === 'list' ? 'bg-violet-600 text-white' : 'text-gray-400 hover:text-white'}`}
               >
                 <ListIcon className="w-4 h-4" />
+                <span className="ml-2 sm:hidden text-xs">Lista</span>
               </Button>
             </div>
           </div>
@@ -334,15 +336,15 @@ const LearnCourse = () => {
           </Card>
         ) : (
           <>
-            <div className="mb-6 flex items-center justify-between flex-wrap gap-4">
-              <div className="flex items-center gap-4">
-                <p className="text-gray-300">
+            <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                <p className="text-gray-300 text-sm sm:text-base">
                   {filteredAndSortedCourses.length === 1 
                     ? '1 curso encontrado' 
                     : `${filteredAndSortedCourses.length} cursos encontrados`}
                 </p>
-                <div className="flex items-center gap-2 text-sm text-gray-400">
-                  <TrendingUp className="w-4 h-4" />
+                <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-400">
+                  <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4" />
                   <span>Aprenda praticando</span>
                 </div>
               </div>

@@ -120,16 +120,16 @@ export const UserProgressRedux = ({
       {/* Active Course Card */}
       <Card className="bg-customgreys-secondarybg border-customgreys-darkerGrey hover:border-violet-500/30 transition-all duration-300 group overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-        <CardContent className="relative p-4">
-          <div className="flex items-center gap-4">
+        <CardContent className="relative p-3 sm:p-4">
+          <div className="flex items-center gap-3 sm:gap-4">
             <Link href="/user/laboratory/learn/courses" className="flex-shrink-0">
               <div className="relative group-hover:scale-105 transition-transform duration-200">
                 <Image
                   src={activeCourse.imageSrc || "/placeholder.png"}
                   alt={activeCourse.title}
                   className="rounded-lg border-2 border-customgreys-darkerGrey object-cover"
-                  width={60}
-                  height={60}
+                  width={48}
+                  height={48}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-lg" />
                 {/* Redux indicator */}
@@ -141,16 +141,16 @@ export const UserProgressRedux = ({
               </div>
             </Link>
             <div className="flex-1 min-w-0">
-              <h3 className="text-white font-medium text-sm truncate mb-1">
+              <h3 className="text-white font-medium text-xs sm:text-sm truncate mb-1">
                 {activeCourse.title} {useReduxProgress && '🔄'}
               </h3>
               <Badge 
                 className={`bg-gradient-to-r ${userLevel.color} text-white text-xs font-medium`}
               >
-                <LevelIcon className="w-3 h-3 mr-1" />
-                {userLevel.level}
+                <LevelIcon className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-1" />
+                <span className="text-xs">{userLevel.level}</span>
                 {useReduxProgress && levelInfo && (
-                  <span className="ml-1 opacity-75">Lv.{levelInfo.level}</span>
+                  <span className="ml-1 opacity-75 text-xs">Lv.{levelInfo.level}</span>
                 )}
               </Badge>
             </div>
@@ -163,17 +163,17 @@ export const UserProgressRedux = ({
         {/* Points Card */}
         <Link href="/user/laboratory/learn/shop">
           <Card className="bg-gradient-to-br from-yellow-500/10 to-orange-500/5 border-yellow-500/20 hover:border-yellow-500/40 transition-all duration-300 group cursor-pointer">
-            <CardContent className="p-4">
+            <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl p-2 group-hover:scale-110 transition-transform duration-200">
-                    <Star className="w-4 h-4 text-white" />
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl p-1.5 sm:p-2 group-hover:scale-110 transition-transform duration-200">
+                    <Star className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
                   </div>
                   <div>
                     <p className="text-yellow-400 text-xs font-medium uppercase tracking-wide">
                       Pontos {useReduxProgress && '🔄'}
                     </p>
-                    <p className="text-white text-lg font-bold">{points.toLocaleString()}</p>
+                    <p className="text-white text-base sm:text-lg font-bold">{points.toLocaleString()}</p>
                     {useReduxProgress && levelInfo && (
                       <p className="text-yellow-300 text-xs">
                         {levelInfo.nextLevelPoints} para próximo nível
@@ -182,7 +182,7 @@ export const UserProgressRedux = ({
                   </div>
                 </div>
                 <div className="opacity-50 group-hover:opacity-100 transition-opacity duration-200">
-                  <ShoppingBag className="w-4 h-4 text-yellow-400" />
+                  <ShoppingBag className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-400" />
                 </div>
               </div>
             </CardContent>
@@ -194,11 +194,11 @@ export const UserProgressRedux = ({
           <Card className={`bg-gradient-to-br from-red-500/10 to-pink-500/5 border-red-500/20 hover:border-red-500/40 transition-all duration-300 group cursor-pointer ${
             hearts <= 1 ? 'animate-pulse' : ''
           }`}>
-            <CardContent className="p-4">
+            <CardContent className="p-3 sm:p-4">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="bg-gradient-to-br from-red-500 to-pink-500 rounded-xl p-2 group-hover:scale-110 transition-transform duration-200">
-                    <HeartIcon className="w-4 h-4 text-white" />
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="bg-gradient-to-br from-red-500 to-pink-500 rounded-xl p-1.5 sm:p-2 group-hover:scale-110 transition-transform duration-200">
+                    <HeartIcon className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
                   </div>
                   <div>
                     <p className="text-red-400 text-xs font-medium uppercase tracking-wide">
@@ -206,18 +206,18 @@ export const UserProgressRedux = ({
                     </p>
                     <div className="flex items-center gap-1">
                       {hasActiveSubscription ? (
-                        <InfinityIcon className="w-5 h-5 text-white font-bold" />
+                        <InfinityIcon className="w-4 h-4 sm:w-5 sm:h-5 text-white font-bold" />
                       ) : (
                         <>
-                          <span className="text-white text-lg font-bold">{hearts}</span>
-                          <span className="text-customgreys-dirtyGrey text-sm">/5</span>
+                          <span className="text-white text-base sm:text-lg font-bold">{hearts}</span>
+                          <span className="text-customgreys-dirtyGrey text-xs sm:text-sm">/5</span>
                         </>
                       )}
                     </div>
                   </div>
                 </div>
                 <div className="opacity-50 group-hover:opacity-100 transition-opacity duration-200">
-                  <ShoppingBag className="w-4 h-4 text-red-400" />
+                  <ShoppingBag className="w-3 h-3 sm:w-4 sm:h-4 text-red-400" />
                 </div>
               </div>
               
@@ -244,15 +244,15 @@ export const UserProgressRedux = ({
       {/* Premium Upgrade CTA (only if not subscribed and hearts are low) */}
       {!hasActiveSubscription && (useReduxProgress ? isLowOnHearts : hearts <= 2) && (
         <Card className="bg-gradient-to-br from-violet-500/20 to-purple-500/10 border-violet-500/30 animate-pulse">
-          <CardContent className="p-4">
+          <CardContent className="p-3 sm:p-4">
             <div className="text-center">
-              <Crown className="w-6 h-6 text-violet-400 mx-auto mb-2" />
+              <Crown className="w-5 h-5 sm:w-6 sm:h-6 text-violet-400 mx-auto mb-2" />
               <p className="text-violet-400 text-xs font-medium mb-2">
                 Corações Baixos! {useReduxProgress && '🔄'}
               </p>
               <Button 
                 size="sm" 
-                className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white text-xs w-full"
+                className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white text-xs w-full min-h-[36px]"
                 asChild
               >
                 <Link href="/user/laboratory/learn/shop">
@@ -267,14 +267,14 @@ export const UserProgressRedux = ({
       {/* Redux Level Progress Bar */}
       {useReduxProgress && levelInfo && (
         <Card className="bg-gradient-to-br from-violet-500/10 to-purple-500/5 border-violet-500/20">
-          <CardContent className="p-4">
+          <CardContent className="p-3 sm:p-4">
             <div className="flex items-center justify-between mb-2">
               <p className="text-violet-400 text-xs font-medium">Progresso do Nível 🔄</p>
               <p className="text-white text-xs font-bold">Nível {levelInfo.level}</p>
             </div>
-            <div className="w-full bg-customgreys-darkGrey rounded-full h-2">
+            <div className="w-full bg-customgreys-darkGrey rounded-full h-2 sm:h-3">
               <div 
-                className="bg-gradient-to-r from-violet-500 to-purple-500 h-2 rounded-full transition-all duration-500"
+                className="bg-gradient-to-r from-violet-500 to-purple-500 h-2 sm:h-3 rounded-full transition-all duration-500"
                 style={{ width: `${levelInfo.progress}%` }}
               />
             </div>

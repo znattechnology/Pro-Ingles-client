@@ -1,18 +1,20 @@
-import { X, HeartIcon, InfinityIcon, BookOpen, Trophy, Sparkles, Zap, Star } from "lucide-react";
+import { X, HeartIcon, InfinityIcon, BookOpen, Trophy, Sparkles, Zap, Star, Loader2 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { useExitModal } from "@/store/use-exit-modal";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 type Props = {
     hearts:number;
     percentage:number;
     hasActiveSubscription:boolean;
+    isProcessing?: boolean;
 };
 
 
-export const Header = ({hearts,percentage,hasActiveSubscription}:Props) => {
+export const Header = ({hearts,percentage,hasActiveSubscription,isProcessing}:Props) => {
     const {open} = useExitModal();
     
     return (
@@ -22,61 +24,72 @@ export const Header = ({hearts,percentage,hasActiveSubscription}:Props) => {
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(124,58,237,0.1),transparent_70%)]" />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(168,85,247,0.08),transparent_70%)]" />
             
-            <div className="relative max-w-[1140px] mx-auto px-6 py-5">
-                <div className="flex items-center justify-between mb-6">
+            <div className="relative max-w-[1140px] mx-auto px-4 sm:px-6 py-4 sm:py-5">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-0 mb-4 sm:mb-6">
                     {/* Enhanced Exit Button */}
                     <Button
                         variant="ghost"
                         size="sm"
                         onClick={open}
-                        className="group text-customgreys-dirtyGrey hover:text-white hover:bg-customgreys-primarybg/80 transition-all duration-300 rounded-xl backdrop-blur-sm border border-transparent hover:border-violet-500/20 hover:shadow-lg hover:shadow-violet-500/10"
+                        className="group text-customgreys-dirtyGrey hover:text-white hover:bg-customgreys-primarybg/80 transition-all duration-300 rounded-xl backdrop-blur-sm border border-transparent hover:border-violet-500/20 hover:shadow-lg hover:shadow-violet-500/10 w-full sm:w-auto justify-center sm:justify-start"
                     >
-                        <X className="h-5 w-5 mr-2 group-hover:rotate-90 transition-transform duration-300" />
-                        <span className="font-medium">Sair</span>
+                        <X className="h-4 w-4 sm:h-5 sm:w-5 mr-2 group-hover:rotate-90 transition-transform duration-300" />
+                        <span className="font-medium text-sm sm:text-base">Sair</span>
                     </Button>
                     
                     {/* Enhanced Lesson Info */}
-                    <div className="flex items-center gap-4 px-4 py-2 bg-violet-500/10 backdrop-blur-sm rounded-2xl border border-violet-500/20 shadow-lg">
-                        <div className="relative bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl p-2 shadow-inner">
-                            <BookOpen className="h-5 w-5 text-white" />
-                            <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full animate-pulse" />
+                    <div className="flex items-center gap-2 sm:gap-4 px-3 sm:px-4 py-2 bg-violet-500/10 backdrop-blur-sm rounded-2xl border border-violet-500/20 shadow-lg order-first sm:order-none">
+                        <div className="relative bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl p-1.5 sm:p-2 shadow-inner">
+                            {isProcessing ? (
+                                <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 text-white animate-spin" />
+                            ) : (
+                                <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+                            )}
+                            <div className={cn(
+                                "absolute -top-1 -right-1 w-2 h-2 sm:w-3 sm:h-3 rounded-full",
+                                isProcessing ? "bg-yellow-400 animate-ping" : "bg-emerald-500 animate-pulse"
+                            )} />
                         </div>
-                        <div className="text-center">
-                            <div className="flex items-center gap-2 mb-1">
-                                <p className="text-white font-semibold text-sm">Lição em Progresso</p>
-                                <Badge variant="secondary" className="bg-violet-500/20 text-violet-300 border-violet-500/30 text-xs px-2 py-0.5">
+                        <div className="text-center sm:text-left">
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
+                                <p className="text-white font-semibold text-xs sm:text-sm">Lição em Progresso</p>
+                                <Badge variant="secondary" className="bg-violet-500/20 text-violet-300 border-violet-500/30 text-xs px-1.5 sm:px-2 py-0.5 w-fit mx-auto sm:mx-0">
                                     Ativo
                                 </Badge>
                             </div>
-                            <p className="text-customgreys-dirtyGrey text-xs flex items-center gap-1">
-                                <Zap className="h-3 w-3 text-yellow-400" />
-                                {Math.round(percentage)}% concluído
+                            <p className="text-customgreys-dirtyGrey text-xs flex items-center justify-center sm:justify-start gap-1">
+                                {isProcessing ? (
+                                    <Loader2 className="h-3 w-3 text-yellow-400 animate-spin" />
+                                ) : (
+                                    <Zap className="h-3 w-3 text-yellow-400" />
+                                )}
+                                {isProcessing ? "Processando..." : `${Math.round(percentage)}% concluído`}
                             </p>
                         </div>
                     </div>
                     
                     {/* Enhanced Hearts Display */}
-                    <Card className={`bg-gradient-to-br from-red-500/15 to-pink-500/10 border-red-500/30 px-4 py-3 shadow-lg backdrop-blur-sm transition-all duration-300 ${
+                    <Card className={`bg-gradient-to-br from-red-500/15 to-pink-500/10 border-red-500/30 px-3 sm:px-4 py-2 sm:py-3 shadow-lg backdrop-blur-sm transition-all duration-300 w-full sm:w-auto ${
                         hearts <= 1 ? 'animate-pulse border-red-500/60 shadow-red-500/20' : 'hover:shadow-red-500/10'
                     }`}>
-                        <div className="flex items-center gap-3">
-                            <div className="relative bg-gradient-to-br from-red-500 to-pink-600 rounded-xl p-2 shadow-inner">
-                                <HeartIcon className="h-5 w-5 text-white fill-current" />
+                        <div className="flex items-center gap-2 sm:gap-3 justify-center sm:justify-start">
+                            <div className="relative bg-gradient-to-br from-red-500 to-pink-600 rounded-xl p-1.5 sm:p-2 shadow-inner">
+                                <HeartIcon className="h-4 w-4 sm:h-5 sm:w-5 text-white fill-current" />
                                 {hearts <= 1 && (
-                                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-bounce" />
+                                    <div className="absolute -top-1 -right-1 w-2 h-2 sm:w-3 sm:h-3 bg-yellow-400 rounded-full animate-bounce" />
                                 )}
                             </div>
-                            <div className="text-right">
-                                <div className="flex items-center gap-2 mb-1">
+                            <div className="text-center sm:text-right">
+                                <div className="flex items-center justify-center sm:justify-end gap-2 mb-1">
                                     {hasActiveSubscription ? (
                                         <div className="flex items-center gap-1">
-                                            <InfinityIcon className="h-5 w-5 text-red-400 font-bold animate-pulse" />
+                                            <InfinityIcon className="h-4 w-4 sm:h-5 sm:w-5 text-red-400 font-bold animate-pulse" />
                                             <Star className="h-3 w-3 text-yellow-400 fill-current" />
                                         </div>
                                     ) : (
                                         <>
-                                            <span className="text-white font-bold text-lg">{hearts}</span>
-                                            <span className="text-customgreys-dirtyGrey text-sm">/5</span>
+                                            <span className="text-white font-bold text-base sm:text-lg">{hearts}</span>
+                                            <span className="text-customgreys-dirtyGrey text-xs sm:text-sm">/5</span>
                                         </>
                                     )}
                                 </div>
@@ -105,10 +118,10 @@ export const Header = ({hearts,percentage,hasActiveSubscription}:Props) => {
                 </div>
                 
                 {/* Ultra Enhanced Progress Bar */}
-                <div className="space-y-3">
-                    <div className="flex items-center justify-between text-sm">
-                        <div className="flex items-center gap-2">
-                            <Trophy className="h-4 w-4 text-yellow-400" />
+                <div className="space-y-2 sm:space-y-3">
+                    <div className="flex items-center justify-between text-xs sm:text-sm">
+                        <div className="flex items-center gap-1 sm:gap-2">
+                            <Trophy className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-400" />
                             <span className="text-white font-medium">Progresso da Lição</span>
                         </div>
                         <div className="flex items-center gap-2">
@@ -118,7 +131,7 @@ export const Header = ({hearts,percentage,hasActiveSubscription}:Props) => {
                         </div>
                     </div>
                     
-                    <div className="relative bg-gradient-to-r from-customgreys-darkGrey to-customgreys-darkGrey/80 rounded-full h-4 overflow-hidden shadow-inner border border-customgreys-darkerGrey/50">
+                    <div className="relative bg-gradient-to-r from-customgreys-darkGrey to-customgreys-darkGrey/80 rounded-full h-3 sm:h-4 overflow-hidden shadow-inner border border-customgreys-darkerGrey/50">
                         {/* Main Progress Bar */}
                         <div 
                             className="bg-gradient-to-r from-violet-500 via-purple-500 to-violet-600 h-full rounded-full transition-all duration-1000 ease-out relative shadow-lg"
@@ -132,8 +145,8 @@ export const Header = ({hearts,percentage,hasActiveSubscription}:Props) => {
                             
                             {/* Sparkle at the end */}
                             {percentage > 0 && (
-                                <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
-                                    <Sparkles className="h-3 w-3 text-white animate-spin-slow" />
+                                <div className="absolute right-1 sm:right-2 top-1/2 transform -translate-y-1/2">
+                                    <Sparkles className="h-2 w-2 sm:h-3 sm:w-3 text-white animate-spin-slow" />
                                 </div>
                             )}
                         </div>
@@ -149,8 +162,8 @@ export const Header = ({hearts,percentage,hasActiveSubscription}:Props) => {
                                     }`}
                                 />
                                 {percentage >= milestone && (
-                                    <div className="absolute -top-1 left-1/2 transform -translate-x-1/2">
-                                        <div className="w-2 h-2 bg-white rounded-full animate-bounce shadow-sm" />
+                                    <div className="absolute -top-0.5 sm:-top-1 left-1/2 transform -translate-x-1/2">
+                                        <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full animate-bounce shadow-sm" />
                                     </div>
                                 )}
                             </div>
@@ -160,16 +173,19 @@ export const Header = ({hearts,percentage,hasActiveSubscription}:Props) => {
                     {/* Enhanced Progress Labels */}
                     <div className="flex justify-between text-xs">
                         <div className="flex items-center gap-1 text-customgreys-dirtyGrey">
-                            <div className="w-2 h-2 bg-customgreys-dirtyGrey rounded-full" />
-                            <span>Início</span>
+                            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-customgreys-dirtyGrey rounded-full" />
+                            <span className="hidden sm:inline">Início</span>
+                            <span className="sm:hidden">0%</span>
                         </div>
                         <div className="flex items-center gap-1 text-customgreys-dirtyGrey">
-                            <div className="w-2 h-2 bg-customgreys-dirtyGrey rounded-full" />
-                            <span>Meio</span>
+                            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-customgreys-dirtyGrey rounded-full" />
+                            <span className="hidden sm:inline">Meio</span>
+                            <span className="sm:hidden">50%</span>
                         </div>
                         <div className="flex items-center gap-1 text-customgreys-dirtyGrey">
-                            <div className="w-2 h-2 bg-customgreys-dirtyGrey rounded-full" />
-                            <span>Fim</span>
+                            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-customgreys-dirtyGrey rounded-full" />
+                            <span className="hidden sm:inline">Fim</span>
+                            <span className="sm:hidden">100%</span>
                         </div>
                     </div>
                 </div>
