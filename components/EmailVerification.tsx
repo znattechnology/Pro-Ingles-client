@@ -7,7 +7,7 @@ import { RootState } from "@/state/redux";
 import { 
   useVerifyEmailMutation, 
   useResendVerificationCodeMutation 
-} from "@/redux/features/auth/authApi";
+} from "@/src/domains/auth/services/authApi";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";

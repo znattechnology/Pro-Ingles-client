@@ -146,7 +146,7 @@ The modular architecture implements a gradual migration strategy:
 ### Basic Import (Backward Compatible)
 ```typescript
 // These continue to work exactly as before
-import { useLoginMutation } from '@/redux/features/auth/authApi';
+import { useLoginMutation } from '@/src/domains/auth/services/authApi';
 import { CourseCard } from '@/components/laboratory/CourseCard';
 ```
 
