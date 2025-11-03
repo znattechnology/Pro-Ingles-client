@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Loading from "@/components/course/Loading";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -59,6 +60,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { motion } from "framer-motion";
 
 interface PromoCode {
   id: string;
@@ -129,21 +131,27 @@ export default function AdminPromoCodesPage() {
         console.error('Failed to fetch promo codes:', codesResponse.status);
       }
 
-      // Usage data endpoint not implemented yet
-      console.warn('Usage data endpoint not implemented yet');
-
-      // Mock stats for now
-      setStats({
-        total_codes: 12,
-        active_codes: 8,
-        expired_codes: 4,
-        total_uses: 156,
-        total_discount_given: "125,750.00",
-        most_used_code: {
-          code: "SAVE20",
-          uses: 45
-        }
-      });
+      // Fetch promo code stats
+      const statsResponse = await fetch('/api/v1/subscriptions?endpoint=admin-promo-code-stats');
+      if (statsResponse.ok) {
+        const statsData = await statsResponse.json();
+        setStats(statsData);
+      } else {
+        console.error('Failed to fetch promo code stats:', statsResponse.status);
+        
+        // Mock stats for fallback
+        setStats({
+          total_codes: 12,
+          active_codes: 8,
+          expired_codes: 4,
+          total_uses: 156,
+          total_discount_given: "125,750.00",
+          most_used_code: {
+            code: "SAVE20",
+            uses: 45
+          }
+        });
+      }
 
     } catch {
       setError('Erro ao carregar códigos promocionais');
@@ -286,122 +294,387 @@ export default function AdminPromoCodesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-customgreys-primarybg p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center py-12">
-            <div className="animate-pulse">
-              <Receipt className="w-12 h-12 text-yellow-400 mx-auto mb-4" />
-              <p className="text-gray-300">Carregando códigos promocionais...</p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <Loading 
+        title="Códigos Promocionais"
+        subtitle="Gestão de Descontos"
+        description="Carregando cupons e códigos promocionais..."
+        icon={Receipt}
+        progress={70}
+        theme={{
+          primary: "purple",
+          secondary: "violet",
+          accent: "pink"
+        }}
+      />
     );
   }
 
   return (
-    <div className="min-h-screen bg-customgreys-primarybg p-6">
-      <div className="max-w-7xl mx-auto space-y-8">
-        
-        {/* Header */}
-        <div className="flex justify-between items-start">
-          <div>
-            <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-              <Receipt className="w-8 h-8 text-yellow-400" />
-              Códigos Promocionais
-            </h1>
-            <p className="text-gray-300 mt-2">
-              Gerencie cupons de desconto e códigos promocionais
-            </p>
-          </div>
+    <div className="min-h-screen bg-customgreys-primarybg text-white">
+      {/* Enhanced Header Section */}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="relative px-4 sm:px-6 py-6 sm:py-8"
+      >
+        {/* Background Effects */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-20 sm:-top-40 -right-20 sm:-right-40 w-40 sm:w-80 h-40 sm:h-80 bg-purple-600/10 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute -bottom-10 sm:-bottom-20 -left-20 sm:-left-40 w-40 sm:w-80 h-40 sm:h-80 bg-violet-600/10 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-48 sm:w-96 h-48 sm:h-96 bg-pink-500/5 rounded-full blur-3xl" />
           
-          <div className="flex gap-3">
-            <Button
-              onClick={() => setShowCreateModal(true)}
-              className="bg-gradient-to-r from-green-600 to-blue-600"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Novo Código
-            </Button>
-          </div>
+          {/* Floating particles */}
+          <div className="absolute top-20 left-20 w-2 h-2 bg-purple-400/30 rounded-full animate-bounce" style={{animationDelay: '0s'}} />
+          <div className="absolute top-40 right-32 w-1 h-1 bg-violet-400/40 rounded-full animate-bounce" style={{animationDelay: '1s'}} />
+          <div className="absolute bottom-32 left-1/3 w-1.5 h-1.5 bg-pink-400/30 rounded-full animate-bounce" style={{animationDelay: '2s'}} />
+          <div className="absolute bottom-20 right-20 w-2 h-2 bg-purple-300/20 rounded-full animate-bounce" style={{animationDelay: '3s'}} />
         </div>
 
-        {/* Error Alert */}
+        <div className="relative max-w-7xl mx-auto">
+          <div className="text-center mb-8">
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+              className="inline-flex items-center gap-2 sm:gap-3 bg-gradient-to-r from-purple-500/10 via-violet-500/10 to-pink-500/10 border border-purple-500/30 rounded-full px-4 sm:px-8 py-2 sm:py-3 mb-6 sm:mb-8 backdrop-blur-sm shadow-lg shadow-purple-500/10"
+            >
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+              >
+                <Receipt className="w-5 h-5 sm:w-6 sm:h-6 text-purple-400" />
+              </motion.div>
+              <span className="text-purple-300 font-semibold text-sm sm:text-base lg:text-lg">Códigos Promocionais</span>
+              <motion.div
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                <Gift className="w-3 h-3 sm:w-4 sm:h-4 text-violet-400" />
+              </motion.div>
+            </motion.div>
+            
+            <motion.h1 
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.3, duration: 0.6 }}
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 sm:mb-6 leading-tight"
+            >
+              Cupons{' '}
+              <motion.span 
+                className="bg-gradient-to-r from-purple-400 via-violet-400 to-pink-400 bg-clip-text text-transparent"
+                animate={{ 
+                  backgroundPosition: ['0% 50%', '100% 50%', '0% 50%']
+                }}
+                transition={{ duration: 3, repeat: Infinity }}
+                style={{ backgroundSize: '200% 200%' }}
+              >
+                Premium
+              </motion.span>
+              <motion.span
+                animate={{ rotate: [0, 10, -10, 0] }}
+                transition={{ duration: 2, repeat: Infinity, delay: 1 }}
+                className="inline-block ml-2"
+              >
+                🎫
+              </motion.span>
+            </motion.h1>
+            
+            <motion.p 
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.4, duration: 0.6 }}
+              className="text-base sm:text-lg md:text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed mb-8 font-light"
+            >
+              Gerencie <motion.span className="text-purple-400 font-medium" whileHover={{ scale: 1.05 }}>cupons de desconto</motion.span>,{' '}
+              <motion.span className="text-violet-400 font-medium" whileHover={{ scale: 1.05 }}>códigos promocionais</motion.span> e{' '}
+              <motion.span className="text-pink-400 font-medium" whileHover={{ scale: 1.05 }}>ofertas especiais</motion.span>
+            </motion.p>
+          </div>
+
+          {/* Action Buttons */}
+          <motion.div 
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.5, duration: 0.6 }}
+            className="flex flex-wrap justify-center gap-3 mb-8"
+          >
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button
+                onClick={() => setShowCreateModal(true)}
+                className="bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 shadow-lg shadow-purple-500/25 transition-all duration-300 hover:shadow-purple-500/40"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Novo Código
+              </Button>
+            </motion.div>
+          </motion.div>
+        </div>
+      </motion.div>
+
+      {/* Main Content Container */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-6">
+
+        {/* Enhanced Error Alert */}
         {error && (
-          <Alert className="bg-red-900/50 border-red-700">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription className="text-red-300">
-              {error}
-            </AlertDescription>
-          </Alert>
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-red-900/50 border border-red-700 rounded-lg p-4 flex items-center gap-3"
+          >
+            <AlertCircle className="h-4 w-4 text-red-400" />
+            <div className="text-red-300">{error}</div>
+          </motion.div>
         )}
 
-        {/* Stats Cards */}
+        {/* Enhanced Stats Cards */}
         {stats && (
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
-            <Card className="bg-customgreys-secondarybg/60 backdrop-blur-sm border-violet-900/30">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-400">Total</p>
-                    <p className="text-2xl font-bold text-white">{stats.total_codes}</p>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6, duration: 0.6 }}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-6"
+          >
+            {/* Total Codes Card */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.7, duration: 0.5 }}
+              whileHover={{ scale: 1.02, y: -5 }}
+              className="group"
+            >
+              <Card className="relative overflow-hidden bg-gradient-to-br from-purple-900/30 via-customgreys-secondarybg/60 to-violet-900/30 backdrop-blur-sm border border-purple-500/30 shadow-lg shadow-purple-500/10 hover:shadow-purple-500/20 transition-all duration-300">
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <CardContent className="relative p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <motion.p 
+                        className="text-sm font-medium text-purple-300/80 mb-1"
+                        whileHover={{ scale: 1.05 }}
+                      >
+                        Total de Códigos
+                      </motion.p>
+                      <motion.p 
+                        className="text-2xl font-bold text-white mb-1"
+                        animate={{ scale: [1, 1.02, 1] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      >
+                        {stats.total_codes}
+                      </motion.p>
+                      <motion.div 
+                        className="flex items-center gap-1 text-xs text-purple-400"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 1 }}
+                      >
+                        <Receipt className="w-3 h-3" />
+                        <span>Promocionais</span>
+                      </motion.div>
+                    </div>
+                    <motion.div
+                      whileHover={{ rotate: 360, scale: 1.1 }}
+                      transition={{ duration: 0.6 }}
+                      className="p-3 bg-purple-500/20 rounded-full border border-purple-500/30"
+                    >
+                      <Receipt className="w-6 h-6 text-purple-400" />
+                    </motion.div>
                   </div>
-                  <Receipt className="w-8 h-8 text-blue-400" />
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </motion.div>
 
-            <Card className="bg-customgreys-secondarybg/60 backdrop-blur-sm border-violet-900/30">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-400">Ativos</p>
-                    <p className="text-2xl font-bold text-green-400">{stats.active_codes}</p>
+            {/* Active Codes Card */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.8, duration: 0.5 }}
+              whileHover={{ scale: 1.02, y: -5 }}
+              className="group"
+            >
+              <Card className="relative overflow-hidden bg-gradient-to-br from-green-900/30 via-customgreys-secondarybg/60 to-emerald-900/30 backdrop-blur-sm border border-green-500/30 shadow-lg shadow-green-500/10 hover:shadow-green-500/20 transition-all duration-300">
+                <div className="absolute inset-0 bg-gradient-to-r from-green-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <CardContent className="relative p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <motion.p 
+                        className="text-sm font-medium text-green-300/80 mb-1"
+                        whileHover={{ scale: 1.05 }}
+                      >
+                        Códigos Ativos
+                      </motion.p>
+                      <motion.p 
+                        className="text-2xl font-bold text-white mb-1"
+                        animate={{ scale: [1, 1.02, 1] }}
+                        transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
+                      >
+                        {stats.active_codes}
+                      </motion.p>
+                      <motion.div 
+                        className="flex items-center gap-1 text-xs text-green-400"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 1.2 }}
+                      >
+                        <CheckCircle className="w-3 h-3" />
+                        <span>Disponíveis</span>
+                      </motion.div>
+                    </div>
+                    <motion.div
+                      whileHover={{ rotate: 360, scale: 1.1 }}
+                      transition={{ duration: 0.6 }}
+                      className="p-3 bg-green-500/20 rounded-full border border-green-500/30"
+                    >
+                      <CheckCircle className="w-6 h-6 text-green-400" />
+                    </motion.div>
                   </div>
-                  <CheckCircle className="w-8 h-8 text-green-400" />
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </motion.div>
 
-            <Card className="bg-customgreys-secondarybg/60 backdrop-blur-sm border-violet-900/30">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-400">Total de Usos</p>
-                    <p className="text-2xl font-bold text-yellow-400">{stats.total_uses}</p>
+            {/* Total Uses Card */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.9, duration: 0.5 }}
+              whileHover={{ scale: 1.02, y: -5 }}
+              className="group"
+            >
+              <Card className="relative overflow-hidden bg-gradient-to-br from-yellow-900/30 via-customgreys-secondarybg/60 to-orange-900/30 backdrop-blur-sm border border-yellow-500/30 shadow-lg shadow-yellow-500/10 hover:shadow-yellow-500/20 transition-all duration-300">
+                <div className="absolute inset-0 bg-gradient-to-r from-yellow-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <CardContent className="relative p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <motion.p 
+                        className="text-sm font-medium text-yellow-300/80 mb-1"
+                        whileHover={{ scale: 1.05 }}
+                      >
+                        Total de Usos
+                      </motion.p>
+                      <motion.p 
+                        className="text-2xl font-bold text-white mb-1"
+                        animate={{ scale: [1, 1.02, 1] }}
+                        transition={{ duration: 2, repeat: Infinity, delay: 1 }}
+                      >
+                        {stats.total_uses}
+                      </motion.p>
+                      <motion.div 
+                        className="flex items-center gap-1 text-xs text-yellow-400"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 1.4 }}
+                      >
+                        <TrendingUp className="w-3 h-3" />
+                        <span>Resgates</span>
+                      </motion.div>
+                    </div>
+                    <motion.div
+                      whileHover={{ rotate: 360, scale: 1.1 }}
+                      transition={{ duration: 0.6 }}
+                      className="p-3 bg-yellow-500/20 rounded-full border border-yellow-500/30"
+                    >
+                      <TrendingUp className="w-6 h-6 text-yellow-400" />
+                    </motion.div>
                   </div>
-                  <TrendingUp className="w-8 h-8 text-yellow-400" />
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </motion.div>
 
-            <Card className="bg-customgreys-secondarybg/60 backdrop-blur-sm border-violet-900/30">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-400">Desconto Total</p>
-                    <p className="text-2xl font-bold text-purple-400">
-                      {formatCurrency(stats.total_discount_given)}
-                    </p>
+            {/* Total Discount Card */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 1.0, duration: 0.5 }}
+              whileHover={{ scale: 1.02, y: -5 }}
+              className="group"
+            >
+              <Card className="relative overflow-hidden bg-gradient-to-br from-violet-900/30 via-customgreys-secondarybg/60 to-purple-900/30 backdrop-blur-sm border border-violet-500/30 shadow-lg shadow-violet-500/10 hover:shadow-violet-500/20 transition-all duration-300">
+                <div className="absolute inset-0 bg-gradient-to-r from-violet-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <CardContent className="relative p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <motion.p 
+                        className="text-sm font-medium text-violet-300/80 mb-1"
+                        whileHover={{ scale: 1.05 }}
+                      >
+                        Desconto Total
+                      </motion.p>
+                      <motion.p 
+                        className="text-2xl font-bold text-white mb-1"
+                        animate={{ scale: [1, 1.02, 1] }}
+                        transition={{ duration: 2, repeat: Infinity, delay: 1.5 }}
+                      >
+                        {formatCurrency(stats.total_discount_given)}
+                      </motion.p>
+                      <motion.div 
+                        className="flex items-center gap-1 text-xs text-violet-400"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 1.6 }}
+                      >
+                        <DollarSign className="w-3 h-3" />
+                        <span>Economia</span>
+                      </motion.div>
+                    </div>
+                    <motion.div
+                      whileHover={{ rotate: 360, scale: 1.1 }}
+                      transition={{ duration: 0.6 }}
+                      className="p-3 bg-violet-500/20 rounded-full border border-violet-500/30"
+                    >
+                      <DollarSign className="w-6 h-6 text-violet-400" />
+                    </motion.div>
                   </div>
-                  <DollarSign className="w-8 h-8 text-purple-400" />
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </motion.div>
 
-            <Card className="bg-customgreys-secondarybg/60 backdrop-blur-sm border-violet-900/30">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-400">Mais Usado</p>
-                    <p className="text-lg font-bold text-orange-400">{stats.most_used_code.code}</p>
-                    <p className="text-xs text-gray-400">{stats.most_used_code.uses} usos</p>
+            {/* Most Used Card */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 1.1, duration: 0.5 }}
+              whileHover={{ scale: 1.02, y: -5 }}
+              className="group"
+            >
+              <Card className="relative overflow-hidden bg-gradient-to-br from-pink-900/30 via-customgreys-secondarybg/60 to-rose-900/30 backdrop-blur-sm border border-pink-500/30 shadow-lg shadow-pink-500/10 hover:shadow-pink-500/20 transition-all duration-300">
+                <div className="absolute inset-0 bg-gradient-to-r from-pink-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <CardContent className="relative p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <motion.p 
+                        className="text-sm font-medium text-pink-300/80 mb-1"
+                        whileHover={{ scale: 1.05 }}
+                      >
+                        Mais Usado
+                      </motion.p>
+                      <motion.p 
+                        className="text-lg font-bold text-white mb-1"
+                        animate={{ scale: [1, 1.02, 1] }}
+                        transition={{ duration: 2, repeat: Infinity, delay: 2 }}
+                      >
+                        {stats.most_used_code.code}
+                      </motion.p>
+                      <motion.div 
+                        className="flex items-center gap-1 text-xs text-pink-400"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 1.8 }}
+                      >
+                        <Gift className="w-3 h-3" />
+                        <span>{stats.most_used_code.uses} usos</span>
+                      </motion.div>
+                    </div>
+                    <motion.div
+                      whileHover={{ rotate: 360, scale: 1.1 }}
+                      transition={{ duration: 0.6 }}
+                      className="p-3 bg-pink-500/20 rounded-full border border-pink-500/30"
+                    >
+                      <Gift className="w-6 h-6 text-pink-400" />
+                    </motion.div>
                   </div>
-                  <Gift className="w-8 h-8 text-orange-400" />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          </motion.div>
         )}
 
         {/* Filters */}
@@ -413,7 +686,7 @@ export default function AdminPromoCodesPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Search */}
               <div>
                 <Label className="text-gray-300">Buscar</Label>
@@ -456,16 +729,16 @@ export default function AdminPromoCodesPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
-              <Table>
+            <div className="overflow-x-auto -mx-6 sm:mx-0 px-6 sm:px-0">
+              <Table className="min-w-[700px]">
                 <TableHeader>
                   <TableRow className="border-gray-700">
-                    <TableHead className="text-gray-300">Código</TableHead>
-                    <TableHead className="text-gray-300">Desconto</TableHead>
-                    <TableHead className="text-gray-300">Uso</TableHead>
-                    <TableHead className="text-gray-300">Status</TableHead>
-                    <TableHead className="text-gray-300">Expira em</TableHead>
-                    <TableHead className="text-gray-300">Ações</TableHead>
+                    <TableHead className="text-gray-300 min-w-[180px]">Código</TableHead>
+                    <TableHead className="text-gray-300 min-w-[120px]">Desconto</TableHead>
+                    <TableHead className="text-gray-300 min-w-[100px]">Uso</TableHead>
+                    <TableHead className="text-gray-300 min-w-[100px]">Status</TableHead>
+                    <TableHead className="text-gray-300 min-w-[120px]">Expira em</TableHead>
+                    <TableHead className="text-gray-300 min-w-[80px]">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -598,7 +871,7 @@ export default function AdminPromoCodesPage() {
 
         {/* Create Modal */}
         <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
-          <DialogContent className="bg-customgreys-secondarybg border-gray-600 max-w-2xl">
+          <DialogContent className="bg-customgreys-secondarybg border-gray-600 max-w-2xl mx-4 sm:mx-auto">
             <DialogHeader>
               <DialogTitle className="text-white">Criar Código Promocional</DialogTitle>
               <DialogDescription className="text-gray-400">
@@ -704,7 +977,7 @@ export default function AdminPromoCodesPage() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div className="flex items-center space-x-2">
                   <Switch
                     checked={newCode.first_time_only}

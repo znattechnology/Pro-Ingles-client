@@ -179,7 +179,7 @@ export default function UpgradePage() {
         // Refresh subscription data
         await fetchData();
         // Show success message
-        alert(`Upgrade realizado com sucesso! Você economizou ${formatCurrency(data.discount_applied.toString())}`);
+        alert(`Upgrade realizado com sucesso! Poupaste ${formatCurrency(data.discount_applied.toString())}`);
       } else {
         const errorData = await response.json();
         setError(errorData.error || 'Falha no upgrade');
@@ -234,12 +234,12 @@ export default function UpgradePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-customgreys-primarybg p-6">
+      <div className="min-h-screen bg-customgreys-primarybg p-4 sm:p-6">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center py-12">
+          <div className="text-center py-8 sm:py-12">
             <div className="animate-pulse">
-              <Crown className="w-12 h-12 text-yellow-400 mx-auto mb-4" />
-              <p className="text-gray-300">Carregando planos...</p>
+              <Crown className="w-10 h-10 sm:w-12 sm:h-12 text-yellow-400 mx-auto mb-3 sm:mb-4" />
+              <p className="text-gray-300 text-sm sm:text-base">A carregar planos...</p>
             </div>
           </div>
         </div>
@@ -250,34 +250,34 @@ export default function UpgradePage() {
   const selectedPlanData = plans.find(p => p.id === selectedPlan);
 
   return (
-    <div className="min-h-screen bg-customgreys-primarybg p-6">
-      <div className="max-w-6xl mx-auto space-y-8">
+    <div className="min-h-screen bg-customgreys-primarybg p-4 sm:p-6">
+      <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8">
         
         {/* Header */}
-        <div className="text-center space-y-4">
-          <h1 className="text-4xl font-bold text-white flex items-center justify-center gap-3">
-            <ArrowUp className="w-10 h-10 text-yellow-400" />
-            Upgrade Sua Experiência
+        <div className="text-center space-y-3 sm:space-y-4">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3">
+            <ArrowUp className="w-8 h-8 sm:w-10 sm:h-10 text-yellow-400" />
+            <span>Melhore a Sua Experiência</span>
           </h1>
-          <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-            Desbloqueie todo o potencial do seu aprendizado de inglês com recursos premium
+          <p className="text-base sm:text-lg lg:text-xl text-gray-300 max-w-2xl mx-auto px-4">
+            Desbloqueie todo o potencial da sua aprendizagem de inglês com recursos premium do ProEnglish
           </p>
           
           {/* Current Plan Status */}
           {currentSubscription && (
-            <div className="bg-customgreys-secondarybg/60 backdrop-blur-sm border border-violet-900/30 rounded-lg p-4 max-w-md mx-auto">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <Badge className="bg-blue-600">
-                  Plano Atual: {currentSubscription.plan.name}
+            <div className="bg-customgreys-secondarybg/60 backdrop-blur-sm border border-violet-900/30 rounded-lg p-3 sm:p-4 max-w-md mx-auto">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-2 mb-2">
+                <Badge className="bg-blue-600 text-xs sm:text-sm">
+                  Plano Actual: {currentSubscription.plan.name.replace('Tuwi', 'ProEnglish')}
                 </Badge>
                 {currentSubscription.days_until_expiry <= 7 && (
-                  <Badge className="bg-orange-600">
+                  <Badge className="bg-orange-600 text-xs sm:text-sm">
                     Expira em {currentSubscription.days_until_expiry} dias
                   </Badge>
                 )}
               </div>
-              <p className="text-sm text-gray-400">
-                Status: {currentSubscription.is_active_subscription ? 'Ativo' : 'Inativo'}
+              <p className="text-xs sm:text-sm text-gray-400">
+                Estado: {currentSubscription.is_active_subscription ? 'Activo' : 'Inactivo'}
               </p>
             </div>
           )}
@@ -296,21 +296,22 @@ export default function UpgradePage() {
         {/* Billing Toggle */}
         <div className="flex justify-center">
           <Card className="bg-customgreys-secondarybg/60 backdrop-blur-sm border-violet-900/30">
-            <CardContent className="p-4">
+            <CardContent className="p-3 sm:p-4">
               <RadioGroup 
                 value={billingCycle} 
                 onValueChange={(value) => setBillingCycle(value as "MONTHLY" | "YEARLY")}
-                className="flex gap-6"
+                className="flex flex-col sm:flex-row gap-4 sm:gap-6"
               >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="MONTHLY" />
-                  <Label className="text-gray-300">Mensal</Label>
+                  <Label className="text-gray-300 text-sm sm:text-base">Mensal</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="YEARLY" />
-                  <Label className="text-gray-300">Anual</Label>
-                  <Badge className="bg-green-600 text-white ml-2">
-                    Economize 16%
+                  <Label className="text-gray-300 text-sm sm:text-base">Anual</Label>
+                  <Badge className="bg-green-600 text-white ml-2 text-xs">
+                    <span className="hidden sm:inline">Economiza 16%</span>
+                    <span className="sm:hidden">-16%</span>
                   </Badge>
                 </div>
               </RadioGroup>
@@ -319,7 +320,7 @@ export default function UpgradePage() {
         </div>
 
         {/* Plans Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
           {plans.map((plan) => {
             const PlanIcon = getPlanIcon(plan.plan_type);
             const isCurrent = isCurrentPlan(plan.id);
@@ -338,48 +339,49 @@ export default function UpgradePage() {
               >
                 {/* Popular Badge */}
                 {plan.is_most_popular && (
-                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                    <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-1">
-                      Mais Popular
+                  <div className="absolute -top-3 sm:-top-4 left-1/2 transform -translate-x-1/2">
+                    <Badge className="bg-gradient-to-r from-blue-600 to-purple-600 px-3 sm:px-4 py-1 text-xs">
+                      <span className="hidden sm:inline">Mais Popular</span>
+                      <span className="sm:hidden">Popular</span>
                     </Badge>
                   </div>
                 )}
 
                 {/* Current Plan Badge */}
                 {isCurrent && (
-                  <div className="absolute -top-4 right-4">
-                    <Badge className="bg-green-600">
-                      Atual
+                  <div className="absolute -top-3 sm:-top-4 right-2 sm:right-4">
+                    <Badge className="bg-green-600 text-xs">
+                      Actual
                     </Badge>
                   </div>
                 )}
 
-                <CardHeader className="text-center pb-4">
-                  <div className={`w-16 h-16 mx-auto rounded-full bg-gradient-to-r ${getPlanGradient(plan.plan_type)} flex items-center justify-center mb-4`}>
-                    <PlanIcon className="w-8 h-8 text-white" />
+                <CardHeader className="text-center pb-3 sm:pb-4 p-4 sm:p-6">
+                  <div className={`w-12 h-12 sm:w-16 sm:h-16 mx-auto rounded-full bg-gradient-to-r ${getPlanGradient(plan.plan_type)} flex items-center justify-center mb-3 sm:mb-4`}>
+                    <PlanIcon className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                   </div>
                   
-                  <CardTitle className="text-2xl font-bold text-white">
-                    {plan.name}
+                  <CardTitle className="text-xl sm:text-2xl font-bold text-white">
+                    {plan.name.replace('Tuwi', 'ProEnglish')}
                   </CardTitle>
                   
-                  <div className="space-y-2">
+                  <div className="space-y-1 sm:space-y-2">
                     {plan.plan_type === 'FREE' ? (
-                      <div className="text-3xl font-bold text-white">Gratuito</div>
+                      <div className="text-2xl sm:text-3xl font-bold text-white">Gratuito</div>
                     ) : (
                       <>
-                        <div className="text-3xl font-bold text-white">
+                        <div className="text-2xl sm:text-3xl font-bold text-white">
                           {billingCycle === 'YEARLY' && plan.yearly_price
                             ? formatCurrency(plan.yearly_price)
                             : formatCurrency(plan.monthly_price)
                           }
                         </div>
-                        <div className="text-sm text-gray-400">
+                        <div className="text-xs sm:text-sm text-gray-400">
                           {billingCycle === 'YEARLY' ? 'por ano' : 'por mês'}
                         </div>
                         
                         {billingCycle === 'YEARLY' && plan.yearly_discount_percentage > 0 && (
-                          <Badge className="bg-green-600">
+                          <Badge className="bg-green-600 text-xs">
                             {plan.yearly_discount_percentage}% OFF
                           </Badge>
                         )}
@@ -387,24 +389,24 @@ export default function UpgradePage() {
                     )}
                   </div>
                   
-                  <CardDescription className="text-gray-300">
+                  <CardDescription className="text-gray-300 text-sm sm:text-base">
                     {plan.description}
                   </CardDescription>
                 </CardHeader>
 
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6">
                   {/* Features List */}
-                  <div className="space-y-3">
+                  <div className="space-y-2 sm:space-y-3">
                     {plan.features.slice(0, 6).map((feature, index) => (
-                      <div key={index} className="flex items-center gap-3">
-                        <Check className="w-4 h-4 text-green-400 flex-shrink-0" />
-                        <span className="text-gray-300 text-sm">{feature}</span>
+                      <div key={index} className="flex items-start gap-2 sm:gap-3">
+                        <Check className="w-3 h-3 sm:w-4 sm:h-4 text-green-400 flex-shrink-0 mt-0.5" />
+                        <span className="text-gray-300 text-xs sm:text-sm leading-tight">{feature}</span>
                       </div>
                     ))}
                     
                     {plan.features.length > 6 && (
                       <div className="text-center">
-                        <Badge variant="outline" className="text-gray-400">
+                        <Badge variant="outline" className="text-gray-400 text-xs">
                           +{plan.features.length - 6} recursos extras
                         </Badge>
                       </div>
@@ -412,23 +414,28 @@ export default function UpgradePage() {
                   </div>
 
                   {/* Action Button */}
-                  <div className="pt-4">
+                  <div className="pt-3 sm:pt-4">
                     {isCurrent ? (
-                      <Button disabled className="w-full bg-gray-600">
-                        <Check className="w-4 h-4 mr-2" />
-                        Plano Atual
+                      <Button disabled className="w-full bg-gray-600 text-sm sm:text-base py-2 sm:py-3">
+                        <Check className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
+                        <span className="hidden sm:inline">Plano Actual</span>
+                        <span className="sm:hidden">Actual</span>
                       </Button>
                     ) : canUpgradeToThis ? (
                       <Button
-                        className={`w-full bg-gradient-to-r ${getPlanGradient(plan.plan_type)} hover:scale-105 transition-transform`}
+                        className={`w-full bg-gradient-to-r ${getPlanGradient(plan.plan_type)} hover:scale-105 transition-transform text-sm sm:text-base py-2 sm:py-3`}
                         onClick={() => setSelectedPlan(plan.id)}
                       >
-                        <ArrowUp className="w-4 h-4 mr-2" />
-                        {plan.plan_type === 'FREE' ? 'Downgrade' : 'Fazer Upgrade'}
+                        <ArrowUp className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
+                        {plan.plan_type === 'FREE' ? (
+                          <><span className="hidden sm:inline">Fazer Downgrade</span><span className="sm:hidden">Downgrade</span></>
+                        ) : (
+                          <><span className="hidden sm:inline">Fazer Upgrade</span><span className="sm:hidden">Upgrade</span></>
+                        )}
                       </Button>
                     ) : (
-                      <Button disabled className="w-full bg-gray-600">
-                        <X className="w-4 h-4 mr-2" />
+                      <Button disabled className="w-full bg-gray-600 text-sm sm:text-base py-2 sm:py-3">
+                        <X className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
                         Indisponível
                       </Button>
                     )}
@@ -442,22 +449,23 @@ export default function UpgradePage() {
         {/* Checkout Section */}
         {selectedPlan && selectedPlanData && (
           <Card className="bg-customgreys-secondarybg/60 backdrop-blur-sm border-violet-900/30 max-w-2xl mx-auto">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <CreditCard className="w-5 h-5" />
-                Finalizar Upgrade
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="text-white flex items-center gap-2 text-lg sm:text-xl">
+                <CreditCard className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="hidden sm:inline">Finalizar Upgrade</span>
+                <span className="sm:hidden">Finalizar</span>
               </CardTitle>
-              <CardDescription>
-                Você está fazendo upgrade para o plano {selectedPlanData.name}
+              <CardDescription className="text-sm sm:text-base">
+                Está a fazer upgrade para o plano {selectedPlanData.name.replace('Tuwi', 'ProEnglish')}
               </CardDescription>
             </CardHeader>
             
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4 sm:space-y-6 p-4 sm:p-6">
               {/* Price Summary */}
-              <div className="bg-customgreys-darkGrey rounded-lg p-4">
+              <div className="bg-customgreys-darkGrey rounded-lg p-3 sm:p-4">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-gray-300">Plano {selectedPlanData.name}</span>
-                  <span className="text-white font-bold">
+                  <span className="text-gray-300 text-sm sm:text-base">Plano {selectedPlanData.name.replace('Tuwi', 'ProEnglish')}</span>
+                  <span className="text-white font-bold text-sm sm:text-base">
                     {formatCurrency(
                       billingCycle === 'YEARLY' && selectedPlanData.yearly_price
                         ? selectedPlanData.yearly_price
@@ -467,14 +475,14 @@ export default function UpgradePage() {
                 </div>
                 
                 {discount > 0 && (
-                  <div className="flex justify-between items-center mb-2 text-green-400">
+                  <div className="flex justify-between items-center mb-2 text-green-400 text-sm sm:text-base">
                     <span>Desconto promocional</span>
                     <span>-{formatCurrency(discount.toString())}</span>
                   </div>
                 )}
                 
                 <div className="border-t border-gray-600 pt-2 mt-2">
-                  <div className="flex justify-between items-center text-lg font-bold text-white">
+                  <div className="flex justify-between items-center text-base sm:text-lg font-bold text-white">
                     <span>Total</span>
                     <span>{formatCurrency(calculatePrice(selectedPlanData).toString())}</span>
                   </div>
@@ -483,36 +491,36 @@ export default function UpgradePage() {
 
               {/* Promo Code */}
               <div className="space-y-2">
-                <Label className="text-gray-300 flex items-center gap-2">
-                  <Gift className="w-4 h-4" />
+                <Label className="text-gray-300 flex items-center gap-2 text-sm sm:text-base">
+                  <Gift className="w-3 h-3 sm:w-4 sm:h-4" />
                   Código Promocional (Opcional)
                 </Label>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <Input
                     value={promoCode}
                     onChange={(e) => setPromoCode(e.target.value)}
-                    placeholder="Digite seu código"
-                    className="bg-customgreys-darkGrey border-gray-600 text-white"
+                    placeholder="Digite o seu código"
+                    className="bg-customgreys-darkGrey border-gray-600 text-white text-sm sm:text-base"
                   />
                   <Button
                     variant="outline"
                     onClick={validatePromoCode}
-                    className="border-gray-600 text-gray-300"
+                    className="border-gray-600 text-gray-300 text-sm sm:text-base whitespace-nowrap"
                   >
                     Validar
                   </Button>
                 </div>
                 
                 {promoCodeValid === true && (
-                  <div className="text-green-400 text-sm flex items-center gap-1">
-                    <Check className="w-4 h-4" />
+                  <div className="text-green-400 text-xs sm:text-sm flex items-center gap-1">
+                    <Check className="w-3 h-3 sm:w-4 sm:h-4" />
                     Código válido! Desconto aplicado.
                   </div>
                 )}
                 
                 {promoCodeValid === false && (
-                  <div className="text-red-400 text-sm flex items-center gap-1">
-                    <X className="w-4 h-4" />
+                  <div className="text-red-400 text-xs sm:text-sm flex items-center gap-1">
+                    <X className="w-3 h-3 sm:w-4 sm:h-4" />
                     Código inválido ou expirado.
                   </div>
                 )}
@@ -522,23 +530,25 @@ export default function UpgradePage() {
               <Button
                 onClick={handleUpgrade}
                 disabled={processing}
-                className="w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-lg py-3"
+                className="w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-sm sm:text-lg py-3 sm:py-4"
               >
                 {processing ? (
                   <div className="flex items-center gap-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    Processando...
+                    <div className="animate-spin rounded-full h-3 h-3 sm:h-4 sm:w-4 border-b-2 border-white"></div>
+                    <span className="hidden sm:inline">A processar...</span>
+                    <span className="sm:hidden">...</span>
                   </div>
                 ) : (
                   <div className="flex items-center gap-2">
-                    <Crown className="w-5 h-5" />
-                    Confirmar Upgrade - {formatCurrency(calculatePrice(selectedPlanData).toString())}
+                    <Crown className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <span className="hidden sm:inline">Confirmar Upgrade - {formatCurrency(calculatePrice(selectedPlanData).toString())}</span>
+                    <span className="sm:hidden">Confirmar - {formatCurrency(calculatePrice(selectedPlanData).toString())}</span>
                   </div>
                 )}
               </Button>
               
-              <p className="text-xs text-gray-400 text-center">
-                Ao confirmar, você concorda com nossos termos de serviço. 
+              <p className="text-xs text-gray-400 text-center leading-relaxed">
+                Ao confirmar, concorda com os nossos termos de serviço. 
                 O pagamento será processado de forma segura.
               </p>
             </CardContent>
@@ -546,33 +556,33 @@ export default function UpgradePage() {
         )}
 
         {/* Benefits Section */}
-        <div className="text-center space-y-6 pt-8">
-          <h2 className="text-2xl font-bold text-white">
-            Por que fazer upgrade?
+        <div className="text-center space-y-4 sm:space-y-6 pt-6 sm:pt-8">
+          <h2 className="text-xl sm:text-2xl font-bold text-white">
+            Porque fazer upgrade?
           </h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 max-w-4xl mx-auto">
             {[
               {
                 icon: Zap,
-                title: "Aprendizado Ilimitado",
-                description: "Pratique quantas lições quiser, quando quiser"
+                title: "Aprendizagem Ilimitada",
+                description: "Pratica quantas lições quiser, quando quiser"
               },
               {
                 icon: Bot,
-                title: "IA Personal Tutor",
+                title: "IA Professor Pessoal",
                 description: "Feedback personalizado e exercícios adaptativos"
               },
               {
                 icon: Award,
                 title: "Certificados Oficiais",
-                description: "Comprove seu nível de inglês com certificados reconhecidos"
+                description: "Comprova o seu nível de inglês com certificados reconhecidos"
               }
             ].map((benefit, index) => (
-              <div key={index} className="bg-customgreys-secondarybg/40 rounded-lg p-6">
-                <benefit.icon className="w-8 h-8 text-yellow-400 mx-auto mb-3" />
-                <h3 className="text-white font-semibold mb-2">{benefit.title}</h3>
-                <p className="text-gray-300 text-sm">{benefit.description}</p>
+              <div key={index} className="bg-customgreys-secondarybg/40 rounded-lg p-4 sm:p-6">
+                <benefit.icon className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-400 mx-auto mb-2 sm:mb-3" />
+                <h3 className="text-white font-semibold mb-1 sm:mb-2 text-sm sm:text-base">{benefit.title}</h3>
+                <p className="text-gray-300 text-xs sm:text-sm leading-relaxed">{benefit.description}</p>
               </div>
             ))}
           </div>

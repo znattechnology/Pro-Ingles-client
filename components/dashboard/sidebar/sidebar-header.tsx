@@ -36,7 +36,7 @@ function SidebarHeader({ isCoursePage }: { isCoursePage: boolean }) {
   return (
     <div className={`flex h-16 items-center gap-2 md:gap-4 border-b px-4 md:px-6 ${isCoursePage ? 'bg-customgreys-primarybg' : 'bg-customgreys-primarybg'} border-b-violet-900/30 backdrop-blur-sm`}>
       <SidebarTrigger className={`bg-violet-800/20 hover:bg-violet-800 text-white hover:text-white transition-all duration-200 rounded-lg p-2 ${isCoursePage ? '' : 'lg:hidden'}`} />
-      <div className="flex-1 max-w-md hidden sm:block">
+      <div className="max-w-md hidden sm:block">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
           <Input
@@ -47,6 +47,9 @@ function SidebarHeader({ isCoursePage }: { isCoursePage: boolean }) {
           />
         </div>
       </div>
+      
+      {/* Spacer to push content to the right */}
+      <div className="flex-1"></div>
       
       {/* Mobile search button */}
       <Button 

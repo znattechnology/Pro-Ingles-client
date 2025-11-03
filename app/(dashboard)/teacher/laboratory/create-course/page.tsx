@@ -135,23 +135,23 @@ const CreateCoursePage = () => {
 
   if (isCreating) {
     return (
-      <div className="min-h-screen bg-customgreys-primarybg flex items-center justify-center">
+      <div className="min-h-screen bg-customgreys-primarybg flex items-center justify-center px-4">
         <motion.div 
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
-          className="text-center space-y-6"
+          className="text-center space-y-4 sm:space-y-6"
         >
           <div className="relative">
-            <div className="w-20 h-20 border-4 border-violet-200/20 rounded-full"></div>
-            <div className="absolute top-0 left-0 w-20 h-20 border-4 border-violet-500 border-t-transparent rounded-full animate-spin"></div>
+            <div className="w-16 h-16 sm:w-20 sm:h-20 border-4 border-violet-200/20 rounded-full"></div>
+            <div className="absolute top-0 left-0 w-16 h-16 sm:w-20 sm:h-20 border-4 border-violet-500 border-t-transparent rounded-full animate-spin"></div>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-1.5 sm:space-y-2">
             <motion.h3 
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.2 }}
-              className="text-2xl font-bold text-white"
+              className="text-xl sm:text-2xl font-bold text-white"
             >
               Criando seu curso...
             </motion.h3>
@@ -159,9 +159,10 @@ const CreateCoursePage = () => {
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.3 }}
-              className="text-gray-400"
+              className="text-sm sm:text-base text-gray-400 px-4"
             >
-              Configurando estrutura e conteúdo
+              <span className="hidden sm:inline">Configurando estrutura e conteúdo</span>
+              <span className="sm:hidden">Configurando curso</span>
             </motion.p>
           </div>
           <motion.div
@@ -198,16 +199,16 @@ const CreateCoursePage = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="relative px-6 py-8"
+        className="relative px-4 sm:px-6 py-6 sm:py-8"
       >
         {/* Background Effects */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-violet-600/10 rounded-full blur-3xl" />
-          <div className="absolute -bottom-20 -left-40 w-80 h-80 bg-purple-600/10 rounded-full blur-3xl" />
+          <div className="absolute -top-20 sm:-top-40 -right-20 sm:-right-40 w-40 sm:w-80 h-40 sm:h-80 bg-violet-600/10 rounded-full blur-3xl" />
+          <div className="absolute -bottom-10 sm:-bottom-20 -left-20 sm:-left-40 w-40 sm:w-80 h-40 sm:h-80 bg-purple-600/10 rounded-full blur-3xl" />
         </div>
 
         <div className="relative max-w-7xl mx-auto">
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-6 sm:mb-8">
             <motion.div
               initial={{ x: -20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
@@ -216,10 +217,11 @@ const CreateCoursePage = () => {
               <Button 
                 variant="ghost"
                 onClick={handleBack}
-                className="text-gray-400 hover:text-white hover:bg-violet-600/20 transition-all"
+                className="text-gray-400 hover:text-white hover:bg-violet-600/20 transition-all text-sm sm:text-base px-2 sm:px-4"
               >
-                <ChevronLeft className="h-5 w-5 mr-2" />
-                Voltar ao Laboratório
+                <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" />
+                <span className="hidden xs:inline">Voltar ao Laboratório</span>
+                <span className="xs:hidden">Voltar</span>
               </Button>
             </motion.div>
           </div>
@@ -229,17 +231,20 @@ const CreateCoursePage = () => {
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.2, duration: 0.5 }}
-              className="inline-flex items-center gap-2 bg-violet-500/10 border border-violet-500/20 rounded-full px-6 py-2 mb-6"
+              className="inline-flex items-center gap-1.5 sm:gap-2 bg-violet-500/10 border border-violet-500/20 rounded-full px-3 sm:px-6 py-1.5 sm:py-2 mb-4 sm:mb-6"
             >
-              <Brain className="w-5 h-5 text-violet-400" />
-              <span className="text-violet-300 font-medium">Wizard de Criação</span>
+              <Brain className="w-4 h-4 sm:w-5 sm:h-5 text-violet-400" />
+              <span className="text-violet-300 font-medium text-sm sm:text-base">
+                <span className="hidden sm:inline">Wizard de Criação</span>
+                <span className="sm:hidden">Wizard</span>
+              </span>
             </motion.div>
             
             <motion.h1 
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.3, duration: 0.6 }}
-              className="text-4xl md:text-5xl font-bold mb-4"
+              className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 leading-tight px-2"
             >
               Criar <span className="bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent">Novo Curso</span>
             </motion.h1>
@@ -248,9 +253,10 @@ const CreateCoursePage = () => {
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.4, duration: 0.6 }}
-              className="text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed mb-8"
+              className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed mb-6 sm:mb-8 px-4"
             >
-              Transforme seu conhecimento em uma experiência de aprendizado interativa e envolvente
+              <span className="hidden sm:inline">Transforme seu conhecimento em uma experiência de aprendizado interativa e envolvente</span>
+              <span className="sm:hidden">Transforme seu conhecimento em uma experiência de aprendizado interativa</span>
             </motion.p>
           </div>
         </div>
@@ -261,7 +267,7 @@ const CreateCoursePage = () => {
         initial={{ y: 40, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.5, duration: 0.6 }}
-        className="px-6 pb-12"
+        className="px-4 sm:px-6 pb-8 sm:pb-12"
       >
         <CourseWizard onComplete={handleCourseCreation} />
       </motion.div>

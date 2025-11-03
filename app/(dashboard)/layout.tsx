@@ -48,13 +48,12 @@ function DashboardContent({
     }
   }, [isCoursePage, pathname, setOpen, open]);
 
-  if (isLoading) return <Loading />;
+  // if (isLoading) return <Loading />;
   if (!isAuthenticated || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black text-white">
         <div className="text-center">
-          <h2 className="text-xl font-semibold mb-2">Acesso Restrito</h2>
-          <p className="text-gray-400">Faça login para acessar esta página.</p>
+            <Loading/>
         </div>
       </div>
     );

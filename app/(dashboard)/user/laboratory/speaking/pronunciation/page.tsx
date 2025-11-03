@@ -9,7 +9,6 @@ import {
   Volume2, 
   Mic,
   Play,
-  Pause,
   RotateCcw,
   CheckCircle,
   AlertCircle,
@@ -85,25 +84,25 @@ const PronunciationPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-customgreys-primarybg p-6">
+    <div className="min-h-screen bg-customgreys-primarybg p-4 sm:p-6">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Exercícios de Pronúncia</h1>
-          <p className="text-gray-300">Melhore sua pronúncia com exercícios interativos</p>
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">Exercícios de Pronúncia</h1>
+          <p className="text-gray-300 text-sm sm:text-base">Melhore sua pronúncia com exercícios interativos</p>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
           <Card className="bg-customgreys-secondarybg border-violet-900/30">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-blue-500/20 rounded-lg">
-                  <Target className="w-6 h-6 text-blue-400" />
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="p-2 sm:p-3 bg-blue-500/20 rounded-lg">
+                  <Target className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" />
                 </div>
                 <div>
-                  <p className="text-gray-300 text-sm">Progresso</p>
-                  <p className="text-white text-xl font-bold">
+                  <p className="text-gray-300 text-xs sm:text-sm">Progresso</p>
+                  <p className="text-white text-lg sm:text-xl font-bold">
                     {stats.completed}/{stats.totalExercises}
                   </p>
                 </div>
@@ -112,74 +111,74 @@ const PronunciationPage = () => {
           </Card>
 
           <Card className="bg-customgreys-secondarybg border-violet-900/30">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-green-500/20 rounded-lg">
-                  <TrendingUp className="w-6 h-6 text-green-400" />
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="p-2 sm:p-3 bg-green-500/20 rounded-lg">
+                  <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-green-400" />
                 </div>
                 <div>
-                  <p className="text-gray-300 text-sm">Média</p>
-                  <p className="text-white text-xl font-bold">{stats.averageScore}%</p>
+                  <p className="text-gray-300 text-xs sm:text-sm">Média</p>
+                  <p className="text-white text-lg sm:text-xl font-bold">{stats.averageScore}%</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <Card className="bg-customgreys-secondarybg border-violet-900/30">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-yellow-500/20 rounded-lg">
-                  <Star className="w-6 h-6 text-yellow-400" />
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="p-2 sm:p-3 bg-yellow-500/20 rounded-lg">
+                  <Star className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-400" />
                 </div>
                 <div>
-                  <p className="text-gray-300 text-sm">Sequência</p>
-                  <p className="text-white text-xl font-bold">{stats.streak} dias</p>
+                  <p className="text-gray-300 text-xs sm:text-sm">Sequência</p>
+                  <p className="text-white text-lg sm:text-xl font-bold">{stats.streak} dias</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           <Card className="bg-customgreys-secondarybg border-violet-900/30">
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               <Progress value={(stats.completed / stats.totalExercises) * 100} className="mb-2" />
-              <p className="text-gray-300 text-sm text-center">
+              <p className="text-gray-300 text-xs sm:text-sm text-center">
                 {Math.round((stats.completed / stats.totalExercises) * 100)}% Completo
               </p>
             </CardContent>
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
           {/* Main Exercise Area */}
           <div className="lg:col-span-2">
             <Card className="bg-customgreys-secondarybg border-violet-900/30 mb-6">
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-white text-xl">Exercício Atual</CardTitle>
+                  <CardTitle className="text-white text-lg sm:text-xl">Exercício Atual</CardTitle>
                   <Badge className={getDifficultyColor(exercise.difficulty)}>
                     {exercise.difficulty}
                   </Badge>
                 </div>
               </CardHeader>
               
-              <CardContent className="space-y-6">
+              <CardContent className="space-y-4 sm:space-y-6">
                 {/* Word Display */}
-                <div className="text-center py-8">
-                  <h2 className="text-4xl font-bold text-white mb-4">{exercise.word}</h2>
-                  <p className="text-2xl text-violet-400 mb-2">{exercise.phonetic}</p>
+                <div className="text-center py-6 sm:py-8">
+                  <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-3 sm:mb-4">{exercise.word}</h2>
+                  <p className="text-lg sm:text-xl lg:text-2xl text-violet-400 mb-2">{exercise.phonetic}</p>
                   <Badge variant="outline" className="text-gray-300">
                     {exercise.category}
                   </Badge>
                 </div>
 
                 {/* Audio Controls */}
-                <div className="flex justify-center gap-4 mb-8">
+                <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 mb-6 sm:mb-8">
                   <Button 
                     variant="outline" 
                     size="lg"
                     className="bg-violet-600/20 border-violet-500 text-white hover:bg-violet-600/30"
                   >
-                    <Volume2 className="w-5 h-5 mr-2" />
+                    <Volume2 className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                     Ouvir
                   </Button>
                   
@@ -188,27 +187,27 @@ const PronunciationPage = () => {
                     size="lg"
                     className="bg-violet-600/20 border-violet-500 text-white hover:bg-violet-600/30"
                   >
-                    <Play className="w-5 h-5 mr-2" />
+                    <Play className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                     Repetir Devagar
                   </Button>
                 </div>
 
                 {/* Recording Area */}
-                <div className="bg-customgreys-primarybg rounded-lg p-6 text-center">
+                <div className="bg-customgreys-primarybg rounded-lg p-4 sm:p-6 text-center">
                   <div className="mb-4">
-                    <div className={`w-20 h-20 rounded-full mx-auto flex items-center justify-center mb-4 transition-all duration-300 ${
+                    <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full mx-auto flex items-center justify-center mb-3 sm:mb-4 transition-all duration-300 ${
                       isRecording 
                         ? 'bg-red-500/20 animate-pulse' 
                         : 'bg-gray-500/20 hover:bg-violet-600/20'
                     }`}>
-                      <Mic className={`w-10 h-10 ${isRecording ? 'text-red-400' : 'text-gray-400'}`} />
+                      <Mic className={`w-8 h-8 sm:w-10 sm:h-10 ${isRecording ? 'text-red-400' : 'text-gray-400'}`} />
                     </div>
-                    <p className="text-gray-300 mb-4">
+                    <p className="text-gray-300 mb-3 sm:mb-4 text-sm sm:text-base">
                       {isRecording ? 'Gravando... Fale agora!' : 'Clique para gravar sua pronúncia'}
                     </p>
                   </div>
 
-                  <div className="flex justify-center gap-4">
+                  <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
                     <Button 
                       onClick={handleRecord}
                       className={isRecording 
@@ -220,14 +219,14 @@ const PronunciationPage = () => {
                     </Button>
                     
                     <Button variant="outline">
-                      <RotateCcw className="w-4 h-4 mr-2" />
+                      <RotateCcw className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
                       Tentar Novamente
                     </Button>
                   </div>
                 </div>
 
                 {/* Navigation */}
-                <div className="flex justify-between items-center pt-6 border-t border-violet-900/20">
+                <div className="flex flex-col sm:flex-row justify-between items-center pt-4 sm:pt-6 border-t border-violet-900/20 gap-3 sm:gap-0">
                   <Button 
                     variant="outline" 
                     onClick={() => setCurrentExercise(Math.max(0, currentExercise - 1))}
@@ -236,7 +235,7 @@ const PronunciationPage = () => {
                     Anterior
                   </Button>
                   
-                  <span className="text-gray-300">
+                  <span className="text-gray-300 text-sm sm:text-base">
                     {currentExercise + 1} de {exercises.length}
                   </span>
                   
@@ -252,37 +251,38 @@ const PronunciationPage = () => {
           </div>
 
           {/* Sidebar */}
-          <div>
+          <div className="space-y-4 sm:space-y-6">
             <Card className="bg-customgreys-secondarybg border-violet-900/30">
-              <CardHeader>
-                <CardTitle className="text-white">Lista de Exercícios</CardTitle>
+              <CardHeader className="pb-3 sm:pb-4">
+                <CardTitle className="text-white text-base sm:text-lg">Lista de Exercícios</CardTitle>
               </CardHeader>
               
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-2 sm:space-y-3">
                 {exercises.map((ex, index) => (
                   <div
                     key={ex.id}
                     onClick={() => setCurrentExercise(index)}
-                    className={`p-3 rounded-lg cursor-pointer transition-all duration-200 ${
+                    className={`p-2 sm:p-3 rounded-lg cursor-pointer transition-all duration-200 touch-target ${
                       index === currentExercise
                         ? 'bg-violet-600/20 border border-violet-500/50'
                         : 'bg-customgreys-primarybg hover:bg-violet-600/10'
                     }`}
+                    style={{ minHeight: '44px' }}
                   >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h4 className="text-white font-medium">{ex.word}</h4>
-                        <p className="text-gray-400 text-sm">{ex.category}</p>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <h4 className="text-white font-medium text-sm sm:text-base truncate">{ex.word}</h4>
+                        <p className="text-gray-400 text-xs sm:text-sm">{ex.category}</p>
                       </div>
                       
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
                         {ex.completed ? (
                           <div className="flex items-center gap-1">
-                            <CheckCircle className="w-4 h-4 text-green-400" />
-                            <span className="text-green-400 text-sm">{ex.score}%</span>
+                            <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 text-green-400" />
+                            <span className="text-green-400 text-xs sm:text-sm">{ex.score}%</span>
                           </div>
                         ) : (
-                          <AlertCircle className="w-4 h-4 text-gray-400" />
+                          <AlertCircle className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
                         )}
                       </div>
                     </div>
@@ -292,28 +292,28 @@ const PronunciationPage = () => {
             </Card>
 
             {/* Tips Card */}
-            <Card className="bg-customgreys-secondarybg border-violet-900/30 mt-6">
-              <CardHeader>
-                <CardTitle className="text-white text-lg">Dicas de Pronúncia</CardTitle>
+            <Card className="bg-customgreys-secondarybg border-violet-900/30">
+              <CardHeader className="pb-3 sm:pb-4">
+                <CardTitle className="text-white text-base sm:text-lg">Dicas de Pronúncia</CardTitle>
               </CardHeader>
               
               <CardContent>
-                <div className="space-y-3 text-sm text-gray-300">
+                <div className="space-y-2 sm:space-y-3 text-xs sm:text-sm text-gray-300">
                   <div className="flex items-start gap-2">
-                    <div className="w-1.5 h-1.5 bg-violet-400 rounded-full mt-2 flex-shrink-0"></div>
-                    <p>Ouça atentamente antes de tentar repetir</p>
+                    <div className="w-1.5 h-1.5 bg-violet-400 rounded-full mt-1.5 sm:mt-2 flex-shrink-0"></div>
+                    <p className="leading-relaxed">Ouça atentamente antes de tentar repetir</p>
                   </div>
                   <div className="flex items-start gap-2">
-                    <div className="w-1.5 h-1.5 bg-violet-400 rounded-full mt-2 flex-shrink-0"></div>
-                    <p>Foque na entonação e ritmo da palavra</p>
+                    <div className="w-1.5 h-1.5 bg-violet-400 rounded-full mt-1.5 sm:mt-2 flex-shrink-0"></div>
+                    <p className="leading-relaxed">Foque na entonação e ritmo da palavra</p>
                   </div>
                   <div className="flex items-start gap-2">
-                    <div className="w-1.5 h-1.5 bg-violet-400 rounded-full mt-2 flex-shrink-0"></div>
-                    <p>Pratique em um ambiente silencioso</p>
+                    <div className="w-1.5 h-1.5 bg-violet-400 rounded-full mt-1.5 sm:mt-2 flex-shrink-0"></div>
+                    <p className="leading-relaxed">Pratique em um ambiente silencioso</p>
                   </div>
                   <div className="flex items-start gap-2">
-                    <div className="w-1.5 h-1.5 bg-violet-400 rounded-full mt-2 flex-shrink-0"></div>
-                    <p>Repita várias vezes até se sentir confiante</p>
+                    <div className="w-1.5 h-1.5 bg-violet-400 rounded-full mt-1.5 sm:mt-2 flex-shrink-0"></div>
+                    <p className="leading-relaxed">Repita várias vezes até se sentir confiante</p>
                   </div>
                 </div>
               </CardContent>

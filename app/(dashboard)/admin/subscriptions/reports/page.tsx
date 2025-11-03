@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import Loading from "@/components/course/Loading";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -28,6 +29,7 @@ import {
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { motion } from "framer-motion";
 
 interface ReportData {
   overview: {
@@ -83,9 +85,18 @@ export default function AdminSubscriptionReportsPage() {
     try {
       setLoading(true);
       
-      // For now, we'll use mock data since the backend endpoint might not exist
-      // In production, this would call the actual API endpoint
-      const mockData: ReportData = {
+      // Fetch real data from Django backend
+      const response = await fetch('/api/v1/subscriptions?endpoint=admin-reports');
+      
+      if (response.ok) {
+        const data = await response.json();
+        setReportData(data);
+      } else {
+        console.error('Failed to fetch report data:', response.status);
+        setError('Erro ao carregar dados de relatórios');
+        
+        // Fallback to mock data if API fails
+        const mockData: ReportData = {
         overview: {
           total_revenue: "1,250,000.00",
           total_subscriptions: 847,
@@ -131,12 +142,12 @@ export default function AdminSubscriptionReportsPage() {
           { location: "Outras", users: 236, revenue: "107,000.00" }
         ]
       };
+        
+        setReportData(mockData);
+      }
 
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setReportData(mockData);
-
-    } catch {
+    } catch (error) {
+      console.error('Error fetching report data:', error);
       setError('Erro ao carregar relatórios');
     } finally {
       setLoading(false);
@@ -168,16 +179,18 @@ export default function AdminSubscriptionReportsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-customgreys-primarybg p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center py-12">
-            <div className="animate-pulse">
-              <BarChart3 className="w-12 h-12 text-yellow-400 mx-auto mb-4" />
-              <p className="text-gray-300">Gerando relatórios...</p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <Loading 
+        title="Relatórios de Assinaturas"
+        subtitle="Analytics & Métricas"
+        description="Gerando relatórios e estatísticas..."
+        icon={BarChart3}
+        progress={85}
+        theme={{
+          primary: "green",
+          secondary: "emerald",
+          accent: "lime"
+        }}
+      />
     );
   }
 
@@ -199,140 +212,353 @@ export default function AdminSubscriptionReportsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-customgreys-primarybg p-6">
-      <div className="max-w-7xl mx-auto space-y-8">
-        
-        {/* Header */}
-        <div className="flex justify-between items-start">
-          <div>
-            <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-              <BarChart3 className="w-8 h-8 text-yellow-400" />
-              Relatórios de Assinaturas
-            </h1>
-            <p className="text-gray-300 mt-2">
-              Analytics detalhado de receita, usuários e performance
-            </p>
-          </div>
+    <div className="min-h-screen bg-customgreys-primarybg text-white">
+      {/* Enhanced Header Section */}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="relative px-4 sm:px-6 py-6 sm:py-8"
+      >
+        {/* Background Effects */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-20 sm:-top-40 -right-20 sm:-right-40 w-40 sm:w-80 h-40 sm:h-80 bg-emerald-600/10 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute -bottom-10 sm:-bottom-20 -left-20 sm:-left-40 w-40 sm:w-80 h-40 sm:h-80 bg-green-600/10 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-48 sm:w-96 h-48 sm:h-96 bg-lime-500/5 rounded-full blur-3xl" />
           
-          <div className="flex gap-3">
-            <Select value={dateRange} onValueChange={setDateRange}>
-              <SelectTrigger className="w-48 bg-customgreys-secondarybg border-gray-600 text-white">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="last_7_days">Últimos 7 dias</SelectItem>
-                <SelectItem value="last_30_days">Últimos 30 dias</SelectItem>
-                <SelectItem value="last_90_days">Últimos 90 dias</SelectItem>
-                <SelectItem value="last_year">Último ano</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Button
-              onClick={() => handleExportReport('pdf')}
-              variant="outline"
-              className="border-gray-600 text-gray-300"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              PDF
-            </Button>
-            
-            <Button
-              onClick={() => handleExportReport('excel')}
-              className="bg-gradient-to-r from-green-600 to-blue-600"
-            >
-              <FileText className="w-4 h-4 mr-2" />
-              Excel
-            </Button>
-          </div>
+          {/* Floating particles */}
+          <div className="absolute top-20 left-20 w-2 h-2 bg-emerald-400/30 rounded-full animate-bounce" style={{animationDelay: '0s'}} />
+          <div className="absolute top-40 right-32 w-1 h-1 bg-green-400/40 rounded-full animate-bounce" style={{animationDelay: '1s'}} />
+          <div className="absolute bottom-32 left-1/3 w-1.5 h-1.5 bg-lime-400/30 rounded-full animate-bounce" style={{animationDelay: '2s'}} />
+          <div className="absolute bottom-20 right-20 w-2 h-2 bg-emerald-300/20 rounded-full animate-bounce" style={{animationDelay: '3s'}} />
         </div>
 
-        {/* Error Alert */}
+        <div className="relative max-w-7xl mx-auto">
+          <div className="text-center mb-8">
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+              className="inline-flex items-center gap-2 sm:gap-3 bg-gradient-to-r from-emerald-500/10 via-green-500/10 to-lime-500/10 border border-emerald-500/30 rounded-full px-4 sm:px-8 py-2 sm:py-3 mb-6 sm:mb-8 backdrop-blur-sm shadow-lg shadow-emerald-500/10"
+            >
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+              >
+                <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-400" />
+              </motion.div>
+              <span className="text-emerald-300 font-semibold text-sm sm:text-base lg:text-lg">Relatórios de Assinaturas</span>
+              <motion.div
+                animate={{ scale: [1, 1.2, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                <Activity className="w-3 h-3 sm:w-4 sm:h-4 text-green-400" />
+              </motion.div>
+            </motion.div>
+            
+            <motion.h1 
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.3, duration: 0.6 }}
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 sm:mb-6 leading-tight"
+            >
+              Analytics{' '}
+              <motion.span 
+                className="bg-gradient-to-r from-emerald-400 via-green-400 to-lime-400 bg-clip-text text-transparent"
+                animate={{ 
+                  backgroundPosition: ['0% 50%', '100% 50%', '0% 50%']
+                }}
+                transition={{ duration: 3, repeat: Infinity }}
+                style={{ backgroundSize: '200% 200%' }}
+              >
+                Premium
+              </motion.span>
+              <motion.span
+                animate={{ rotate: [0, 10, -10, 0] }}
+                transition={{ duration: 2, repeat: Infinity, delay: 1 }}
+                className="inline-block ml-2"
+              >
+                📊
+              </motion.span>
+            </motion.h1>
+            
+            <motion.p 
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.4, duration: 0.6 }}
+              className="text-base sm:text-lg md:text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed mb-8 font-light"
+            >
+              Analytics detalhado de <motion.span className="text-emerald-400 font-medium" whileHover={{ scale: 1.05 }}>receita</motion.span>,{' '}
+              <motion.span className="text-green-400 font-medium" whileHover={{ scale: 1.05 }}>usuários</motion.span> e{' '}
+              <motion.span className="text-lime-400 font-medium" whileHover={{ scale: 1.05 }}>performance</motion.span>
+            </motion.p>
+          </div>
+
+          {/* Action Buttons */}
+          <motion.div 
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.5, duration: 0.6 }}
+            className="flex flex-wrap justify-center gap-3 mb-8"
+          >
+            <div className="flex flex-col sm:flex-row gap-3">
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Select value={dateRange} onValueChange={setDateRange}>
+                  <SelectTrigger className="w-full sm:w-48 bg-customgreys-secondarybg/60 backdrop-blur-sm border-emerald-500/30 text-white hover:border-emerald-400/50 transition-all duration-300">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="last_7_days">Últimos 7 dias</SelectItem>
+                    <SelectItem value="last_30_days">Últimos 30 dias</SelectItem>
+                    <SelectItem value="last_90_days">Últimos 90 dias</SelectItem>
+                    <SelectItem value="last_year">Último ano</SelectItem>
+                  </SelectContent>
+                </Select>
+              </motion.div>
+
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button
+                  onClick={() => handleExportReport('pdf')}
+                  variant="outline"
+                  className="border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/10 hover:border-emerald-400/50 transition-all duration-300"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  PDF
+                </Button>
+              </motion.div>
+              
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button
+                  onClick={() => handleExportReport('excel')}
+                  className="bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 shadow-lg shadow-emerald-500/25 transition-all duration-300 hover:shadow-emerald-500/40"
+                >
+                  <FileText className="w-4 h-4 mr-2" />
+                  Excel
+                </Button>
+              </motion.div>
+            </div>
+          </motion.div>
+        </div>
+      </motion.div>
+
+      {/* Main Content Container */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-6">
+
+        {/* Enhanced Error Alert */}
         {error && (
-          <Alert className="bg-red-900/50 border-red-700">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription className="text-red-300">
-              {error}
-            </AlertDescription>
-          </Alert>
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-red-900/50 border border-red-700 rounded-lg p-4 flex items-center gap-3"
+          >
+            <AlertCircle className="h-4 w-4 text-red-400" />
+            <div className="text-red-300">{error}</div>
+          </motion.div>
         )}
 
-        {/* Overview Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          <Card className="bg-customgreys-secondarybg/60 backdrop-blur-sm border-violet-900/30">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-400">Receita Total</p>
-                  <p className="text-2xl font-bold text-green-400">
-                    {formatCurrency(reportData.overview.total_revenue)}
-                  </p>
-                  <div className="flex items-center mt-1">
-                    <ArrowUp className="w-3 h-3 text-green-400 mr-1" />
-                    <span className="text-xs text-green-400">
-                      +{formatPercentage(reportData.overview.monthly_growth_rate)} vs. mês anterior
-                    </span>
+        {/* Enhanced Overview Stats */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6, duration: 0.6 }}
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6"
+        >
+          {/* Total Revenue Card */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.7, duration: 0.5 }}
+            whileHover={{ scale: 1.02, y: -5 }}
+            className="group"
+          >
+            <Card className="relative overflow-hidden bg-gradient-to-br from-emerald-900/30 via-customgreys-secondarybg/60 to-green-900/30 backdrop-blur-sm border border-emerald-500/30 shadow-lg shadow-emerald-500/10 hover:shadow-emerald-500/20 transition-all duration-300">
+              <div className="absolute inset-0 bg-gradient-to-r from-emerald-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <CardContent className="relative p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <motion.p 
+                      className="text-sm font-medium text-emerald-300/80 mb-1"
+                      whileHover={{ scale: 1.05 }}
+                    >
+                      Receita Total
+                    </motion.p>
+                    <motion.p 
+                      className="text-2xl font-bold text-white mb-1"
+                      animate={{ scale: [1, 1.02, 1] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    >
+                      {formatCurrency(reportData.overview.total_revenue)}
+                    </motion.p>
+                    <motion.div 
+                      className="flex items-center gap-1 text-xs text-emerald-400"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 1 }}
+                    >
+                      <ArrowUp className="w-3 h-3" />
+                      <span>+{formatPercentage(reportData.overview.monthly_growth_rate)} vs. mês anterior</span>
+                    </motion.div>
                   </div>
+                  <motion.div
+                    whileHover={{ rotate: 360, scale: 1.1 }}
+                    transition={{ duration: 0.6 }}
+                    className="p-3 bg-emerald-500/20 rounded-full border border-emerald-500/30"
+                  >
+                    <DollarSign className="w-6 h-6 text-emerald-400" />
+                  </motion.div>
                 </div>
-                <DollarSign className="w-8 h-8 text-green-400" />
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </motion.div>
 
-          <Card className="bg-customgreys-secondarybg/60 backdrop-blur-sm border-violet-900/30">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-400">Assinaturas Ativas</p>
-                  <p className="text-2xl font-bold text-blue-400">
-                    {reportData.overview.active_subscriptions}
-                  </p>
-                  <div className="text-xs text-gray-400 mt-1">
-                    de {reportData.overview.total_subscriptions} total
+          {/* Active Subscriptions Card */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.8, duration: 0.5 }}
+            whileHover={{ scale: 1.02, y: -5 }}
+            className="group"
+          >
+            <Card className="relative overflow-hidden bg-gradient-to-br from-green-900/30 via-customgreys-secondarybg/60 to-lime-900/30 backdrop-blur-sm border border-green-500/30 shadow-lg shadow-green-500/10 hover:shadow-green-500/20 transition-all duration-300">
+              <div className="absolute inset-0 bg-gradient-to-r from-green-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <CardContent className="relative p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <motion.p 
+                      className="text-sm font-medium text-green-300/80 mb-1"
+                      whileHover={{ scale: 1.05 }}
+                    >
+                      Assinaturas Ativas
+                    </motion.p>
+                    <motion.p 
+                      className="text-2xl font-bold text-white mb-1"
+                      animate={{ scale: [1, 1.02, 1] }}
+                      transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
+                    >
+                      {reportData.overview.active_subscriptions}
+                    </motion.p>
+                    <motion.div 
+                      className="flex items-center gap-1 text-xs text-green-400"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 1.2 }}
+                    >
+                      <Users className="w-3 h-3" />
+                      <span>de {reportData.overview.total_subscriptions} total</span>
+                    </motion.div>
                   </div>
+                  <motion.div
+                    whileHover={{ rotate: 360, scale: 1.1 }}
+                    transition={{ duration: 0.6 }}
+                    className="p-3 bg-green-500/20 rounded-full border border-green-500/30"
+                  >
+                    <Users className="w-6 h-6 text-green-400" />
+                  </motion.div>
                 </div>
-                <Users className="w-8 h-8 text-blue-400" />
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </motion.div>
 
-          <Card className="bg-customgreys-secondarybg/60 backdrop-blur-sm border-violet-900/30">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-400">Taxa de Conversão</p>
-                  <p className="text-2xl font-bold text-yellow-400">
-                    {formatPercentage(reportData.overview.conversion_rate)}
-                  </p>
-                  <div className="text-xs text-gray-400 mt-1">
-                    Trial → Assinatura paga
+          {/* Conversion Rate Card */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.9, duration: 0.5 }}
+            whileHover={{ scale: 1.02, y: -5 }}
+            className="group"
+          >
+            <Card className="relative overflow-hidden bg-gradient-to-br from-lime-900/30 via-customgreys-secondarybg/60 to-yellow-900/30 backdrop-blur-sm border border-lime-500/30 shadow-lg shadow-lime-500/10 hover:shadow-lime-500/20 transition-all duration-300">
+              <div className="absolute inset-0 bg-gradient-to-r from-lime-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <CardContent className="relative p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <motion.p 
+                      className="text-sm font-medium text-lime-300/80 mb-1"
+                      whileHover={{ scale: 1.05 }}
+                    >
+                      Taxa de Conversão
+                    </motion.p>
+                    <motion.p 
+                      className="text-2xl font-bold text-white mb-1"
+                      animate={{ scale: [1, 1.02, 1] }}
+                      transition={{ duration: 2, repeat: Infinity, delay: 1 }}
+                    >
+                      {formatPercentage(reportData.overview.conversion_rate)}
+                    </motion.p>
+                    <motion.div 
+                      className="flex items-center gap-1 text-xs text-lime-400"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 1.4 }}
+                    >
+                      <Target className="w-3 h-3" />
+                      <span>Trial → Assinatura paga</span>
+                    </motion.div>
                   </div>
+                  <motion.div
+                    whileHover={{ rotate: 360, scale: 1.1 }}
+                    transition={{ duration: 0.6 }}
+                    className="p-3 bg-lime-500/20 rounded-full border border-lime-500/30"
+                  >
+                    <Target className="w-6 h-6 text-lime-400" />
+                  </motion.div>
                 </div>
-                <Target className="w-8 h-8 text-yellow-400" />
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </motion.div>
 
-          <Card className="bg-customgreys-secondarybg/60 backdrop-blur-sm border-violet-900/30">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-400">Churn Rate</p>
-                  <p className="text-2xl font-bold text-red-400">
-                    {formatPercentage(reportData.overview.churn_rate)}
-                  </p>
-                  <div className="text-xs text-gray-400 mt-1">
-                    Cancelamentos mensais
+          {/* Churn Rate Card */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 1.0, duration: 0.5 }}
+            whileHover={{ scale: 1.02, y: -5 }}
+            className="group"
+          >
+            <Card className="relative overflow-hidden bg-gradient-to-br from-red-900/30 via-customgreys-secondarybg/60 to-orange-900/30 backdrop-blur-sm border border-red-500/30 shadow-lg shadow-red-500/10 hover:shadow-red-500/20 transition-all duration-300">
+              <div className="absolute inset-0 bg-gradient-to-r from-red-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <CardContent className="relative p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <motion.p 
+                      className="text-sm font-medium text-red-300/80 mb-1"
+                      whileHover={{ scale: 1.05 }}
+                    >
+                      Churn Rate
+                    </motion.p>
+                    <motion.p 
+                      className="text-2xl font-bold text-white mb-1"
+                      animate={{ scale: [1, 1.02, 1] }}
+                      transition={{ duration: 2, repeat: Infinity, delay: 1.5 }}
+                    >
+                      {formatPercentage(reportData.overview.churn_rate)}
+                    </motion.p>
+                    <motion.div 
+                      className="flex items-center gap-1 text-xs text-red-400"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 1.6 }}
+                    >
+                      <Activity className="w-3 h-3" />
+                      <span>Cancelamentos mensais</span>
+                    </motion.div>
                   </div>
+                  <motion.div
+                    whileHover={{ rotate: 360, scale: 1.1 }}
+                    transition={{ duration: 0.6 }}
+                    className="p-3 bg-red-500/20 rounded-full border border-red-500/30"
+                  >
+                    <Activity className="w-6 h-6 text-red-400" />
+                  </motion.div>
                 </div>
-                <Activity className="w-8 h-8 text-red-400" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </motion.div>
 
         {/* Detailed Reports Tabs */}
         <Tabs defaultValue="revenue" className="space-y-6">
-          <TabsList className="bg-customgreys-secondarybg border-gray-600">
+          <TabsList className="bg-customgreys-secondarybg border-gray-600 grid grid-cols-3 sm:grid-cols-5 w-full">
             <TabsTrigger value="revenue" className="text-gray-300">Receita</TabsTrigger>
             <TabsTrigger value="users" className="text-gray-300">Usuários</TabsTrigger>
             <TabsTrigger value="plans" className="text-gray-300">Planos</TabsTrigger>
@@ -381,7 +607,7 @@ export default function AdminSubscriptionReportsPage() {
               </CardContent>
             </Card>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card className="bg-customgreys-secondarybg/60 backdrop-blur-sm border-violet-900/30">
                 <CardHeader>
                   <CardTitle className="text-white">ARPU - Average Revenue Per User</CardTitle>
@@ -462,7 +688,7 @@ export default function AdminSubscriptionReportsPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   {[
                     { period: '1 Dia', rate: reportData.retention_metrics.day_1, color: 'text-green-400' },
                     { period: '7 Dias', rate: reportData.retention_metrics.day_7, color: 'text-blue-400' },
@@ -514,34 +740,45 @@ export default function AdminSubscriptionReportsPage() {
           </TabsContent>
         </Tabs>
 
-        {/* Action Buttons */}
-        <div className="flex justify-center gap-4 pt-6">
-          <Button
-            onClick={() => handleExportReport('csv')}
-            variant="outline"
-            className="border-gray-600 text-gray-300"
-          >
-            <Download className="w-4 h-4 mr-2" />
-            Exportar CSV
-          </Button>
+        {/* Enhanced Action Buttons */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.1, duration: 0.6 }}
+          className="flex flex-col sm:flex-row justify-center gap-4 pt-6"
+        >
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Button
+              onClick={() => handleExportReport('csv')}
+              variant="outline"
+              className="border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/10 hover:border-emerald-400/50 transition-all duration-300"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Exportar CSV
+            </Button>
+          </motion.div>
           
-          <Button
-            onClick={() => handleExportReport('pdf')}
-            variant="outline"
-            className="border-gray-600 text-gray-300"
-          >
-            <FileText className="w-4 h-4 mr-2" />
-            Gerar PDF
-          </Button>
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Button
+              onClick={() => handleExportReport('pdf')}
+              variant="outline"
+              className="border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/10 hover:border-emerald-400/50 transition-all duration-300"
+            >
+              <FileText className="w-4 h-4 mr-2" />
+              Gerar PDF
+            </Button>
+          </motion.div>
           
-          <Button
-            onClick={fetchReportData}
-            className="bg-gradient-to-r from-purple-600 to-blue-600"
-          >
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Atualizar Dados
-          </Button>
-        </div>
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Button
+              onClick={fetchReportData}
+              className="bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 shadow-lg shadow-emerald-500/25 transition-all duration-300 hover:shadow-emerald-500/40"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Atualizar Dados
+            </Button>
+          </motion.div>
+        </motion.div>
       </div>
     </div>
   );

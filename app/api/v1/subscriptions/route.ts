@@ -76,6 +76,12 @@ export async function GET(request: NextRequest) {
       case 'admin-promo-code-usage':
         djangoEndpoint = '/api/v1/subscriptions/admin/promo-code-usage/';
         break;
+      case 'admin-promo-code-stats':
+        djangoEndpoint = '/api/v1/subscriptions/admin/promo-code-stats/';
+        break;
+      case 'admin-reports':
+        djangoEndpoint = '/api/v1/subscriptions/admin/reports/';
+        break;
       case 'my-subscription':
         djangoEndpoint = '/api/v1/subscriptions/my-subscription/';
         break;
@@ -98,7 +104,7 @@ export async function GET(request: NextRequest) {
     };
 
     // Add authentication for protected endpoints
-    const protectedEndpoints = ['admin-plans', 'admin-subscriptions', 'admin-stats', 'admin-promo-codes', 'admin-promo-code-usage', 'analytics', 'my-subscription', 'upgrade'];
+    const protectedEndpoints = ['admin-plans', 'admin-subscriptions', 'admin-stats', 'admin-promo-codes', 'admin-promo-code-usage', 'admin-promo-code-stats', 'admin-reports', 'analytics', 'my-subscription', 'upgrade'];
     if (protectedEndpoints.includes(endpoint)) {
       if (!user) {
         return NextResponse.json(
@@ -108,7 +114,8 @@ export async function GET(request: NextRequest) {
       }
       
       // For admin endpoints, check if user is admin
-      if ((endpoint === 'admin-plans' || endpoint === 'admin-subscriptions' || endpoint === 'admin-stats' || endpoint === 'admin-promo-codes' || endpoint === 'admin-promo-code-usage') && user.role !== 'admin') {
+      const adminEndpoints = ['admin-plans', 'admin-subscriptions', 'admin-stats', 'admin-promo-codes', 'admin-promo-code-usage', 'admin-promo-code-stats', 'admin-reports'];
+      if (adminEndpoints.includes(endpoint) && user.role !== 'admin') {
         return NextResponse.json(
           { error: 'Admin access required' },
           { status: 403 }

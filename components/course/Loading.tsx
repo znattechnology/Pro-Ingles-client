@@ -1,7 +1,41 @@
-import { Loader2, BookOpen, Sparkles, Brain } from "lucide-react";
+import { Loader2, BookOpen, Sparkles, Brain, LucideIcon } from "lucide-react";
 import React from "react";
 
-const Loading = () => {
+interface LoadingProps {
+  title?: string;
+  subtitle?: string;
+  description?: string;
+  icon?: LucideIcon;
+  progress?: number;
+  theme?: {
+    primary?: string;
+    secondary?: string;
+    accent?: string;
+  };
+  size?: 'sm' | 'md' | 'lg';
+}
+
+const Loading = ({ 
+  title = "ProEnglish",
+  subtitle = "Learning Platform",
+  description = "Preparando sua experiência de aprendizado...",
+  icon: IconComponent = Brain,
+  progress = 60,
+  theme = {
+    primary: "violet",
+    secondary: "purple", 
+    accent: "yellow"
+  },
+  size = "md"
+}: LoadingProps) => {
+  const sizeClasses = {
+    sm: { container: "space-y-4", icon: "h-6 w-6", spinner: "w-6 h-6", text: "text-base", progress: "w-48" },
+    md: { container: "space-y-8", icon: "h-8 w-8", spinner: "w-8 h-8", text: "text-lg", progress: "w-64" },
+    lg: { container: "space-y-12", icon: "h-10 w-10", spinner: "w-10 h-10", text: "text-xl", progress: "w-80" }
+  };
+
+  const currentSize = sizeClasses[size];
+
   return (
     <div className="fixed inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-customgreys-secondarybg via-violet-950/20 to-purple-950/30 overflow-hidden">
       {/* Background Effects */}
@@ -26,27 +60,27 @@ const Loading = () => {
       </div>
 
       {/* Main loading content */}
-      <div className="relative z-10 flex flex-col items-center space-y-8">
+      <div className={`relative z-10 flex flex-col items-center ${currentSize.container}`}>
         
         {/* Logo/Brand section */}
         <div className="flex items-center gap-4 mb-4">
-          <div className="relative bg-gradient-to-br from-violet-500 to-purple-600 p-4 rounded-2xl shadow-2xl animate-pulse">
-            <Brain className="h-8 w-8 text-white" />
-            <div className="absolute -top-1 -right-1 w-4 h-4 bg-yellow-400 rounded-full animate-ping" />
+          <div className={`relative bg-gradient-to-br from-${theme.primary}-500 to-${theme.secondary}-600 p-4 rounded-2xl shadow-2xl animate-pulse`}>
+            <IconComponent className={`${currentSize.icon} text-white`} />
+            <div className={`absolute -top-1 -right-1 w-4 h-4 bg-${theme.accent}-400 rounded-full animate-ping`} />
           </div>
           <div className="text-center">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent">
-              ProEnglish
+            <h1 className={`${currentSize.text} font-bold bg-gradient-to-r from-${theme.primary}-400 to-${theme.secondary}-400 bg-clip-text text-transparent`}>
+              {title}
             </h1>
-            <p className="text-customgreys-dirtyGrey text-sm">Learning Platform</p>
+            <p className="text-customgreys-dirtyGrey text-sm">{subtitle}</p>
           </div>
         </div>
 
         {/* Enhanced Loading Spinner */}
         <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-violet-500/20 to-purple-500/20 rounded-full blur-lg animate-pulse" />
-          <div className="relative bg-gradient-to-br from-customgreys-primarybg to-customgreys-secondarybg p-6 rounded-full border border-violet-500/20 shadow-2xl">
-            <Loader2 className="w-8 h-8 animate-spin text-violet-400" />
+          <div className={`absolute inset-0 bg-gradient-to-r from-${theme.primary}-500/20 to-${theme.secondary}-500/20 rounded-full blur-lg animate-pulse`} />
+          <div className={`relative bg-gradient-to-br from-customgreys-primarybg to-customgreys-secondarybg p-6 rounded-full border border-${theme.primary}-500/20 shadow-2xl`}>
+            <Loader2 className={`${currentSize.spinner} animate-spin text-${theme.primary}-400`} />
           </div>
           
           {/* Orbiting elements */}
@@ -69,26 +103,26 @@ const Loading = () => {
         {/* Loading Text with Animation */}
         <div className="text-center space-y-3">
           <div className="flex items-center gap-3 justify-center">
-            <span className="text-lg font-semibold text-white animate-pulse">Carregando</span>
+            <span className={`${currentSize.text} font-semibold text-white animate-pulse`}>Carregando</span>
             <div className="flex space-x-1">
-              <div className="w-2 h-2 bg-violet-400 rounded-full animate-bounce" />
-              <div className="w-2 h-2 bg-violet-400 rounded-full animate-bounce delay-100" />
-              <div className="w-2 h-2 bg-violet-400 rounded-full animate-bounce delay-200" />
+              <div className={`w-2 h-2 bg-${theme.primary}-400 rounded-full animate-bounce`} />
+              <div className={`w-2 h-2 bg-${theme.primary}-400 rounded-full animate-bounce delay-100`} />
+              <div className={`w-2 h-2 bg-${theme.primary}-400 rounded-full animate-bounce delay-200`} />
             </div>
           </div>
           
           {/* Loading progress bar */}
-          <div className="w-64 bg-customgreys-darkGrey rounded-full h-2 overflow-hidden shadow-inner">
-            <div className="h-full bg-gradient-to-r from-violet-500 to-purple-500 rounded-full animate-pulse" 
+          <div className={`${currentSize.progress} bg-customgreys-darkGrey rounded-full h-2 overflow-hidden shadow-inner`}>
+            <div className={`h-full bg-gradient-to-r from-${theme.primary}-500 to-${theme.secondary}-500 rounded-full animate-pulse`} 
                  style={{ 
-                   width: '60%',
+                   width: `${progress}%`,
                    animation: 'loading-bar 2s ease-in-out infinite'
                  }} 
             />
           </div>
           
           <p className="text-customgreys-dirtyGrey text-sm animate-fade-in">
-            Preparando sua experiência de aprendizado...
+            {description}
           </p>
         </div>
       </div>

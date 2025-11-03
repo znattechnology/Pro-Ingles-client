@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { BookOpen, Plus, Search, ArrowLeft, Target, Brain, Sparkles, Layers, Wand2 } from 'lucide-react';
+import { BookOpen, Plus, Search, ArrowLeft, Target, Brain, Sparkles, Layers, Wand2, Users, TrendingUp } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { motion } from 'framer-motion';
@@ -76,13 +76,13 @@ export default function LessonConstructorPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="relative px-6 py-8"
+        className="relative px-4 sm:px-6 py-6 sm:py-8"
       >
         {/* Enhanced Background Effects */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-violet-600/10 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute -bottom-20 -left-40 w-80 h-80 bg-purple-600/10 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-500/5 rounded-full blur-3xl" />
+          <div className="absolute -top-20 sm:-top-40 -right-20 sm:-right-40 w-40 sm:w-80 h-40 sm:h-80 bg-violet-600/10 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute -bottom-10 sm:-bottom-20 -left-20 sm:-left-40 w-40 sm:w-80 h-40 sm:h-80 bg-purple-600/10 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-48 sm:w-96 h-48 sm:h-96 bg-indigo-500/5 rounded-full blur-3xl" />
           {/* Floating particles */}
           <div className="absolute top-20 left-20 w-2 h-2 bg-violet-400/30 rounded-full animate-bounce" style={{animationDelay: '0s'}} />
           <div className="absolute top-40 right-32 w-1 h-1 bg-purple-400/40 rounded-full animate-bounce" style={{animationDelay: '1s'}} />
@@ -91,7 +91,7 @@ export default function LessonConstructorPage() {
         </div>
 
         <div className="relative max-w-7xl mx-auto">
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-6 sm:mb-8">
             <motion.div
               initial={{ x: -20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
@@ -100,10 +100,10 @@ export default function LessonConstructorPage() {
               <Button 
                 variant="ghost"
                 onClick={handleBackToLaboratory}
-                className="text-gray-400 hover:text-white hover:bg-violet-600/20 transition-all"
+                className="text-gray-400 hover:text-white hover:bg-violet-600/20 transition-all text-sm sm:text-base px-2 sm:px-4"
               >
-                <ArrowLeft className="h-5 w-5 mr-2" />
-                Voltar ao Laboratório
+                <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2" />
+                <span className="hidden xs:inline">Voltar ao Laboratório</span><span className="xs:hidden">Voltar</span>
               </Button>
             </motion.div>
           </div>
@@ -113,20 +113,20 @@ export default function LessonConstructorPage() {
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.2, duration: 0.5 }}
-              className="inline-flex items-center gap-3 bg-gradient-to-r from-violet-500/10 via-purple-500/10 to-indigo-500/10 border border-violet-500/30 rounded-full px-8 py-3 mb-8 backdrop-blur-sm shadow-lg shadow-violet-500/10"
+              className="inline-flex items-center gap-2 sm:gap-3 bg-gradient-to-r from-violet-500/10 via-purple-500/10 to-indigo-500/10 border border-violet-500/30 rounded-full px-4 sm:px-8 py-2 sm:py-3 mb-6 sm:mb-8 backdrop-blur-sm shadow-lg shadow-violet-500/10"
             >
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
               >
-                <Brain className="w-6 h-6 text-violet-400" />
+                <Brain className="w-5 h-5 sm:w-6 sm:h-6 text-violet-400" />
               </motion.div>
-              <span className="text-violet-300 font-semibold text-lg">Construtor Inteligente</span>
+              <span className="text-violet-300 font-semibold text-sm sm:text-base lg:text-lg">Construtor Inteligente</span>
               <motion.div
                 animate={{ scale: [1, 1.2, 1] }}
                 transition={{ duration: 2, repeat: Infinity }}
               >
-                <Sparkles className="w-4 h-4 text-purple-400" />
+                <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 text-purple-400" />
               </motion.div>
             </motion.div>
             
@@ -134,7 +134,7 @@ export default function LessonConstructorPage() {
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.3, duration: 0.6 }}
-              className="text-5xl md:text-7xl font-extrabold mb-6 leading-tight"
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold mb-4 sm:mb-6 leading-tight px-2"
             >
               Construtor de{' '}
               <motion.span 
@@ -160,7 +160,7 @@ export default function LessonConstructorPage() {
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.4, duration: 0.6 }}
-              className="text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed mb-12 font-light"
+              className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed mb-8 sm:mb-12 font-light px-4"
             >
               Selecione um curso e crie <motion.span className="text-violet-400 font-medium" whileHover={{ scale: 1.05 }}>lições interativas</motion.span> que{' '}
               <motion.span className="text-purple-400 font-medium" whileHover={{ scale: 1.05 }}>engajam</motion.span> e{' '}
@@ -172,7 +172,7 @@ export default function LessonConstructorPage() {
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.6, duration: 0.6 }}
-              className="flex flex-wrap justify-center gap-4 mb-8"
+              className="flex flex-wrap justify-center gap-2 sm:gap-4 mb-6 sm:mb-8 px-4"
             >
               {[
                 { icon: Target, label: 'Templates Inteligentes', count: '12+' },
@@ -185,11 +185,11 @@ export default function LessonConstructorPage() {
                   animate={{ scale: 1 }}
                   transition={{ delay: 0.8 + index * 0.1, type: 'spring', stiffness: 200 }}
                   whileHover={{ y: -2, scale: 1.05 }}
-                  className="flex items-center gap-2 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full px-4 py-2"
+                  className="flex items-center gap-1.5 sm:gap-2 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full px-3 sm:px-4 py-1.5 sm:py-2"
                 >
-                  <stat.icon className="w-4 h-4 text-violet-400" />
-                  <span className="text-sm font-medium text-white">{stat.count}</span>
-                  <span className="text-xs text-gray-400">{stat.label}</span>
+                  <stat.icon className="w-3 h-3 sm:w-4 sm:h-4 text-violet-400" />
+                  <span className="text-xs sm:text-sm font-medium text-white">{stat.count}</span>
+                  <span className="text-xs text-gray-400 hidden sm:inline">{stat.label}</span>
                 </motion.div>
               ))}
             </motion.div>
@@ -202,7 +202,7 @@ export default function LessonConstructorPage() {
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.5, duration: 0.6 }}
-        className="px-6 mb-8"
+        className="px-4 sm:px-6 mb-6 sm:mb-8"
       >
         <div className="max-w-7xl mx-auto">
           <div className="relative max-w-xl mx-auto">
@@ -216,14 +216,14 @@ export default function LessonConstructorPage() {
                   animate={{ rotate: searchTerm ? 0 : 360 }}
                   transition={{ duration: 2, repeat: searchTerm ? 0 : Infinity, ease: "linear" }}
                 >
-                  <Search className="text-violet-400 w-5 h-5" />
+                  <Search className="text-violet-400 w-4 h-4 sm:w-5 sm:h-5" />
                 </motion.div>
               </div>
               <Input
-                placeholder="Buscar curso por título, categoria ou nível..."
+                placeholder="Buscar curso..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-14 pr-4 bg-customgreys-secondarybg/30 backdrop-blur-md border-2 border-violet-500/30 text-white placeholder:text-gray-400 focus:border-violet-400 focus:ring-4 focus:ring-violet-500/20 transition-all duration-300 h-14 rounded-2xl text-lg shadow-lg shadow-violet-500/10 hover:shadow-violet-500/20"
+                className="pl-12 sm:pl-14 pr-4 bg-customgreys-secondarybg/30 backdrop-blur-md border-2 border-violet-500/30 text-white placeholder:text-gray-400 focus:border-violet-400 focus:ring-4 focus:ring-violet-500/20 transition-all duration-300 h-12 sm:h-14 rounded-xl sm:rounded-2xl text-base sm:text-lg shadow-lg shadow-violet-500/10 hover:shadow-violet-500/20"
               />
               {searchTerm && (
                 <motion.div
@@ -246,11 +246,11 @@ export default function LessonConstructorPage() {
         initial={{ y: 40, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.6, duration: 0.6 }}
-        className="px-6 pb-12"
+        className="px-4 sm:px-6 pb-8 sm:pb-12"
       >
         <div className="max-w-7xl mx-auto">
           {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
               {[1, 2, 3, 4, 5, 6].map((i) => (
                 <motion.div
                   key={i}
@@ -335,20 +335,20 @@ export default function LessonConstructorPage() {
               transition={{ duration: 0.5 }}
             >
               <Card className="bg-customgreys-secondarybg/50 backdrop-blur-sm border-violet-500/20">
-                <CardContent className="flex flex-col items-center justify-center py-16">
+                <CardContent className="flex flex-col items-center justify-center py-12 sm:py-16 px-4">
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
                     className="p-4 bg-violet-500/10 rounded-full mb-6"
                   >
-                    <BookOpen className="w-16 h-16 text-violet-400" />
+                    <BookOpen className="w-12 h-12 sm:w-16 sm:h-16 text-violet-400" />
                   </motion.div>
                   <motion.h3 
                     initial={{ y: 20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 0.3 }}
-                    className="text-2xl font-semibold text-white mb-4"
+                    className="text-xl sm:text-2xl font-semibold text-white mb-3 sm:mb-4 text-center"
                   >
                     {searchTerm ? 'Nenhum curso encontrado' : 'Nenhum curso disponível'}
                   </motion.h3>
@@ -356,7 +356,7 @@ export default function LessonConstructorPage() {
                     initial={{ y: 20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 0.4 }}
-                    className="text-gray-400 text-center mb-8 max-w-md leading-relaxed"
+                    className="text-sm sm:text-base text-gray-400 text-center mb-6 sm:mb-8 max-w-md leading-relaxed"
                   >
                     {searchTerm 
                       ? `Não encontramos cursos que correspondam a "${searchTerm}". Tente ajustar sua busca.`
@@ -382,7 +382,7 @@ export default function LessonConstructorPage() {
               </Card>
             </motion.div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
               {filteredCourses.map((course, index) => (
                 <motion.div
                   key={course.id}
@@ -438,7 +438,7 @@ export default function LessonConstructorPage() {
                           whileTap={{ scale: 0.95 }}
                           className="relative p-3 bg-gradient-to-br from-violet-500/10 to-purple-500/20 rounded-xl group-hover:from-violet-500/20 group-hover:to-purple-500/30 transition-all duration-300 shadow-lg shadow-violet-500/10"
                         >
-                          <BookOpen className="w-6 h-6 text-violet-400 relative z-10" />
+                          <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-violet-400 relative z-10" />
                           <motion.div
                             className="absolute inset-0 bg-gradient-to-br from-violet-400/20 to-purple-400/20 rounded-xl"
                             initial={{ scale: 0, opacity: 0 }}
@@ -451,18 +451,18 @@ export default function LessonConstructorPage() {
                         whileHover={{ x: 4 }}
                         transition={{ duration: 0.2 }}
                       >
-                        <CardTitle className="text-xl text-white group-hover:text-violet-300 transition-all duration-300 leading-tight font-bold">
+                        <CardTitle className="text-lg sm:text-xl text-white group-hover:text-violet-300 transition-all duration-300 leading-tight font-bold">
                           {course.title}
                         </CardTitle>
                       </motion.div>
                     </CardHeader>
                     <CardContent className="relative space-y-4">
-                      <p className="text-gray-400 text-sm line-clamp-2 leading-relaxed">
+                      <p className="text-gray-400 text-xs sm:text-sm line-clamp-2 leading-relaxed">
                         {course.description || 'Sem descrição disponível'}
                       </p>
                       
                       {/* Course Statistics Grid */}
-                      <div className="grid grid-cols-2 gap-3 py-3 px-2 bg-gradient-to-r from-violet-500/5 to-purple-500/5 rounded-lg border border-violet-500/10">
+                      <div className="grid grid-cols-2 gap-2 sm:gap-3 py-2 sm:py-3 px-2 bg-gradient-to-r from-violet-500/5 to-purple-500/5 rounded-lg border border-violet-500/10">
                         <motion.div 
                           whileHover={{ scale: 1.05 }}
                           className="flex items-center gap-2"
@@ -471,8 +471,8 @@ export default function LessonConstructorPage() {
                             <Layers className="w-3 h-3 text-violet-400" />
                           </div>
                           <div>
-                            <p className="text-xs text-gray-400">Unidades</p>
-                            <p className="text-sm font-semibold text-white">{course.units_count || 0}</p>
+                            <p className="text-xs text-gray-400 hidden sm:block">Unidades</p><p className="text-xs text-gray-400 sm:hidden">Un.</p>
+                            <p className="text-xs sm:text-sm font-semibold text-white">{course.units_count || 0}</p>
                           </div>
                         </motion.div>
                         
@@ -491,14 +491,14 @@ export default function LessonConstructorPage() {
                       </div>
                       
                       <div className="flex items-center justify-between pt-2">
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-1.5 sm:gap-2">
                           <motion.div whileHover={{ scale: 1.05 }}>
-                            <Badge variant="secondary" className="text-xs bg-gradient-to-r from-violet-500/10 to-violet-500/20 text-violet-300 border-violet-500/30 shadow-sm">
+                            <Badge variant="secondary" className="text-xs bg-gradient-to-r from-violet-500/10 to-violet-500/20 text-violet-300 border-violet-500/30 shadow-sm whitespace-nowrap">
                               {course.category || 'General'}
                             </Badge>
                           </motion.div>
                           <motion.div whileHover={{ scale: 1.05 }}>
-                            <Badge variant="secondary" className="text-xs bg-gradient-to-r from-purple-500/10 to-purple-500/20 text-purple-300 border-purple-500/30 shadow-sm">
+                            <Badge variant="secondary" className="text-xs bg-gradient-to-r from-purple-500/10 to-purple-500/20 text-purple-300 border-purple-500/30 shadow-sm whitespace-nowrap">
                               {course.level || 'Beginner'}
                             </Badge>
                           </motion.div>
@@ -506,29 +506,29 @@ export default function LessonConstructorPage() {
                         
                         {/* Contextual Action Button */}
                         <motion.div 
-                          className="text-sm transition-colors flex items-center gap-2 font-medium"
+                          className="text-xs sm:text-sm transition-colors flex items-center gap-1.5 sm:gap-2 font-medium"
                           whileHover={{ x: 6 }}
                         >
                           {course.units_count === 0 ? (
                             <>
                               <div className="text-amber-400 group-hover:text-amber-300">
-                                <Plus className="w-4 h-4" />
+                                <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
                               </div>
-                              <span className="text-amber-400 group-hover:text-amber-300">Primeira unidade</span>
+                              <span className="text-amber-400 group-hover:text-amber-300 hidden sm:inline">Primeira unidade</span><span className="text-amber-400 group-hover:text-amber-300 sm:hidden">Add unidade</span>
                             </>
                           ) : course.lessons_count === 0 ? (
                             <>
                               <div className="text-blue-400 group-hover:text-blue-300">
-                                <Wand2 className="w-4 h-4" />
+                                <Wand2 className="w-3 h-3 sm:w-4 sm:h-4" />
                               </div>
-                              <span className="text-blue-400 group-hover:text-blue-300">Primeira lição</span>
+                              <span className="text-blue-400 group-hover:text-blue-300 hidden sm:inline">Primeira lição</span><span className="text-blue-400 group-hover:text-blue-300 sm:hidden">Add lição</span>
                             </>
                           ) : (
                             <>
                               <div className="text-violet-400 group-hover:text-violet-300">
-                                <Brain className="w-4 h-4" />
+                                <Brain className="w-3 h-3 sm:w-4 sm:h-4" />
                               </div>
-                              <span className="text-violet-400 group-hover:text-violet-300">Criar lições</span>
+                              <span className="text-violet-400 group-hover:text-violet-300 hidden sm:inline">Criar lições</span><span className="text-violet-400 group-hover:text-violet-300 sm:hidden">Criar</span>
                             </>
                           )}
                           <motion.span
@@ -561,30 +561,30 @@ export default function LessonConstructorPage() {
         initial={{ y: 40, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.8, duration: 0.6 }}
-        className="px-6 pb-12"
+        className="px-4 sm:px-6 pb-8 sm:pb-12"
       >
         <div className="max-w-7xl mx-auto">
           <Card className="bg-customgreys-secondarybg/50 backdrop-blur-sm border-violet-500/20 shadow-lg shadow-violet-500/5">
-            <CardContent className="p-8">
-              <div className="flex items-start gap-6">
+            <CardContent className="p-4 sm:p-6 lg:p-8">
+              <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6">
                 <motion.div 
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ delay: 1, type: "spring", stiffness: 200 }}
-                  className="p-4 bg-gradient-to-br from-violet-600 to-purple-600 rounded-xl shadow-lg shadow-violet-500/25"
+                  className="p-3 sm:p-4 bg-gradient-to-br from-violet-600 to-purple-600 rounded-xl shadow-lg shadow-violet-500/25 mx-auto sm:mx-0"
                 >
-                  <BookOpen className="w-8 h-8 text-white" />
+                  <BookOpen className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                 </motion.div>
                 <div className="flex-1">
                   <motion.h3 
                     initial={{ y: 20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 1.1 }}
-                    className="text-2xl font-semibold text-white mb-6"
+                    className="text-xl sm:text-2xl font-semibold text-white mb-4 sm:mb-6 text-center sm:text-left"
                   >
                     Como funciona o <span className="bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent">Construtor de Lições</span>?
                   </motion.h3>
-                  <div className="grid gap-4">
+                  <div className="grid gap-3 sm:gap-4">
                     {[
                       { step: "1", title: "Selecione um curso", desc: "Escolha o curso para o qual deseja criar lições" },
                       { step: "2", title: "Organize em unidades", desc: "Crie ou selecione uma unidade para estruturar o conteúdo" },
@@ -597,14 +597,14 @@ export default function LessonConstructorPage() {
                         initial={{ x: -20, opacity: 0 }}
                         animate={{ x: 0, opacity: 1 }}
                         transition={{ delay: 1.2 + index * 0.1 }}
-                        className="flex items-start gap-4 p-4 rounded-lg bg-violet-500/5 border border-violet-500/10 hover:bg-violet-500/10 transition-colors group"
+                        className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 rounded-lg bg-violet-500/5 border border-violet-500/10 hover:bg-violet-500/10 transition-colors group"
                       >
-                        <div className="w-8 h-8 bg-gradient-to-br from-violet-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-sm group-hover:scale-110 transition-transform">
+                        <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-br from-violet-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-xs sm:text-sm group-hover:scale-110 transition-transform flex-shrink-0">
                           {item.step}
                         </div>
                         <div>
-                          <p className="text-white font-medium mb-1">{item.title}</p>
-                          <p className="text-gray-400 text-sm">{item.desc}</p>
+                          <p className="text-white font-medium mb-1 text-sm sm:text-base">{item.title}</p>
+                          <p className="text-gray-400 text-xs sm:text-sm">{item.desc}</p>
                         </div>
                       </motion.div>
                     ))}

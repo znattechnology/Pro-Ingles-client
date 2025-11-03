@@ -126,7 +126,7 @@ const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ className }) => {
   return (
     <nav className={cn("flex items-center space-x-2 text-sm mb-6 bg-customgreys-primarybg/30 backdrop-blur-sm rounded-lg px-4 py-2 border border-violet-900/20", className)}>
       {breadcrumbs.map((crumb, index) => (
-        <React.Fragment key={crumb.href}>
+        <React.Fragment key={`${crumb.href}-${index}`}>
           {index > 0 && (
             <ChevronRight className="w-4 h-4 text-violet-400/60" />
           )}

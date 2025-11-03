@@ -158,79 +158,61 @@ const navLinks = {
           url: "/user/laboratory/achievements",
           icon: Award,
         },
-        {
-          title: "Loja",
-          url: "/user/laboratory/learn/shop",
-          icon: Zap,
-        },
       ],
     },
     {
       title: "Speaking Practice",
-      url: "/user/speaking",
+      url: "/user/laboratory/speaking",
       icon: Mic,
       isActive: true,
       items: [
         {
           title: "Praticar Conversação",
-          url: "/user/speaking/practice",
+          url: "/user/laboratory/speaking/practice",
           icon: MessageCircle,
         },
         {
           title: "Exercícios de Pronúncia", 
-          url: "/user/speaking/pronunciation",
+          url: "/user/laboratory/speaking/pronunciation",
           icon: Volume2,
         },
         {
           title: "Meu Progresso",
-          url: "/user/speaking/progress",
+          url: "/user/laboratory/speaking/progress",
           icon: TrendingUp,
         },
         {
           title: "Conquistas",
-          url: "/user/speaking/achievements", 
+          url: "/user/laboratory/speaking/achievements", 
           icon: Award,
         },
       ],
     },
     {
       title: "Listening Practice",
-      url: "/user/listening",
+      url: "/user/laboratory/listening",
       icon: Headphones,
       isActive: true,
       items: [
         {
           title: "Compreensão Auditiva",
-          url: "/user/listening/practice",
+          url: "/user/laboratory/listening/practice",
           icon: Headphones,
         },
         {
           title: "Ditado",
-          url: "/user/listening/dictation",
+          url: "/user/laboratory/listening/dictation",
           icon: PenTool,
         },
         {
           title: "Sotaques",
-          url: "/user/listening/accents",
+          url: "/user/laboratory/listening/accents",
           icon: Globe,
         },
         {
           title: "Meu Progresso",
-          url: "/user/listening/progress",
+          url: "/user/laboratory/listening/progress",
           icon: TrendingUp,
-        },
-      ],
-    },
-    {
-      title: "Laboratório",
-      url: "/user/laboratory",
-      icon: FlaskConical,
-      isActive: true,
-      items: [
-        {
-          title: "Exercícios",
-          url: "/user/laboratory",
-          icon: FlaskConical,
         },
       ],
     },
@@ -252,13 +234,13 @@ const navLinks = {
   teacher: [
     {
       title: "Dashboard",
-      url: "/teacher/courses",
+      url: "/teacher/dashboard",
       icon: LayoutDashboard,
       isActive: true,
       items: [
         {
           title: "Visão Geral",
-          url: "/teacher/courses",
+          url: "/teacher/dashboard",
         },
       ],
     },
@@ -383,6 +365,11 @@ const navLinks = {
         {
           title: "Gerenciar Cursos",
           url: "/admin/courses",
+        },
+        {
+          title: "Analytics",
+          url: "/admin/courses/analytics",
+          icon: BarChart3,
         },
       ],
     },

@@ -348,37 +348,88 @@ export const uploadAllVideos = async (
   return updatedSections;
 };
 
-// Upload course image to Django S3
+// Upload course image to S3 using presigned URL (same pattern as video upload)
 export const uploadCourseImage = async (
   courseId: string,
   imageFile: File
 ): Promise<string> => {
   try {
-    const formData = new FormData();
-    formData.append('image', imageFile);
+    console.log('🖼️ Starting course image upload...', { 
+      courseId, 
+      fileName: imageFile.name,
+      fileType: imageFile.type,
+      size: imageFile.size 
+    });
 
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_DJANGO_API_URL}/courses/${courseId}/upload-image/`,
+    // Step 1: Get presigned URL from Django backend
+    const uploadUrlResponse = await fetch(
+      `${process.env.NEXT_PUBLIC_DJANGO_API_URL}/courses/${courseId}/get-image-upload-url/`,
       {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          'Content-Type': 'application/json',
         },
-        body: formData,
+        body: JSON.stringify({
+          fileName: imageFile.name,
+          fileType: imageFile.type,
+          timestamp: Date.now(), // Prevent caching
+        }),
       }
     );
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Erro no upload da imagem');
+    if (!uploadUrlResponse.ok) {
+      const errorData = await uploadUrlResponse.json();
+      throw new Error(errorData.message || 'Erro ao obter URL de upload');
     }
 
-    const result = await response.json();
-    toast.success(result.message || 'Imagem do curso atualizada com sucesso');
+    const { data } = await uploadUrlResponse.json();
+    const { uploadUrl, imageUrl } = data;
+
+    console.log('✅ Got presigned URL, uploading to S3...');
+
+    // Step 2: Upload file directly to S3 using presigned URL
+    const uploadToS3Response = await fetch(uploadUrl, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': imageFile.type,
+      },
+      body: imageFile,
+    });
+
+    if (!uploadToS3Response.ok) {
+      throw new Error(`Upload failed with status: ${uploadToS3Response.status}`);
+    }
+
+    console.log('✅ Image uploaded to S3 successfully');
+
+    // Step 3: Update course in database with new image URL
+    console.log('📝 Updating course in database...');
+    const updateResponse = await fetch(
+      `${process.env.NEXT_PUBLIC_DJANGO_API_URL}/courses/${courseId}/update-image-url/`,
+      {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          imageUrl: imageUrl,
+        }),
+      }
+    );
+
+    if (!updateResponse.ok) {
+      const errorData = await updateResponse.json();
+      throw new Error(errorData.message || 'Erro ao atualizar curso no banco de dados');
+    }
+
+    console.log('✅ Course updated in database successfully');
+    toast.success('Imagem do curso atualizada com sucesso');
     
-    return result.data.imageUrl;
+    return imageUrl;
   } catch (error: any) {
-    console.error('Erro ao fazer upload da imagem:', error);
+    console.error('❌ Course image upload failed:', error);
     toast.error(error.message || 'Erro ao fazer upload da imagem');
     throw error;
   }

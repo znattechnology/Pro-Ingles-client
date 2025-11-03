@@ -88,11 +88,11 @@ export default function LeaderboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-customgreys-primarybg p-6">
+    <div className="min-h-screen bg-customgreys-primarybg p-4 sm:p-6">
       
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center gap-4 mb-6">
+      <div className="mb-6 sm:mb-8">
+        <div className="flex items-start sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
           <Button
             variant="outline"
             onClick={() => router.push('/user/dashboard')}
@@ -102,10 +102,10 @@ export default function LeaderboardPage() {
             Dashboard
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-white">
+            <h1 className="text-2xl sm:text-3xl font-bold text-white">
               Rankings
             </h1>
-            <p className="text-customgreys-dirtyGrey">
+            <p className="text-sm sm:text-base text-customgreys-dirtyGrey">
               Compete com outros estudantes e suba nas ligas
             </p>
           </div>
@@ -113,29 +113,29 @@ export default function LeaderboardPage() {
 
         {/* Current User Position Card */}
         {currentUser && (
-          <Card className="bg-gradient-to-r from-violet-500/20 to-purple-500/20 border-violet-500/30 mb-6">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="bg-violet-500/20 rounded-full p-3">
-                    <User className="w-6 h-6 text-violet-400" />
+          <Card className="bg-gradient-to-r from-violet-500/20 to-purple-500/20 border-violet-500/30 mb-4 sm:mb-6">
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0">
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="bg-violet-500/20 rounded-full p-2 sm:p-3">
+                    <User className="w-5 h-5 sm:w-6 sm:h-6 text-violet-400" />
                   </div>
                   <div>
-                    <h3 className="text-white font-bold text-lg">
+                    <h3 className="text-white font-bold text-base sm:text-lg">
                       Sua Posição: #{currentUser.rank}
                     </h3>
-                    <p className="text-gray-200 text-sm">
+                    <p className="text-gray-200 text-xs sm:text-sm">
                       Liga {getLeagueInfo(currentUser.league).name}
                     </p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-white font-bold text-xl">
+                <div className="text-left sm:text-right">
+                  <p className="text-white font-bold text-lg sm:text-xl">
                     {currentUser.points.toLocaleString()} pts
                   </p>
                   <div className="flex items-center gap-1 justify-end">
                     {getChangeIcon(currentUser.change, currentUser.changeAmount)}
-                    <span className={`text-sm ${
+                    <span className={`text-xs sm:text-sm ${
                       currentUser.change === 'up' ? 'text-green-400' :
                       currentUser.change === 'down' ? 'text-red-400' : 'text-customgreys-dirtyGrey'
                     }`}>
@@ -150,12 +150,12 @@ export default function LeaderboardPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3 mb-8 bg-customgreys-secondarybg">
+        <TabsList className="grid w-full grid-cols-3 mb-6 sm:mb-8 bg-customgreys-secondarybg">
           <TabsTrigger 
             value="global" 
             className="data-[state=active]:bg-violet-600 data-[state=active]:text-white text-customgreys-dirtyGrey"
           >
-            Ranking Global
+            <span className="hidden sm:inline">Ranking Global</span><span className="sm:hidden">Global</span>
           </TabsTrigger>
           <TabsTrigger 
             value="leagues" 
@@ -167,37 +167,37 @@ export default function LeaderboardPage() {
             value="competitions" 
             className="data-[state=active]:bg-violet-600 data-[state=active]:text-white text-customgreys-dirtyGrey"
           >
-            Competições
+            <span className="hidden sm:inline">Competições</span><span className="sm:hidden">Comp.</span>
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="global">
           <Card className="bg-customgreys-secondarybg border-customgreys-darkerGrey">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <Trophy className="w-6 h-6 text-yellow-400" />
+              <CardTitle className="text-white flex items-center gap-2 text-lg sm:text-xl">
+                <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-400" />
                 Top Estudantes
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
+              <div className="space-y-2 sm:space-y-3">
                 {leaderboard.slice(0, 10).map((entry, _index) => (
                   <div
                     key={entry.id}
-                    className={`flex items-center gap-4 p-4 rounded-lg border transition-colors ${
+                    className={`flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-lg border transition-colors ${
                       entry.isCurrentUser 
                         ? 'bg-violet-500/20 border-violet-500/50' 
                         : 'bg-customgreys-primarybg border-customgreys-darkerGrey hover:border-customgreys-dirtyGrey'
                     }`}
                   >
                     {/* Rank */}
-                    <div className="flex-shrink-0 w-12 text-center">
+                    <div className="flex-shrink-0 w-8 sm:w-12 text-center">
                       {entry.rank <= 3 ? (
-                        <div className="text-2xl">
+                        <div className="text-lg sm:text-2xl">
                           {entry.rank === 1 ? '🥇' : entry.rank === 2 ? '🥈' : '🥉'}
                         </div>
                       ) : (
-                        <div className="text-xl font-bold text-customgreys-dirtyGrey">
+                        <div className="text-base sm:text-xl font-bold text-customgreys-dirtyGrey">
                           #{entry.rank}
                         </div>
                       )}
@@ -206,19 +206,19 @@ export default function LeaderboardPage() {
                     {/* User Info */}
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <h3 className={`font-medium ${entry.isCurrentUser ? 'text-violet-300' : 'text-white'}`}>
+                        <h3 className={`font-medium text-sm sm:text-base ${entry.isCurrentUser ? 'text-violet-300' : 'text-white'}`}>
                           {entry.username}
                         </h3>
                         <span className={`text-lg ${getLeagueInfo(entry.league).color}`}>
                           {getLeagueInfo(entry.league).icon}
                         </span>
                       </div>
-                      <div className="flex items-center gap-4 text-sm">
+                      <div className="flex items-center gap-2 sm:gap-4 text-xs sm:text-sm flex-wrap">
                         <span className="text-customgreys-dirtyGrey">
                           {entry.points.toLocaleString()} pts
                         </span>
                         <div className="flex items-center gap-1">
-                          <Flame className="w-3 h-3 text-orange-400" />
+                          <Flame className="w-3 h-3 sm:w-4 sm:h-4 text-orange-400" />
                           <span className="text-customgreys-dirtyGrey">{entry.streak} dias</span>
                         </div>
                       </div>
@@ -244,7 +244,7 @@ export default function LeaderboardPage() {
         </TabsContent>
 
         <TabsContent value="leagues">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             {leagues.map((league) => (
               <Card
                 key={league.id}
@@ -253,18 +253,18 @@ export default function LeaderboardPage() {
                 }`}
               >
                 <CardHeader>
-                  <div className="flex items-center gap-3">
-                    <div className="text-3xl">{league.icon}</div>
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="text-2xl sm:text-3xl">{league.icon}</div>
                     <div>
-                      <CardTitle className={`${league.color} flex items-center gap-2`}>
+                      <CardTitle className={`${league.color} flex items-center gap-2 text-lg sm:text-xl`}>
                         {league.name}
                         {currentUser?.league === league.id && (
-                          <Badge variant="outline" className="text-xs border-violet-500 text-violet-400">
+                          <Badge variant="outline" className="text-xs border-violet-500 text-violet-400 hidden sm:inline-flex">
                             Sua Liga
                           </Badge>
                         )}
                       </CardTitle>
-                      <p className="text-customgreys-dirtyGrey text-sm">
+                      <p className="text-customgreys-dirtyGrey text-xs sm:text-sm">
                         {league.minPoints.toLocaleString()}{league.maxPoints ? ` - ${league.maxPoints.toLocaleString()}` : '+'} pontos
                       </p>
                     </div>
@@ -278,10 +278,10 @@ export default function LeaderboardPage() {
                     </div>
                     
                     {currentUser?.league === league.id && (
-                      <div className="bg-customgreys-primarybg rounded-lg p-3 border border-violet-500/30">
+                      <div className="bg-customgreys-primarybg rounded-lg p-2 sm:p-3 border border-violet-500/30">
                         <div className="text-center">
-                          <p className="text-violet-300 text-sm mb-1">Sua posição na liga</p>
-                          <p className="text-white font-bold text-lg">#{currentUser.rank}</p>
+                          <p className="text-violet-300 text-xs sm:text-sm mb-1">Sua posição na liga</p>
+                          <p className="text-white font-bold text-base sm:text-lg">#{currentUser.rank}</p>
                         </div>
                       </div>
                     )}
@@ -289,10 +289,10 @@ export default function LeaderboardPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="w-full bg-customgreys-primarybg border-customgreys-darkerGrey text-white hover:bg-customgreys-darkerGrey"
+                      className="w-full bg-customgreys-primarybg border-customgreys-darkerGrey text-white hover:bg-customgreys-darkerGrey text-xs sm:text-sm"
                     >
-                      <Users className="w-4 h-4 mr-2" />
-                      Ver Ranking da Liga
+                      <Users className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                      <span className="hidden sm:inline">Ver Ranking da Liga</span><span className="sm:hidden">Ver Ranking</span>
                     </Button>
                   </div>
                 </CardContent>
@@ -302,17 +302,17 @@ export default function LeaderboardPage() {
         </TabsContent>
 
         <TabsContent value="competitions">
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {competitions.map((competition) => (
               <Card key={competition.id} className="bg-customgreys-secondarybg border-customgreys-darkerGrey">
                 <CardHeader>
-                  <div className="flex items-start justify-between">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-0">
                     <div>
-                      <CardTitle className="text-white flex items-center gap-2">
-                        <Medal className="w-6 h-6 text-yellow-400" />
+                      <CardTitle className="text-white flex items-center gap-2 text-lg sm:text-xl">
+                        <Medal className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-400" />
                         {competition.title}
                       </CardTitle>
-                      <p className="text-customgreys-dirtyGrey mt-1">
+                      <p className="text-customgreys-dirtyGrey mt-1 text-sm sm:text-base">
                         {competition.description}
                       </p>
                     </div>
@@ -330,50 +330,50 @@ export default function LeaderboardPage() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="bg-customgreys-primarybg rounded-lg p-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                    <div className="bg-customgreys-primarybg rounded-lg p-3 sm:p-4">
                       <div className="text-center">
                         <div className="flex items-center justify-center gap-2 mb-2">
-                          <Target className="w-5 h-5 text-blue-400" />
-                          <p className="text-customgreys-dirtyGrey text-sm">Sua Posição</p>
+                          <Target className="w-4 h-4 sm:w-5 sm:h-5 text-blue-400" />
+                          <p className="text-customgreys-dirtyGrey text-xs sm:text-sm">Sua Posição</p>
                         </div>
-                        <p className="text-white font-bold text-2xl">#{competition.currentPosition}</p>
+                        <p className="text-white font-bold text-xl sm:text-2xl">#{competition.currentPosition}</p>
                       </div>
                     </div>
                     
-                    <div className="bg-customgreys-primarybg rounded-lg p-4">
+                    <div className="bg-customgreys-primarybg rounded-lg p-3 sm:p-4">
                       <div className="text-center">
                         <div className="flex items-center justify-center gap-2 mb-2">
-                          <Users className="w-5 h-5 text-green-400" />
-                          <p className="text-customgreys-dirtyGrey text-sm">Participantes</p>
+                          <Users className="w-4 h-4 sm:w-5 sm:h-5 text-green-400" />
+                          <p className="text-customgreys-dirtyGrey text-xs sm:text-sm">Participantes</p>
                         </div>
-                        <p className="text-white font-bold text-2xl">{competition.participants}</p>
+                        <p className="text-white font-bold text-xl sm:text-2xl">{competition.participants}</p>
                       </div>
                     </div>
                     
-                    <div className="bg-customgreys-primarybg rounded-lg p-4">
+                    <div className="bg-customgreys-primarybg rounded-lg p-3 sm:p-4">
                       <div className="text-center">
                         <div className="flex items-center justify-center gap-2 mb-2">
-                          <Calendar className="w-5 h-5 text-purple-400" />
-                          <p className="text-customgreys-dirtyGrey text-sm">Termina</p>
+                          <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400" />
+                          <p className="text-customgreys-dirtyGrey text-xs sm:text-sm">Termina</p>
                         </div>
-                        <p className="text-white font-bold text-lg">{competition.endDate}</p>
+                        <p className="text-white font-bold text-base sm:text-lg">{competition.endDate}</p>
                       </div>
                     </div>
                   </div>
                   
-                  <div className="mt-4 p-4 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 rounded-lg">
+                  <div className="mt-3 sm:mt-4 p-3 sm:p-4 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 rounded-lg">
                     <div className="flex items-center gap-2 mb-2">
-                      <Trophy className="w-5 h-5 text-yellow-400" />
-                      <h4 className="text-white font-medium">Prêmio</h4>
+                      <Trophy className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-400" />
+                      <h4 className="text-white font-medium text-sm sm:text-base">Prêmio</h4>
                     </div>
-                    <p className="text-yellow-200 text-sm">{competition.prize}</p>
+                    <p className="text-yellow-200 text-xs sm:text-sm">{competition.prize}</p>
                   </div>
                   
                   <Button 
-                    className="w-full mt-4 bg-violet-600 hover:bg-violet-700"
+                    className="w-full mt-3 sm:mt-4 bg-violet-600 hover:bg-violet-700 text-sm sm:text-base"
                   >
-                    Ver Detalhes da Competição
+                    <span className="hidden sm:inline">Ver Detalhes da Competição</span><span className="sm:hidden">Ver Detalhes</span>
                   </Button>
                 </CardContent>
               </Card>

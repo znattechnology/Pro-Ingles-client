@@ -217,8 +217,8 @@ export default function ConversationPractice() {
 
   if (!isSessionActive) {
     return (
-      <div className="min-h-screen bg-customgreys-primarybg p-6">
-        <div className="max-w-4xl mx-auto space-y-8">
+      <div className="min-h-screen bg-customgreys-primarybg p-4 sm:p-6">
+        <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8">
           
           {/* Back Button */}
           <Button 
@@ -233,13 +233,13 @@ export default function ConversationPractice() {
           {/* Session Overview */}
           <Card className="bg-customgreys-secondarybg/60 backdrop-blur-sm border-violet-900/30">
             <CardHeader>
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-gradient-to-r from-violet-600 to-purple-600 rounded-full">
-                  <MessageCircle className="w-6 h-6 text-white" />
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-2 sm:p-3 bg-gradient-to-r from-violet-600 to-purple-600 rounded-full">
+                  <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                 </div>
-                <div>
-                  <CardTitle className="text-white text-2xl">{mockSession.title}</CardTitle>
-                  <p className="text-gray-400">{mockSession.description}</p>
+                <div className="min-w-0">
+                  <CardTitle className="text-white text-xl sm:text-2xl">{mockSession.title}</CardTitle>
+                  <p className="text-gray-400 text-sm sm:text-base">{mockSession.description}</p>
                 </div>
               </div>
             </CardHeader>
@@ -247,7 +247,7 @@ export default function ConversationPractice() {
               
               {/* Session Details */}
               <div className="space-y-4">
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1 sm:gap-2">
                   <Badge className={getScoreBadgeColor(75)}>
                     {mockSession.difficulty}
                   </Badge>
@@ -261,9 +261,9 @@ export default function ConversationPractice() {
                   </Badge>
                 </div>
 
-                <div className="bg-customgreys-darkGrey/50 p-4 rounded-lg">
-                  <h4 className="text-white font-semibold mb-2">Cenário:</h4>
-                  <p className="text-gray-300">{mockSession.scenario}</p>
+                <div className="bg-customgreys-darkGrey/50 p-3 sm:p-4 rounded-lg">
+                  <h4 className="text-white font-semibold mb-2 text-sm sm:text-base">Cenário:</h4>
+                  <p className="text-gray-300 text-sm sm:text-base leading-relaxed">{mockSession.scenario}</p>
                 </div>
               </div>
 
@@ -271,7 +271,7 @@ export default function ConversationPractice() {
               <div className="text-center space-y-4">
                 <div className="flex justify-center gap-1 mb-4">
                   {Array.from({ length: currentHearts }).map((_, i) => (
-                    <Heart key={i} className="w-6 h-6 text-red-400 fill-current" />
+                    <Heart key={i} className="w-5 h-5 sm:w-6 sm:h-6 text-red-400 fill-current" />
                   ))}
                 </div>
                 
@@ -280,11 +280,11 @@ export default function ConversationPractice() {
                   className="w-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700"
                   size="lg"
                 >
-                  <PlayCircle className="w-5 h-5 mr-2" />
+                  <PlayCircle className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                   Iniciar Conversa
                 </Button>
                 
-                <p className="text-sm text-gray-400">
+                <p className="text-xs sm:text-sm text-gray-400 text-center">
                   Você tem {currentHearts} vidas. Perde uma vida se sua pontuação for menor que 70%.
                 </p>
               </div>
@@ -296,12 +296,12 @@ export default function ConversationPractice() {
   }
 
   return (
-    <div className="min-h-screen bg-customgreys-primarybg p-6">
-      <div className="max-w-6xl mx-auto space-y-4">
+    <div className="min-h-screen bg-customgreys-primarybg p-4 sm:p-6">
+      <div className="max-w-6xl mx-auto space-y-3 sm:space-y-4">
         
         {/* Session Header */}
-        <div className="flex items-center justify-between bg-gray-900/50 p-4 rounded-lg border border-gray-800">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between bg-gray-900/50 p-3 sm:p-4 rounded-lg border border-gray-800 gap-3 sm:gap-0">
+          <div className="flex items-center gap-2 sm:gap-4">
             <Button 
               onClick={handleEndSession} 
               variant="ghost" 
@@ -311,43 +311,43 @@ export default function ConversationPractice() {
               <ArrowLeft className="w-4 h-4" />
             </Button>
             <div>
-              <h1 className="text-white font-semibold">{mockSession.title}</h1>
-              <p className="text-sm text-gray-400">Nível {mockSession.targetLevel}</p>
+              <h1 className="text-white font-semibold text-base sm:text-lg">{mockSession.title}</h1>
+              <p className="text-xs sm:text-sm text-gray-400">Nível {mockSession.targetLevel}</p>
             </div>
           </div>
           
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2 text-gray-300">
-              <Clock className="w-4 h-4" />
-              <span className="font-mono">{formatTime(sessionTimer)}</span>
+          <div className="flex items-center gap-3 sm:gap-6 justify-between sm:justify-start w-full sm:w-auto">
+            <div className="flex items-center gap-1 sm:gap-2 text-gray-300">
+              <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="font-mono text-sm sm:text-base">{formatTime(sessionTimer)}</span>
             </div>
             <div className="flex gap-1">
               {Array.from({ length: currentHearts }).map((_, i) => (
-                <Heart key={i} className="w-4 h-4 text-red-400 fill-current" />
+                <Heart key={i} className="w-3 h-3 sm:w-4 sm:h-4 text-red-400 fill-current" />
               ))}
             </div>
-            <div className="flex items-center gap-2 text-gray-300">
-              <TrendingUp className="w-4 h-4" />
-              <span>{sessionStats.averageScore}%</span>
+            <div className="flex items-center gap-1 sm:gap-2 text-gray-300">
+              <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="text-sm sm:text-base">{sessionStats.averageScore}%</span>
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-200px)]">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6 h-[calc(100vh-180px)] sm:h-[calc(100vh-200px)]">
           
           {/* Conversation Area */}
           <div className="lg:col-span-3">
             <Card className="bg-customgreys-secondarybg/60 backdrop-blur-sm border-violet-900/30 h-full flex flex-col">
               <CardHeader className="pb-4">
-                <CardTitle className="text-white flex items-center gap-2">
-                  <MessageCircle className="w-5 h-5" />
+                <CardTitle className="text-white flex items-center gap-2 text-lg sm:text-xl">
+                  <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" />
                   Conversação
                 </CardTitle>
               </CardHeader>
               
               <CardContent className="flex-1 flex flex-col space-y-4">
                 {/* Messages */}
-                <div className="flex-1 overflow-y-auto space-y-4 max-h-[400px] pr-2">
+                <div className="flex-1 overflow-y-auto space-y-3 sm:space-y-4 max-h-[300px] sm:max-h-[400px] pr-2">
                   {messages.map((message) => (
                     <div key={message.id} className="space-y-2">
                       <div className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
@@ -359,13 +359,13 @@ export default function ConversationPractice() {
                           </Avatar>
                         )}
                         
-                        <div className={`max-w-[80%] space-y-2 ${message.role === 'user' ? 'order-first' : ''}`}>
-                          <div className={`p-3 rounded-lg ${
+                        <div className={`max-w-[85%] sm:max-w-[80%] space-y-2 ${message.role === 'user' ? 'order-first' : ''}`}>
+                          <div className={`p-2 sm:p-3 rounded-lg text-sm sm:text-base ${
                             message.role === 'ai' 
                               ? 'bg-customgreys-darkGrey text-white' 
                               : 'bg-gradient-to-r from-violet-600 to-purple-600 text-white'
                           }`}>
-                            <p>{message.content}</p>
+                            <p className="leading-relaxed">{message.content}</p>
                             {message.audioUrl && (
                               <Button
                                 onClick={() => handlePlayAudio(message.id, message.audioUrl!)}
@@ -382,9 +382,9 @@ export default function ConversationPractice() {
                             )}
                           </div>
                           
-                          {/* Feedback for user messages */}
+                          {/* Feedback for user messages - Mobile Optimized */}
                           {message.role === 'user' && message.feedback && (
-                            <div className="bg-customgreys-darkGrey/50 p-3 rounded-lg space-y-2">
+                            <div className="bg-customgreys-darkGrey/50 p-2 sm:p-3 rounded-lg space-y-2">
                               <div className="flex items-center gap-2">
                                 <Star className="w-4 h-4 text-yellow-400" />
                                 <span className={`font-semibold ${getScoreColor(message.feedback.overallScore)}`}>
@@ -392,7 +392,7 @@ export default function ConversationPractice() {
                                 </span>
                               </div>
                               
-                              <div className="grid grid-cols-2 gap-2 text-xs">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 sm:gap-2 text-xs">
                                 <div>Pronúncia: {message.feedback.pronunciation}%</div>
                                 <div>Fluência: {message.feedback.fluency}%</div>
                                 <div>Precisão: {message.feedback.accuracy}%</div>
@@ -448,31 +448,31 @@ export default function ConversationPractice() {
           </div>
 
           {/* Session Stats Sidebar */}
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             <Card className="bg-customgreys-secondarybg/60 backdrop-blur-sm border-violet-900/30">
               <CardHeader className="pb-4">
-                <CardTitle className="text-white text-lg flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5" />
+                <CardTitle className="text-white text-base sm:text-lg flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5" />
                   Estatísticas
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
+              <CardContent className="space-y-3 sm:space-y-4">
+                <div className="space-y-1 sm:space-y-2">
+                  <div className="flex justify-between text-xs sm:text-sm">
                     <span className="text-gray-400">Mensagens</span>
                     <span className="text-white">{sessionStats.messagesExchanged}</span>
                   </div>
-                  <div className="flex justify-between text-sm">
+                  <div className="flex justify-between text-xs sm:text-sm">
                     <span className="text-gray-400">Pontuação Média</span>
                     <span className={getScoreColor(sessionStats.averageScore)}>
                       {sessionStats.averageScore}%
                     </span>
                   </div>
-                  <div className="flex justify-between text-sm">
+                  <div className="flex justify-between text-xs sm:text-sm">
                     <span className="text-gray-400">Vidas Usadas</span>
                     <span className="text-white">{sessionStats.heartsUsed}</span>
                   </div>
-                  <div className="flex justify-between text-sm">
+                  <div className="flex justify-between text-xs sm:text-sm">
                     <span className="text-gray-400">Tempo</span>
                     <span className="text-white font-mono">{formatTime(sessionTimer)}</span>
                   </div>
@@ -482,24 +482,24 @@ export default function ConversationPractice() {
 
             <Card className="bg-customgreys-secondarybg/60 backdrop-blur-sm border-violet-900/30">
               <CardHeader className="pb-4">
-                <CardTitle className="text-white text-lg flex items-center gap-2">
-                  <Target className="w-5 h-5" />
+                <CardTitle className="text-white text-base sm:text-lg flex items-center gap-2">
+                  <Target className="w-4 h-4 sm:w-5 sm:h-5" />
                   Objetivos
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
+              <CardContent className="space-y-2 sm:space-y-3">
+                <div className="space-y-1 sm:space-y-2">
+                  <div className="flex justify-between text-xs sm:text-sm">
                     <span className="text-gray-400">Manter +80% pontuação</span>
-                    <CheckCircle className="w-4 h-4 text-green-400" />
+                    <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 text-green-400" />
                   </div>
-                  <div className="flex justify-between text-sm">
+                  <div className="flex justify-between text-xs sm:text-sm">
                     <span className="text-gray-400">10+ trocas de mensagens</span>
-                    <AlertCircle className="w-4 h-4 text-yellow-400" />
+                    <AlertCircle className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-400" />
                   </div>
-                  <div className="flex justify-between text-sm">
+                  <div className="flex justify-between text-xs sm:text-sm">
                     <span className="text-gray-400">Manter todas as vidas</span>
-                    <AlertCircle className="w-4 h-4 text-yellow-400" />
+                    <AlertCircle className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-400" />
                   </div>
                 </div>
               </CardContent>
@@ -508,9 +508,9 @@ export default function ConversationPractice() {
             <Button 
               onClick={handleEndSession}
               variant="outline" 
-              className="w-full border-red-600 text-red-400 hover:bg-red-600 hover:text-white"
+              className="w-full border-red-600 text-red-400 hover:bg-red-600 hover:text-white text-sm sm:text-base"
             >
-              <StopCircle className="w-4 h-4 mr-2" />
+              <StopCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
               Finalizar Sessão
             </Button>
           </div>
