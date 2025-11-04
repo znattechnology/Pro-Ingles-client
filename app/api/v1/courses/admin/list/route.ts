@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic';
+
 const DJANGO_BASE_URL = process.env.DJANGO_API_URL || 'http://localhost:8000/api/v1';
 
 export async function GET(request: NextRequest) {
