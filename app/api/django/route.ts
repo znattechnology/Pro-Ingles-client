@@ -5,11 +5,17 @@ export const dynamic = 'force-dynamic';
 
 const DJANGO_BASE_URL = 'http://34.245.99.169:8000/api/v1';
 
-async function proxyToDjango(request: NextRequest, method: string, { params }: { params: { path: string[] } }) {
+async function proxyToDjango(request: NextRequest, method: string) {
   try {
-    const pathSegments = params.path.join('/');
-    const searchParams = request.nextUrl.searchParams.toString();
-    const djangoUrl = `${DJANGO_BASE_URL}/${pathSegments}${searchParams ? `?${searchParams}` : ''}`;
+    // Extract path from URL
+    const url = new URL(request.url);
+    const apiPath = url.pathname.replace('/api/django', '');
+    const pathSegments = apiPath.startsWith('/') ? apiPath.slice(1) : apiPath;
+    const searchParams = url.searchParams.toString();
+    
+    // Ensure trailing slash for Django endpoints
+    const formattedPath = pathSegments.endsWith('/') ? pathSegments : `${pathSegments}/`;
+    const djangoUrl = `${DJANGO_BASE_URL}/${formattedPath}${searchParams ? `?${searchParams}` : ''}`;
     
     console.log(`[PROXY ${method}] ${djangoUrl}`);
 
@@ -82,24 +88,24 @@ async function proxyToDjango(request: NextRequest, method: string, { params }: {
   }
 }
 
-export async function GET(request: NextRequest, context: { params: { path: string[] } }) {
-  return proxyToDjango(request, 'GET', context);
+export async function GET(request: NextRequest) {
+  return proxyToDjango(request, 'GET');
 }
 
-export async function POST(request: NextRequest, context: { params: { path: string[] } }) {
-  return proxyToDjango(request, 'POST', context);
+export async function POST(request: NextRequest) {
+  return proxyToDjango(request, 'POST');
 }
 
-export async function PUT(request: NextRequest, context: { params: { path: string[] } }) {
-  return proxyToDjango(request, 'PUT', context);
+export async function PUT(request: NextRequest) {
+  return proxyToDjango(request, 'PUT');
 }
 
-export async function DELETE(request: NextRequest, context: { params: { path: string[] } }) {
-  return proxyToDjango(request, 'DELETE', context);
+export async function DELETE(request: NextRequest) {
+  return proxyToDjango(request, 'DELETE');
 }
 
-export async function PATCH(request: NextRequest, context: { params: { path: string[] } }) {
-  return proxyToDjango(request, 'PATCH', context);
+export async function PATCH(request: NextRequest) {
+  return proxyToDjango(request, 'PATCH');
 }
 
 export async function OPTIONS(request: NextRequest) {
