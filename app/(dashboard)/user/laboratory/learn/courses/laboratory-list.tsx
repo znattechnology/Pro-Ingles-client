@@ -159,8 +159,8 @@ export const LaboratoryList = ({courses, activeCourseId, viewMode = 'grid'}: Pro
     return (
         <div className={
             viewMode === 'grid' 
-                ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" 
-                : "space-y-4"
+                ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6" 
+                : "space-y-3 sm:space-y-4"
         }>
             {courses.map((course) => {
                 const stats = getCourseStats(course);

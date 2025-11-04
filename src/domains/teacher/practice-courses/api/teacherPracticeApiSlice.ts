@@ -157,7 +157,7 @@ export const teacherPracticeApiSlice = createApi({
     // Course Management
     getTeacherCourses: builder.query<PracticeCourse[], { includeDrafts?: boolean }>({
       query: ({ includeDrafts = true } = {}) => ({
-        url: `/teacher/practice-courses/courses/?include_drafts=${includeDrafts}&course_type=practice&include_stats=true`,
+        url: `/practice/courses/?include_drafts=${includeDrafts}&course_type=practice&include_stats=true`,
         method: 'GET',
         credentials: 'include' as const,
       }),
@@ -190,7 +190,7 @@ export const teacherPracticeApiSlice = createApi({
 
     createTeacherCourse: builder.mutation<PracticeCourse, CreatePracticeCourseData>({
       query: (courseData) => ({
-        url: '/teacher/practice-courses/create/',
+        url: '/practice/courses/create/',
         method: 'POST',
         credentials: 'include' as const,
         body: {
@@ -274,7 +274,7 @@ export const teacherPracticeApiSlice = createApi({
 
     createTeacherUnit: builder.mutation<PracticeUnit, CreatePracticeUnitData>({
       query: (unitData) => ({
-        url: '/teacher/practice-courses/units/',
+        url: '/practice/units/',
         method: 'POST',
         credentials: 'include' as const,
         body: unitData,
@@ -325,7 +325,7 @@ export const teacherPracticeApiSlice = createApi({
 
     createTeacherLesson: builder.mutation<PracticeLesson, CreatePracticeLessonData>({
       query: (lessonData) => ({
-        url: '/teacher/practice-courses/lessons/',
+        url: '/practice/lessons/',
         method: 'POST',
         credentials: 'include' as const,
         body: lessonData,
@@ -388,7 +388,7 @@ export const teacherPracticeApiSlice = createApi({
 
     createTeacherChallenge: builder.mutation<PracticeChallenge, CreatePracticeChallengeData>({
       query: ({ options: _options, ...challengeData }) => ({
-        url: '/teacher/practice-courses/challenges/',
+        url: '/practice/challenges/',
         method: 'POST',
         credentials: 'include' as const,
         body: challengeData,
@@ -446,7 +446,7 @@ export const teacherPracticeApiSlice = createApi({
 
     getTeacherDashboard: builder.query<PracticeAnalytics, void>({
       query: () => ({
-        url: '/teacher/practice-courses/analytics/',
+        url: '/practice/analytics/',
         method: 'GET',
         credentials: 'include' as const,
       }),
@@ -502,7 +502,7 @@ export const teacherPracticeApiSlice = createApi({
       }
     >({
       query: (payload) => ({
-        url: '/teacher/practice-courses/validate-ai-translation/',
+        url: '/practice/validate-ai-translation/',
         method: 'POST',
         credentials: 'include' as const,
         body: {
@@ -519,7 +519,7 @@ export const teacherPracticeApiSlice = createApi({
       { sourceText: string; difficultyLevel?: string; count?: number }
     >({
       query: (payload) => ({
-        url: '/teacher/practice-courses/generate-translation-suggestions/',
+        url: '/practice/generate-translation-suggestions/',
         method: 'POST',
         credentials: 'include' as const,
         body: {

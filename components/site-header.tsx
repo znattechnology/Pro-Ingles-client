@@ -225,7 +225,7 @@ export default function SiteHeader() {
 
       <div className="hidden md:flex items-center space-x-4">
         <Button asChild variant="ghost"><Link href={"/login"}>
-        Log in</Link></Button>
+        Iniciar sessão</Link></Button>
         <Button variant="secondary" asChild><Link href={"/contact-us"}>Peça uma demostração</Link></Button>
       </div> 
 
@@ -307,7 +307,7 @@ export default function SiteHeader() {
                 asChild
               >
                 <Link href={"/login"}>
-                Log in</Link>
+                Iniciar sessão</Link>
               </Button>
               <Button variant="secondary" asChild className="w-full " onClick={() => setOpen(false)}>
                 <Link href={"/contact-us"}>Peça uma demostração</Link>

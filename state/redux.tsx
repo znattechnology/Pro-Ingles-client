@@ -8,6 +8,7 @@ import { setupListeners } from "@reduxjs/toolkit/query";
 import globalReducer from "@/state";
 import { authSlice } from "@/src/domains/auth";
 import { apiSlice } from "@/redux/features/api/apiSlice";
+import { api } from "@/state/api";
 // New domain-based APIs
 import { teacherPracticeApiSlice } from "@/src/domains/teacher/practice-courses/api";
 import { teacherVideoCourseApiSlice } from "@/src/domains/teacher/video-courses/api";
@@ -15,7 +16,7 @@ import { studentPracticeApiSlice } from "@/src/domains/student/practice-courses/
 import { studentVideoCourseApiSlice } from "@/src/domains/student/video-courses/api";
 import { studentLeaderboardApiSlice } from "@/src/domains/student/leaderboard/api";
 import { studentAchievementsApiSlice } from "@/src/domains/student/achievements/api";
-// import { adminApi } from "@modules/admin"; // Temporarily disabled
+import { adminApiSlice } from "@/src/domains/admin/api";
 import courseEditorSlice from "@/redux/features/courseEditor/courseEditorSlice";
 
 /* REDUX STORE */
@@ -25,6 +26,8 @@ const rootReducer = combineReducers({
   courseEditor: courseEditorSlice,
   // Legacy Django API (for auth and shared features)
   [apiSlice.reducerPath]: apiSlice.reducer,
+  // Legacy API for billing and transactions
+  [api.reducerPath]: api.reducer,
   // New separated APIs
   [teacherPracticeApiSlice.reducerPath]: teacherPracticeApiSlice.reducer,
   [teacherVideoCourseApiSlice.reducerPath]: teacherVideoCourseApiSlice.reducer,
@@ -32,8 +35,7 @@ const rootReducer = combineReducers({
   [studentVideoCourseApiSlice.reducerPath]: studentVideoCourseApiSlice.reducer,
   [studentLeaderboardApiSlice.reducerPath]: studentLeaderboardApiSlice.reducer,
   [studentAchievementsApiSlice.reducerPath]: studentAchievementsApiSlice.reducer,
-  // Admin specific API - temporarily disabled
-  // [adminApi.reducerPath]: adminApi.reducer,
+  [adminApiSlice.reducerPath]: adminApiSlice.reducer,
 });
 
 export const makeStore = () => {
@@ -66,12 +68,14 @@ export const makeStore = () => {
         },
       })
       .concat(apiSlice.middleware)
+      .concat(api.middleware)
       .concat(teacherPracticeApiSlice.middleware)
       .concat(teacherVideoCourseApiSlice.middleware)
       .concat(studentPracticeApiSlice.middleware)
       .concat(studentVideoCourseApiSlice.middleware)
       .concat(studentLeaderboardApiSlice.middleware)
-      .concat(studentAchievementsApiSlice.middleware),
+      .concat(studentAchievementsApiSlice.middleware)
+      .concat(adminApiSlice.middleware),
   });
 };
 

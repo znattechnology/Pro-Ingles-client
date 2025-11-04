@@ -262,57 +262,57 @@ export const Quiz = ({
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(168,85,247,0.08),transparent_70%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,rgba(236,72,153,0.06),transparent_70%)]" />
         
-        <div className="flex-1 flex items-center justify-center px-6 py-12">
-          <div className="text-center space-y-8 max-w-2xl mx-auto">
+        <div className="flex-1 flex items-center justify-center px-4 sm:px-6 py-8 sm:py-12">
+          <div className="text-center space-y-6 sm:space-y-8 max-w-2xl mx-auto w-full">
             {/* Success Icon */}
-            <div className="relative mb-8">
+            <div className="relative mb-6 sm:mb-8">
               <div className="absolute inset-0 bg-gradient-to-r from-green-400/20 to-emerald-400/20 rounded-full blur-2xl animate-pulse" />
-              <div className="relative bg-gradient-to-br from-green-500 to-emerald-600 p-6 rounded-full inline-flex items-center justify-center shadow-2xl shadow-green-500/20 animate-bounce">
-                <Check className="w-20 h-20 text-white" />
-                <div className="absolute -top-2 -right-2 w-6 h-6 bg-yellow-400 rounded-full animate-ping" />
-                <div className="absolute -bottom-2 -left-2 w-4 h-4 bg-blue-400 rounded-full animate-bounce delay-100" />
+              <div className="relative bg-gradient-to-br from-green-500 to-emerald-600 p-4 sm:p-6 rounded-full inline-flex items-center justify-center shadow-2xl shadow-green-500/20 animate-bounce">
+                <Check className="w-16 h-16 sm:w-20 sm:h-20 text-white" />
+                <div className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 w-4 h-4 sm:w-6 sm:h-6 bg-yellow-400 rounded-full animate-ping" />
+                <div className="absolute -bottom-1 -left-1 sm:-bottom-2 sm:-left-2 w-3 h-3 sm:w-4 sm:h-4 bg-blue-400 rounded-full animate-bounce delay-100" />
               </div>
             </div>
             
             {/* Success Message */}
-            <div className="space-y-4">
-              <h1 className="text-5xl lg:text-6xl font-black bg-gradient-to-r from-green-400 via-emerald-400 to-green-500 bg-clip-text text-transparent animate-pulse">
+            <div className="space-y-3 sm:space-y-4">
+              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black bg-gradient-to-r from-green-400 via-emerald-400 to-green-500 bg-clip-text text-transparent animate-pulse">
                 CONCLUÍDO!
               </h1>
-              <div className="bg-gradient-to-r from-violet-500/10 to-purple-500/10 backdrop-blur-sm rounded-2xl border border-violet-500/20 p-6 shadow-lg">
-                <p className="text-xl text-white/90 font-medium mb-2">
+              <div className="bg-gradient-to-r from-violet-500/10 to-purple-500/10 backdrop-blur-sm rounded-2xl border border-violet-500/20 p-4 sm:p-6 shadow-lg">
+                <p className="text-lg sm:text-xl text-white/90 font-medium mb-2">
                   🎉 Parabéns! Lição finalizada com sucesso! 🎉
                 </p>
-                <p className="text-customgreys-dirtyGrey">
+                <p className="text-sm sm:text-base text-customgreys-dirtyGrey">
                   Você está progredindo muito bem no seu aprendizado de inglês!
                 </p>
               </div>
             </div>
 
             {/* Achievement Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mt-6 sm:mt-8">
               <ResultCard variant="points" value={challenges.length * 10}/>
               <ResultCard variant="hearts" value={hearts}/>
             </div>
 
             {/* Progress Celebration */}
-            <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 backdrop-blur-sm rounded-2xl border border-yellow-500/20 p-6 shadow-lg">
-              <div className="flex items-center justify-center gap-3 mb-3">
-                <div className="w-3 h-3 bg-yellow-400 rounded-full animate-pulse" />
-                <span className="text-yellow-300 font-semibold">Estatísticas da Lição</span>
-                <div className="w-3 h-3 bg-yellow-400 rounded-full animate-pulse delay-75" />
+            <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 backdrop-blur-sm rounded-2xl border border-yellow-500/20 p-4 sm:p-6 shadow-lg">
+              <div className="flex items-center justify-center gap-2 sm:gap-3 mb-3">
+                <div className="w-2 h-2 sm:w-3 sm:h-3 bg-yellow-400 rounded-full animate-pulse" />
+                <span className="text-yellow-300 font-semibold text-sm sm:text-base">Estatísticas da Lição</span>
+                <div className="w-2 h-2 sm:w-3 sm:h-3 bg-yellow-400 rounded-full animate-pulse delay-75" />
               </div>
-              <div className="grid grid-cols-3 gap-4 text-center">
+              <div className="grid grid-cols-3 gap-2 sm:gap-4 text-center">
                 <div>
-                  <p className="text-2xl font-bold text-white">{challenges.length}</p>
+                  <p className="text-xl sm:text-2xl font-bold text-white">{challenges.length}</p>
                   <p className="text-xs text-customgreys-dirtyGrey">Questões</p>
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-green-400">100%</p>
+                  <p className="text-xl sm:text-2xl font-bold text-green-400">100%</p>
                   <p className="text-xs text-customgreys-dirtyGrey">Completo</p>
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-purple-400">{challenges.length * 10}</p>
+                  <p className="text-xl sm:text-2xl font-bold text-purple-400">{challenges.length * 10}</p>
                   <p className="text-xs text-customgreys-dirtyGrey">XP Ganho</p>
                 </div>
               </div>
@@ -324,6 +324,7 @@ export const Quiz = ({
           lessonId={lessonId}
           status="completed"
           onCheck={() => router.push("/user/laboratory/learn")}
+          pending={false}
         />
       </div>
       </>
@@ -341,16 +342,17 @@ export const Quiz = ({
         hearts={hearts}
         percentage={percentage}
         hasActiveSubscription={!!userSubscription?.isActive}
+        isProcessing={pending}
       />
       <div className="flex-1 transition-all duration-500 ease-in-out">
         <div className="h-full flex items-center justify-center">
-          <div className="lg:min-h-[350px] lg:w-[600px] w-full px-6 lg:px-0 flex flex-col gap-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <h1 className="text-lg lg:text-3xl text-center lg:text-start font-bold text-white pt-20 animate-in fade-in slide-in-from-top-2 duration-700 delay-100">
+          <div className="lg:min-h-[350px] lg:w-[600px] w-full px-4 sm:px-6 lg:px-0 flex flex-col gap-y-8 sm:gap-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <h1 className="text-base sm:text-lg lg:text-3xl text-center lg:text-start font-bold text-white pt-16 sm:pt-20 animate-in fade-in slide-in-from-top-2 duration-700 delay-100 leading-tight">
               {title}
             </h1>
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-200">
               {challenge.type === "ASSIST" && (
-                <div className="animate-in fade-in zoom-in-95 duration-300 delay-300">
+                <div className="animate-in fade-in zoom-in-95 duration-300 delay-300 mb-4 sm:mb-6">
                   <QuestionBubble question={challenge.question} />
                 </div>
               )}
@@ -362,6 +364,7 @@ export const Quiz = ({
                   selectedOption={selectedOptions}
                   disabled={pending}
                   type={challenge.type}
+                  isProcessing={pending}
                 />
               </div>
             </div>
@@ -372,6 +375,7 @@ export const Quiz = ({
         disabled={pending || !selectedOptions}
         status={status}
         onCheck={onContinue}
+        pending={pending}
       />
       
       {/* Audio elements - always render */}

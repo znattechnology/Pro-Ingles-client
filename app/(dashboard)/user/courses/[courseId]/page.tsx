@@ -188,7 +188,7 @@ const CourseDetailsPage = () => {
           <div className="h-full w-full bg-[linear-gradient(rgba(139,92,246,.1)_1px,transparent_1px),linear-gradient(90deg,rgba(139,92,246,.1)_1px,transparent_1px)] bg-[size:4rem_4rem]" />
         </div>
         
-        <div className="relative max-w-7xl mx-auto px-6 py-8">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
           {/* Navigation */}
           <div className="flex items-center gap-4 mb-6">
             <Button
@@ -203,12 +203,12 @@ const CourseDetailsPage = () => {
             <span className="text-gray-400 text-sm">Detalhes do Curso</span>
           </div>
 
-          <div className="grid lg:grid-cols-3 gap-8">
+          <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
             {/* Course Info */}
             <div className="lg:col-span-2">
-              <div className="flex items-start gap-6">
+              <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6">
                 {/* Course Image */}
-                <div className="relative w-32 h-24 rounded-xl overflow-hidden bg-gradient-to-br from-violet-500/20 to-purple-600/20 flex-shrink-0">
+                <div className="relative w-full sm:w-32 h-32 sm:h-24 rounded-xl overflow-hidden bg-gradient-to-br from-violet-500/20 to-purple-600/20 flex-shrink-0">
                   {course.image ? (
                     <img 
                       src={course.image} 
@@ -224,33 +224,34 @@ const CourseDetailsPage = () => {
                 </div>
 
                 {/* Course Details */}
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-3">
+                <div className="flex-1 w-full">
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-3">
                     <Badge 
                       variant="outline" 
-                      className={`bg-gradient-to-r ${templateColorClass} border-none text-white shadow-lg`}
+                      className={`bg-gradient-to-r ${templateColorClass} border-none text-white shadow-lg text-xs sm:text-sm`}
                     >
                       <TemplateIcon className="h-3 w-3 mr-1" />
-                      {course.template.charAt(0).toUpperCase() + course.template.slice(1)}
+                      <span className="hidden sm:inline">{course.template.charAt(0).toUpperCase() + course.template.slice(1)}</span>
+                      <span className="sm:hidden">{course.template.charAt(0).toUpperCase()}</span>
                     </Badge>
-                    <Badge variant="outline" className="border-violet-500/50 text-violet-300">
+                    <Badge variant="outline" className="border-violet-500/50 text-violet-300 text-xs sm:text-sm">
                       {course.level}
                     </Badge>
-                    <Badge variant="outline" className="border-green-500/50 text-green-300">
+                    <Badge variant="outline" className="border-green-500/50 text-green-300 text-xs sm:text-sm">
                       {course.status}
                     </Badge>
                   </div>
 
-                  <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-white via-gray-200 to-gray-300 bg-clip-text text-transparent mb-3">
+                  <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-white via-gray-200 to-gray-300 bg-clip-text text-transparent mb-3 leading-tight">
                     {course.title}
                   </h1>
                   
-                  <p className="text-gray-300 text-lg leading-relaxed mb-4">
+                  <p className="text-gray-300 text-sm sm:text-base lg:text-lg leading-relaxed mb-4">
                     {course.description}
                   </p>
 
                   {/* Course Stats */}
-                  <div className="flex items-center gap-6 text-sm text-gray-400">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 text-xs sm:text-sm text-gray-400">
                     <div className="flex items-center gap-2">
                       <User className="h-4 w-4" />
                       <span>{course.teacherName}</span>
@@ -269,9 +270,9 @@ const CourseDetailsPage = () => {
             </div>
 
             {/* Enrollment Card */}
-            <div className="lg:col-span-1">
-              <Card className="bg-customgreys-primarybg/60 backdrop-blur-sm border-violet-900/30 sticky top-6">
-                <CardContent className="p-6">
+            <div className="lg:col-span-1 order-first lg:order-last">
+              <Card className="bg-customgreys-primarybg/60 backdrop-blur-sm border-violet-900/30 lg:sticky lg:top-6">
+                <CardContent className="p-4 sm:p-6">
                   <div className="text-center mb-6">
                     <div className="text-3xl font-bold text-white mb-2">
                       Gratuito
@@ -282,25 +283,26 @@ const CourseDetailsPage = () => {
                   <Button
                     onClick={handleEnrollment}
                     disabled={isEnrolling}
-                    className="w-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white shadow-lg h-12 text-lg font-semibold"
+                    className="w-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white shadow-lg h-11 sm:h-12 text-sm sm:text-base lg:text-lg font-semibold"
                   >
-                    {isEnrolling ? 'Inscrevendo...' : 'Inscrever-se no Curso'}
+                    <span className="hidden sm:inline">{isEnrolling ? 'Inscrevendo...' : 'Inscrever-se no Curso'}</span>
+                    <span className="sm:hidden">{isEnrolling ? 'Inscrevendo...' : 'Inscrever-se'}</span>
                   </Button>
 
                   <div className="mt-6 space-y-3">
-                    <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center justify-between text-xs sm:text-sm">
                       <span className="text-gray-400">Total de capítulos</span>
                       <span className="text-white font-medium">{course.total_chapters || 0}</span>
                     </div>
-                    <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center justify-between text-xs sm:text-sm">
                       <span className="text-gray-400">Seções</span>
                       <span className="text-white font-medium">{course.total_sections || 0}</span>
                     </div>
-                    <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center justify-between text-xs sm:text-sm">
                       <span className="text-gray-400">Estudantes inscritos</span>
                       <span className="text-white font-medium">{course.total_enrollments || 0}</span>
                     </div>
-                    <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center justify-between text-xs sm:text-sm">
                       <span className="text-gray-400">Nível</span>
                       <span className="text-white font-medium">{course.level}</span>
                     </div>
@@ -313,15 +315,15 @@ const CourseDetailsPage = () => {
       </div>
 
       {/* Course Content */}
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        <div className="grid lg:grid-cols-3 gap-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2">
             {/* Course Curriculum */}
             <Card className="bg-customgreys-secondarybg border-violet-900/30">
-              <CardContent className="p-6">
-                <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-                  <BookOpen className="h-6 w-6 text-violet-400" />
+              <CardContent className="p-4 sm:p-6">
+                <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-white mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3">
+                  <BookOpen className="h-5 w-5 sm:h-6 sm:w-6 text-violet-400" />
                   Conteúdo do Curso
                 </h2>
 
@@ -332,25 +334,28 @@ const CourseDetailsPage = () => {
                         <CardContent className="p-0">
                           <button
                             onClick={() => toggleSection(section.sectionId)}
-                            className="w-full p-4 text-left hover:bg-violet-800/10 transition-colors duration-200 rounded-t-lg"
+                            className="w-full p-3 sm:p-4 text-left hover:bg-violet-800/10 transition-colors duration-200 rounded-t-lg"
                           >
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-3">
+                            <div className="flex items-center justify-between gap-3">
+                              <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
                                 {expandedSections.has(section.sectionId) ? 
-                                  <ChevronDown className="h-5 w-5 text-violet-400" /> : 
-                                  <ChevronRight className="h-5 w-5 text-violet-400" />
+                                  <ChevronDown className="h-4 w-4 sm:h-5 sm:w-5 text-violet-400 flex-shrink-0" /> : 
+                                  <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5 text-violet-400 flex-shrink-0" />
                                 }
-                                <div>
-                                  <h3 className="font-semibold text-white">
-                                    Seção {sectionIndex + 1}: {section.sectionTitle}
+                                <div className="flex-1 min-w-0">
+                                  <h3 className="text-sm sm:text-base font-semibold text-white truncate">
+                                    <span className="hidden sm:inline">Seção {sectionIndex + 1}: </span>
+                                    <span className="sm:hidden">{sectionIndex + 1}. </span>
+                                    {section.sectionTitle}
                                   </h3>
-                                  <p className="text-sm text-gray-400 mt-1">
+                                  <p className="text-xs sm:text-sm text-gray-400 mt-1 line-clamp-2">
                                     {section.sectionDescription}
                                   </p>
                                 </div>
                               </div>
-                              <Badge variant="outline" className="border-violet-500/50 text-violet-300">
-                                {section.chapters?.length || 0} aulas
+                              <Badge variant="outline" className="border-violet-500/50 text-violet-300 text-xs flex-shrink-0">
+                                <span className="hidden sm:inline">{section.chapters?.length || 0} aulas</span>
+                                <span className="sm:hidden">{section.chapters?.length || 0}</span>
                               </Badge>
                             </div>
                           </button>
@@ -360,27 +365,31 @@ const CourseDetailsPage = () => {
                               {section.chapters.map((chapter: any, chapterIndex: number) => (
                                 <div 
                                   key={chapter.chapterId}
-                                  className="flex items-center gap-3 p-4 hover:bg-violet-800/5 transition-colors duration-200"
+                                  className="flex items-start gap-2 sm:gap-3 p-3 sm:p-4 hover:bg-violet-800/5 transition-colors duration-200"
                                 >
-                                  {getChapterIcon(chapter.type)}
-                                  <div className="flex-1">
-                                    <h4 className="text-white font-medium">
+                                  <div className="mt-0.5 flex-shrink-0">
+                                    {getChapterIcon(chapter.type)}
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <h4 className="text-sm sm:text-base text-white font-medium leading-tight">
                                       {chapterIndex + 1}. {chapter.title}
                                     </h4>
-                                    <p className="text-sm text-gray-400 line-clamp-2 mt-1">
+                                    <p className="text-xs sm:text-sm text-gray-400 line-clamp-2 mt-1 leading-relaxed">
                                       {chapter.content}
                                     </p>
                                   </div>
                                   <Badge 
                                     variant="outline" 
                                     className={`
+                                      text-xs flex-shrink-0 mt-0.5
                                       ${chapter.type === 'Video' ? 'border-blue-500/50 text-blue-300' : ''}
                                       ${chapter.type === 'Quiz' ? 'border-purple-500/50 text-purple-300' : ''}
                                       ${chapter.type === 'Exercise' ? 'border-emerald-500/50 text-emerald-300' : ''}
                                       ${chapter.type === 'Text' ? 'border-gray-500/50 text-gray-300' : ''}
                                     `}
                                   >
-                                    {chapter.type === 'Exercise' ? 'Practice Lab' : chapter.type}
+                                    <span className="hidden sm:inline">{chapter.type === 'Exercise' ? 'Practice Lab' : chapter.type}</span>
+                                    <span className="sm:hidden">{chapter.type === 'Exercise' ? 'Lab' : chapter.type.charAt(0)}</span>
                                   </Badge>
                                 </div>
                               ))}
@@ -404,25 +413,25 @@ const CourseDetailsPage = () => {
           {/* Sidebar */}
           <div className="lg:col-span-1">
             {/* Course Features */}
-            <Card className="bg-customgreys-secondarybg border-violet-900/30 mb-6">
-              <CardContent className="p-6">
-                <h3 className="text-lg font-bold text-white mb-4">O que você aprenderá</h3>
-                <div className="space-y-3">
-                  <div className="flex items-start gap-3">
-                    <CheckCircle className="h-5 w-5 text-green-400 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-300 text-sm">Conceitos fundamentais da área</span>
+            <Card className="bg-customgreys-secondarybg border-violet-900/30 mb-4 sm:mb-6">
+              <CardContent className="p-4 sm:p-6">
+                <h3 className="text-base sm:text-lg font-bold text-white mb-3 sm:mb-4">O que você aprenderá</h3>
+                <div className="space-y-2 sm:space-y-3">
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-400 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-300 text-xs sm:text-sm leading-relaxed">Conceitos fundamentais da área</span>
                   </div>
-                  <div className="flex items-start gap-3">
-                    <CheckCircle className="h-5 w-5 text-green-400 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-300 text-sm">Aplicação prática dos conhecimentos</span>
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-400 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-300 text-xs sm:text-sm leading-relaxed">Aplicação prática dos conhecimentos</span>
                   </div>
-                  <div className="flex items-start gap-3">
-                    <CheckCircle className="h-5 w-5 text-green-400 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-300 text-sm">Exercícios interativos</span>
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-400 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-300 text-xs sm:text-sm leading-relaxed">Exercícios interativos</span>
                   </div>
-                  <div className="flex items-start gap-3">
-                    <CheckCircle className="h-5 w-5 text-green-400 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-300 text-sm">Certificado de conclusão</span>
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-400 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-300 text-xs sm:text-sm leading-relaxed">Certificado de conclusão</span>
                   </div>
                 </div>
               </CardContent>
@@ -430,15 +439,15 @@ const CourseDetailsPage = () => {
 
             {/* Instructor Info */}
             <Card className="bg-customgreys-secondarybg border-violet-900/30">
-              <CardContent className="p-6">
-                <h3 className="text-lg font-bold text-white mb-4">Instrutor</h3>
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
-                    <User className="h-6 w-6 text-white" />
+              <CardContent className="p-4 sm:p-6">
+                <h3 className="text-base sm:text-lg font-bold text-white mb-3 sm:mb-4">Instrutor</h3>
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+                    <User className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                   </div>
-                  <div>
-                    <h4 className="font-semibold text-white">{course.teacherName}</h4>
-                    <p className="text-sm text-gray-400">Professor Especializado</p>
+                  <div className="min-w-0 flex-1">
+                    <h4 className="text-sm sm:text-base font-semibold text-white truncate">{course.teacherName}</h4>
+                    <p className="text-xs sm:text-sm text-gray-400">Professor Especializado</p>
                   </div>
                 </div>
               </CardContent>

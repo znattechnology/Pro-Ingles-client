@@ -1416,7 +1416,7 @@ const Course = () => {
                     className="bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
                     onClick={() => {
                       // Navigate to Practice Lab lesson for this chapter
-                      window.open(`/user/learn/lesson/${currentChapter.practice_lesson}`, '_blank');
+                      window.open(`/user/laboratory/learn/lesson/${currentChapter.practice_lesson}`, '_blank');
                     }}
                   >
                     <Play className="w-5 h-5 mr-2" />

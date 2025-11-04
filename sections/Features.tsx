@@ -251,7 +251,7 @@ const Features = () => {
                 whileTap={{ scale: 0.95 }}
                 className="border-2 border-violet-500 text-violet-300 hover:bg-violet-900/20 px-8 py-3 rounded-xl font-semibold transition-all duration-300"
               >
-                Ver Demo
+                Ver Demonstração
               </motion.button>
             </div>
           </div>

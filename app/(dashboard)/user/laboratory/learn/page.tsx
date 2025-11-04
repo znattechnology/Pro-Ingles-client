@@ -145,39 +145,40 @@ const LearnPage = () => {
       {/* Modern Header Section */}
       <div className="relative bg-gradient-to-br from-customgreys-secondarybg via-customgreys-secondarybg to-customgreys-primarybg border-b border-customgreys-darkerGrey">
         <div className="absolute inset-0 bg-gradient-to-r from-violet-500/5 to-purple-500/5" />
-        <div className="relative max-w-7xl mx-auto px-6 py-8">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
           {/* Navigation */}
-          <div className="flex items-center gap-3 mb-6">
+          <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
             <Button
               variant="ghost"
               onClick={() => router.push('/user/dashboard')}
-              className="text-customgreys-dirtyGrey hover:text-white hover:bg-customgreys-primarybg/50 transition-all duration-200"
+              className="text-customgreys-dirtyGrey hover:text-white hover:bg-customgreys-primarybg/50 transition-all duration-200 px-2 sm:px-4"
             >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Dashboard
+              <ArrowLeft className="w-4 h-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Dashboard</span>
+              <span className="sm:hidden">Voltar</span>
             </Button>
             <div className="h-4 w-px bg-customgreys-darkerGrey" />
-            <span className="text-customgreys-dirtyGrey text-sm">Aprendizado</span>
+            <span className="text-customgreys-dirtyGrey text-xs sm:text-sm">Aprendizado</span>
           </div>
           
           {/* Course Title and Description */}
-          <div className="mb-8">
-            <div className="flex items-center gap-4 mb-3">
-              <div className="bg-violet-500/20 rounded-lg p-2">
-                <BookOpen className="w-6 h-6 text-violet-400" />
+          <div className="mb-6 sm:mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-3">
+              <div className="bg-violet-500/20 rounded-lg p-2 w-fit">
+                <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-violet-400" />
               </div>
               <div className="flex-1">
-                <h1 className="text-3xl font-bold text-white mb-1 bg-gradient-to-r from-white to-gray-300 bg-clip-text">
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-1 bg-gradient-to-r from-white to-gray-300 bg-clip-text leading-tight">
                   {activeCourse?.title || 'Carregando...'}
                 </h1>
-                <p className="text-customgreys-dirtyGrey">
-                  Continue sua jornada de aprendizagem • {courseProgressPercentage}% concluído
+                <p className="text-customgreys-dirtyGrey text-sm sm:text-base">
+                  Continue a sua jornada de aprendizagem • {courseProgressPercentage}% concluído
                 </p>
               </div>
             </div>
             
             {/* Progress Bar */}
-            <div className="bg-customgreys-darkGrey rounded-full h-2 overflow-hidden">
+            <div className="bg-customgreys-darkGrey rounded-full h-2 sm:h-3 overflow-hidden">
               <div 
                 className="bg-gradient-to-r from-violet-500 to-purple-500 h-full rounded-full transition-all duration-700 ease-out relative"
                 style={{ width: `${courseProgressPercentage}%` }}
@@ -188,19 +189,19 @@ const LearnPage = () => {
           </div>
 
           {/* Modern Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {/* Lessons Progress */}
             <Card className="bg-customgreys-primarybg/50 backdrop-blur-sm border-customgreys-darkerGrey hover:border-blue-500/30 transition-all duration-300 group">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-2.5 group-hover:scale-110 transition-transform duration-200">
-                    <BookOpen className="w-5 h-5 text-white" />
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex flex-col sm:flex-row items-center sm:gap-3 gap-2">
+                  <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-2 sm:p-2.5 group-hover:scale-110 transition-transform duration-200">
+                    <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                   </div>
-                  <div className="flex-1">
-                    <p className="text-customgreys-dirtyGrey text-sm font-medium">Lições</p>
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-white text-xl font-bold">{userStats.completedLessons}</span>
-                      <span className="text-customgreys-dirtyGrey text-sm">/{userStats.totalLessons}</span>
+                  <div className="flex-1 text-center sm:text-left">
+                    <p className="text-customgreys-dirtyGrey text-xs sm:text-sm font-medium">Lições</p>
+                    <div className="flex items-baseline justify-center sm:justify-start gap-1">
+                      <span className="text-white text-lg sm:text-xl font-bold">{userStats.completedLessons}</span>
+                      <span className="text-customgreys-dirtyGrey text-xs sm:text-sm">/{userStats.totalLessons}</span>
                     </div>
                   </div>
                 </div>
@@ -209,16 +210,16 @@ const LearnPage = () => {
             
             {/* Streak */}
             <Card className="bg-customgreys-primarybg/50 backdrop-blur-sm border-customgreys-darkerGrey hover:border-orange-500/30 transition-all duration-300 group">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-2.5 group-hover:scale-110 transition-transform duration-200">
-                    <Flame className="w-5 h-5 text-white" />
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex flex-col sm:flex-row items-center sm:gap-3 gap-2">
+                  <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-2 sm:p-2.5 group-hover:scale-110 transition-transform duration-200">
+                    <Flame className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                   </div>
-                  <div className="flex-1">
-                    <p className="text-customgreys-dirtyGrey text-sm font-medium">Sequência</p>
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-white text-xl font-bold">{userStats.streak}</span>
-                      <span className="text-customgreys-dirtyGrey text-sm">dias</span>
+                  <div className="flex-1 text-center sm:text-left">
+                    <p className="text-customgreys-dirtyGrey text-xs sm:text-sm font-medium">Sequência</p>
+                    <div className="flex items-baseline justify-center sm:justify-start gap-1">
+                      <span className="text-white text-lg sm:text-xl font-bold">{userStats.streak}</span>
+                      <span className="text-customgreys-dirtyGrey text-xs sm:text-sm">dias</span>
                     </div>
                   </div>
                 </div>
@@ -227,16 +228,16 @@ const LearnPage = () => {
             
             {/* Hearts */}
             <Card className="bg-customgreys-primarybg/50 backdrop-blur-sm border-customgreys-darkerGrey hover:border-red-500/30 transition-all duration-300 group">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="bg-gradient-to-br from-red-500 to-red-600 rounded-xl p-2.5 group-hover:scale-110 transition-transform duration-200">
-                    <Zap className="w-5 h-5 text-white" />
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex flex-col sm:flex-row items-center sm:gap-3 gap-2">
+                  <div className="bg-gradient-to-br from-red-500 to-red-600 rounded-xl p-2 sm:p-2.5 group-hover:scale-110 transition-transform duration-200">
+                    <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                   </div>
-                  <div className="flex-1">
-                    <p className="text-customgreys-dirtyGrey text-sm font-medium">Corações</p>
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-white text-xl font-bold">{userStats.hearts}</span>
-                      <span className="text-customgreys-dirtyGrey text-sm">/5</span>
+                  <div className="flex-1 text-center sm:text-left">
+                    <p className="text-customgreys-dirtyGrey text-xs sm:text-sm font-medium">Corações</p>
+                    <div className="flex items-baseline justify-center sm:justify-start gap-1">
+                      <span className="text-white text-lg sm:text-xl font-bold">{userStats.hearts}</span>
+                      <span className="text-customgreys-dirtyGrey text-xs sm:text-sm">/5</span>
                     </div>
                   </div>
                 </div>
@@ -245,14 +246,14 @@ const LearnPage = () => {
             
             {/* Points */}
             <Card className="bg-customgreys-primarybg/50 backdrop-blur-sm border-customgreys-darkerGrey hover:border-yellow-500/30 transition-all duration-300 group">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl p-2.5 group-hover:scale-110 transition-transform duration-200">
-                    <Star className="w-5 h-5 text-white" />
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex flex-col sm:flex-row items-center sm:gap-3 gap-2">
+                  <div className="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl p-2 sm:p-2.5 group-hover:scale-110 transition-transform duration-200">
+                    <Star className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                   </div>
-                  <div className="flex-1">
-                    <p className="text-customgreys-dirtyGrey text-sm font-medium">Pontos</p>
-                    <span className="text-white text-xl font-bold">{userStats.points.toLocaleString()}</span>
+                  <div className="flex-1 text-center sm:text-left">
+                    <p className="text-customgreys-dirtyGrey text-xs sm:text-sm font-medium">Pontos</p>
+                    <span className="text-white text-lg sm:text-xl font-bold">{userStats.points.toLocaleString()}</span>
                   </div>
                 </div>
               </CardContent>
@@ -262,11 +263,11 @@ const LearnPage = () => {
       </div>
 
       {/* Main Learning Content */}
-      <div className="max-w-7xl mx-auto flex flex-row-reverse gap-8 px-6 py-8">
+      <div className="max-w-7xl mx-auto flex flex-col lg:flex-row-reverse gap-6 lg:gap-8 px-4 sm:px-6 py-6 sm:py-8">
         
         {/* Right Sidebar - User Progress */}
-        <div className="w-80 flex-shrink-0">
-          <div className="sticky top-8 space-y-6">
+        <div className="w-full lg:w-80 flex-shrink-0">
+          <div className="lg:sticky lg:top-8 space-y-4 sm:space-y-6">
             <UserProgressRedux
               useRedux={true}
               hasActiveSubscription={false}
@@ -275,21 +276,21 @@ const LearnPage = () => {
             {/* Enhanced Daily Tips Card */}
             <Card className="relative bg-gradient-to-br from-violet-500/20 via-purple-500/15 to-violet-500/10 border-violet-500/30 hover:border-violet-400/50 transition-all duration-300 overflow-hidden group">
               <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <CardContent className="relative p-5">
-                <div className="flex items-start gap-4">
-                  <div className="bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl p-2.5 shadow-lg group-hover:scale-110 transition-transform duration-200">
-                    <Sparkles className="w-5 h-5 text-white" />
+              <CardContent className="relative p-4 sm:p-5">
+                <div className="flex items-start gap-3 sm:gap-4">
+                  <div className="bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl p-2 sm:p-2.5 shadow-lg group-hover:scale-110 transition-transform duration-200">
+                    <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                   </div>
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-2">
                       <h3 className="text-white font-semibold text-sm">
                         Dica do Dia
                       </h3>
-                      <div className="bg-violet-500/20 rounded-full px-2 py-0.5">
+                      <div className="bg-violet-500/20 rounded-full px-2 py-0.5 w-fit">
                         <span className="text-violet-400 text-xs font-medium">Novo</span>
                       </div>
                     </div>
-                    <p className="text-gray-200 text-sm leading-relaxed">
+                    <p className="text-gray-200 text-xs sm:text-sm leading-relaxed">
                       Pratique pelo menos 15 minutos por dia para melhores resultados!
                     </p>
                   </div>
@@ -299,12 +300,12 @@ const LearnPage = () => {
 
             {/* Enhanced Quick Actions */}
             <Card className="bg-customgreys-secondarybg border-customgreys-darkerGrey hover:border-customgreys-darkGrey/50 transition-all duration-300">
-              <CardContent className="p-5">
-                <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
+              <CardContent className="p-4 sm:p-5">
+                <h3 className="text-white font-semibold mb-3 sm:mb-4 flex items-center gap-2">
                   <CircleDot className="w-4 h-4 text-violet-400" />
-                  Ações Rápidas
+                  <span className="text-sm sm:text-base">Ações Rápidas</span>
                 </h3>
-                <div className="space-y-3">
+                <div className="space-y-2 sm:space-y-3">
                   <Button
                     variant="ghost"
                     size="sm"
@@ -314,12 +315,12 @@ const LearnPage = () => {
                       }
                       router.push('/user/laboratory/learn/shop');
                     }}
-                    className="w-full justify-start text-customgreys-dirtyGrey hover:text-white hover:bg-red-500/10 hover:border-red-500/20 border border-transparent transition-all duration-200 group"
+                    className="w-full justify-start text-customgreys-dirtyGrey hover:text-white hover:bg-red-500/10 hover:border-red-500/20 border border-transparent transition-all duration-200 group min-h-[36px]"
                   >
-                    <div className="bg-red-500/20 rounded-lg p-1 mr-3 group-hover:bg-red-500/30 transition-colors duration-200">
-                      <Zap className="w-3.5 h-3.5 text-red-400" />
+                    <div className="bg-red-500/20 rounded-lg p-1 mr-2 sm:mr-3 group-hover:bg-red-500/30 transition-colors duration-200">
+                      <Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-red-400" />
                     </div>
-                    Comprar Corações
+                    <span className="text-xs sm:text-sm">Comprar Corações</span>
                   </Button>
                   <Button
                     variant="ghost"
@@ -330,12 +331,12 @@ const LearnPage = () => {
                       }
                       router.push('/user/laboratory/achievements');
                     }}
-                    className="w-full justify-start text-customgreys-dirtyGrey hover:text-white hover:bg-yellow-500/10 hover:border-yellow-500/20 border border-transparent transition-all duration-200 group"
+                    className="w-full justify-start text-customgreys-dirtyGrey hover:text-white hover:bg-yellow-500/10 hover:border-yellow-500/20 border border-transparent transition-all duration-200 group min-h-[36px]"
                   >
-                    <div className="bg-yellow-500/20 rounded-lg p-1 mr-3 group-hover:bg-yellow-500/30 transition-colors duration-200">
-                      <Award className="w-3.5 h-3.5 text-yellow-400" />
+                    <div className="bg-yellow-500/20 rounded-lg p-1 mr-2 sm:mr-3 group-hover:bg-yellow-500/30 transition-colors duration-200">
+                      <Award className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-yellow-400" />
                     </div>
-                    Ver Conquistas
+                    <span className="text-xs sm:text-sm">Ver Conquistas</span>
                   </Button>
                   <Button
                     variant="ghost"
@@ -346,12 +347,12 @@ const LearnPage = () => {
                       }
                       router.push('/user/laboratory/leaderboard');
                     }}
-                    className="w-full justify-start text-customgreys-dirtyGrey hover:text-white hover:bg-purple-500/10 hover:border-purple-500/20 border border-transparent transition-all duration-200 group"
+                    className="w-full justify-start text-customgreys-dirtyGrey hover:text-white hover:bg-purple-500/10 hover:border-purple-500/20 border border-transparent transition-all duration-200 group min-h-[36px]"
                   >
-                    <div className="bg-purple-500/20 rounded-lg p-1 mr-3 group-hover:bg-purple-500/30 transition-colors duration-200">
-                      <TrendingUp className="w-3.5 h-3.5 text-purple-400" />
+                    <div className="bg-purple-500/20 rounded-lg p-1 mr-2 sm:mr-3 group-hover:bg-purple-500/30 transition-colors duration-200">
+                      <TrendingUp className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-purple-400" />
                     </div>
-                    Rankings
+                    <span className="text-xs sm:text-sm">Rankings</span>
                   </Button>
                 </div>
               </CardContent>
@@ -363,22 +364,22 @@ const LearnPage = () => {
         <div className="flex-1">
           <FeedWrapper>
             {/* Course Header */}
-            <div className="mb-8">
+            <div className="mb-6 sm:mb-8">
               <LearnHeader title={activeCourse?.title || 'Carregando...'} />
               
               {/* Enhanced Progress Summary */}
               {userStats.totalLessons > 0 && (
-                <Card className="mt-4 bg-gradient-to-r from-customgreys-secondarybg to-customgreys-primarybg border-customgreys-darkerGrey hover:border-green-500/20 transition-all duration-300">
-                  <CardContent className="p-5">
-                    <div className="flex items-center justify-between mb-3">
+                <Card className="mt-3 sm:mt-4 bg-gradient-to-r from-customgreys-secondarybg to-customgreys-primarybg border-customgreys-darkerGrey hover:border-green-500/20 transition-all duration-300">
+                  <CardContent className="p-4 sm:p-5">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 mb-3">
                       <div className="flex items-center gap-2">
                         <CheckCircle className="w-4 h-4 text-green-400" />
-                        <span className="text-white font-medium">
+                        <span className="text-white font-medium text-sm sm:text-base">
                           Progresso do Curso
                         </span>
                       </div>
-                      <div className="text-right">
-                        <div className="text-2xl font-bold text-white">
+                      <div className="text-left sm:text-right">
+                        <div className="text-xl sm:text-2xl font-bold text-white">
                           {courseProgressPercentage}%
                         </div>
                         <div className="text-xs text-customgreys-dirtyGrey">
@@ -386,7 +387,7 @@ const LearnPage = () => {
                         </div>
                       </div>
                     </div>
-                    <div className="relative w-full bg-customgreys-darkGrey rounded-full h-3 overflow-hidden">
+                    <div className="relative w-full bg-customgreys-darkGrey rounded-full h-2 sm:h-3 overflow-hidden">
                       <div
                         className="bg-gradient-to-r from-green-500 to-emerald-500 h-full rounded-full transition-all duration-700 ease-out relative"
                         style={{ width: `${courseProgressPercentage}%` }}
@@ -400,9 +401,9 @@ const LearnPage = () => {
             </div>
 
             {/* Units */}
-            <div className="space-y-8">
+            <div className="space-y-6 sm:space-y-8">
               {safeUnits.length > 0 && safeUnits.map((unit: any) => (
-                <div key={unit.id} className="mb-10">
+                <div key={unit.id} className="mb-6 sm:mb-10">
                   <UnitRedux
                     id={unit.id}
                     order={unit.order}

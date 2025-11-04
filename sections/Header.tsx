@@ -100,10 +100,10 @@ const Header = () => {
                   ) : (
                     <div className="flex flex-col gap-2">
                       <Link href="/signin" className="bg-violet-800 text-white px-4 py-2 rounded-lg font-medium inline-flex justify-center hover:bg-violet-900">
-                        Login
+                        Iniciar sessão
                       </Link>
                       <Link href="/signup" className="border border-violet-800 text-violet-400 px-4 py-2 rounded-lg font-medium inline-flex justify-center hover:bg-violet-800 hover:text-white">
-                        Registrar
+                        Registar
                       </Link>
                     </div>
                   )}
@@ -160,14 +160,14 @@ const Header = () => {
                     className="text-white hover:text-white-50 px-3 sm:px-4 py-1.5 sm:py-2 rounded-md border-violet-500 border-[1px] text-sm sm:text-base transition-colors"
                     scroll={false}
                   >
-                    Log in
+                    Iniciar sessão
                   </Link>
                   <Link
                     href="/signup"
                     className="bg-violet-800 px-3 sm:px-4 py-1.5 sm:py-2 rounded-md hover:bg-violet-900 hover:text-white/70 text-sm sm:text-base transition-colors"
                     scroll={false}
                   >
-                    Registrar
+                    Registar
                   </Link>
                 </div>
               )}

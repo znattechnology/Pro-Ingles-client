@@ -964,7 +964,7 @@ const CourseEditor = () => {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
-            className="space-y-6"
+            className="space-y-4 sm:space-y-6"
           >
             <div className="space-y-3">
               <label className="text-white text-base font-semibold flex items-center gap-2">
@@ -1034,7 +1034,8 @@ const CourseEditor = () => {
                 disabled={!methods.watch('courseTitle') || !methods.watch('courseDescription') || !methods.watch('courseCategory')}
                 className="px-6 py-3 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white font-semibold rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Próximo: Upload de Imagem
+                <span className="hidden sm:inline">Próximo: Upload de Imagem</span>
+                <span className="sm:hidden">Próximo</span>
                 <ChevronRight className="w-4 h-4 ml-2" />
               </Button>
             </div>
@@ -1428,31 +1429,34 @@ const CourseEditor = () => {
                         </div>
                       </div>
                       
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-2">
                         {ui.selectedSectionId === section.sectionId && (
-                          <Badge className="bg-violet-500 text-white">
+                          <Badge className="bg-violet-500 text-white text-xs sm:text-sm">
                             ✓ Selecionada
                           </Badge>
                         )}
-                        <Button
-                          type="button"
-                          onClick={() => handleDeleteSection(section.sectionId)}
-                          variant="ghost"
-                          size="sm"
-                          className="text-red-400 hover:text-red-300 hover:bg-red-500/10 h-8 w-8 p-0"
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
-                        {ui.isCreatingChapter !== section.sectionId && ui.selectedSectionId === section.sectionId && (
+                        <div className="flex items-center gap-2 ml-auto sm:ml-0">
                           <Button
                             type="button"
-                            onClick={() => dispatch(setCreatingChapterUI(section.sectionId))}
-                            className="px-4 py-2 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white font-semibold rounded-lg text-sm"
+                            onClick={() => handleDeleteSection(section.sectionId)}
+                            variant="ghost"
+                            size="sm"
+                            className="text-red-400 hover:text-red-300 hover:bg-red-500/10 h-8 w-8 p-0 flex-shrink-0"
                           >
-                            <Plus className="w-4 h-4 mr-2" />
-                            Novo Capítulo
+                            <X className="w-4 h-4" />
                           </Button>
-                        )}
+                          {ui.isCreatingChapter !== section.sectionId && ui.selectedSectionId === section.sectionId && (
+                            <Button
+                              type="button"
+                              onClick={() => dispatch(setCreatingChapterUI(section.sectionId))}
+                              className="px-3 py-2 sm:px-4 sm:py-2 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white font-semibold rounded-lg text-xs sm:text-sm whitespace-nowrap"
+                            >
+                              <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                              <span className="hidden xs:inline">Novo Capítulo</span>
+                              <span className="xs:hidden">Novo</span>
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     </div>
 
@@ -2093,7 +2097,7 @@ const CourseEditor = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="relative px-6 py-8"
+        className="relative px-4 sm:px-6 py-4 sm:py-8"
       >
         {/* Enhanced Background Effects */}
         <div className="absolute inset-0 overflow-hidden">
@@ -2112,10 +2116,11 @@ const CourseEditor = () => {
               <Button 
                 variant="ghost"
                 onClick={() => router.push("/teacher/courses", { scroll: false })}
-                className="text-gray-400 hover:text-white hover:bg-violet-600/20 transition-all"
+                className="text-gray-400 hover:text-white hover:bg-violet-600/20 transition-all text-sm sm:text-base"
               >
-                <ArrowLeft className="h-5 w-5 mr-2" />
-                Voltar aos Cursos
+                <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">Voltar aos Cursos</span>
+                <span className="sm:hidden">Voltar</span>
               </Button>
             </motion.div>
             
@@ -2139,7 +2144,7 @@ const CourseEditor = () => {
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.2, duration: 0.5 }}
-              className="inline-flex items-center gap-3 bg-gradient-to-r from-violet-500/10 via-purple-500/10 to-indigo-500/10 border border-violet-500/30 rounded-full px-8 py-3 mb-8 backdrop-blur-sm shadow-lg shadow-violet-500/10"
+              className="inline-flex items-center gap-2 sm:gap-3 bg-gradient-to-r from-violet-500/10 via-purple-500/10 to-indigo-500/10 border border-violet-500/30 rounded-full px-4 sm:px-6 md:px-8 py-2 sm:py-3 mb-4 sm:mb-6 md:mb-8 backdrop-blur-sm shadow-lg shadow-violet-500/10"
             >
               <motion.div
                 animate={{ rotate: 360 }}
@@ -2147,7 +2152,7 @@ const CourseEditor = () => {
               >
                 <Settings className="w-6 h-6 text-violet-400" />
               </motion.div>
-              <span className="text-violet-300 font-semibold text-lg">Editor de Curso</span>
+              <span className="text-violet-300 font-semibold text-sm sm:text-base md:text-lg">Editor de Curso</span>
               <motion.div
                 animate={{ scale: [1, 1.2, 1] }}
                 transition={{ duration: 2, repeat: Infinity }}
@@ -2160,7 +2165,7 @@ const CourseEditor = () => {
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.3, duration: 0.6 }}
-              className="text-5xl md:text-6xl font-extrabold mb-6 leading-tight"
+              className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-extrabold mb-4 sm:mb-6 leading-tight px-2"
             >
               Configure seu{' '}
               <motion.span 
@@ -2186,7 +2191,7 @@ const CourseEditor = () => {
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.4, duration: 0.6 }}
-              className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed mb-12 font-light"
+              className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed mb-6 sm:mb-8 md:mb-12 font-light px-4"
             >
               Configure todos os detalhes e publique seu curso com <motion.span className="text-violet-400 font-medium" whileHover={{ scale: 1.05 }}>excelência</motion.span>
             </motion.p>
@@ -2199,11 +2204,14 @@ const CourseEditor = () => {
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.5, duration: 0.6 }}
-        className="px-6 mb-8"
+        className="px-4 sm:px-6 mb-6 sm:mb-8"
       >
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-center">
-            <div className="flex items-center gap-4 bg-customgreys-secondarybg/30 backdrop-blur-md border border-violet-500/20 rounded-2xl p-4">
+            <div 
+              className="flex items-center gap-2 sm:gap-4 bg-customgreys-secondarybg/30 backdrop-blur-md border border-violet-500/20 rounded-xl sm:rounded-2xl p-2 sm:p-4 overflow-x-auto"
+              style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}
+            >
               {steps.map((step, index) => {
                 const StepIcon = step.icon;
                 const isCompleted = isStepCompleted(step.id);
@@ -2215,7 +2223,7 @@ const CourseEditor = () => {
                     <motion.div
                       whileHover={canAccess ? { scale: 1.05 } : {}}
                       whileTap={canAccess ? { scale: 0.95 } : {}}
-                      className={`relative flex flex-col items-center gap-2 p-4 rounded-xl cursor-pointer transition-all duration-300 ${
+                      className={`relative flex flex-col items-center gap-1 sm:gap-2 p-2 sm:p-4 rounded-lg sm:rounded-xl cursor-pointer transition-all duration-300 flex-shrink-0 min-w-[80px] sm:min-w-[120px] ${
                         isCurrent 
                           ? 'bg-violet-600/20 border-2 border-violet-400/50' 
                           : isCompleted 
@@ -2226,22 +2234,22 @@ const CourseEditor = () => {
                       }`}
                       onClick={() => canAccess && handleStepClick(step.id)}
                     >
-                      <div className={`p-3 rounded-full ${
+                      <div className={`p-2 sm:p-3 rounded-full ${
                         isCompleted ? 'bg-emerald-500' : isCurrent ? 'bg-violet-500' : 'bg-customgreys-darkGrey'
                       }`}>
                         {isCompleted ? (
-                          <Check className="w-5 h-5 text-white" />
+                          <Check className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                         ) : (
-                          <StepIcon className={`w-5 h-5 ${isCurrent ? 'text-white' : 'text-gray-400'}`} />
+                          <StepIcon className={`w-4 h-4 sm:w-5 sm:h-5 ${isCurrent ? 'text-white' : 'text-gray-400'}`} />
                         )}
                       </div>
                       <div className="text-center">
-                        <p className={`text-sm font-medium ${
+                        <p className={`text-xs sm:text-sm font-medium text-center ${
                           isCurrent ? 'text-white' : isCompleted ? 'text-emerald-300' : 'text-gray-400'
                         }`}>
                           {step.title}
                         </p>
-                        <p className="text-xs text-gray-500 max-w-20 leading-tight">
+                        <p className="text-xs text-gray-500 max-w-16 sm:max-w-20 leading-tight text-center hidden sm:block">
                           {step.description}
                         </p>
                       </div>
@@ -2256,7 +2264,7 @@ const CourseEditor = () => {
                     </motion.div>
                     
                     {index < steps.length - 1 && (
-                      <div className={`w-8 h-0.5 ${
+                      <div className={`w-4 sm:w-8 h-0.5 flex-shrink-0 ${
                         isCompleted ? 'bg-emerald-400' : 'bg-gray-600'
                       }`} />
                     )}
@@ -2273,36 +2281,36 @@ const CourseEditor = () => {
         initial={{ y: 40, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.6, duration: 0.6 }}
-        className="px-6 pb-12"
+        className="px-4 sm:px-6 pb-8 sm:pb-12"
       >
         <div className="max-w-4xl mx-auto">
           <Form {...methods}>
             <form onSubmit={methods.handleSubmit(onSubmit)}>
               <Card className="bg-customgreys-secondarybg/40 backdrop-blur-md border-violet-500/20 shadow-2xl shadow-violet-500/5">
-                <CardHeader>
-                  <div className="flex items-center gap-4">
-                    <div className={`p-3 rounded-xl ${
+                <CardHeader className="p-4 sm:p-6">
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <div className={`p-2 sm:p-3 rounded-lg sm:rounded-xl ${
                       isStepCompleted(currentStep) ? 'bg-emerald-500' : 'bg-violet-500'
                     }`}>
                       {isStepCompleted(currentStep) ? (
                         <Check className="w-6 h-6 text-white" />
                       ) : (
                         React.createElement(steps[currentStep - 1]?.icon, { 
-                          className: "w-6 h-6 text-white" 
+                          className: "w-5 h-5 sm:w-6 sm:h-6 text-white" 
                         })
                       )}
                     </div>
                     <div>
-                      <h2 className="text-2xl font-bold text-white">
+                      <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white">
                         {steps[currentStep - 1]?.title}
                       </h2>
-                      <p className="text-gray-400">
+                      <p className="text-sm sm:text-base text-gray-400">
                         {steps[currentStep - 1]?.description}
                       </p>
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent className="p-8">
+                <CardContent className="p-4 sm:p-6 md:p-8">
                   {renderStepContent()}
                 </CardContent>
               </Card>

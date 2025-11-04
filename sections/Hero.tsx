@@ -99,7 +99,7 @@ const Hero = () => {
                 className="border-2 border-violet-500 text-violet-300 hover:bg-violet-900/20 px-8 py-4 text-lg font-semibold rounded-xl transition-all duration-300 hover:scale-105"
               >
                 <Play className="mr-2 w-5 h-5" />
-                Ver Demo do IA Tutor
+                Ver Demonstração do IA Tutor
               </Button>
             </motion.div>
 

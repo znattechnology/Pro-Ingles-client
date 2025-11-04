@@ -22,7 +22,7 @@ export const HeartstModal = () => {
 
   const onClick = () => {
     close();
-    router.push("/user/learn/store");
+    router.push("/user/laboratory/learn/shop");
   }
   if (!isClient) {
     return null;

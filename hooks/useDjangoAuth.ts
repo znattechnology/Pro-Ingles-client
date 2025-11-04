@@ -185,7 +185,7 @@ export function useAuthGuard(requiredRole?: 'student' | 'teacher' | 'admin') {
         ? '/teacher/courses' 
         : user?.role === 'admin'
         ? '/admin/dashboard'
-        : '/user/learn';
+        : '/user/laboratory/learn';
       
       router.push(redirectUrl);
       return;

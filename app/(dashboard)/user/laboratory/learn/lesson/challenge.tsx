@@ -22,9 +22,10 @@ type Props = {
     selectedOption?: string;
     disabled?: boolean;
     type: "SELECT" | "ASSIST" | "FILL_BLANK" | "TRANSLATION" | "LISTENING" | "SPEAKING" | "MATCH_PAIRS" | "SENTENCE_ORDER";
+    isProcessing?: boolean;
 };
 
-export const Challenge =({options,onSelect,status,selectedOption,disabled,type}:Props)=> {
+export const Challenge =({options,onSelect,status,selectedOption,disabled,type,isProcessing}:Props)=> {
     const [textInput, setTextInput] = useState("");
     const [draggedItems, setDraggedItems] = useState<string[]>([]);
     const [selectedPairs, setSelectedPairs] = useState<{[key: string]: string}>({});
@@ -117,26 +118,26 @@ export const Challenge =({options,onSelect,status,selectedOption,disabled,type}:
     switch (type) {
         case "FILL_BLANK":
             return (
-                <div className="space-y-4">
-                    <div className="flex gap-2 items-center">
+                <div className="space-y-3 sm:space-y-4">
+                    <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
                         <Input 
                             value={textInput}
                             onChange={(e) => setTextInput(e.target.value)}
                             placeholder="Type your answer here..."
                             disabled={disabled}
-                            className="bg-customgreys-primarybg border-violet-800 text-white placeholder-gray-400"
+                            className="bg-customgreys-primarybg border-violet-800 text-white placeholder-gray-400 min-h-[44px] text-base"
                             onKeyDown={(e) => e.key === 'Enter' && handleTextSubmit()}
                         />
                         <Button 
                             onClick={handleTextSubmit}
                             disabled={disabled || !textInput.trim()}
-                            className="bg-violet-600 hover:bg-violet-700"
+                            className="bg-violet-600 hover:bg-violet-700 min-h-[44px] w-full sm:w-auto"
                         >
                             Submit
                         </Button>
                     </div>
-                    <div className="text-sm text-gray-400">Or select from options below:</div>
-                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
+                    <div className="text-xs sm:text-sm text-gray-400 text-center">Or select from options below:</div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
                         {options.map((option,i) => (
                             <Card
                                 key={option.id}
@@ -150,6 +151,7 @@ export const Challenge =({options,onSelect,status,selectedOption,disabled,type}:
                                 audioSrc={option.audioSrc || null}
                                 disabled={disabled}
                                 type={type}
+                                isProcessing={isProcessing}
                             />
                         ))}
                     </div>
@@ -191,6 +193,7 @@ export const Challenge =({options,onSelect,status,selectedOption,disabled,type}:
                                 audioSrc={option.audioSrc || null}
                                 disabled={disabled}
                                 type={type}
+                                isProcessing={isProcessing}
                             />
                         ))}
                     </div>
@@ -224,6 +227,7 @@ export const Challenge =({options,onSelect,status,selectedOption,disabled,type}:
                                 audioSrc={option.audioSrc || null}
                                 disabled={disabled}
                                 type={type}
+                                isProcessing={isProcessing}
                             />
                         ))}
                     </div>
@@ -305,7 +309,7 @@ export const Challenge =({options,onSelect,status,selectedOption,disabled,type}:
                                     <div
                                         key={`en-${word.id}`}
                                         className={cn(
-                                            "bg-customgreys-primarybg border rounded-lg p-3 cursor-pointer transition-all duration-200",
+                                            "bg-customgreys-primarybg border rounded-lg p-2 sm:p-3 cursor-pointer transition-all duration-200 min-h-[44px] flex items-center justify-center",
                                             isCurrentSelection && "border-blue-500 bg-blue-600/20 ring-2 ring-blue-400",
                                             isAlreadyPaired && "border-green-500 bg-green-600/20 opacity-75",
                                             !isCurrentSelection && !isAlreadyPaired && "border-violet-800 hover:bg-violet-600/20 hover:border-violet-600",
@@ -313,7 +317,7 @@ export const Challenge =({options,onSelect,status,selectedOption,disabled,type}:
                                         )}
                                         onClick={() => handlePairSelection('english', word.id, word.text)}
                                     >
-                                        <div className="text-white text-center font-medium">
+                                        <div className="text-white text-center font-medium text-sm">
                                             {isAlreadyPaired && "✓ "}{word.text}
                                         </div>
                                     </div>
@@ -331,7 +335,7 @@ export const Challenge =({options,onSelect,status,selectedOption,disabled,type}:
                                     <div
                                         key={`pt-${word.id}`}
                                         className={cn(
-                                            "bg-customgreys-primarybg border rounded-lg p-3 cursor-pointer transition-all duration-200",
+                                            "bg-customgreys-primarybg border rounded-lg p-2 sm:p-3 cursor-pointer transition-all duration-200 min-h-[44px] flex items-center justify-center",
                                             isCurrentSelection && "border-blue-500 bg-blue-600/20 ring-2 ring-blue-400",
                                             isAlreadyPaired && "border-green-500 bg-green-600/20 opacity-75",
                                             !isCurrentSelection && !isAlreadyPaired && "border-violet-800 hover:bg-violet-600/20 hover:border-violet-600",
@@ -339,7 +343,7 @@ export const Challenge =({options,onSelect,status,selectedOption,disabled,type}:
                                         )}
                                         onClick={() => handlePairSelection('portuguese', word.originalId, word.text)}
                                     >
-                                        <div className="text-white text-center font-medium">
+                                        <div className="text-white text-center font-medium text-sm">
                                             {isAlreadyPaired && "✓ "}{word.text}
                                         </div>
                                     </div>
@@ -423,9 +427,9 @@ export const Challenge =({options,onSelect,status,selectedOption,disabled,type}:
         default:
             return (
                 <div className={cn(
-                    "grid gap-2", 
+                    "grid gap-2 sm:gap-3", 
                     type === "ASSIST" && "grid-cols-1",
-                    type === "SELECT" && "grid-cols-2 lg:grid-cols-3"
+                    type === "SELECT" && "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
                 )}>
                     {options.map((option,i) => (
                         <Card

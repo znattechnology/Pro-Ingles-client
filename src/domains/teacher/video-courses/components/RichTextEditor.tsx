@@ -28,7 +28,7 @@ interface RichTextEditorProps {
 export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   value,
   onChange,
-  placeholder = "Digite o conteúdo...",
+  placeholder = "Introduza o conteúdo...",
   className = "",
   rows = 6
 }) => {

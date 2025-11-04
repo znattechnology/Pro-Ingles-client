@@ -44,7 +44,13 @@ const ROUTE_CONFIG = {
     '/user/courses',
     '/user/profile',
     '/user/settings',
-    '/user/billing'
+    '/user/billing',
+    '/user/laboratory',
+    '/user/speaking',
+    '/user/listening',
+    '/user/dashboard',
+    '/user/subscription',
+    '/user/upgrade'
   ],
 
   // Teacher routes  

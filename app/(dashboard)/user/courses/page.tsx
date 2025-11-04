@@ -223,7 +223,7 @@ const MyCoursesPage = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="relative px-6 py-6"
+        className="relative px-4 sm:px-6 py-4 sm:py-6"
       >
         {/* Advanced Background Effects */}
         <div className="absolute inset-0 overflow-hidden">
@@ -238,22 +238,22 @@ const MyCoursesPage = () => {
         
         <div className='relative max-w-7xl mx-auto'>
           {/* Modern Hero Content */}
-          <div className="text-center mb-8">
+          <div className="text-center mb-6 sm:mb-8">
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.2, duration: 0.5 }}
-              className="inline-flex items-center gap-2 bg-violet-500/10 border border-violet-500/20 rounded-full px-4 py-1.5 mb-6"
+              className="inline-flex items-center gap-2 bg-violet-500/10 border border-violet-500/20 rounded-full px-3 sm:px-4 py-1 sm:py-1.5 mb-4 sm:mb-6"
             >
-              <GraduationCap className="w-4 h-4 text-violet-400" />
-              <span className="text-violet-300 font-medium text-sm">Meus Cursos</span>
+              <GraduationCap className="w-3 h-3 sm:w-4 sm:h-4 text-violet-400" />
+              <span className="text-violet-300 font-medium text-xs sm:text-sm">Meus Cursos</span>
             </motion.div>
             
             <motion.h1 
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.3, duration: 0.6 }}
-              className="text-3xl md:text-4xl font-bold mb-4"
+              className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4"
             >
               Minha <span className="bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent">Jornada</span>
             </motion.h1>
@@ -262,9 +262,9 @@ const MyCoursesPage = () => {
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.4, duration: 0.6 }}
-              className="text-lg text-gray-300 max-w-2xl mx-auto leading-relaxed"
+              className="text-sm sm:text-base lg:text-lg text-gray-300 max-w-2xl mx-auto leading-relaxed px-4"
             >
-              Continue seu aprendizado e acompanhe seu progresso nos cursos que você está fazendo
+              Continua a sua aprendizagem e acompanha o seu progresso nos cursos que está a fazer
             </motion.p>
 
             {/* Dynamic Stats */}
@@ -272,32 +272,38 @@ const MyCoursesPage = () => {
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.5, duration: 0.6 }}
-              className="flex items-center justify-center gap-8 mt-8"
+              className="flex items-center justify-center gap-4 sm:gap-6 lg:gap-8 mt-6 sm:mt-8"
             >
               <div className="text-center">
-                <div className="flex items-center justify-center gap-2 text-violet-400 mb-1">
-                  <BookOpen className="w-5 h-5" />
-                  <span className="text-2xl font-bold">{filteredAndSortedCourses.length}</span>
+                <div className="flex items-center justify-center gap-1 sm:gap-2 text-violet-400 mb-1">
+                  <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span className="text-lg sm:text-xl lg:text-2xl font-bold">{filteredAndSortedCourses.length}</span>
                 </div>
-                <div className="text-sm text-gray-400">Cursos Inscritos</div>
+                <div className="text-xs sm:text-sm text-gray-400">
+                  <span className="hidden sm:inline">Cursos Inscritos</span>
+                  <span className="sm:hidden">Inscritos</span>
+                </div>
               </div>
               <div className="text-center">
-                <div className="flex items-center justify-center gap-2 text-green-400 mb-1">
-                  <Trophy className="w-5 h-5" />
-                  <span className="text-2xl font-bold">
+                <div className="flex items-center justify-center gap-1 sm:gap-2 text-green-400 mb-1">
+                  <Trophy className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span className="text-lg sm:text-xl lg:text-2xl font-bold">
                     {filteredAndSortedCourses.filter(course => course.status === 'completed').length}
                   </span>
                 </div>
-                <div className="text-sm text-gray-400">Concluídos</div>
+                <div className="text-xs sm:text-sm text-gray-400">Concluídos</div>
               </div>
               <div className="text-center">
-                <div className="flex items-center justify-center gap-2 text-blue-400 mb-1">
-                  <TrendingUp className="w-5 h-5" />
-                  <span className="text-2xl font-bold">
+                <div className="flex items-center justify-center gap-1 sm:gap-2 text-blue-400 mb-1">
+                  <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span className="text-lg sm:text-xl lg:text-2xl font-bold">
                     {Math.round(filteredAndSortedCourses.reduce((acc, course) => acc + (course.progress || 0), 0) / Math.max(filteredAndSortedCourses.length, 1))}%
                   </span>
                 </div>
-                <div className="text-sm text-gray-400">Progresso Médio</div>
+                <div className="text-xs sm:text-sm text-gray-400">
+                  <span className="hidden sm:inline">Progresso Médio</span>
+                  <span className="sm:hidden">Média</span>
+                </div>
               </div>
             </motion.div>
           </div>
@@ -307,68 +313,77 @@ const MyCoursesPage = () => {
             initial={{ y: 40, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.6, duration: 0.6 }}
-            className="bg-gradient-to-br from-violet-500/5 to-purple-500/5 backdrop-blur-xl rounded-2xl border border-violet-500/20 p-6"
+            className="bg-gradient-to-br from-violet-500/5 to-purple-500/5 backdrop-blur-xl rounded-xl sm:rounded-2xl border border-violet-500/20 p-4 sm:p-6"
           >
             {/* Enhanced Search Bar */}
-            <div className='relative mb-4'>
-              <Search className='absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400' />
+            <div className='relative mb-3 sm:mb-4'>
+              <Search className='absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400' />
               <Input
                 type="text"
                 placeholder="Buscar nos seus cursos..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className='pl-12 h-12 bg-customgreys-secondarybg border-violet-500/30 text-white placeholder:text-gray-400 focus:border-violet-400 focus:ring-2 focus:ring-violet-500/20 transition-all duration-200 rounded-xl text-sm shadow-lg'
+                className='pl-10 sm:pl-12 h-10 sm:h-12 bg-customgreys-secondarybg border-violet-500/30 text-white placeholder:text-gray-400 focus:border-violet-400 focus:ring-2 focus:ring-violet-500/20 transition-all duration-200 rounded-lg sm:rounded-xl text-sm shadow-lg'
               />
             
             {/* Dropdown Filters */}
-            <div className="flex flex-wrap items-center gap-4 text-sm">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 lg:gap-4 text-xs sm:text-sm">
           
             {/* Status Filter Dropdown */}
-            <div className="flex items-center gap-2">
-              <Filter className="w-4 h-4 text-gray-400" />
-              <span className="text-gray-400">Status:</span>
+            <div className="flex items-center gap-1 sm:gap-2">
+              <Filter className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
+              <span className="text-gray-400 hidden sm:inline">Status:</span>
               <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger className="w-[120px] h-8 bg-customgreys-darkGrey/50 border-violet-900/30 text-white focus:border-violet-500 focus:ring-1 focus:ring-violet-500/20">
+                <SelectTrigger className="w-[90px] sm:w-[120px] h-7 sm:h-8 bg-customgreys-darkGrey/50 border-violet-900/30 text-white focus:border-violet-500 focus:ring-1 focus:ring-violet-500/20 text-xs sm:text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-customgreys-secondarybg border-violet-900/30">
-                  <SelectItem value="all" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20">Todos</SelectItem>
-                  <SelectItem value="active" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20">Em Progresso</SelectItem>
-                  <SelectItem value="completed" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20">Concluídos</SelectItem>
+                  <SelectItem value="all" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20 text-xs sm:text-sm">Todos</SelectItem>
+                  <SelectItem value="active" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20 text-xs sm:text-sm">Em Progresso</SelectItem>
+                  <SelectItem value="completed" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20 text-xs sm:text-sm">Concluídos</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             
             {/* Level Filter Dropdown */}
-            <div className="flex items-center gap-2">
-              <span className="text-gray-400">Nível:</span>
+            <div className="flex items-center gap-1 sm:gap-2">
+              <span className="text-gray-400 hidden sm:inline">Nível:</span>
               <Select value={selectedLevel} onValueChange={setSelectedLevel}>
-                <SelectTrigger className="w-[140px] h-8 bg-customgreys-darkGrey/50 border-violet-900/30 text-white focus:border-violet-500 focus:ring-1 focus:ring-violet-500/20">
+                <SelectTrigger className="w-[100px] sm:w-[140px] h-7 sm:h-8 bg-customgreys-darkGrey/50 border-violet-900/30 text-white focus:border-violet-500 focus:ring-1 focus:ring-violet-500/20 text-xs sm:text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-customgreys-secondarybg border-violet-900/30">
-                  <SelectItem value="all" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20">Todos os Níveis</SelectItem>
-                  <SelectItem value="Beginner" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20">Beginner</SelectItem>
-                  <SelectItem value="Intermediate" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20">Intermediate</SelectItem>
-                  <SelectItem value="Advanced" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20">Advanced</SelectItem>
+                  <SelectItem value="all" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20 text-xs sm:text-sm">
+                    <span className="hidden sm:inline">Todos os Níveis</span>
+                    <span className="sm:hidden">Todos</span>
+                  </SelectItem>
+                  <SelectItem value="Beginner" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20 text-xs sm:text-sm">Beginner</SelectItem>
+                  <SelectItem value="Intermediate" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20 text-xs sm:text-sm">Intermediate</SelectItem>
+                  <SelectItem value="Advanced" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20 text-xs sm:text-sm">Advanced</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             
             {/* Area Filter Dropdown */}
-            <div className="flex items-center gap-2">
-              <span className="text-gray-400">Área:</span>
+            <div className="flex items-center gap-1 sm:gap-2">
+              <span className="text-gray-400 hidden sm:inline">Área:</span>
               <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
-                <SelectTrigger className="w-[140px] h-8 bg-customgreys-darkGrey/50 border-violet-900/30 text-white focus:border-violet-500 focus:ring-1 focus:ring-violet-500/20">
+                <SelectTrigger className="w-[100px] sm:w-[140px] h-7 sm:h-8 bg-customgreys-darkGrey/50 border-violet-900/30 text-white focus:border-violet-500 focus:ring-1 focus:ring-violet-500/20 text-xs sm:text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-customgreys-secondarybg border-violet-900/30">
-                  <SelectItem value="all" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20">Todas as Áreas</SelectItem>
-                  <SelectItem value="general" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20">Inglês Geral</SelectItem>
-                  <SelectItem value="business" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20">Negócios</SelectItem>
-                  <SelectItem value="technology" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20">Tecnologia</SelectItem>
-                  <SelectItem value="medical" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20">Médico</SelectItem>
-                  <SelectItem value="legal" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20">Jurídico</SelectItem>
+                  <SelectItem value="all" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20 text-xs sm:text-sm">
+                    <span className="hidden sm:inline">Todas as Áreas</span>
+                    <span className="sm:hidden">Todas</span>
+                  </SelectItem>
+                  <SelectItem value="general" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20 text-xs sm:text-sm">
+                    <span className="hidden sm:inline">Inglês Geral</span>
+                    <span className="sm:hidden">Geral</span>
+                  </SelectItem>
+                  <SelectItem value="business" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20 text-xs sm:text-sm">Negócios</SelectItem>
+                  <SelectItem value="technology" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20 text-xs sm:text-sm">Tecnologia</SelectItem>
+                  <SelectItem value="medical" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20 text-xs sm:text-sm">Médico</SelectItem>
+                  <SelectItem value="legal" className="text-white hover:bg-violet-800/20 focus:bg-violet-800/20 text-xs sm:text-sm">Jurídico</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -377,10 +392,11 @@ const MyCoursesPage = () => {
             {/* Explore Button */}
             <Button
               onClick={() => router.push('/user/courses/explore')}
-              className="h-7 px-3 text-xs bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
+              className="h-6 sm:h-7 px-2 sm:px-3 text-xs bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
             >
-              <Plus className="w-3 h-3 mr-1" />
-              Explorar
+              <Plus className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-1" />
+              <span className="hidden sm:inline">Explorar</span>
+              <span className="sm:hidden">+</span>
             </Button>
             </div>
           </div>
@@ -389,24 +405,24 @@ const MyCoursesPage = () => {
       </motion.div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-6 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Enhanced Courses Section */}
         {filteredAndSortedCourses.length === 0 ? (
           <Card className="bg-customgreys-secondarybg border-violet-900/30">
-            <CardContent className="flex flex-col items-center justify-center py-16">
-              <div className="bg-violet-500/20 rounded-full p-6 mb-6">
-                <BookOpen className="h-12 w-12 text-violet-400" />
+            <CardContent className="flex flex-col items-center justify-center py-12 sm:py-16 px-4">
+              <div className="bg-violet-500/20 rounded-full p-4 sm:p-6 mb-4 sm:mb-6">
+                <BookOpen className="h-8 w-8 sm:h-12 sm:w-12 text-violet-400" />
               </div>
-              <h3 className="text-2xl font-bold text-white mb-3">
-                {searchTerm ? 'Nenhum curso encontrado' : 'Você ainda não se inscreveu em nenhum curso'}
+              <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-white mb-3 text-center">
+                {searchTerm ? 'Nenhum curso encontrado' : 'Ainda não te inscreveste em nenhum curso'}
               </h3>
-              <p className="text-gray-400 text-center mb-6 max-w-md">
+              <p className="text-gray-400 text-center mb-4 sm:mb-6 max-w-md text-sm sm:text-base">
                 {searchTerm 
-                  ? 'Tente ajustar seu termo de pesquisa ou filtros' 
-                  : 'Explore nosso catálogo e comece sua jornada de aprendizado hoje mesmo!'
+                  ? 'Tenta ajustar o seu termo de pesquisa ou filtros' 
+                  : 'Explora o nosso catálogo e começa a sua jornada de aprendizagem hoje mesmo!'
                 }
               </p>
-              <div className="flex gap-3">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
                 {searchTerm || selectedLevel !== 'all' || selectedTemplate !== 'all' || filterStatus !== 'all' ? (
                   <Button 
                     onClick={() => {
@@ -416,14 +432,14 @@ const MyCoursesPage = () => {
                       setFilterStatus('all');
                     }}
                     variant="outline"
-                    className="border-violet-500 text-violet-400 hover:bg-violet-500 hover:text-white"
+                    className="border-violet-500 text-violet-400 hover:bg-violet-500 hover:text-white text-sm sm:text-base"
                   >
                     Limpar Filtros
                   </Button>
                 ) : null}
                 <Button
                   onClick={() => router.push('/user/courses/explore')}
-                  className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white"
+                  className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white text-sm sm:text-base"
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   Explorar Cursos
@@ -433,22 +449,22 @@ const MyCoursesPage = () => {
           </Card>
         ) : (
           <>
-            <div className="mb-6 flex items-center justify-between flex-wrap gap-4">
-              <p className="text-gray-300">
+            <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+              <p className="text-gray-300 text-sm sm:text-base">
                 {filteredAndSortedCourses.length === 1 
                   ? '1 curso encontrado' 
                   : `${filteredAndSortedCourses.length} cursos encontrados`}
               </p>
               
               {/* Sort and View Controls */}
-              <div className="flex items-center gap-4">
+              <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4">
                 {/* Sort Dropdown */}
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-400">Ordenar:</span>
+                <div className="flex items-center gap-1 sm:gap-2">
+                  <span className="text-xs sm:text-sm text-gray-400 hidden sm:inline">Ordenar:</span>
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
-                    className="bg-customgreys-darkGrey border border-violet-900/30 text-white text-sm rounded-lg px-3 py-2 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20"
+                    className="bg-customgreys-darkGrey border border-violet-900/30 text-white text-xs sm:text-sm rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20"
                   >
                     <option value="progress">Progresso</option>
                     <option value="lastAccessed">Último Acesso</option>
@@ -459,22 +475,22 @@ const MyCoursesPage = () => {
                 </div>
                 
                 {/* View Mode Toggle */}
-                <div className="flex items-center bg-customgreys-darkGrey/50 border border-violet-900/30 rounded-lg p-1">
+                <div className="flex items-center bg-customgreys-darkGrey/50 border border-violet-900/30 rounded-lg p-0.5 sm:p-1">
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => setViewMode('grid')}
-                    className={`p-2 ${viewMode === 'grid' ? 'bg-violet-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                    className={`p-1.5 sm:p-2 ${viewMode === 'grid' ? 'bg-violet-600 text-white' : 'text-gray-400 hover:text-white'}`}
                   >
-                    <Grid3X3 className="w-4 h-4" />
+                    <Grid3X3 className="w-3 h-3 sm:w-4 sm:h-4" />
                   </Button>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => setViewMode('list')}
-                    className={`p-2 ${viewMode === 'list' ? 'bg-violet-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                    className={`p-1.5 sm:p-2 ${viewMode === 'list' ? 'bg-violet-600 text-white' : 'text-gray-400 hover:text-white'}`}
                   >
-                    <ListIcon className="w-4 h-4" />
+                    <ListIcon className="w-3 h-3 sm:w-4 sm:h-4" />
                   </Button>
                 </div>
               </div>

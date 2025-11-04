@@ -106,7 +106,7 @@ const LearnCourse = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="relative px-6 py-6"
+        className="relative px-4 sm:px-6 py-4 sm:py-6"
       >
         {/* Advanced Background Effects */}
         <div className="absolute inset-0 overflow-hidden">
@@ -136,7 +136,7 @@ const LearnCourse = () => {
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.3, duration: 0.6 }}
-              className="text-3xl md:text-4xl font-bold mb-4"
+              className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4"
             >
               Explore <span className="bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent">Cursos</span>
             </motion.h1>
@@ -145,7 +145,7 @@ const LearnCourse = () => {
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.4, duration: 0.6 }}
-              className="text-lg text-gray-300 max-w-2xl mx-auto leading-relaxed"
+              className="text-base sm:text-lg text-gray-300 max-w-2xl mx-auto leading-relaxed px-4 sm:px-0"
             >
               Descubra novos conhecimentos e desenvolva suas habilidades com nossos cursos especializados
             </motion.p>
@@ -155,7 +155,7 @@ const LearnCourse = () => {
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.5, duration: 0.6 }}
-              className="flex items-center justify-center gap-8 mt-8"
+              className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 mt-8"
             >
               <div className="text-center">
                 <div className="flex items-center justify-center gap-2 text-violet-400 mb-1">
@@ -186,7 +186,7 @@ const LearnCourse = () => {
             initial={{ y: 40, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.6, duration: 0.6 }}
-            className="bg-gradient-to-br from-violet-500/5 to-purple-500/5 backdrop-blur-xl rounded-2xl border border-violet-500/20 p-6"
+            className="bg-gradient-to-br from-violet-500/5 to-purple-500/5 backdrop-blur-xl rounded-2xl border border-violet-500/20 p-4 sm:p-6"
           >
             {/* Enhanced Search Bar */}
             <div className='relative mb-4'>
@@ -200,14 +200,14 @@ const LearnCourse = () => {
               />
             </div>
             
-            {/* Dropdown Filters */}
-            <div className='flex flex-wrap items-center gap-4 text-sm'>
+            {/* Mobile-Optimized Filters */}
+            <div className='space-y-3 sm:space-y-0 sm:flex sm:flex-wrap sm:items-center sm:gap-4 text-sm'>
               {/* Level Filter Dropdown */}
               <div className='flex items-center gap-2'>
-                <Filter className='w-4 h-4 text-gray-400' />
-                <span className='text-gray-400'>Nível:</span>
+                <Filter className='w-4 h-4 text-gray-400 flex-shrink-0' />
+                <span className='text-gray-400 flex-shrink-0'>Nível:</span>
                 <Select value={selectedLevel} onValueChange={setSelectedLevel}>
-                  <SelectTrigger className="w-[140px] h-8 bg-customgreys-darkGrey/50 border-violet-900/30 text-white focus:border-violet-500 focus:ring-1 focus:ring-violet-500/20">
+                  <SelectTrigger className="w-full sm:w-[140px] min-w-[120px] h-9 bg-customgreys-darkGrey/50 border-violet-900/30 text-white focus:border-violet-500 focus:ring-1 focus:ring-violet-500/20">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-customgreys-secondarybg border-violet-900/30">
@@ -221,9 +221,9 @@ const LearnCourse = () => {
               
               {/* Area Filter Dropdown */}
               <div className='flex items-center gap-2'>
-                <span className='text-gray-400'>Área:</span>
+                <span className='text-gray-400 flex-shrink-0'>Área:</span>
                 <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
-                  <SelectTrigger className="w-[140px] h-8 bg-customgreys-darkGrey/50 border-violet-900/30 text-white focus:border-violet-500 focus:ring-1 focus:ring-violet-500/20">
+                  <SelectTrigger className="w-full sm:w-[140px] min-w-[120px] h-9 bg-customgreys-darkGrey/50 border-violet-900/30 text-white focus:border-violet-500 focus:ring-1 focus:ring-violet-500/20">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-customgreys-secondarybg border-violet-900/30">
@@ -242,7 +242,7 @@ const LearnCourse = () => {
       </motion.div>
       
       {/* Enhanced Courses Grid */}
-      <div className='max-w-7xl mx-auto px-6 py-8'>
+      <div className='max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8'>
         {filteredAndSortedCourses.length === 0 ? (
           <Card className='bg-customgreys-secondarybg border-customgreys-darkerGrey'>
             <CardContent className='flex flex-col items-center justify-center py-16'>
@@ -267,22 +267,23 @@ const LearnCourse = () => {
           </Card>
         ) : (
           <>
-            <div className='mb-6 flex items-center justify-between flex-wrap gap-4'>
-              <p className='text-gray-300'>
+            {/* Mobile-Optimized Controls */}
+            <div className='mb-6 space-y-4 sm:space-y-0 sm:flex sm:items-center sm:justify-between'>
+              <p className='text-gray-300 text-sm sm:text-base'>
                 {filteredAndSortedCourses.length === 1 
                   ? '1 curso encontrado' 
                   : `${filteredAndSortedCourses.length} cursos encontrados`}
               </p>
               
               {/* Sort and View Controls */}
-              <div className='flex items-center gap-4'>
+              <div className='flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4'>
                 {/* Sort Dropdown */}
-                <div className='flex items-center gap-2'>
-                  <span className='text-sm text-gray-400'>Ordenar:</span>
+                <div className='flex items-center gap-2 w-full sm:w-auto'>
+                  <span className='text-sm text-gray-400 flex-shrink-0'>Ordenar:</span>
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
-                    className='bg-customgreys-darkGrey border border-violet-900/30 text-white text-sm rounded-lg px-3 py-2 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20'
+                    className='flex-1 sm:flex-none bg-customgreys-darkGrey border border-violet-900/30 text-white text-sm rounded-lg px-3 py-2 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 min-w-[140px]'
                   >
                     <option value="popular">Mais Populares</option>
                     <option value="newest">Mais Recentes</option>
@@ -292,22 +293,24 @@ const LearnCourse = () => {
                 </div>
                 
                 {/* View Mode Toggle */}
-                <div className='flex items-center bg-customgreys-darkGrey/50 border border-violet-900/30 rounded-lg p-1'>
+                <div className='flex items-center bg-customgreys-darkGrey/50 border border-violet-900/30 rounded-lg p-1 w-full sm:w-auto justify-center sm:justify-start'>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => setViewMode('grid')}
-                    className={`p-2 ${viewMode === 'grid' ? 'bg-violet-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                    className={`p-3 sm:p-2 flex-1 sm:flex-none ${viewMode === 'grid' ? 'bg-violet-600 text-white' : 'text-gray-400 hover:text-white'}`}
                   >
                     <Grid3X3 className='w-4 h-4' />
+                    <span className="ml-2 sm:hidden text-xs">Grade</span>
                   </Button>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => setViewMode('list')}
-                    className={`p-2 ${viewMode === 'list' ? 'bg-violet-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                    className={`p-3 sm:p-2 flex-1 sm:flex-none ${viewMode === 'list' ? 'bg-violet-600 text-white' : 'text-gray-400 hover:text-white'}`}
                   >
                     <ListIcon className='w-4 h-4' />
+                    <span className="ml-2 sm:hidden text-xs">Lista</span>
                   </Button>
                 </div>
               </div>

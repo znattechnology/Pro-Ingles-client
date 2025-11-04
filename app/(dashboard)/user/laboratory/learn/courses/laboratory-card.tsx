@@ -223,7 +223,7 @@ export const LaboratoryCard = ({title, id, imageSrc, description, level, categor
         return (
             <div 
                 className={cn(
-                    `group relative bg-customgreys-secondarybg rounded-xl border overflow-hidden transition-all duration-300 hover:shadow-xl flex items-center p-6 gap-6 ${config.borderColor} ${config.hoverColor}`,
+                    `group relative bg-customgreys-secondarybg rounded-xl border overflow-hidden transition-all duration-300 hover:shadow-xl flex flex-col sm:flex-row items-start sm:items-center p-4 sm:p-6 gap-4 sm:gap-6 ${config.borderColor} ${config.hoverColor}`,
                     disabled && "pointer-events-none opacity-50 cursor-not-allowed",
                     active && "ring-2 ring-green-500 ring-offset-2 ring-offset-customgreys-primarybg shadow-lg border-green-500/50"
                 )}
@@ -232,7 +232,7 @@ export const LaboratoryCard = ({title, id, imageSrc, description, level, categor
                 <div className={`absolute inset-0 ${config.lightColor} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
                 
                 {/* Course Image */}
-                <div className="relative w-32 h-20 flex-shrink-0 rounded-lg overflow-hidden bg-customgreys-darkGrey border border-violet-900/20">
+                <div className="relative w-full sm:w-32 h-24 sm:h-20 flex-shrink-0 rounded-lg overflow-hidden bg-customgreys-darkGrey border border-violet-900/20">
                     <Image
                         src={imageSrc}
                         alt={title}
@@ -245,7 +245,7 @@ export const LaboratoryCard = ({title, id, imageSrc, description, level, categor
                     {/* Active Badge */}
                     {active && (
                         <div className="absolute top-2 left-2">
-                            <div className="bg-green-500 rounded-full p-1.5">
+                            <div className="bg-green-500 rounded-full p-1 sm:p-1.5">
                                 <Check className="text-white h-3 w-3" />
                             </div>
                         </div>
@@ -254,7 +254,7 @@ export const LaboratoryCard = ({title, id, imageSrc, description, level, categor
                     {/* Progress Overlay */}
                     {!isCompleted && progress > 0 && (
                         <div className="absolute bottom-2 left-2 right-2">
-                            <Progress value={progressPercentage} className="h-1" />
+                            <Progress value={progressPercentage} className="h-1 sm:h-1.5" />
                         </div>
                     )}
                 </div>
@@ -262,10 +262,11 @@ export const LaboratoryCard = ({title, id, imageSrc, description, level, categor
                 {/* Content */}
                 <div className="flex-1">
                     {/* Header */}
-                    <div className="flex items-start justify-between mb-2">
-                        <div className={`inline-flex items-center gap-2 px-2 py-1 rounded-full text-xs font-medium border ${config.lightColor} ${config.textColor} ${config.borderColor}`}>
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-0 mb-2">
+                        <div className={`inline-flex items-center gap-1.5 sm:gap-2 px-2 py-1 rounded-full text-xs font-medium border ${config.lightColor} ${config.textColor} ${config.borderColor}`}>
                             <CategoryIcon className="h-3 w-3" />
-                            {config.name}
+                            <span className="hidden sm:inline">{config.name}</span>
+                            <span className="sm:hidden">{config.name.split(' ')[0]}</span>
                         </div>
                         
                         {level && (
@@ -275,12 +276,12 @@ export const LaboratoryCard = ({title, id, imageSrc, description, level, categor
                         )}
                     </div>
                     
-                    <h3 className="text-lg font-bold text-white mb-2 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-gray-300">
+                    <h3 className="text-base sm:text-lg font-bold text-white mb-2 line-clamp-2 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-gray-300">
                         {title}
                     </h3>
                     
                     {description && (
-                        <p className="text-sm text-customgreys-dirtyGrey mb-3 line-clamp-1">
+                        <p className="text-xs sm:text-sm text-customgreys-dirtyGrey mb-3 line-clamp-2 sm:line-clamp-1">
                             {description}
                         </p>
                     )}
@@ -290,7 +291,7 @@ export const LaboratoryCard = ({title, id, imageSrc, description, level, categor
                         <div className="mb-3">
                             <div className="flex items-center justify-between text-xs text-gray-400 mb-1">
                                 <span>Progresso</span>
-                                <span>{progressPercentage}%</span>
+                                <span className="font-semibold">{progressPercentage}%</span>
                             </div>
                             {totalUnits && completedUnits !== undefined && (
                                 <p className="text-xs text-gray-500">
@@ -301,64 +302,67 @@ export const LaboratoryCard = ({title, id, imageSrc, description, level, categor
                     ) : (
                         <div className="mb-3">
                             <div className="flex items-center gap-2 text-sm text-green-400">
-                                <Check className="h-4 w-4" />
-                                <span>Curso Concluído!</span>
+                                <Check className="h-3 w-3 sm:h-4 sm:w-4" />
+                                <span className="text-xs sm:text-sm">Curso Concluído!</span>
                             </div>
                         </div>
                     )}
                     
                     {/* Stats */}
-                    <div className="flex items-center gap-4 text-xs text-customgreys-dirtyGrey">
+                    <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs text-customgreys-dirtyGrey">
                         {totalUnits && (
                             <div className="flex items-center gap-1">
                                 <Book className="h-3 w-3" />
-                                <span>{totalUnits} unidades</span>
+                                <span className="hidden sm:inline">{totalUnits} unidades</span>
+                                <span className="sm:hidden">{totalUnits} un.</span>
                             </div>
                         )}
                         {totalLessons && (
                             <div className="flex items-center gap-1">
                                 <Target className="h-3 w-3" />
-                                <span>{totalLessons} lições</span>
+                                <span className="hidden sm:inline">{totalLessons} lições</span>
+                                <span className="sm:hidden">{totalLessons} liç.</span>
                             </div>
                         )}
                         {totalChallenges && (
                             <div className="flex items-center gap-1">
                                 <Zap className="h-3 w-3" />
-                                <span>{totalChallenges} desafios</span>
+                                <span className="hidden sm:inline">{totalChallenges} desafios</span>
+                                <span className="sm:hidden">{totalChallenges} des.</span>
                             </div>
                         )}
                     </div>
                 </div>
                 
                 {/* Action Buttons */}
-                <div className="flex flex-col gap-2 flex-shrink-0">
+                <div className="flex flex-col gap-2 w-full sm:w-auto sm:flex-shrink-0">
                     {/* Botão Principal - Laboratório */}
                     <Button
                         onClick={handleMainClick}
                         className={cn(
-                            "flex items-center gap-2 px-4 py-2 rounded-lg transition-colors cursor-pointer",
+                            "flex items-center justify-center gap-2 px-3 sm:px-4 py-2 rounded-lg transition-colors cursor-pointer w-full sm:w-auto min-h-[36px]",
                             isCompleted 
                                 ? "bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white"
                                 : "bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white"
                         )}
                         size="sm"
                     >
-                        <span className="text-sm font-medium">
+                        <span className="text-xs sm:text-sm font-medium">
                             {isCompleted ? 'Concluído' : 'Praticar'}
                         </span>
                         {isCompleted ? (
-                            <Check className="h-4 w-4" />
+                            <Check className="h-3 w-3 sm:h-4 sm:w-4" />
                         ) : (
-                            <Play className="h-4 w-4" />
+                            <Play className="h-3 w-3 sm:h-4 sm:w-4" />
                         )}
                     </Button>
                     
                     {/* Botões Secundários - Speaking/Listening */}
-                    <div className="flex gap-1 relative z-10">
+                    <div className="flex gap-1 sm:gap-1 relative z-10">
                         <Button
                             onClick={handleSpeakingClick}
                             size="sm"
-                            className="flex-1 bg-blue-500/20 border border-blue-500/30 text-blue-400 hover:bg-blue-500/30 hover:border-blue-500/50 hover:text-blue-300 transition-colors cursor-pointer"
+                            className="flex-1 bg-blue-500/20 border border-blue-500/30 text-blue-400 hover:bg-blue-500/30 hover:border-blue-500/50 hover:text-blue-300 transition-colors cursor-pointer min-h-[32px] px-2 sm:px-3"
                         >
                             <Mic className="h-3 w-3 mr-1" />
                             <span className="text-xs">Speaking</span>
@@ -366,7 +370,7 @@ export const LaboratoryCard = ({title, id, imageSrc, description, level, categor
                         <Button
                             onClick={handleListeningClick}
                             size="sm"
-                            className="flex-1 bg-orange-500/20 border border-orange-500/30 text-orange-400 hover:bg-orange-500/30 hover:border-orange-500/50 hover:text-orange-300 transition-colors cursor-pointer"
+                            className="flex-1 bg-orange-500/20 border border-orange-500/30 text-orange-400 hover:bg-orange-500/30 hover:border-orange-500/50 hover:text-orange-300 transition-colors cursor-pointer min-h-[32px] px-2 sm:px-3"
                         >
                             <Headphones className="h-3 w-3 mr-1" />
                             <span className="text-xs">Listening</span>
@@ -384,7 +388,7 @@ export const LaboratoryCard = ({title, id, imageSrc, description, level, categor
     return (
         <div 
             className={cn(
-                `group relative bg-customgreys-secondarybg rounded-2xl border overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl min-h-[420px] flex flex-col ${config.borderColor} ${config.hoverColor}`,
+                `group relative bg-customgreys-secondarybg rounded-2xl border overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl min-h-[380px] sm:min-h-[420px] flex flex-col ${config.borderColor} ${config.hoverColor}`,
                 disabled && "pointer-events-none opacity-50 cursor-not-allowed",
                 active && "ring-2 ring-green-500 ring-offset-2 ring-offset-customgreys-primarybg shadow-lg transform scale-[1.02] border-green-500/50"
             )}
@@ -424,7 +428,7 @@ export const LaboratoryCard = ({title, id, imageSrc, description, level, categor
             {/* Header Section */}
             <div className="relative">
                 {/* Course Image with Overlay */}
-                <div className="relative mb-0 overflow-hidden bg-customgreys-darkGrey h-32">
+                <div className="relative mb-0 overflow-hidden bg-customgreys-darkGrey h-28 sm:h-32">
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent z-10" />
                     <div className={`absolute inset-0 ${config.lightColor}`} />
                     
@@ -524,7 +528,7 @@ export const LaboratoryCard = ({title, id, imageSrc, description, level, categor
             </div>
             
             {/* Content Section */}
-            <div className="flex-1 px-5 py-4 flex flex-col">
+            <div className="flex-1 px-4 sm:px-5 py-3 sm:py-4 flex flex-col">
                 {/* Template Badge */}
                 <div className="mb-3">
                     <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border ${config.lightColor} ${config.textColor} ${config.borderColor}`}>
@@ -622,7 +626,7 @@ export const LaboratoryCard = ({title, id, imageSrc, description, level, categor
                 )}
                 
                 {/* Action Buttons */}
-                <div className="space-y-3 relative z-20">
+                <div className="space-y-2 sm:space-y-3 relative z-20">
                     {/* Botão Principal - Laboratório */}
                     <Button
                         onClick={handleMainClick}
@@ -639,26 +643,26 @@ export const LaboratoryCard = ({title, id, imageSrc, description, level, categor
                     >
                         {isCompleted ? (
                             <>
-                                <Trophy className="w-4 h-4 mr-2" />
-                                Concluído
+                                <Trophy className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
+                                <span className="text-xs sm:text-sm">Concluído</span>
                             </>
                         ) : (
                             <>
-                                <Play className="w-4 h-4 mr-2" />
-                                Começar Prática
+                                <Play className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
+                                <span className="text-xs sm:text-sm">Começar Prática</span>
                             </>
                         )}
-                        <ArrowRight className="w-4 h-4 ml-auto" />
+                        <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 ml-auto" />
                     </Button>
                     
                     {/* Botões Secundários - Speaking/Listening */}
-                    <div className="grid grid-cols-2 gap-2 relative z-30">
+                    <div className="grid grid-cols-2 gap-1.5 sm:gap-2 relative z-30">
                         <Button
                             onClick={handleSpeakingClick}
                             disabled={disabled}
                             size="sm"
                             className={cn(
-                                "bg-blue-500/20 border border-blue-500/30 text-blue-400 hover:bg-blue-500/30 hover:border-blue-500/50 hover:text-blue-300 transition-colors cursor-pointer relative",
+                                "bg-blue-500/20 border border-blue-500/30 text-blue-400 hover:bg-blue-500/30 hover:border-blue-500/50 hover:text-blue-300 transition-colors cursor-pointer relative min-h-[32px]",
                                 "hover:transform hover:scale-[1.02] active:scale-[0.98]",
                                 disabled && "opacity-50 cursor-not-allowed"
                             )}
@@ -671,7 +675,7 @@ export const LaboratoryCard = ({title, id, imageSrc, description, level, categor
                             disabled={disabled}
                             size="sm"
                             className={cn(
-                                "bg-orange-500/20 border border-orange-500/30 text-orange-400 hover:bg-orange-500/30 hover:border-orange-500/50 hover:text-orange-300 transition-colors cursor-pointer relative",
+                                "bg-orange-500/20 border border-orange-500/30 text-orange-400 hover:bg-orange-500/30 hover:border-orange-500/50 hover:text-orange-300 transition-colors cursor-pointer relative min-h-[32px]",
                                 "hover:transform hover:scale-[1.02] active:scale-[0.98]",
                                 disabled && "opacity-50 cursor-not-allowed"
                             )}

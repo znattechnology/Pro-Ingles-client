@@ -127,13 +127,13 @@ const LaboratoryAnalytics = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="relative px-6 py-8"
+        className="relative px-4 sm:px-6 py-6 sm:py-8"
       >
         {/* Enhanced Background Effects */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-600/10 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute -bottom-20 -left-40 w-80 h-80 bg-indigo-600/10 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl" />
+          <div className="absolute -top-20 sm:-top-40 -right-20 sm:-right-40 w-40 sm:w-80 h-40 sm:h-80 bg-blue-600/10 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute -bottom-10 sm:-bottom-20 -left-20 sm:-left-40 w-40 sm:w-80 h-40 sm:h-80 bg-indigo-600/10 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-48 sm:w-96 h-48 sm:h-96 bg-cyan-500/5 rounded-full blur-3xl" />
           {/* Floating particles */}
           <div className="absolute top-20 left-20 w-2 h-2 bg-blue-400/30 rounded-full animate-bounce" style={{animationDelay: '0s'}} />
           <div className="absolute top-40 right-32 w-1 h-1 bg-indigo-400/40 rounded-full animate-bounce" style={{animationDelay: '1s'}} />
@@ -147,20 +147,20 @@ const LaboratoryAnalytics = () => {
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.2, duration: 0.5 }}
-              className="inline-flex items-center gap-3 bg-gradient-to-r from-blue-500/10 via-indigo-500/10 to-cyan-500/10 border border-blue-500/30 rounded-full px-8 py-3 mb-8 backdrop-blur-sm shadow-lg shadow-blue-500/10"
+              className="inline-flex items-center gap-2 sm:gap-3 bg-gradient-to-r from-blue-500/10 via-indigo-500/10 to-cyan-500/10 border border-blue-500/30 rounded-full px-4 sm:px-8 py-2 sm:py-3 mb-6 sm:mb-8 backdrop-blur-sm shadow-lg shadow-blue-500/10"
             >
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
               >
-                <BarChart3 className="w-6 h-6 text-blue-400" />
+                <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" />
               </motion.div>
-              <span className="text-blue-300 font-semibold text-lg">Analytics Inteligente</span>
+              <span className="text-blue-300 font-semibold text-sm sm:text-base lg:text-lg">Analytics Inteligente</span>
               <motion.div
                 animate={{ scale: [1, 1.2, 1] }}
                 transition={{ duration: 2, repeat: Infinity }}
               >
-                <Sparkles className="w-4 h-4 text-indigo-400" />
+                <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 text-indigo-400" />
               </motion.div>
             </motion.div>
             
@@ -168,7 +168,7 @@ const LaboratoryAnalytics = () => {
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.3, duration: 0.6 }}
-              className="text-5xl md:text-7xl font-extrabold mb-6 leading-tight"
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold mb-4 sm:mb-6 leading-tight px-2"
             >
               Analytics do{' '}
               <motion.span 
@@ -194,7 +194,7 @@ const LaboratoryAnalytics = () => {
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.4, duration: 0.6 }}
-              className="text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed mb-12 font-light"
+              className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed mb-8 sm:mb-12 font-light px-4"
             >
               Monitoramento <motion.span className="text-blue-400 font-medium" whileHover={{ scale: 1.05 }}>detalhado</motion.span> do progresso dos{' '}
               <motion.span className="text-indigo-400 font-medium" whileHover={{ scale: 1.05 }}>estudantes</motion.span>
@@ -205,24 +205,24 @@ const LaboratoryAnalytics = () => {
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.6, duration: 0.6 }}
-              className="flex flex-wrap justify-center gap-4 mb-8"
+              className="flex flex-wrap justify-center gap-2 sm:gap-4 mb-6 sm:mb-8 px-4"
             >
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Button 
                   variant="outline"
-                  className="bg-blue-500/10 border-blue-500/30 text-blue-300 hover:bg-blue-500/20 hover:border-blue-500/50 transition-all duration-300 shadow-lg shadow-blue-500/10"
+                  className="bg-blue-500/10 border-blue-500/30 text-blue-300 hover:bg-blue-500/20 hover:border-blue-500/50 transition-all duration-300 shadow-lg shadow-blue-500/10 text-sm sm:text-base px-3 sm:px-4"
                 >
-                  <Filter className="h-4 w-4 mr-2" />
-                  Filtros Avançados
+                  <Filter className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
+                  <span className="hidden xs:inline">Filtros Avançados</span><span className="xs:hidden">Filtros</span>
                 </Button>
               </motion.div>
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Button 
                   variant="outline"
-                  className="bg-indigo-500/10 border-indigo-500/30 text-indigo-300 hover:bg-indigo-500/20 hover:border-indigo-500/50 transition-all duration-300 shadow-lg shadow-indigo-500/10"
+                  className="bg-indigo-500/10 border-indigo-500/30 text-indigo-300 hover:bg-indigo-500/20 hover:border-indigo-500/50 transition-all duration-300 shadow-lg shadow-indigo-500/10 text-sm sm:text-base px-3 sm:px-4"
                 >
-                  <Download className="h-4 w-4 mr-2" />
-                  Exportar Relatório
+                  <Download className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
+                  <span className="hidden xs:inline">Exportar Relatório</span><span className="xs:hidden">Exportar</span>
                 </Button>
               </motion.div>
             </motion.div>
@@ -235,10 +235,10 @@ const LaboratoryAnalytics = () => {
         initial={{ y: 40, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.7, duration: 0.6 }}
-        className="px-6 mb-8"
+        className="px-4 sm:px-6 mb-6 sm:mb-8"
       >
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {[
               { title: "Total de Estudantes", value: totalStudents, subtitle: `${activeStudents} ativos hoje`, icon: Users, color: "blue" },
               { title: "Taxa de Conclusão", value: `${avgCompletionRate}%`, subtitle: "", icon: TrendingUp, color: "indigo", showProgress: true },
@@ -256,16 +256,16 @@ const LaboratoryAnalytics = () => {
                   <div className={`absolute inset-0 bg-gradient-to-br from-${stat.color}-500/5 via-transparent to-${stat.color}-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
                   
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative">
-                    <CardTitle className="text-sm font-medium text-white">{stat.title}</CardTitle>
+                    <CardTitle className="text-xs sm:text-sm font-medium text-white">{stat.title}</CardTitle>
                     <motion.div
                       whileHover={{ rotate: 15, scale: 1.1 }}
-                      className={`p-2 bg-${stat.color}-500/20 rounded-lg`}
+                      className={`p-1.5 sm:p-2 bg-${stat.color}-500/20 rounded-lg`}
                     >
-                      <stat.icon className={`h-5 w-5 text-${stat.color}-400`} />
+                      <stat.icon className={`h-4 w-4 sm:h-5 sm:w-5 text-${stat.color}-400`} />
                     </motion.div>
                   </CardHeader>
                   <CardContent className="relative">
-                    <div className="text-3xl font-bold text-white mb-2">{stat.value}</div>
+                    <div className="text-2xl sm:text-3xl font-bold text-white mb-2">{stat.value}</div>
                     {stat.showProgress && (
                       <Progress value={avgCompletionRate} className="mb-2" />
                     )}
@@ -284,7 +284,7 @@ const LaboratoryAnalytics = () => {
         initial={{ y: 40, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.9, duration: 0.6 }}
-        className="px-6 pb-12"
+        className="px-4 sm:px-6 pb-8 sm:pb-12"
       >
         <div className="max-w-7xl mx-auto">
           <Tabs defaultValue="students" className="w-full">
@@ -293,21 +293,21 @@ const LaboratoryAnalytics = () => {
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 1, duration: 0.5 }}
             >
-              <TabsList className="bg-customgreys-secondarybg/50 backdrop-blur-sm border border-blue-500/20 rounded-xl p-1 shadow-lg">
-                <TabsTrigger value="students" className="text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white rounded-lg transition-all duration-300">Estudantes</TabsTrigger>
-                <TabsTrigger value="courses" className="text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white rounded-lg transition-all duration-300">Por Curso</TabsTrigger>
-                <TabsTrigger value="performance" className="text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white rounded-lg transition-all duration-300">Desempenho</TabsTrigger>
-                <TabsTrigger value="engagement" className="text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white rounded-lg transition-all duration-300">Engajamento</TabsTrigger>
+              <TabsList className="bg-customgreys-secondarybg/50 backdrop-blur-sm border border-blue-500/20 rounded-xl p-1 shadow-lg w-full overflow-x-auto">
+                <TabsTrigger value="students" className="text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white rounded-lg transition-all duration-300 text-xs sm:text-sm px-2 sm:px-4 whitespace-nowrap">Estudantes</TabsTrigger>
+                <TabsTrigger value="courses" className="text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white rounded-lg transition-all duration-300 text-xs sm:text-sm px-2 sm:px-4 whitespace-nowrap">Por Curso</TabsTrigger>
+                <TabsTrigger value="performance" className="text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white rounded-lg transition-all duration-300 text-xs sm:text-sm px-2 sm:px-4 whitespace-nowrap">Desempenho</TabsTrigger>
+                <TabsTrigger value="engagement" className="text-white data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white rounded-lg transition-all duration-300 text-xs sm:text-sm px-2 sm:px-4 whitespace-nowrap">Engajamento</TabsTrigger>
               </TabsList>
             </motion.div>
 
-            <TabsContent value="students" className="space-y-6 mt-8">
+            <TabsContent value="students" className="space-y-4 sm:space-y-6 mt-6 sm:mt-8">
               {/* Enhanced Search Bar */}
               <motion.div
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 1.2, duration: 0.5 }}
-                className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4"
+                className="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-4"
               >
                 <div className="relative flex-1 w-full">
                   <motion.div
@@ -319,12 +319,12 @@ const LaboratoryAnalytics = () => {
                         animate={{ rotate: searchTerm ? 0 : 360 }}
                         transition={{ duration: 2, repeat: searchTerm ? 0 : Infinity, ease: "linear" }}
                       >
-                        <Search className="text-blue-400 w-5 h-5" />
+                        <Search className="text-blue-400 w-4 h-4 sm:w-5 sm:h-5" />
                       </motion.div>
                     </div>
                     <Input 
                       placeholder="Buscar estudantes por nome, email ou curso..."
-                      className="pl-14 pr-4 bg-customgreys-secondarybg/30 backdrop-blur-md border-2 border-blue-500/30 text-white placeholder:text-gray-400 focus:border-blue-400 focus:ring-4 focus:ring-blue-500/20 transition-all duration-300 h-12 rounded-xl text-lg shadow-lg shadow-blue-500/10 hover:shadow-blue-500/20"
+                      className="pl-12 sm:pl-14 pr-4 bg-customgreys-secondarybg/30 backdrop-blur-md border-2 border-blue-500/30 text-white placeholder:text-gray-400 focus:border-blue-400 focus:ring-4 focus:ring-blue-500/20 transition-all duration-300 h-10 sm:h-12 rounded-xl text-base sm:text-lg shadow-lg shadow-blue-500/10 hover:shadow-blue-500/20"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -343,7 +343,7 @@ const LaboratoryAnalytics = () => {
                 </div>
                 <motion.div whileHover={{ scale: 1.05 }}>
                   <select 
-                    className="p-3 border-2 rounded-xl bg-customgreys-secondarybg/50 backdrop-blur-sm border-indigo-500/30 text-white focus:border-indigo-400 transition-all duration-300 shadow-lg"
+                    className="p-2 sm:p-3 border-2 rounded-xl bg-customgreys-secondarybg/50 backdrop-blur-sm border-indigo-500/30 text-white focus:border-indigo-400 transition-all duration-300 shadow-lg text-sm sm:text-base"
                     value={selectedTimeRange}
                     onChange={(e) => setSelectedTimeRange(e.target.value)}
                   >
@@ -359,9 +359,9 @@ const LaboratoryAnalytics = () => {
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 1.4, duration: 0.5 }}
-                className="space-y-6"
+                className="space-y-4 sm:space-y-6"
               >
-                <div className="grid gap-6">
+                <div className="grid gap-4 sm:gap-6">
                   {currentStudents.map((student, index) => {
                     const completionRate = student.total_lessons > 0 ? 
                       Math.round((student.completed_lessons / student.total_lessons) * 100) : 0;
@@ -383,26 +383,26 @@ const LaboratoryAnalytics = () => {
                             transition={{ duration: 0.6, ease: "easeInOut" }}
                           />
                           
-                          <CardContent className="pt-6 relative">
-                            <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-center">
-                              <div className="md:col-span-2">
-                                <div className="flex items-center gap-4">
+                          <CardContent className="pt-4 sm:pt-6 relative">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 sm:gap-4 items-start sm:items-center">
+                              <div className="sm:col-span-2 lg:col-span-2">
+                                <div className="flex items-center gap-3 sm:gap-4">
                                   <motion.div 
                                     whileHover={{ scale: 1.1, rotate: 5 }}
-                                    className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/25"
+                                    className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/25 flex-shrink-0"
                                   >
-                                    <span className="font-bold text-white text-lg">
+                                    <span className="font-bold text-white text-sm sm:text-lg">
                                       {student.name.charAt(0)}
                                     </span>
                                   </motion.div>
-                                  <div>
+                                  <div className="min-w-0 flex-1">
                                     <motion.h4 
                                       whileHover={{ x: 4 }}
-                                      className="font-bold text-white text-lg"
+                                      className="font-bold text-white text-base sm:text-lg truncate"
                                     >
                                       {student.name}
                                     </motion.h4>
-                                    <p className="text-sm text-gray-400">{student.email}</p>
+                                    <p className="text-xs sm:text-sm text-gray-400 truncate">{student.email}</p>
                                   </div>
                                 </div>
                               </div>
@@ -410,38 +410,38 @@ const LaboratoryAnalytics = () => {
                               <div>
                                 <motion.div 
                                   whileHover={{ scale: 1.05 }}
-                                  className="text-center p-3 rounded-lg bg-blue-500/10 border border-blue-500/20"
+                                  className="text-center p-2 sm:p-3 rounded-lg bg-blue-500/10 border border-blue-500/20"
                                 >
-                                  <div className="font-bold text-xl text-blue-400">{student.total_points || 0}</div>
-                                  <p className="text-sm text-gray-400">Pontos</p>
+                                  <div className="font-bold text-lg sm:text-xl text-blue-400">{student.total_points || 0}</div>
+                                  <p className="text-xs sm:text-sm text-gray-400">Pontos</p>
                                 </motion.div>
                               </div>
                               
                               <div>
                                 <motion.div 
                                   whileHover={{ scale: 1.05 }}
-                                  className="text-center p-3 rounded-lg bg-red-500/10 border border-red-500/20"
+                                  className="text-center p-2 sm:p-3 rounded-lg bg-red-500/10 border border-red-500/20"
                                 >
-                                  <div className="flex items-center justify-center gap-2">
+                                  <div className="flex items-center justify-center gap-1 sm:gap-2">
                                     <motion.div
                                       animate={{ scale: [1, 1.2, 1] }}
                                       transition={{ duration: 2, repeat: Infinity }}
                                     >
-                                      <Heart className={`h-5 w-5 ${student.hearts > 3 ? 'text-red-400' : 'text-gray-400'}`} />
+                                      <Heart className={`h-4 w-4 sm:h-5 sm:w-5 ${student.hearts > 3 ? 'text-red-400' : 'text-gray-400'}`} />
                                     </motion.div>
-                                    <span className="font-bold text-lg text-white">{student.hearts || 0}/5</span>
+                                    <span className="font-bold text-base sm:text-lg text-white">{student.hearts || 0}/5</span>
                                   </div>
-                                  <p className="text-sm text-gray-400">Corações</p>
+                                  <p className="text-xs sm:text-sm text-gray-400">Corações</p>
                                 </motion.div>
                               </div>
                               
                               <div>
                                 <motion.div 
                                   whileHover={{ scale: 1.05 }}
-                                  className="text-center p-3 rounded-lg bg-indigo-500/10 border border-indigo-500/20"
+                                  className="text-center p-2 sm:p-3 rounded-lg bg-indigo-500/10 border border-indigo-500/20"
                                 >
-                                  <Progress value={completionRate} className="mb-3 h-2" />
-                                  <p className="text-sm text-white font-medium">
+                                  <Progress value={completionRate} className="mb-2 sm:mb-3 h-1.5 sm:h-2" />
+                                  <p className="text-xs sm:text-sm text-white font-medium">
                                     {student.completed_lessons || 0}/{student.total_lessons || 0} lições
                                   </p>
                                   <p className="text-xs text-indigo-400 font-semibold">{completionRate}% completo</p>
@@ -451,7 +451,7 @@ const LaboratoryAnalytics = () => {
                               <div>
                                 <motion.div 
                                   whileHover={{ scale: 1.05 }}
-                                  className="text-center space-y-3 p-3 rounded-lg bg-cyan-500/10 border border-cyan-500/20"
+                                  className="text-center space-y-2 sm:space-y-3 p-2 sm:p-3 rounded-lg bg-cyan-500/10 border border-cyan-500/20"
                                 >
                                   <motion.div
                                     whileHover={{ scale: 1.1 }}
@@ -467,7 +467,7 @@ const LaboratoryAnalytics = () => {
                                     </Badge>
                                   </motion.div>
                                   <div className="space-y-1">
-                                    <div className="text-cyan-400 font-semibold">{student.average_accuracy || 0}% precisão</div>
+                                    <div className="text-cyan-400 font-semibold text-sm sm:text-base">{student.average_accuracy || 0}% precisão</div>
                                     {student.active_course && (
                                       <div className="text-xs text-gray-400 truncate">{student.active_course}</div>
                                     )}
@@ -549,8 +549,8 @@ const LaboratoryAnalytics = () => {
                       </Button>
                     </motion.div>
                     
-                    <div className="ml-4 text-sm text-gray-400">
-                      Página {currentPage} de {totalPages} • {filteredStudents.length} estudante{filteredStudents.length !== 1 ? 's' : ''}
+                    <div className="ml-2 sm:ml-4 text-xs sm:text-sm text-gray-400">
+                      <span className="hidden sm:inline">Página {currentPage} de {totalPages} • </span>{filteredStudents.length} estudante{filteredStudents.length !== 1 ? 's' : ''}
                     </div>
                   </motion.div>
                 )}

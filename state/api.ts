@@ -154,6 +154,10 @@ export const api = createApi({
     getTransactions: build.query<Transaction[], string>({
       query: (userId) => `transactions?userId=${userId}`,
     }),
+    
+    getSubscriptionHistory: build.query<any[], string>({
+      query: (userId) => `subscriptions/payment-history?userId=${userId}`,
+    }),
     createStripePaymentIntent: build.mutation<
       { clientSecret: string },
       { amount: number }
@@ -242,6 +246,7 @@ export const {
   useGetCourseQuery,
   useGetUploadVideoUrlMutation,
   useGetTransactionsQuery,
+  useGetSubscriptionHistoryQuery,
   useCreateTransactionMutation,
   useCreateStripePaymentIntentMutation,
   useGetUserEnrolledCoursesQuery,

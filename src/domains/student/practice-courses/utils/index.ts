@@ -155,7 +155,7 @@ export const getPerformanceFeedback = (result: ChallengeResult): string => {
 
 // Study streak utilities
 export const formatStreakText = (streak: StudyStreak): string => {
-  if (streak.current_streak === 0) return 'Comece sua sequência hoje!';
+  if (streak.current_streak === 0) return 'Comece a sua sequência hoje!';
   if (streak.current_streak === 1) return '1 dia de sequência';
   return `${streak.current_streak} dias de sequência`;
 };

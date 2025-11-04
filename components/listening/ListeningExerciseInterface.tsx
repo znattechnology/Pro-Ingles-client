@@ -360,7 +360,7 @@ export default function ListeningExerciseInterface({
 
               {currentQuestion.type === 'text_input' && (
                 <Input
-                  placeholder="Digite sua resposta..."
+                  placeholder="Introduza a sua resposta..."
                   value={answers[currentQuestion.id] || ''}
                   onChange={(e) => handleAnswerChange(e.target.value)}
                   className="bg-customgreys-darkGrey border-gray-600 text-white"

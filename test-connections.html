@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste de Conexões - Sistema de Assinaturas</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .endpoint { margin: 10px 0; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .loading { background-color: #fff3cd; border-color: #ffeaa7; }
+        button { margin: 5px; padding: 10px 15px; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 5px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🔗 Teste de Conexões - Sistema de Assinaturas</h1>
+    
+    <button onclick="testAllEndpoints()">🚀 Testar Todos os Endpoints</button>
+    <button onclick="clearResults()">🗑️ Limpar Resultados</button>
+    
+    <div id="results"></div>
+
+    <script>
+        const endpoints = [
+            { name: 'Planos de Assinatura', url: '/api/v1/subscriptions?endpoint=admin-plans' },
+            { name: 'Assinantes', url: '/api/v1/subscriptions?endpoint=admin-subscriptions' },
+            { name: 'Estatísticas', url: '/api/v1/subscriptions?endpoint=admin-stats' },
+            { name: 'Relatórios', url: '/api/v1/subscriptions?endpoint=admin-reports' },
+            { name: 'Códigos Promocionais', url: '/api/v1/subscriptions?endpoint=admin-promo-codes' },
+            { name: 'Stats de Códigos Promocionais', url: '/api/v1/subscriptions?endpoint=admin-promo-code-stats' }
+        ];
+
+        async function testEndpoint(endpoint) {
+            const resultDiv = document.getElementById(`result-${endpoint.name.replace(/\s+/g, '-')}`);
+            resultDiv.className = 'endpoint loading';
+            resultDiv.innerHTML = `<h3>${endpoint.name}</h3><p>🔄 Testando...</p>`;
+
+            try {
+                const response = await fetch(endpoint.url);
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultDiv.className = 'endpoint success';
+                    resultDiv.innerHTML = `
+                        <h3>✅ ${endpoint.name}</h3>
+                        <p><strong>Status:</strong> ${response.status} ${response.statusText}</p>
+                        <p><strong>URL:</strong> ${endpoint.url}</p>
+                        <details>
+                            <summary>📋 Dados recebidos (${Object.keys(data).length} propriedades)</summary>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </details>
+                    `;
+                } else {
+                    resultDiv.className = 'endpoint error';
+                    resultDiv.innerHTML = `
+                        <h3>❌ ${endpoint.name}</h3>
+                        <p><strong>Erro:</strong> ${response.status} ${response.statusText}</p>
+                        <p><strong>URL:</strong> ${endpoint.url}</p>
+                        <details>
+                            <summary>🚨 Detalhes do erro</summary>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </details>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.className = 'endpoint error';
+                resultDiv.innerHTML = `
+                    <h3>💥 ${endpoint.name}</h3>
+                    <p><strong>Erro de rede:</strong> ${error.message}</p>
+                    <p><strong>URL:</strong> ${endpoint.url}</p>
+                `;
+            }
+        }
+
+        async function testAllEndpoints() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '';
+
+            // Criar divs para cada endpoint
+            endpoints.forEach(endpoint => {
+                const div = document.createElement('div');
+                div.id = `result-${endpoint.name.replace(/\s+/g, '-')}`;
+                div.className = 'endpoint';
+                resultsDiv.appendChild(div);
+            });
+
+            // Testar endpoints em paralelo
+            await Promise.all(endpoints.map(testEndpoint));
+
+            // Adicionar resumo
+            const summaryDiv = document.createElement('div');
+            summaryDiv.className = 'endpoint';
+            summaryDiv.style.marginTop = '20px';
+            summaryDiv.style.fontWeight = 'bold';
+            
+            const successCount = document.querySelectorAll('.success').length;
+            const errorCount = document.querySelectorAll('.error').length;
+            
+            summaryDiv.innerHTML = `
+                <h3>📊 Resumo dos Testes</h3>
+                <p>✅ Sucessos: ${successCount}</p>
+                <p>❌ Erros: ${errorCount}</p>
+                <p>📈 Taxa de sucesso: ${((successCount / endpoints.length) * 100).toFixed(1)}%</p>
+            `;
+            
+            resultsDiv.appendChild(summaryDiv);
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+
+        // Executar testes automaticamente ao carregar a página
+        window.onload = () => {
+            console.log('🔗 Página de teste carregada. Clique no botão para testar os endpoints.');
+        };
+    </script>
+</body>
+</html>

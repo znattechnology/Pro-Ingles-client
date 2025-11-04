@@ -62,14 +62,14 @@ const NonDashboardNavbar = () => {
               className="nondashboard-navbar__auth-button--login"
               scroll={false}
             >
-              Log in
+              Iniciar sessão
             </Link>
             <Link
               href="/signup"
               className="nondashboard-navbar__auth-button--signup"
               scroll={false}
             >
-              Sign up
+              Registar
             </Link>
           </SignedOut>
         </div>

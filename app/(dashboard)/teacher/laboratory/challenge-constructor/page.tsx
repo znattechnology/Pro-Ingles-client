@@ -86,13 +86,13 @@ export default function ChallengeConstructorPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="relative px-6 py-8"
+        className="relative px-4 sm:px-6 py-6 sm:py-8"
       >
         {/* Enhanced Background Effects */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-orange-600/10 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute -bottom-20 -left-40 w-80 h-80 bg-red-600/10 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-yellow-500/5 rounded-full blur-3xl" />
+          <div className="absolute -top-20 sm:-top-40 -right-20 sm:-right-40 w-40 sm:w-80 h-40 sm:h-80 bg-orange-600/10 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute -bottom-10 sm:-bottom-20 -left-20 sm:-left-40 w-40 sm:w-80 h-40 sm:h-80 bg-red-600/10 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-48 sm:w-96 h-48 sm:h-96 bg-yellow-500/5 rounded-full blur-3xl" />
           {/* Floating particles */}
           <div className="absolute top-20 left-20 w-2 h-2 bg-orange-400/30 rounded-full animate-bounce" style={{animationDelay: '0s'}} />
           <div className="absolute top-40 right-32 w-1 h-1 bg-red-400/40 rounded-full animate-bounce" style={{animationDelay: '1s'}} />
@@ -101,7 +101,7 @@ export default function ChallengeConstructorPage() {
         </div>
 
         <div className="relative max-w-7xl mx-auto">
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-6 sm:mb-8">
             <motion.div
               initial={{ x: -20, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
@@ -110,10 +110,10 @@ export default function ChallengeConstructorPage() {
               <Button 
                 variant="ghost"
                 onClick={handleBackToLaboratory}
-                className="text-gray-400 hover:text-white hover:bg-orange-600/20 transition-all"
+                className="text-gray-400 hover:text-white hover:bg-orange-600/20 transition-all text-sm sm:text-base px-2 sm:px-4"
               >
-                <ArrowLeft className="h-5 w-5 mr-2" />
-                Voltar ao Laboratório
+                <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5 mr-1.5 sm:mr-2" />
+                <span className="hidden xs:inline">Voltar ao Laboratório</span><span className="xs:hidden">Voltar</span>
               </Button>
             </motion.div>
           </div>
@@ -123,20 +123,20 @@ export default function ChallengeConstructorPage() {
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.2, duration: 0.5 }}
-              className="inline-flex items-center gap-3 bg-gradient-to-r from-orange-500/10 via-red-500/10 to-yellow-500/10 border border-orange-500/30 rounded-full px-8 py-3 mb-8 backdrop-blur-sm shadow-lg shadow-orange-500/10"
+              className="inline-flex items-center gap-2 sm:gap-3 bg-gradient-to-r from-orange-500/10 via-red-500/10 to-yellow-500/10 border border-orange-500/30 rounded-full px-4 sm:px-8 py-2 sm:py-3 mb-6 sm:mb-8 backdrop-blur-sm shadow-lg shadow-orange-500/10"
             >
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
               >
-                <Target className="w-6 h-6 text-orange-400" />
+                <Target className="w-5 h-5 sm:w-6 sm:h-6 text-orange-400" />
               </motion.div>
-              <span className="text-orange-300 font-semibold text-lg">Construtor de Desafios</span>
+              <span className="text-orange-300 font-semibold text-sm sm:text-base lg:text-lg">Construtor de Desafios</span>
               <motion.div
                 animate={{ scale: [1, 1.2, 1] }}
                 transition={{ duration: 2, repeat: Infinity }}
               >
-                <Zap className="w-4 h-4 text-red-400" />
+                <Zap className="w-3 h-3 sm:w-4 sm:h-4 text-red-400" />
               </motion.div>
             </motion.div>
             
@@ -144,7 +144,7 @@ export default function ChallengeConstructorPage() {
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.3, duration: 0.6 }}
-              className="text-5xl md:text-7xl font-extrabold mb-6 leading-tight"
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold mb-4 sm:mb-6 leading-tight px-2"
             >
               Crie{' '}
               <motion.span 
@@ -170,7 +170,7 @@ export default function ChallengeConstructorPage() {
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.4, duration: 0.6 }}
-              className="text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed mb-12 font-light"
+              className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed mb-8 sm:mb-12 font-light px-4"
             >
               Selecione um curso e desenvolva <motion.span className="text-orange-400 font-medium" whileHover={{ scale: 1.05 }}>exercícios interativos</motion.span> que{' '}
               <motion.span className="text-red-400 font-medium" whileHover={{ scale: 1.05 }}>desafiam</motion.span> e{' '}
@@ -182,7 +182,7 @@ export default function ChallengeConstructorPage() {
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.6, duration: 0.6 }}
-              className="flex flex-wrap justify-center gap-4 mb-8"
+              className="flex flex-wrap justify-center gap-2 sm:gap-4 mb-6 sm:mb-8 px-4"
             >
               {[
                 { icon: Trophy, label: 'Tipos de Exercícios', count: '8+' },
@@ -195,11 +195,11 @@ export default function ChallengeConstructorPage() {
                   animate={{ scale: 1 }}
                   transition={{ delay: 0.8 + index * 0.1, type: 'spring', stiffness: 200 }}
                   whileHover={{ y: -2, scale: 1.05 }}
-                  className="flex items-center gap-2 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full px-4 py-2"
+                  className="flex items-center gap-1.5 sm:gap-2 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full px-3 sm:px-4 py-1.5 sm:py-2"
                 >
-                  <stat.icon className="w-4 h-4 text-orange-400" />
-                  <span className="text-sm font-medium text-white">{stat.count}</span>
-                  <span className="text-xs text-gray-400">{stat.label}</span>
+                  <stat.icon className="w-3 h-3 sm:w-4 sm:h-4 text-orange-400" />
+                  <span className="text-xs sm:text-sm font-medium text-white">{stat.count}</span>
+                  <span className="text-xs text-gray-400 hidden sm:inline">{stat.label}</span>
                 </motion.div>
               ))}
             </motion.div>
@@ -212,7 +212,7 @@ export default function ChallengeConstructorPage() {
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.5, duration: 0.6 }}
-        className="px-6 mb-8"
+        className="px-4 sm:px-6 mb-6 sm:mb-8"
       >
         <div className="max-w-7xl mx-auto">
           <div className="relative max-w-xl mx-auto">
@@ -226,14 +226,14 @@ export default function ChallengeConstructorPage() {
                   animate={{ rotate: searchTerm ? 0 : 360 }}
                   transition={{ duration: 2, repeat: searchTerm ? 0 : Infinity, ease: "linear" }}
                 >
-                  <Search className="text-orange-400 w-5 h-5" />
+                  <Search className="text-orange-400 w-4 h-4 sm:w-5 sm:h-5" />
                 </motion.div>
               </div>
               <Input
-                placeholder="Buscar curso por título, categoria ou nível..."
+                placeholder="Buscar curso..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-14 pr-4 bg-customgreys-secondarybg/30 backdrop-blur-md border-2 border-orange-500/30 text-white placeholder:text-gray-400 focus:border-orange-400 focus:ring-4 focus:ring-orange-500/20 transition-all duration-300 h-14 rounded-2xl text-lg shadow-lg shadow-orange-500/10 hover:shadow-orange-500/20"
+                className="pl-12 sm:pl-14 pr-4 bg-customgreys-secondarybg/30 backdrop-blur-md border-2 border-orange-500/30 text-white placeholder:text-gray-400 focus:border-orange-400 focus:ring-4 focus:ring-orange-500/20 transition-all duration-300 h-12 sm:h-14 rounded-xl sm:rounded-2xl text-base sm:text-lg shadow-lg shadow-orange-500/10 hover:shadow-orange-500/20"
               />
               {searchTerm && (
                 <motion.div
@@ -256,11 +256,11 @@ export default function ChallengeConstructorPage() {
         initial={{ y: 40, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.6, duration: 0.6 }}
-        className="px-6 pb-12"
+        className="px-4 sm:px-6 pb-8 sm:pb-12"
       >
         <div className="max-w-7xl mx-auto">
           {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
               {[1, 2, 3, 4, 5, 6].map((i) => (
                 <motion.div
                   key={i}
@@ -345,20 +345,20 @@ export default function ChallengeConstructorPage() {
               transition={{ duration: 0.5 }}
             >
               <Card className="bg-customgreys-secondarybg/50 backdrop-blur-sm border-orange-500/20">
-                <CardContent className="flex flex-col items-center justify-center py-16">
+                <CardContent className="flex flex-col items-center justify-center py-12 sm:py-16 px-4">
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
                     className="p-4 bg-orange-500/10 rounded-full mb-6"
                   >
-                    <Target className="w-16 h-16 text-orange-400" />
+                    <Target className="w-12 h-12 sm:w-16 sm:h-16 text-orange-400" />
                   </motion.div>
                   <motion.h3 
                     initial={{ y: 20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 0.3 }}
-                    className="text-2xl font-semibold text-white mb-4"
+                    className="text-xl sm:text-2xl font-semibold text-white mb-3 sm:mb-4 text-center"
                   >
                     {searchTerm ? 'Nenhum curso encontrado' : 'Nenhum curso disponível'}
                   </motion.h3>
@@ -366,7 +366,7 @@ export default function ChallengeConstructorPage() {
                     initial={{ y: 20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 0.4 }}
-                    className="text-gray-400 text-center mb-8 max-w-md leading-relaxed"
+                    className="text-sm sm:text-base text-gray-400 text-center mb-6 sm:mb-8 max-w-md leading-relaxed"
                   >
                     {searchTerm 
                       ? `Não encontramos cursos que correspondam a "${searchTerm}". Tente ajustar sua busca.`
@@ -400,7 +400,7 @@ export default function ChallengeConstructorPage() {
               </Card>
             </motion.div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
               {filteredCourses.map((course, index) => (
                 <motion.div
                   key={course.id}
@@ -456,7 +456,7 @@ export default function ChallengeConstructorPage() {
                           whileTap={{ scale: 0.95 }}
                           className="relative p-3 bg-gradient-to-br from-orange-500/10 to-red-500/20 rounded-xl group-hover:from-orange-500/20 group-hover:to-red-500/30 transition-all duration-300 shadow-lg shadow-orange-500/10"
                         >
-                          <Target className="w-6 h-6 text-orange-400 relative z-10" />
+                          <Target className="w-5 h-5 sm:w-6 sm:h-6 text-orange-400 relative z-10" />
                           <motion.div
                             className="absolute inset-0 bg-gradient-to-br from-orange-400/20 to-red-400/20 rounded-xl"
                             initial={{ scale: 0, opacity: 0 }}
@@ -469,28 +469,28 @@ export default function ChallengeConstructorPage() {
                         whileHover={{ x: 4 }}
                         transition={{ duration: 0.2 }}
                       >
-                        <CardTitle className="text-xl text-white group-hover:text-orange-300 transition-all duration-300 leading-tight font-bold">
+                        <CardTitle className="text-lg sm:text-xl text-white group-hover:text-orange-300 transition-all duration-300 leading-tight font-bold">
                           {course.title}
                         </CardTitle>
                       </motion.div>
                     </CardHeader>
                     <CardContent className="relative">
-                      <p className="text-gray-400 text-sm mb-4 line-clamp-2 leading-relaxed">
+                      <p className="text-gray-400 text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-2 leading-relaxed">
                         {course.description || 'Sem descrição disponível'}
                       </p>
                       
                       {/* Course Statistics */}
                       <div className="mb-4">
-                        <div className="grid grid-cols-3 gap-3 mb-3 p-3 bg-gradient-to-r from-orange-500/5 via-red-500/5 to-yellow-500/5 rounded-lg border border-orange-500/10">
+                        <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-2 sm:mb-3 p-2 sm:p-3 bg-gradient-to-r from-orange-500/5 via-red-500/5 to-yellow-500/5 rounded-lg border border-orange-500/10">
                           <motion.div 
                             className="text-center"
                             whileHover={{ scale: 1.05 }}
                             transition={{ duration: 0.2 }}
                           >
-                            <div className="text-orange-400 font-bold text-lg">
+                            <div className="text-orange-400 font-bold text-base sm:text-lg">
                               {course.units_count || 0}
                             </div>
-                            <div className="text-gray-400 text-xs">Unidades</div>
+                            <div className="text-gray-400 text-xs hidden sm:block">Unidades</div><div className="text-gray-400 text-xs sm:hidden">Un.</div>
                           </motion.div>
                           
                           <motion.div 
@@ -498,10 +498,10 @@ export default function ChallengeConstructorPage() {
                             whileHover={{ scale: 1.05 }}
                             transition={{ duration: 0.2 }}
                           >
-                            <div className="text-red-400 font-bold text-lg">
+                            <div className="text-red-400 font-bold text-base sm:text-lg">
                               {course.lessons_count || 0}
                             </div>
-                            <div className="text-gray-400 text-xs">Lições</div>
+                            <div className="text-gray-400 text-xs hidden sm:block">Lições</div><div className="text-gray-400 text-xs sm:hidden">Liç.</div>
                           </motion.div>
                           
                           <motion.div 
@@ -509,10 +509,10 @@ export default function ChallengeConstructorPage() {
                             whileHover={{ scale: 1.05 }}
                             transition={{ duration: 0.2 }}
                           >
-                            <div className="text-yellow-400 font-bold text-lg">
+                            <div className="text-yellow-400 font-bold text-base sm:text-lg">
                               {course.challenges_count || 0}
                             </div>
-                            <div className="text-gray-400 text-xs">Exercícios</div>
+                            <div className="text-gray-400 text-xs hidden sm:block">Exercícios</div><div className="text-gray-400 text-xs sm:hidden">Ex.</div>
                           </motion.div>
                         </div>
                         
@@ -548,23 +548,23 @@ export default function ChallengeConstructorPage() {
                       </div>
                       
                       <div className="flex items-center justify-between">
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-1.5 sm:gap-2">
                           <motion.div whileHover={{ scale: 1.05 }}>
-                            <Badge variant="secondary" className="text-xs bg-gradient-to-r from-orange-500/10 to-orange-500/20 text-orange-300 border-orange-500/30 shadow-sm">
+                            <Badge variant="secondary" className="text-xs bg-gradient-to-r from-orange-500/10 to-orange-500/20 text-orange-300 border-orange-500/30 shadow-sm whitespace-nowrap">
                               {course.category || 'General'}
                             </Badge>
                           </motion.div>
                           <motion.div whileHover={{ scale: 1.05 }}>
-                            <Badge variant="secondary" className="text-xs bg-gradient-to-r from-red-500/10 to-red-500/20 text-red-300 border-red-500/30 shadow-sm">
+                            <Badge variant="secondary" className="text-xs bg-gradient-to-r from-red-500/10 to-red-500/20 text-red-300 border-red-500/30 shadow-sm whitespace-nowrap">
                               {course.level || 'Beginner'}
                             </Badge>
                           </motion.div>
                         </div>
                         <motion.div 
-                          className="text-sm text-gray-400 group-hover:text-orange-400 transition-colors flex items-center gap-2 font-medium"
+                          className="text-xs sm:text-sm text-gray-400 group-hover:text-orange-400 transition-colors flex items-center gap-1.5 sm:gap-2 font-medium"
                           whileHover={{ x: 6 }}
                         >
-                          <Zap className="w-4 h-4" />
+                          <Zap className="w-3 h-3 sm:w-4 sm:h-4" />
                           <span>
                             {(course.lessons_count || 0) > 0 
                               ? `${(course.challenges_count || 0) > 0 ? 'Mais exercícios' : 'Criar exercícios'}`
@@ -605,7 +605,7 @@ export default function ChallengeConstructorPage() {
         initial={{ y: 40, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.7, duration: 0.6 }}
-        className="px-6 pb-8"
+        className="px-4 sm:px-6 pb-6 sm:pb-8"
       >
         <div className="max-w-7xl mx-auto">
           <Card className="bg-customgreys-secondarybg/50 backdrop-blur-sm border-orange-500/20 shadow-lg shadow-orange-500/5">
@@ -615,14 +615,14 @@ export default function ChallengeConstructorPage() {
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.8 }}
               >
-                <CardTitle className="text-2xl font-bold text-white mb-2">
+                <CardTitle className="text-xl sm:text-2xl font-bold text-white mb-2">
                   Tipos de <span className="bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent">Desafios</span> Disponíveis
                 </CardTitle>
-                <p className="text-gray-400">Escolha entre diversos formatos para criar exercícios envolventes</p>
+                <p className="text-sm sm:text-base text-gray-400">Escolha entre diversos formatos para criar exercícios envolventes</p>
               </motion.div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
                 {[
                   { name: 'Múltipla Escolha', icon: '⚪', desc: 'Selecionar resposta correta', color: 'orange' },
                   { name: 'Completar Lacuna', icon: '📝', desc: 'Preencher palavras que faltam', color: 'red' },
@@ -643,19 +643,19 @@ export default function ChallengeConstructorPage() {
                       scale: 1.05,
                       transition: { duration: 0.2 }
                     }}
-                    className={`bg-gradient-to-br from-customgreys-primarybg/60 to-customgreys-primarybg/80 rounded-xl p-6 border border-${type.color}-500/20 hover:border-${type.color}-400/50 transition-all duration-300 cursor-pointer group shadow-lg hover:shadow-${type.color}-500/20`}
+                    className={`bg-gradient-to-br from-customgreys-primarybg/60 to-customgreys-primarybg/80 rounded-lg sm:rounded-xl p-3 sm:p-4 lg:p-6 border border-${type.color}-500/20 hover:border-${type.color}-400/50 transition-all duration-300 cursor-pointer group shadow-lg hover:shadow-${type.color}-500/20`}
                   >
                     <motion.div 
-                      className="text-3xl mb-3 group-hover:scale-110 transition-transform"
+                      className="text-2xl sm:text-3xl mb-2 sm:mb-3 group-hover:scale-110 transition-transform"
                       whileHover={{ rotate: [0, -10, 10, 0] }}
                       transition={{ duration: 0.5 }}
                     >
                       {type.icon}
                     </motion.div>
-                    <h4 className={`text-white font-semibold text-sm mb-2 group-hover:text-${type.color}-300 transition-colors`}>
+                    <h4 className={`text-white font-semibold text-xs sm:text-sm mb-1 sm:mb-2 group-hover:text-${type.color}-300 transition-colors`}>
                       {type.name}
                     </h4>
-                    <p className="text-gray-400 text-xs leading-relaxed group-hover:text-gray-300 transition-colors">
+                    <p className="text-gray-400 text-xs leading-relaxed group-hover:text-gray-300 transition-colors hidden sm:block">
                       {type.desc}
                     </p>
                   </motion.div>
@@ -671,31 +671,31 @@ export default function ChallengeConstructorPage() {
         initial={{ y: 40, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.8, duration: 0.6 }}
-        className="px-6 pb-12"
+        className="px-4 sm:px-6 pb-8 sm:pb-12"
       >
         <div className="max-w-7xl mx-auto">
           <Card className="bg-customgreys-secondarybg/50 backdrop-blur-sm border-orange-500/20 shadow-lg shadow-orange-500/5">
-            <CardContent className="p-8">
-              <div className="flex items-start gap-6">
+            <CardContent className="p-4 sm:p-6 lg:p-8">
+              <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-6">
                 <motion.div 
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ delay: 1, type: "spring", stiffness: 200 }}
-                  className="p-4 bg-gradient-to-br from-orange-600 to-red-600 rounded-xl shadow-lg shadow-orange-500/25"
+                  className="p-3 sm:p-4 bg-gradient-to-br from-orange-600 to-red-600 rounded-xl shadow-lg shadow-orange-500/25 mx-auto sm:mx-0"
                 >
-                  <Target className="w-8 h-8 text-white" />
+                  <Target className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                 </motion.div>
                 <div className="flex-1">
                   <motion.h3 
                     initial={{ y: 20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 1.1 }}
-                    className="text-2xl font-semibold text-white mb-6"
+                    className="text-xl sm:text-2xl font-semibold text-white mb-4 sm:mb-6 text-center sm:text-left"
                   >
                     Como criar <span className="bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent">exercícios eficazes</span>?
                   </motion.h3>
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
+                  <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
+                    <div className="space-y-3 sm:space-y-4">
                       {[
                         { icon: "📋", title: "Planejamento", desc: "Escolha o tipo de desafio baseado no objetivo de aprendizagem" },
                         { icon: "🎯", title: "Progressão", desc: "Comece com exercícios fáceis e aumente a dificuldade" },
@@ -706,17 +706,17 @@ export default function ChallengeConstructorPage() {
                           initial={{ x: -20, opacity: 0 }}
                           animate={{ x: 0, opacity: 1 }}
                           transition={{ delay: 1.2 + index * 0.1 }}
-                          className="flex items-start gap-3 p-3 rounded-lg bg-orange-500/5 border border-orange-500/10 hover:bg-orange-500/10 transition-colors group"
+                          className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg bg-orange-500/5 border border-orange-500/10 hover:bg-orange-500/10 transition-colors group"
                         >
-                          <div className="text-xl group-hover:scale-110 transition-transform">{tip.icon}</div>
+                          <div className="text-lg sm:text-xl group-hover:scale-110 transition-transform flex-shrink-0">{tip.icon}</div>
                           <div>
-                            <p className="text-white font-medium mb-1">{tip.title}</p>
-                            <p className="text-gray-400 text-sm">{tip.desc}</p>
+                            <p className="text-white font-medium mb-1 text-sm sm:text-base">{tip.title}</p>
+                            <p className="text-gray-400 text-xs sm:text-sm">{tip.desc}</p>
                           </div>
                         </motion.div>
                       ))}
                     </div>
-                    <div className="space-y-4">
+                    <div className="space-y-3 sm:space-y-4">
                       {[
                         { icon: "💡", title: "Dicas", desc: "Sempre forneça dicas úteis para apoiar o aprendizado" },
                         { icon: "✅", title: "Feedback", desc: "Inclua explicações para respostas corretas e incorretas" },
@@ -727,12 +727,12 @@ export default function ChallengeConstructorPage() {
                           initial={{ x: -20, opacity: 0 }}
                           animate={{ x: 0, opacity: 1 }}
                           transition={{ delay: 1.5 + index * 0.1 }}
-                          className="flex items-start gap-3 p-3 rounded-lg bg-red-500/5 border border-red-500/10 hover:bg-red-500/10 transition-colors group"
+                          className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg bg-red-500/5 border border-red-500/10 hover:bg-red-500/10 transition-colors group"
                         >
-                          <div className="text-xl group-hover:scale-110 transition-transform">{tip.icon}</div>
+                          <div className="text-lg sm:text-xl group-hover:scale-110 transition-transform flex-shrink-0">{tip.icon}</div>
                           <div>
-                            <p className="text-white font-medium mb-1">{tip.title}</p>
-                            <p className="text-gray-400 text-sm">{tip.desc}</p>
+                            <p className="text-white font-medium mb-1 text-sm sm:text-base">{tip.title}</p>
+                            <p className="text-gray-400 text-xs sm:text-sm">{tip.desc}</p>
                           </div>
                         </motion.div>
                       ))}

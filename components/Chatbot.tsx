@@ -394,7 +394,7 @@ const Chatbot = () => {
                       value={inputValue}
                       onChange={(e) => setInputValue(e.target.value)}
                       onKeyDown={handleKeyDown}
-                      placeholder="Digite sua pergunta..."
+                      placeholder="Introduza a sua pergunta..."
                       className="flex-1 bg-gray-800/50 border border-gray-600 text-white placeholder:text-gray-400 focus:border-violet-500 focus:ring-violet-500/20 rounded-lg px-3 py-2 text-sm"
                       disabled={isTyping}
                     />
