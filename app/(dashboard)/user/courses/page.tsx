@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { useDjangoAuth } from '@/hooks/useDjangoAuth';
 import Loading from '@/components/course/Loading';
+import CourseCardsSkeleton from '@/components/course/CourseListSkeleton';
 import { EnrolledList } from './enrolled-list';
 import { 
   useGetMyVideoEnrollmentsQuery
@@ -94,11 +95,24 @@ const MyCoursesPage = () => {
 
   // Hook customizado para buscar progresso de cada curso
   const [coursesWithProgress, setCoursesWithProgress] = useState(enrolledCourses);
+  const [progressLoading, setProgressLoading] = useState(false);
+
+  // Update coursesWithProgress when enrolledCourses changes
+  useEffect(() => {
+    setCoursesWithProgress(enrolledCourses);
+    if (enrolledCourses.length > 0 && user?.id) {
+      setProgressLoading(true);
+    }
+  }, [enrolledCourses, user?.id]);
 
   useEffect(() => {
     const fetchProgressForCourses = async () => {
-      if (!user?.id || enrolledCourses.length === 0) return;
+      if (!user?.id || enrolledCourses.length === 0) {
+        setProgressLoading(false);
+        return;
+      }
 
+      setProgressLoading(true);
       const coursesWithRealProgress = await Promise.all(
         enrolledCourses.map(async (course) => {
           try {
@@ -164,6 +178,7 @@ const MyCoursesPage = () => {
       );
 
       setCoursesWithProgress(coursesWithRealProgress);
+      setProgressLoading(false);
     };
 
     fetchProgressForCourses();
@@ -204,7 +219,7 @@ const MyCoursesPage = () => {
 
 
 
-  if (isLoading || coursesLoading) return <Loading />;
+  if (isLoading) return <Loading />;
   if (!isAuthenticated || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-customgreys-primarybg text-white">
@@ -407,7 +422,20 @@ const MyCoursesPage = () => {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Enhanced Courses Section */}
-        {filteredAndSortedCourses.length === 0 ? (
+        {coursesLoading || progressLoading ? (
+          <>
+            <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+              <div className="w-32 h-5 bg-gray-600/20 rounded animate-pulse" />
+              
+              <div className="flex items-center gap-4">
+                <div className="w-24 h-8 bg-customgreys-darkGrey/50 rounded animate-pulse" />
+                <div className="w-16 h-8 bg-customgreys-darkGrey/50 rounded animate-pulse" />
+              </div>
+            </div>
+            
+            <CourseCardsSkeleton />
+          </>
+        ) : filteredAndSortedCourses.length === 0 ? (
           <Card className="bg-customgreys-secondarybg border-violet-900/30">
             <CardContent className="flex flex-col items-center justify-center py-12 sm:py-16 px-4">
               <div className="bg-violet-500/20 rounded-full p-4 sm:p-6 mb-4 sm:mb-6">

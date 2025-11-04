@@ -29,7 +29,15 @@ const ShopPage = () => {
     } = useFullUserProgressManagement();
 
     if (isLoading) {
-        return <Loading />;
+        return (
+            <Loading 
+                title="Loja de Corações"
+                subtitle="Energia & Recursos"
+                description="Carregando itens da loja..."
+                icon={ShoppingBasketIcon}
+                progress={65}
+            />
+        );
     }
 
     // Show error state or redirect if no user progress

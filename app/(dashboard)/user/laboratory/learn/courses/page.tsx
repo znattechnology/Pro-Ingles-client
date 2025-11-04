@@ -123,7 +123,15 @@ const LearnCourse = () => {
   }, [courses, searchTerm, filterLevel, sortBy]);
 
   if (isLoading) {
-    return <Loading />;
+    return (
+      <Loading 
+        title="Practice Laboratory"
+        subtitle="Cursos Interativos"
+        description="Carregando cursos disponíveis..."
+        icon={Target}
+        progress={75}
+      />
+    );
   }
 
   if (error) {

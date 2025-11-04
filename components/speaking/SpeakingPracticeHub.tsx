@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import Loading from "@/components/course/Loading";
 import { 
   Mic, 
   MessageCircle, 
@@ -67,7 +68,28 @@ const mockExerciseCategories = [
 
 export default function SpeakingPracticeHub() {
   const [isLoading, setIsLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const router = useRouter();
+
+  // Simulate initial data loading
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setInitialLoading(false);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (initialLoading) {
+    return (
+      <Loading 
+        title="Speaking Practice"
+        subtitle="Prática de Conversação"
+        description="Carregando exercícios de pronúncia..."
+        icon={Mic}
+        progress={85}
+      />
+    );
+  }
 
   const handleStartExercise = (exerciseId: string) => {
     setIsLoading(true);

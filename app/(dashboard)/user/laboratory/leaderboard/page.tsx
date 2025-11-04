@@ -84,7 +84,15 @@ export default function LeaderboardPage() {
   };
 
   if (isLoading) {
-    return <Loading />;
+    return (
+      <Loading 
+        title="Classificações"
+        subtitle="Competições & Rankings"
+        description="Carregando dados da competição..."
+        icon={Trophy}
+        progress={70}
+      />
+    );
   }
 
   return (

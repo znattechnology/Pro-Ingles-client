@@ -28,6 +28,7 @@ import {
   Calendar,
   ArrowRight,
   Zap,
+  LayoutDashboard,
   Crown
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -148,7 +149,15 @@ export default function StudentDashboard() {
   }, [studentProgress]);
 
   if (loading) {
-    return <Loading />;
+    return (
+      <Loading 
+        title="Dashboard do Estudante"
+        subtitle="Painel de Controle"
+        description="Carregando dados do seu progresso..."
+        icon={LayoutDashboard}
+        progress={75}
+      />
+    );
   }
 
   const progressPercentage = userStats ? (userStats.completedLessons / userStats.totalLessons) * 100 : 0;

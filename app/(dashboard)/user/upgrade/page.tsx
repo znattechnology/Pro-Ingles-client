@@ -30,6 +30,7 @@ import {
   Sparkles
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import Loading from "@/components/course/Loading";
 
 interface SubscriptionPlan {
   id: string;
@@ -234,16 +235,13 @@ export default function UpgradePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-customgreys-primarybg p-4 sm:p-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center py-8 sm:py-12">
-            <div className="animate-pulse">
-              <Crown className="w-10 h-10 sm:w-12 sm:h-12 text-yellow-400 mx-auto mb-3 sm:mb-4" />
-              <p className="text-gray-300 text-sm sm:text-base">A carregar planos...</p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <Loading 
+        title="Upgrade Premium"
+        subtitle="Planos & Assinaturas"
+        description="Carregando planos disponíveis..."
+        icon={Crown}
+        progress={65}
+      />
     );
   }
 

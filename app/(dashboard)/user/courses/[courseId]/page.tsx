@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -44,6 +44,8 @@ const CourseDetailsPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [isEnrolling, setIsEnrolling] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
+  const [isEnrolled, setIsEnrolled] = useState(false);
+  const [checkingEnrollment, setCheckingEnrollment] = useState(false);
 
   // Template icons mapping
   const templateIcons = {
@@ -61,6 +63,60 @@ const CourseDetailsPage = () => {
     medical: 'from-red-500 to-red-600',
     legal: 'from-yellow-500 to-yellow-600'
   };
+
+  // Check if user is enrolled by checking enrollment status
+  const checkEnrollment = useCallback(async () => {
+    console.log('🚀 checkEnrollment called - isAuthenticated:', isAuthenticated, 'user:', !!user, 'courseId:', courseId);
+    
+    if (!isAuthenticated || !user || !courseId) {
+      console.log('⚠️ Skipping enrollment check - missing requirements');
+      setIsEnrolled(false); // Ensure not enrolled state when not authenticated
+      return;
+    }
+
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+      console.log('⚠️ No access token found');
+      setIsEnrolled(false); // Ensure not enrolled state when no token
+      return;
+    }
+    
+    console.log('🔑 Token found, proceeding with API call');
+
+    try {
+      setCheckingEnrollment(true);
+      
+      // Use the enrollment status endpoint directly
+      const response = await fetch(`http://localhost:8000/api/v1/student/video-courses/${courseId}/enrollment-status/`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      console.log('🔍 Enrollment API response:', response.status);
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('📋 Enrollment data:', data);
+        const enrolled = data.data?.is_enrolled || false;
+        console.log('✅ Setting isEnrolled to:', enrolled);
+        setIsEnrolled(enrolled);
+        console.log('🎯 State after setIsEnrolled:', enrolled);
+      } else {
+        console.log('❌ API error, response:', response.status, response.statusText);
+        const errorText = await response.text();
+        console.log('❌ API error body:', errorText);
+        setIsEnrolled(false);
+      }
+      
+    } catch (err) {
+      console.error('Error checking enrollment:', err);
+      setIsEnrolled(false);
+    } finally {
+      setCheckingEnrollment(false);
+    }
+  }, [isAuthenticated, user, courseId]);
 
   // Fetch course details
   useEffect(() => {
@@ -93,6 +149,13 @@ const CourseDetailsPage = () => {
     fetchCourse();
   }, [courseId]);
 
+  // Check enrollment when user is authenticated 
+  useEffect(() => {
+    console.log('🔧 useEffect triggered - isAuthenticated:', isAuthenticated, 'user:', !!user, 'courseId:', courseId);
+    console.log('🔧 User details:', user ? `${user.name} (${user.id})` : 'No user');
+    checkEnrollment();
+  }, [checkEnrollment]);
+
   const handleEnrollment = async () => {
     if (!isAuthenticated || !user) {
       toast.error('Faça login para se inscrever no curso');
@@ -115,16 +178,39 @@ const CourseDetailsPage = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Erro ao se inscrever no curso');
+        const errorData = await response.json();
+        // If already enrolled, update state
+        if (response.status === 400 && errorData.error?.includes('already enrolled')) {
+          await checkEnrollment();
+          toast.info('Você já está inscrito neste curso!');
+          return;
+        }
+        throw new Error(errorData.error || 'Erro ao se inscrever no curso');
       }
       
       toast.success('Inscrição realizada com sucesso!');
-      router.push('/user/courses');
+      // Re-check enrollment status after successful enrollment
+      await checkEnrollment();
     } catch (error: any) {
       console.error('Enrollment error:', error);
       toast.error(error.message || 'Erro ao se inscrever no curso');
     } finally {
       setIsEnrolling(false);
+    }
+  };
+
+  const handleAccessCourse = () => {
+    // Navigate to the first section/chapter of the course using the correct route structure
+    if (course?.sections && course.sections.length > 0) {
+      const firstSection = course.sections[0];
+      if (firstSection.chapters && firstSection.chapters.length > 0) {
+        const firstChapter = firstSection.chapters[0];
+        router.push(`/user/courses/${courseId}/chapters/${firstChapter.chapterId}`);
+      } else {
+        router.push(`/user/courses/${courseId}`);
+      }
+    } else {
+      router.push(`/user/courses/${courseId}`);
     }
   };
 
@@ -280,14 +366,45 @@ const CourseDetailsPage = () => {
                     <p className="text-gray-400 text-sm">Acesso completo ao curso</p>
                   </div>
 
-                  <Button
-                    onClick={handleEnrollment}
-                    disabled={isEnrolling}
-                    className="w-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white shadow-lg h-11 sm:h-12 text-sm sm:text-base lg:text-lg font-semibold"
-                  >
-                    <span className="hidden sm:inline">{isEnrolling ? 'Inscrevendo...' : 'Inscrever-se no Curso'}</span>
-                    <span className="sm:hidden">{isEnrolling ? 'Inscrevendo...' : 'Inscrever-se'}</span>
-                  </Button>
+                  {(() => {
+                    console.log('🎯 Button render - checkingEnrollment:', checkingEnrollment, 'isEnrolled:', isEnrolled);
+                    
+                    if (checkingEnrollment) {
+                      return (
+                        <Button
+                          disabled
+                          className="w-full bg-gray-600 text-white shadow-lg h-11 sm:h-12 text-sm sm:text-base lg:text-lg font-semibold"
+                        >
+                          <span className="hidden sm:inline">Verificando...</span>
+                          <span className="sm:hidden">...</span>
+                        </Button>
+                      );
+                    }
+                    
+                    if (isEnrolled) {
+                      return (
+                        <Button
+                          onClick={handleAccessCourse}
+                          className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg h-11 sm:h-12 text-sm sm:text-base lg:text-lg font-semibold"
+                        >
+                          <PlayCircle className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                          <span className="hidden sm:inline">Acessar Curso</span>
+                          <span className="sm:hidden">Acessar</span>
+                        </Button>
+                      );
+                    }
+                    
+                    return (
+                      <Button
+                        onClick={handleEnrollment}
+                        disabled={isEnrolling}
+                        className="w-full bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white shadow-lg h-11 sm:h-12 text-sm sm:text-base lg:text-lg font-semibold"
+                      >
+                        <span className="hidden sm:inline">{isEnrolling ? 'Inscrevendo...' : 'Inscrever-se no Curso'}</span>
+                        <span className="sm:hidden">{isEnrolling ? 'Inscrevendo...' : 'Inscrever-se'}</span>
+                      </Button>
+                    );
+                  })()}
 
                   <div className="mt-6 space-y-3">
                     <div className="flex items-center justify-between text-xs sm:text-sm">

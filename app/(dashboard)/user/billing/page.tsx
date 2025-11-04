@@ -94,6 +94,7 @@ const UserBilling = () => {
     total_course_amount: "0"
   });
   const [transactionsLoading, setTransactionsLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
   
   const { user, isAuthenticated, isLoading: authLoading } = useDjangoAuth();
   
@@ -332,7 +333,27 @@ const UserBilling = () => {
     }
   }, [isAuthenticated, user]);
 
-  if (authLoading) return <Loading />;
+  // Initial loading management
+  useEffect(() => {
+    if (!authLoading && (!subscriptionLoading && !transactionsLoading)) {
+      const timer = setTimeout(() => {
+        setInitialLoading(false);
+      }, 1000); // Small delay to ensure smooth transition
+      return () => clearTimeout(timer);
+    }
+  }, [authLoading, subscriptionLoading, transactionsLoading]);
+
+  if (authLoading || initialLoading) {
+    return (
+      <Loading 
+        title="Facturação"
+        subtitle="Transações & Pagamentos"
+        description="Carregando histórico de pagamentos..."
+        icon={Receipt}
+        progress={70}
+      />
+    );
+  }
   
   if (!user) {
     return (
@@ -414,11 +435,7 @@ const UserBilling = () => {
             </CardHeader>
             
             <CardContent className="p-4 sm:p-6">
-              {subscriptionLoading ? (
-                <div className="flex items-center justify-center p-8">
-                  <Loading />
-                </div>
-              ) : subscriptionInfo ? (
+              {subscriptionInfo ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                   {/* Plan Information */}
                   <div className="bg-customgreys-darkGrey/50 rounded-lg p-4 border border-gray-600">
@@ -614,12 +631,7 @@ const UserBilling = () => {
 
               {/* Transactions Table */}
               <div className="rounded-lg border border-gray-600 overflow-hidden">
-                {transactionsLoading ? (
-                  <div className="flex items-center justify-center p-8 sm:p-12">
-                    <Loading />
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto">
+                <div className="overflow-x-auto">
                     <Table>
                       <TableHeader className="bg-customgreys-darkGrey">
                         <TableRow className="border-gray-600 hover:bg-transparent">
@@ -758,7 +770,6 @@ const UserBilling = () => {
                       </TableBody>
                     </Table>
                   </div>
-                )}
               </div>
 
               {/* Summary Stats */}

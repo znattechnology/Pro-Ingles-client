@@ -93,7 +93,15 @@ export default function AchievementsPage() {
   };
 
   if (isLoading) {
-    return <Loading />;
+    return (
+      <Loading 
+        title="Conquistas"
+        subtitle="Progresso & Medalhas"
+        description="Carregando suas conquistas..."
+        icon={Award}
+        progress={80}
+      />
+    );
   }
 
   return (

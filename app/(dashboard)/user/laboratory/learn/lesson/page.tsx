@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
 import { Quiz } from "./quiz";
 import Loading from "@/components/course/Loading";
+import { Target } from "lucide-react";
 // Direct Redux imports
 import { 
   useGetLessonDetailQuery,
@@ -49,7 +50,15 @@ const LessonPage = () => {
   }, [userProgress, progressLoading, activeLessonId, router]);
 
   if (isLoading) {
-    return <Loading />;
+    return (
+      <Loading 
+        title="Preparando Lição"
+        subtitle="Exercícios Interativos"
+        description="Carregando desafios de aprendizado..."
+        icon={Target}
+        progress={90}
+      />
+    );
   }
 
   // Show error state

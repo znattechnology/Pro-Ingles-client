@@ -68,7 +68,15 @@ const LearnPage = () => {
   }, [data, isLoading, router, pageNavigation]);
 
   if (isLoading) {
-    return <Loading />;
+    return (
+      <Loading 
+        title="Aprendizado Ativo"
+        subtitle="Curso em Progresso"
+        description="Carregando lições e progresso do curso..."
+        icon={BookOpen}
+        progress={85}
+      />
+    );
   }
 
   // Show error state

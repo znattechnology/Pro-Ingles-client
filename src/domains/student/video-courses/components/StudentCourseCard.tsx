@@ -140,15 +140,20 @@ const StudentCourseCard = ({
         <div className="absolute -top-10 -right-10 w-20 h-20 bg-violet-400/10 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
         
         <CardHeader className="relative p-0 overflow-hidden">
-          <div className="relative">
+          <div className="w-full h-[180px] overflow-hidden bg-customgreys-darkGrey flex items-center justify-center">
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent z-10" />
             <Image
               src={course.image || "/placeholder.png"}
               alt={course.title}
               width={400}
-              height={200}
-              className="w-full h-[160px] sm:h-[200px] object-cover transition-all duration-700 group-hover:scale-110"
+              height={180}
+              className="w-full h-[180px] object-cover transition-all duration-700 group-hover:scale-110"
               priority
+              style={{ 
+                width: '100%', 
+                height: '180px', 
+                objectFit: 'cover' 
+              }}
             />
             
             {/* Floating Action on Hover */}

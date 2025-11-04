@@ -9,6 +9,28 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'images.pexels.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'd13552ljikd29j.cloudfront.net',
+        port: '',
+        pathname: '/**',
+      },
+    ],
+  },
   // Rewrite para capturar todas as rotas Django
   async rewrites() {
     return [

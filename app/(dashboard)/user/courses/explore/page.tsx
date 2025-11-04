@@ -77,7 +77,15 @@ const LearnCourse = () => {
 
 
   if (isLoading) {
-    return <Loading />;
+    return (
+      <Loading 
+        title="Explorar Cursos"
+        subtitle="Biblioteca de Conteúdos"
+        description="Carregando cursos disponíveis..."
+        icon={BookOpen}
+        progress={80}
+      />
+    );
   }
 
   if (error) {

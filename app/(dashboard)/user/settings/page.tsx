@@ -135,7 +135,17 @@ export default function UserSettingsPage() {
     }
   };
 
-  if (isLoading) return <Loading />;
+  if (isLoading) {
+    return (
+      <Loading 
+        title="Configurações"
+        subtitle="Preferências & Conta"
+        description="Carregando suas configurações..."
+        icon={Settings}
+        progress={60}
+      />
+    );
+  }
   
   if (!isAuthenticated || !user) {
     return (

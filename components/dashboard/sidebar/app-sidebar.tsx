@@ -139,13 +139,13 @@ const navLinks = {
     },
     {
       title: "Aprendizado",
-      url: "/user/laboratory/learn",
+      url: "/user/laboratory/learn/courses",
       icon: Target,
       isActive: true,
       items: [
         {
           title: "Praticar",
-          url: "/user/laboratory/learn",
+          url: "/user/laboratory/learn/courses",
           icon: Target,
         },
         {
