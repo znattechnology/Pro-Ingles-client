@@ -18,9 +18,10 @@ NEXT_PUBLIC_API_URL = https://34.245.99.169
 NEXT_PUBLIC_FRONTEND_URL = https://pro-ingles-client-nine.vercel.app
 ```
 
-### Importante:
-- Use **HTTPS** em vez de HTTP
-- **Não incluir** a porta :8000 porque o Nginx faz o proxy
+### ⚠️ Importante:
+- **NÃO** adicione barra (`/`) no final das URLs
+- Use **HTTPS** (não HTTP)
+- **NÃO** inclua a porta `:8000` pois o Nginx faz o proxy
 - O Nginx está configurado para permitir CORS da origem do Vercel
 
 ## Configuração Atual do Nginx no Servidor
