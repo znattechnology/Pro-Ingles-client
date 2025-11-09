@@ -10,13 +10,20 @@ O frontend em produção (Vercel) está tentando acessar `http://34.245.99.169:8
 
 ### Painel Vercel → Settings → Environment Variables
 
-Adicione estas variáveis de ambiente para produção:
+## ✅ SOLUÇÃO DEFINITIVA: HTTPS com domínio próprio
+
+Certificado SSL Let's Encrypt configurado com sucesso!
 
 ```
-NEXT_PUBLIC_DJANGO_API_URL = https://34.245.99.169/api/v1
-NEXT_PUBLIC_API_URL = https://34.245.99.169
+NEXT_PUBLIC_DJANGO_API_URL = https://proenglish.cloud/api/v1
+NEXT_PUBLIC_API_URL = https://proenglish.cloud
 NEXT_PUBLIC_FRONTEND_URL = https://pro-ingles-client-nine.vercel.app
 ```
+
+**Status:**
+- ✅ DNS propagado: proenglish.cloud → 34.245.99.169
+- ✅ Certificado SSL válido até 07/02/2026
+- ⚠️ Django precisa reconhecer domínio (investigando)
 
 ### ⚠️ Importante:
 - **NÃO** adicione barra (`/`) no final das URLs
