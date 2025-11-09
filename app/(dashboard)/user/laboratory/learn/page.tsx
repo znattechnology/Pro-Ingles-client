@@ -250,10 +250,7 @@ const LearnPage = () => {
         {/* Right Sidebar - User Progress */}
         <div className="w-full lg:w-80 flex-shrink-0">
           <div className="lg:sticky lg:top-8 space-y-4 sm:space-y-6">
-            <UserProgressRedux
-              useRedux={true}
-              hasActiveSubscription={false}
-            />
+            <UserProgressRedux />
 
             {/* Enhanced Daily Tips Card */}
             <Card className="relative bg-gradient-to-br from-violet-500/20 via-purple-500/15 to-violet-500/10 border-violet-500/30 hover:border-violet-400/50 transition-all duration-300 overflow-hidden group">
@@ -380,7 +377,6 @@ const LearnPage = () => {
                     activeLesson={undefined}
                     activeLessonPercentage={0}
                     courseId={activeCourse?.id}
-                    useRedux={true}
                   />
                 </div>
               ))}

@@ -31,6 +31,15 @@ export {
   useFullMainLearnPage,
 } from './useMainLearnPage';
 
+// User Progress Hooks
+export {
+  useUserProgress,
+  usePointsSystem,
+  useHeartsSystem,
+  useActiveCourse,
+  useUserStats,
+} from './useUserProgress';
+
 // Re-export API hooks for convenience
 export {
   useGetStudentProgressQuery,
