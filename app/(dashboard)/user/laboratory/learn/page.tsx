@@ -20,9 +20,9 @@ import Loading from "@/components/course/Loading";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
-  useFullMainLearnPage,
-  useLearnPageNavigation 
-} from '@/redux/features/laboratory/hooks/useMainLearnPage';
+  useGetStudentProgressQuery,
+  useGetCourseUnitsWithProgressQuery
+} from '@/src/domains/student/practice-courses/api';
 import { 
   BookOpen, 
   Star,
@@ -39,48 +39,46 @@ import {
 const LearnPage = () => {
   const router = useRouter();
   
-  // Redux hooks
+  // Direct API calls using src/domains
   const {
-    data,
-    isLoading,
-    error,
-    stats,
-    actions,
-  } = useFullMainLearnPage();
-  
-  // Extract data from Redux
-  const userProgress = data?.userProgress;
-  const units = data?.units || [];
-  const courseProgress = data?.courseProgress;
-  const lessonPercentage = data?.lessonPercentage || 0;
+    data: userProgress,
+    isLoading: userProgressLoading,
+    error: userProgressError
+  } = useGetStudentProgressQuery();
+
+  // Get course units if we have an active course
+  const activeCourseId = userProgress?.active_course?.id;
+  const {
+    data: unitsData,
+    isLoading: unitsLoading,
+    error: unitsError
+  } = useGetCourseUnitsWithProgressQuery(activeCourseId || '', {
+    skip: !activeCourseId
+  });
+
+  // Combined loading and error states
+  const isLoading = userProgressLoading || unitsLoading;
+  const error = userProgressError || unitsError;
+  const units = unitsData?.units || [];
+  const activeCourse = unitsData?.course || userProgress?.active_course;
 
   // Debug logs
-  console.log('🔍 LEARN PAGE DEBUG - isLoading:', isLoading);
-  console.log('🔍 LEARN PAGE DEBUG - error:', error);
-  console.log('🔍 LEARN PAGE DEBUG - data:', data);
-  console.log('🔍 LEARN PAGE DEBUG - userProgress:', userProgress);
-  console.log('🔍 LEARN PAGE DEBUG - userProgress.active_course:', userProgress?.active_course);
-  console.log('🔍 LEARN PAGE DEBUG - units length:', units.length);
+  console.log('🔍 LEARN PAGE DIRECT API - userProgressLoading:', userProgressLoading);
+  console.log('🔍 LEARN PAGE DIRECT API - unitsLoading:', unitsLoading);
+  console.log('🔍 LEARN PAGE DIRECT API - isLoading:', isLoading);
+  console.log('🔍 LEARN PAGE DIRECT API - error:', error);
+  console.log('🔍 LEARN PAGE DIRECT API - userProgress:', userProgress);
+  console.log('🔍 LEARN PAGE DIRECT API - activeCourseId:', activeCourseId);
+  console.log('🔍 LEARN PAGE DIRECT API - units length:', units.length);
 
   
-  // Handle Redux navigation and redirects
-  const pageNavigation = useLearnPageNavigation();
-  
+  // Handle navigation - redirect to courses selection if no active course
   useEffect(() => {
-    console.log('🔍 LEARN PAGE NAVIGATION - Effect triggered');
-    console.log('🔍 LEARN PAGE NAVIGATION - data?.userProgress:', !!data?.userProgress);
-    console.log('🔍 LEARN PAGE NAVIGATION - isLoading:', isLoading);
-    
-    if (data?.userProgress && !isLoading) {
-      console.log('🔍 LEARN PAGE NAVIGATION - Calling navigateToActiveCourse');
-      const shouldContinue = pageNavigation.navigateToActiveCourse(router, data.userProgress);
-      console.log('🔍 LEARN PAGE NAVIGATION - shouldContinue:', shouldContinue);
-      if (!shouldContinue) {
-        console.log('🔍 LEARN PAGE NAVIGATION - Early return due to shouldContinue = false');
-        return;
-      }
+    if (!isLoading && userProgress && !userProgress.active_course) {
+      console.log('🔍 LEARN PAGE - No active course, redirecting to courses selection');
+      router.push('/user/laboratory/learn/courses');
     }
-  }, [data, isLoading, router, pageNavigation]);
+  }, [userProgress, isLoading, router]);
 
   if (isLoading) {
     return (
@@ -105,7 +103,9 @@ const LearnPage = () => {
             </div>
             <h2 className="text-xl font-bold text-white mb-3">Oops! Algo deu errado</h2>
             <p className="text-customgreys-dirtyGrey mb-6 leading-relaxed">
-              {error}
+              {error && typeof error === 'object' && 'message' in error 
+                ? (error as any).message 
+                : 'Erro ao carregar dados do curso'}
             </p>
             <div className="flex flex-col gap-3">
               <Button
@@ -128,20 +128,21 @@ const LearnPage = () => {
     );
   }
 
-  if (!userProgress || !userProgress.active_course) {
-    console.log('🚨 LEARN PAGE - Returning null because no userProgress or active_course');
-    console.log('🚨 LEARN PAGE - userProgress exists:', !!userProgress);
-    console.log('🚨 LEARN PAGE - active_course exists:', !!userProgress?.active_course);
-    return null; // Will redirect via useEffect
+  // If no userProgress yet, wait for loading
+  if (!userProgress) {
+    return null;
   }
 
-  const activeCourse = data?.activeCourse || (userProgress as any)?.active_course;
+  // If no active course, the useEffect will redirect
+  if (!userProgress.active_course) {
+    return null;
+  }
   
-  // Get stats from Redux or calculate fallback stats
-  const userStats = stats || {
-    hearts: (userProgress as any)?.hearts || 5,
-    points: (userProgress as any)?.points || 0,
-    streak: 7, // Mock data - replace with real API
+  // Calculate stats directly from API data
+  const userStats = {
+    hearts: userProgress?.hearts || 5,
+    points: userProgress?.points || 0,
+    streak: userProgress?.streak || 0,
     completedLessons: (() => {
       const safeUnits = Array.isArray(units) ? units : [];
       return safeUnits.reduce((acc: number, unit: any) => {
@@ -156,7 +157,7 @@ const LearnPage = () => {
         return acc + unit.lessons.length;
       }, 0);
     })(),
-    courseProgressPercentage: 0,
+    courseProgressPercentage: unitsData?.overall_progress?.percentage || 0,
   };
   
   // Calculate progress percentage
@@ -336,9 +337,6 @@ const LearnPage = () => {
                     variant="ghost"
                     size="sm"
                     onClick={() => {
-                      if (actions) {
-                        actions.buyHearts();
-                      }
                       router.push('/user/laboratory/learn/shop');
                     }}
                     className="w-full justify-start text-customgreys-dirtyGrey hover:text-white hover:bg-red-500/10 hover:border-red-500/20 border border-transparent transition-all duration-200 group min-h-[36px]"
@@ -352,9 +350,6 @@ const LearnPage = () => {
                     variant="ghost"
                     size="sm"
                     onClick={() => {
-                      if (actions) {
-                        actions.viewAchievements();
-                      }
                       router.push('/user/laboratory/achievements');
                     }}
                     className="w-full justify-start text-customgreys-dirtyGrey hover:text-white hover:bg-yellow-500/10 hover:border-yellow-500/20 border border-transparent transition-all duration-200 group min-h-[36px]"
@@ -368,9 +363,6 @@ const LearnPage = () => {
                     variant="ghost"
                     size="sm"
                     onClick={() => {
-                      if (actions) {
-                        actions.viewLeaderboard();
-                      }
                       router.push('/user/laboratory/leaderboard');
                     }}
                     className="w-full justify-start text-customgreys-dirtyGrey hover:text-white hover:bg-purple-500/10 hover:border-purple-500/20 border border-transparent transition-all duration-200 group min-h-[36px]"
@@ -436,8 +428,8 @@ const LearnPage = () => {
                     description={unit.description}
                     title={unit.title}
                     lessons={unit.lessons || []}
-                    activeLesson={(courseProgress as any)?.activeLesson}
-                    activeLessonPercentage={lessonPercentage || 0}
+                    activeLesson={undefined}
+                    activeLessonPercentage={0}
                     courseId={activeCourse?.id}
                     useRedux={true}
                   />
