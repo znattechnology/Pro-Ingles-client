@@ -51,6 +51,9 @@ export interface LearnPageStats {
 export const useMainLearnPage = (): LearnPageResult => {
   const useRedux = useFeatureFlag('REDUX_MAIN_LEARN_PAGE');
   
+  // Debug the feature flag
+  console.log('🔍 FEATURE FLAG DEBUG - REDUX_MAIN_LEARN_PAGE:', useRedux);
+  
   // Get user progress (sempre Redux se habilitado)
   const { 
     data: userProgress, 
@@ -58,6 +61,11 @@ export const useMainLearnPage = (): LearnPageResult => {
     error: userProgressError, 
     refetch: refetchUserProgress 
   } = useGetUserProgressQuery();
+
+  // Debug logs for user progress query
+  console.log('🔍 USER PROGRESS QUERY DEBUG - userProgressLoading:', userProgressLoading);
+  console.log('🔍 USER PROGRESS QUERY DEBUG - userProgressError:', userProgressError);
+  console.log('🔍 USER PROGRESS QUERY DEBUG - userProgress:', userProgress);
   
   // Get course units if we have an active course
   const activeCourseId = userProgress?.active_course?.id;
@@ -100,6 +108,7 @@ export const useMainLearnPage = (): LearnPageResult => {
     };
   } else {
     // Legacy implementation fallback
+    console.log('🚨 USING LEGACY IMPLEMENTATION - Feature flag disabled, returning null data');
     return {
       data: null,
       isLoading: false,
