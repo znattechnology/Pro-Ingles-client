@@ -116,7 +116,7 @@ const MyCoursesPage = () => {
       const coursesWithRealProgress = await Promise.all(
         enrolledCourses.map(async (course) => {
           try {
-            const apiUrl = `http://localhost:8000/api/v1/courses/users/${user.id}/progress/${course.id}/`;
+            const apiUrl = `${process.env.NEXT_PUBLIC_DJANGO_API_URL}/courses/users/${user.id}/progress/${course.id}/`;
             console.log(`Fetching progress from: ${apiUrl}`);
             
             // Buscar progresso real da API Django

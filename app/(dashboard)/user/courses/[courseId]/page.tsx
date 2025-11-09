@@ -87,7 +87,7 @@ const CourseDetailsPage = () => {
       setCheckingEnrollment(true);
       
       // Use the enrollment status endpoint directly
-      const response = await fetch(`http://localhost:8000/api/v1/student/video-courses/${courseId}/enrollment-status/`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_DJANGO_API_URL}/student/video-courses/${courseId}/enrollment-status/`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -130,7 +130,7 @@ const CourseDetailsPage = () => {
 
       try {
         setIsLoading(true);
-        const response = await fetch(`http://localhost:8000/api/v1/courses/${courseId}/`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_DJANGO_API_URL}/courses/${courseId}/`);
         
         if (!response.ok) {
           throw new Error('Curso não encontrado');
@@ -164,7 +164,7 @@ const CourseDetailsPage = () => {
 
     try {
       setIsEnrolling(true);
-      const response = await fetch('http://localhost:8000/api/v1/courses/transactions/create/', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_DJANGO_API_URL}/courses/transactions/create/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

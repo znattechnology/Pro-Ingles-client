@@ -43,7 +43,7 @@ export const EnrolledList = ({courses, activeCourseId, viewMode = 'grid'}: Props
         startTransition(async () => {
             try {
                 // First, try to get the course data to find the first chapter
-                const response = await fetch(`http://localhost:8000/api/v1/courses/${id}/`, {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_DJANGO_API_URL}/courses/${id}/`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
                         'Content-Type': 'application/json',
