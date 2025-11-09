@@ -54,14 +54,29 @@ const LearnPage = () => {
   const courseProgress = data?.courseProgress;
   const lessonPercentage = data?.lessonPercentage || 0;
 
+  // Debug logs
+  console.log('🔍 LEARN PAGE DEBUG - isLoading:', isLoading);
+  console.log('🔍 LEARN PAGE DEBUG - error:', error);
+  console.log('🔍 LEARN PAGE DEBUG - data:', data);
+  console.log('🔍 LEARN PAGE DEBUG - userProgress:', userProgress);
+  console.log('🔍 LEARN PAGE DEBUG - userProgress.active_course:', userProgress?.active_course);
+  console.log('🔍 LEARN PAGE DEBUG - units length:', units.length);
+
   
   // Handle Redux navigation and redirects
   const pageNavigation = useLearnPageNavigation();
   
   useEffect(() => {
+    console.log('🔍 LEARN PAGE NAVIGATION - Effect triggered');
+    console.log('🔍 LEARN PAGE NAVIGATION - data?.userProgress:', !!data?.userProgress);
+    console.log('🔍 LEARN PAGE NAVIGATION - isLoading:', isLoading);
+    
     if (data?.userProgress && !isLoading) {
+      console.log('🔍 LEARN PAGE NAVIGATION - Calling navigateToActiveCourse');
       const shouldContinue = pageNavigation.navigateToActiveCourse(router, data.userProgress);
+      console.log('🔍 LEARN PAGE NAVIGATION - shouldContinue:', shouldContinue);
       if (!shouldContinue) {
+        console.log('🔍 LEARN PAGE NAVIGATION - Early return due to shouldContinue = false');
         return;
       }
     }
@@ -114,6 +129,9 @@ const LearnPage = () => {
   }
 
   if (!userProgress || !userProgress.active_course) {
+    console.log('🚨 LEARN PAGE - Returning null because no userProgress or active_course');
+    console.log('🚨 LEARN PAGE - userProgress exists:', !!userProgress);
+    console.log('🚨 LEARN PAGE - active_course exists:', !!userProgress?.active_course);
     return null; // Will redirect via useEffect
   }
 
