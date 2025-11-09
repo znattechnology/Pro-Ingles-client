@@ -148,51 +148,40 @@ export const usePracticeSession = (lessonId: string | null) => {
   }, [lesson, challenges, useRedux, dispatch]);
   
   const submitAnswer = useCallback(async (challengeId: string, selectedOptionId: string) => {
-    if (useRedux) {
-      try {
-        console.log('🧪 Using Redux for challenge submission', { challengeId, selectedOptionId });
-        const result = await submitChallengeRedux({
-          challengeId,
-          selectedOptionId,
-          timeSpent: Date.now(), // This would be calculated properly
-          attempts: 1,
-        }).unwrap();
-        
-        // Update local session state
-        dispatch(submitChallengeAnswer({
-          correct: result.correct,
-          pointsEarned: result.pointsEarned,
-          heartsUsed: result.heartsUsed,
-        }));
-        
-        return result;
-      } catch (error) {
-        console.error('Failed to submit challenge:', error);
-        throw error;
-      }
-    } else {
-      // Legacy implementation
-      return await upsertChallengeProgress(challengeId, selectedOptionId);
+    try {
+      console.log('🧪 Using Redux for challenge submission', { challengeId, selectedOptionId });
+      const result = await submitChallengeRedux({
+        challengeId,
+        selectedOptionId,
+        timeSpent: Date.now(), // This would be calculated properly
+        attempts: 1,
+      }).unwrap();
+      
+      // Update local session state
+      dispatch(submitChallengeAnswer({
+        correct: result.challenge_progress?.correct || false,
+        pointsEarned: result.user_progress?.points || 0,
+        heartsUsed: result.user_progress?.hearts || 5,
+      }));
+      
+      return result;
+    } catch (error) {
+      console.error('Challenge submission error:', error);
+      throw error;
     }
-  }, [useRedux, submitChallengeRedux, dispatch]);
+  }, [submitChallengeRedux, dispatch]);
   
   const skipChallenge = useCallback(() => {
-    if (useRedux) {
-      dispatch(nextChallenge());
-    }
-  }, [useRedux, dispatch]);
+    dispatch(nextChallenge());
+  }, [dispatch]);
   
   const nextChallengeHandler = useCallback(() => {
-    if (useRedux) {
-      dispatch(nextChallenge());
-    }
-  }, [useRedux, dispatch]);
+    dispatch(nextChallenge());
+  }, [dispatch]);
   
   const endSession = useCallback(() => {
-    if (useRedux) {
-      dispatch(endPracticeSession());
-    }
-  }, [useRedux, dispatch]);
+    dispatch(endPracticeSession());
+  }, [dispatch]);
   
   const actions: ChallengeActions = {
     submitAnswer,
@@ -217,7 +206,7 @@ export const useHeartsManagement = () => {
   const useRedux = useFeatureFlag('REDUX_USER_PROGRESS');
   const [reduceHeartsRedux] = useReduceHeartsRedux();
   
-  const reduceUserHearts = useCallback(async (challengeId?: string) => {
+  const reduceUserHearts = useCallback(async () => {
     if (useRedux) {
       const result = await reduceHeartsRedux().unwrap();
       return result;
@@ -252,10 +241,8 @@ export const usePracticeNavigation = () => {
   }, [useRedux, dispatch]);
   
   const endSession = useCallback(() => {
-    if (useRedux) {
-      dispatch(endPracticeSession());
-    }
-  }, [useRedux, dispatch]);
+    dispatch(endPracticeSession());
+  }, [dispatch]);
   
   return {
     goToLesson,

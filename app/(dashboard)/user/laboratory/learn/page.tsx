@@ -1,28 +1,24 @@
 "use client";
 
 /**
- * Modern Learning Interface - Redesigned Student Experience
+ * Modern Learning Interface - Clean Implementation
  * 
- * This is the modernized learning interface that follows the same design
- * principles as the teacher laboratory system. Provides a premium Duolingo-style
- * experience with dark theme consistency.
- * 
- * 🔄 REDUX MIGRATION: This component now supports Redux with feature flags
+ * This component now uses the new hook system from src/domains
+ * completely replacing the Redux dependency. Provides a premium 
+ * Duolingo-style experience with dark theme consistency.
  */
 
 import { FeedWrapper } from "@/components/learn/FeedWrapper";
 import { LearnHeader } from "./header";
 import { UserProgressRedux } from "@/components/learn/UserProgressRedux";
 import { UnitRedux } from "./unit-redux";
-import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import Loading from "@/components/course/Loading";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
-  useGetStudentProgressQuery,
-  useGetCourseUnitsWithProgressQuery
-} from '@/src/domains/student/practice-courses/api';
+  useFullMainLearnPage
+} from '@/src/domains/student/practice-courses/hooks';
 import { 
   BookOpen, 
   Star,
@@ -37,49 +33,35 @@ import {
 } from "lucide-react";
 
 const LearnPage = () => {
-  const router = useRouter();
-  
-  // Direct API calls using src/domains
+  // Use the new clean hook - single source of truth
   const {
-    data: userProgress,
-    isLoading: userProgressLoading,
-    error: userProgressError
-  } = useGetStudentProgressQuery();
-
-  // Get course units if we have an active course
-  const activeCourseId = userProgress?.active_course?.id;
-  const {
-    data: unitsData,
-    isLoading: unitsLoading,
-    error: unitsError
-  } = useGetCourseUnitsWithProgressQuery(activeCourseId || '', {
-    skip: !activeCourseId
-  });
-
-  // Combined loading and error states
-  const isLoading = userProgressLoading || unitsLoading;
-  const error = userProgressError || unitsError;
-  const units = unitsData?.units || [];
-  const activeCourse = unitsData?.course || userProgress?.active_course;
+    data,
+    isLoading,
+    error,
+    actions,
+    shouldRedirectToSelection,
+    userProgress,
+    course: activeCourse,
+    units,
+    stats: userStats,
+  } = useFullMainLearnPage();
 
   // Debug logs
-  console.log('🔍 LEARN PAGE DIRECT API - userProgressLoading:', userProgressLoading);
-  console.log('🔍 LEARN PAGE DIRECT API - unitsLoading:', unitsLoading);
-  console.log('🔍 LEARN PAGE DIRECT API - isLoading:', isLoading);
-  console.log('🔍 LEARN PAGE DIRECT API - error:', error);
-  console.log('🔍 LEARN PAGE DIRECT API - userProgress:', userProgress);
-  console.log('🔍 LEARN PAGE DIRECT API - activeCourseId:', activeCourseId);
-  console.log('🔍 LEARN PAGE DIRECT API - units length:', units.length);
+  console.log('🔍 LEARN PAGE MODERN HOOK - isLoading:', isLoading);
+  console.log('🔍 LEARN PAGE MODERN HOOK - error:', error);
+  console.log('🔍 LEARN PAGE MODERN HOOK - data:', data);
+  console.log('🔍 LEARN PAGE MODERN HOOK - userProgress:', userProgress);
+  console.log('🔍 LEARN PAGE MODERN HOOK - units length:', units.length);
 
-  
   // Handle navigation - redirect to courses selection if no active course
   useEffect(() => {
-    if (!isLoading && userProgress && !userProgress.active_course) {
+    if (shouldRedirectToSelection()) {
       console.log('🔍 LEARN PAGE - No active course, redirecting to courses selection');
-      router.push('/user/laboratory/learn/courses');
+      actions.navigateToCourseSelection();
     }
-  }, [userProgress, isLoading, router]);
+  }, [shouldRedirectToSelection, actions]);
 
+  // Loading state
   if (isLoading) {
     return (
       <Loading 
@@ -92,7 +74,7 @@ const LearnPage = () => {
     );
   }
 
-  // Show error state
+  // Error state
   if (error) {
     return (
       <div className="min-h-screen bg-customgreys-primarybg flex items-center justify-center">
@@ -116,10 +98,11 @@ const LearnPage = () => {
               </Button>
               <Button
                 variant="outline"
-                onClick={() => router.push('/auth/signin')}
+                onClick={() => actions.navigateToDashboard()}
                 className="bg-customgreys-primarybg border-customgreys-darkerGrey text-white hover:bg-customgreys-darkerGrey"
               >
-                Fazer Login
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Voltar ao Dashboard
               </Button>
             </div>
           </CardContent>
@@ -128,41 +111,13 @@ const LearnPage = () => {
     );
   }
 
-  // If no userProgress yet, wait for loading
-  if (!userProgress) {
+  // If no data yet, wait for loading
+  if (!data) {
     return null;
   }
 
-  // If no active course, the useEffect will redirect
-  if (!userProgress.active_course) {
-    return null;
-  }
-  
-  // Calculate stats directly from API data
-  const userStats = {
-    hearts: userProgress?.hearts || 5,
-    points: userProgress?.points || 0,
-    streak: userProgress?.streak || 0,
-    completedLessons: (() => {
-      const safeUnits = Array.isArray(units) ? units : [];
-      return safeUnits.reduce((acc: number, unit: any) => {
-        if (!unit?.lessons || !Array.isArray(unit.lessons)) return acc;
-        return acc + unit.lessons.filter((lesson: any) => lesson?.completed === true).length;
-      }, 0);
-    })(),
-    totalLessons: (() => {
-      const safeUnits = Array.isArray(units) ? units : [];
-      return safeUnits.reduce((acc: number, unit: any) => {
-        if (!unit?.lessons || !Array.isArray(unit.lessons)) return acc;
-        return acc + unit.lessons.length;
-      }, 0);
-    })(),
-    courseProgressPercentage: unitsData?.overall_progress?.percentage || 0,
-  };
-  
-  // Calculate progress percentage
-  const courseProgressPercentage = userStats.courseProgressPercentage || 
-    (userStats.totalLessons > 0 ? Math.round((userStats.completedLessons / userStats.totalLessons) * 100) : 0);
+  // Use progress percentage from stats
+  const courseProgressPercentage = userStats?.courseProgressPercentage || 0;
   
   // Safe units array
   const safeUnits = Array.isArray(units) ? units : [];
@@ -177,7 +132,7 @@ const LearnPage = () => {
           <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
             <Button
               variant="ghost"
-              onClick={() => router.push('/user/dashboard')}
+              onClick={actions.navigateToDashboard}
               className="text-customgreys-dirtyGrey hover:text-white hover:bg-customgreys-primarybg/50 transition-all duration-200 px-2 sm:px-4"
             >
               <ArrowLeft className="w-4 h-4 mr-1 sm:mr-2" />
@@ -227,8 +182,8 @@ const LearnPage = () => {
                   <div className="flex-1 text-center sm:text-left">
                     <p className="text-customgreys-dirtyGrey text-xs sm:text-sm font-medium">Lições</p>
                     <div className="flex items-baseline justify-center sm:justify-start gap-1">
-                      <span className="text-white text-lg sm:text-xl font-bold">{userStats.completedLessons}</span>
-                      <span className="text-customgreys-dirtyGrey text-xs sm:text-sm">/{userStats.totalLessons}</span>
+                      <span className="text-white text-lg sm:text-xl font-bold">{userStats?.completedLessons || 0}</span>
+                      <span className="text-customgreys-dirtyGrey text-xs sm:text-sm">/{userStats?.totalLessons || 0}</span>
                     </div>
                   </div>
                 </div>
@@ -245,7 +200,7 @@ const LearnPage = () => {
                   <div className="flex-1 text-center sm:text-left">
                     <p className="text-customgreys-dirtyGrey text-xs sm:text-sm font-medium">Sequência</p>
                     <div className="flex items-baseline justify-center sm:justify-start gap-1">
-                      <span className="text-white text-lg sm:text-xl font-bold">{userStats.streak}</span>
+                      <span className="text-white text-lg sm:text-xl font-bold">{userStats?.streak || 0}</span>
                       <span className="text-customgreys-dirtyGrey text-xs sm:text-sm">dias</span>
                     </div>
                   </div>
@@ -263,7 +218,7 @@ const LearnPage = () => {
                   <div className="flex-1 text-center sm:text-left">
                     <p className="text-customgreys-dirtyGrey text-xs sm:text-sm font-medium">Corações</p>
                     <div className="flex items-baseline justify-center sm:justify-start gap-1">
-                      <span className="text-white text-lg sm:text-xl font-bold">{userStats.hearts}</span>
+                      <span className="text-white text-lg sm:text-xl font-bold">{userStats?.hearts || 5}</span>
                       <span className="text-customgreys-dirtyGrey text-xs sm:text-sm">/5</span>
                     </div>
                   </div>
@@ -280,7 +235,7 @@ const LearnPage = () => {
                   </div>
                   <div className="flex-1 text-center sm:text-left">
                     <p className="text-customgreys-dirtyGrey text-xs sm:text-sm font-medium">Pontos</p>
-                    <span className="text-white text-lg sm:text-xl font-bold">{userStats.points.toLocaleString()}</span>
+                    <span className="text-white text-lg sm:text-xl font-bold">{(userStats?.points || 0).toLocaleString()}</span>
                   </div>
                 </div>
               </CardContent>
@@ -336,9 +291,7 @@ const LearnPage = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => {
-                      router.push('/user/laboratory/learn/shop');
-                    }}
+                    onClick={actions.navigateToShop}
                     className="w-full justify-start text-customgreys-dirtyGrey hover:text-white hover:bg-red-500/10 hover:border-red-500/20 border border-transparent transition-all duration-200 group min-h-[36px]"
                   >
                     <div className="bg-red-500/20 rounded-lg p-1 mr-2 sm:mr-3 group-hover:bg-red-500/30 transition-colors duration-200">
@@ -349,9 +302,7 @@ const LearnPage = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => {
-                      router.push('/user/laboratory/achievements');
-                    }}
+                    onClick={actions.navigateToAchievements}
                     className="w-full justify-start text-customgreys-dirtyGrey hover:text-white hover:bg-yellow-500/10 hover:border-yellow-500/20 border border-transparent transition-all duration-200 group min-h-[36px]"
                   >
                     <div className="bg-yellow-500/20 rounded-lg p-1 mr-2 sm:mr-3 group-hover:bg-yellow-500/30 transition-colors duration-200">
@@ -362,9 +313,7 @@ const LearnPage = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => {
-                      router.push('/user/laboratory/leaderboard');
-                    }}
+                    onClick={actions.navigateToLeaderboard}
                     className="w-full justify-start text-customgreys-dirtyGrey hover:text-white hover:bg-purple-500/10 hover:border-purple-500/20 border border-transparent transition-all duration-200 group min-h-[36px]"
                   >
                     <div className="bg-purple-500/20 rounded-lg p-1 mr-2 sm:mr-3 group-hover:bg-purple-500/30 transition-colors duration-200">
@@ -386,7 +335,7 @@ const LearnPage = () => {
               <LearnHeader title={activeCourse?.title || 'Carregando...'} />
               
               {/* Enhanced Progress Summary */}
-              {userStats.totalLessons > 0 && (
+              {(userStats?.totalLessons || 0) > 0 && (
                 <Card className="mt-3 sm:mt-4 bg-gradient-to-r from-customgreys-secondarybg to-customgreys-primarybg border-customgreys-darkerGrey hover:border-green-500/20 transition-all duration-300">
                   <CardContent className="p-4 sm:p-5">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 mb-3">
@@ -401,7 +350,7 @@ const LearnPage = () => {
                           {courseProgressPercentage}%
                         </div>
                         <div className="text-xs text-customgreys-dirtyGrey">
-                          {userStats.completedLessons} de {userStats.totalLessons} lições
+                          {userStats?.completedLessons || 0} de {userStats?.totalLessons || 0} lições
                         </div>
                       </div>
                     </div>
@@ -466,7 +415,7 @@ const LearnPage = () => {
                   
                   <div className="flex flex-col sm:flex-row gap-3">
                     <Button
-                      onClick={() => router.push('/user/laboratory/learn/courses')}
+                      onClick={actions.navigateToCourseSelection}
                       className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
                     >
                       <BookOpen className="w-4 h-4 mr-2" />
@@ -474,7 +423,7 @@ const LearnPage = () => {
                     </Button>
                     <Button
                       variant="outline"
-                      onClick={() => router.push('/user/dashboard')}
+                      onClick={actions.navigateToDashboard}
                       className="bg-customgreys-primarybg border-customgreys-darkerGrey text-white hover:bg-customgreys-darkerGrey hover:border-customgreys-dirtyGrey transition-all duration-200"
                     >
                       <ArrowLeft className="w-4 h-4 mr-2" />

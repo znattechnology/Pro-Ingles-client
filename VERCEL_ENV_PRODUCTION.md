@@ -23,7 +23,8 @@ NEXT_PUBLIC_FRONTEND_URL = https://pro-ingles-client-nine.vercel.app
 **Status:**
 - ✅ DNS propagado: proenglish.cloud → 34.245.99.169
 - ✅ Certificado SSL válido até 07/02/2026
-- ⚠️ Django precisa reconhecer domínio (investigando)
+- ✅ URLs hardcoded localhost:8000 corrigidas no frontend (commit 53f73c7)
+- 🔄 Atualizar variáveis no Vercel e fazer redeploy
 
 ### ⚠️ Importante:
 - **NÃO** adicione barra (`/`) no final das URLs
