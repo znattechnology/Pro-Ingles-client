@@ -178,7 +178,7 @@ export default function TeacherDashboard() {
               transition={{ delay: 0.3, duration: 0.6 }}
               className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2 text-white"
             >
-              Bem-vindo, <span className="bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent">{user.name || 'Professor'}</span>! 
+              Bemvindo, <span className="bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent">{user.name || 'Professor'}</span>! 
               <motion.span
                 animate={{ rotate: [0, 10, -10, 0] }}
                 transition={{ duration: 2, repeat: Infinity, delay: 1 }}
@@ -298,7 +298,7 @@ export default function TeacherDashboard() {
                 <div>
                   <p className="text-xs sm:text-sm text-gray-400">Total Estudantes</p>
                   <p className="text-xl sm:text-2xl font-bold text-white">{teacherStats.totalStudents}</p>
-                  <p className="text-xs text-blue-400">{teacherStats.activeStudents} ativos</p>
+                  <p className="text-xs text-blue-400">{teacherStats.activeStudents} activos</p>
                 </div>
               </div>
             </CardContent>
@@ -363,7 +363,7 @@ export default function TeacherDashboard() {
                   <Brain className="w-5 h-5 sm:w-6 sm:h-6 text-pink-400" />
                 </motion.div>
                 <div>
-                  <p className="text-xs sm:text-sm text-gray-400">Taxa Conclusão</p>
+                  <p className="text-xs sm:text-sm text-gray-400">Taxa de Conclusão</p>
                   <p className="text-xl sm:text-2xl font-bold text-white">{teacherStats.avgCompletionRate.toFixed(1)}%</p>
                   <p className="text-xs text-pink-400">dos estudantes</p>
                 </div>

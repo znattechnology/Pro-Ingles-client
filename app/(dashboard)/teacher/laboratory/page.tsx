@@ -141,7 +141,7 @@ const LaboratoryDashboard = () => {
               transition={{ delay: 0.3, duration: 0.6 }}
               className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-3 sm:mb-4 leading-tight px-2"
             >
-              Seu <span className="bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent">Studio</span> de Ensino
+              O seu <span className="bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent">Studio</span> de Ensino
             </motion.h1>
             
             <motion.p 
@@ -171,7 +171,7 @@ const LaboratoryDashboard = () => {
               </div>
               <div className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-1">{stats?.totalCourses || 0}</div>
               <div className="text-xs sm:text-sm text-gray-400">
-                <span className="hidden sm:inline">Cursos Ativos</span>
+                <span className="hidden sm:inline">Cursos Activos</span>
                 <span className="sm:hidden">Cursos</span>
               </div>
             </motion.div>
