@@ -361,9 +361,86 @@ export const useUnitProgression = (courseId: string | null) => {
     };
   }, []);
 
+  // Get unit progress (copying Redux logic exactly)
+  const getUnitProgress = useCallback((unitId: string) => {
+    const units = learningPath.unitsProgress;
+    const unit = units.find(u => u.id === unitId);
+    
+    if (!unit) {
+      return {
+        isUnlocked: false,
+        isCompleted: false,
+        progressPercentage: 0,
+        completedLessons: 0,
+        totalLessons: 0
+      };
+    }
+    
+    return {
+      isUnlocked: unit.isUnlocked,
+      isCompleted: unit.isCompleted,
+      progressPercentage: unit.progress,
+      completedLessons: unit.completedLessons,
+      totalLessons: unit.totalLessons
+    };
+  }, [learningPath]);
+  
+  // Get lesson progress (copying Redux logic exactly)  
+  const getLessonProgress = useCallback((lessonId: string, unitId: string) => {
+    const units = learningPath.unitsProgress;
+    const unit = units.find(u => u.id === unitId);
+    
+    if (!unit) {
+      return {
+        isLocked: true,
+        isCompleted: false,
+        isCurrent: false,
+        progressPercentage: 0
+      };
+    }
+    
+    const lesson = unit.lessons.find(l => l.id === lessonId);
+    if (!lesson) {
+      return {
+        isLocked: true,
+        isCompleted: false,
+        isCurrent: false,
+        progressPercentage: 0
+      };
+    }
+    
+    // Check if lesson is locked using the exact same logic as Redux
+    const unitIndex = units.findIndex(u => u.id === unitId);
+    const isFirstUnit = unitIndex === 0;
+    const lessonIndex = unit.lessons.findIndex(l => l.id === lessonId);
+    const lessonUnitLocked = !isFirstUnit && unit ? !unit.isUnlocked : false;
+    
+    let isLessonLocked = lesson.locked || lessonUnitLocked;
+    if (lessonIndex === 0 && isFirstUnit) {
+      // First lesson of first unit is ALWAYS unlocked
+      isLessonLocked = false;
+    } else if (lessonIndex === 0) {
+      // First lesson of any unit is LOCKED if unit is LOCKED (i.e., previous unit not completed)
+      isLessonLocked = lessonUnitLocked;
+    } else {
+      // Subsequent lessons: check if previous lesson is completed AND unit is unlocked
+      const previousLesson = unit.lessons[lessonIndex - 1];
+      isLessonLocked = !previousLesson.completed || lessonUnitLocked;
+    }
+    
+    return {
+      isLocked: isLessonLocked,
+      isCompleted: lesson.completed,
+      isCurrent: false, // You can implement current lesson logic here
+      progressPercentage: lesson.progress || 0
+    };
+  }, [learningPath]);
+
   return {
     isUnitUnlocked,
     isLessonUnlocked,
+    getUnitProgress,
+    getLessonProgress,
     getNextUnitToUnlock,
     getLearningStreak,
     overallProgress: learningPath.overallProgress,
