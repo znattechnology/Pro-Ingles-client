@@ -8,13 +8,18 @@
 import React from 'react';
 import { UnitBanner } from './unit-banner';
 import { LessonButton } from './lesson-button';
+import { useFeatureFlag } from '@/lib/featureFlags';
+import { 
+  useUnitManagement, 
+  useUnitManagementDebug,
+  useUnitActions,
+  type Lesson,
+  type Unit as UnitType,
+  type ActiveLesson
+} from '@/redux/features/laboratory/hooks/useUnitManagement';
 import { 
   useUnitProgression
 } from '@/src/domains/student/practice-courses/hooks/useUnitManagement';
-import { 
-  type Lesson,
-  type ActiveLesson
-} from '@/redux/features/laboratory/hooks/useUnitManagement';
 
 type Props = {
   id: string;
@@ -37,10 +42,31 @@ export const UnitRedux = ({
   lessons: legacyLessons,
   activeLesson: legacyActiveLesson,
   activeLessonPercentage,
-  courseId
+  courseId,
+  useRedux = false,
 }: Props) => {
-  // Use domains-based unit progression with exact Redux logic
-  const { getUnitProgress, getLessonProgress, navigateToLesson } = useUnitProgression(courseId || null);
+  // Feature flags
+  const useReduxUnits = useFeatureFlag('REDUX_UNIT_MANAGEMENT') && useRedux;
+  
+  // Redux hooks (only if enabled)
+  const { 
+    getUnitProgress: reduxGetUnitProgress, 
+    getLessonProgress: reduxGetLessonProgress, 
+    navigateToLesson: reduxNavigateToLesson 
+  } = useUnitManagement(courseId);
+  
+  const { unlockNextUnit, markUnitComplete } = useUnitActions();
+  
+  // Debug information
+  useUnitManagementDebug(courseId);
+  
+  // Domains-based hooks (fallback)
+  const { getUnitProgress: domainsGetUnitProgress, getLessonProgress: domainsGetLessonProgress, navigateToLesson: domainsNavigateToLesson } = useUnitProgression(courseId || null);
+  
+  // Choose which implementation to use
+  const getUnitProgress = useReduxUnits ? reduxGetUnitProgress : domainsGetUnitProgress;
+  const getLessonProgress = useReduxUnits ? reduxGetLessonProgress : domainsGetLessonProgress;
+  const navigateToLesson = useReduxUnits ? reduxNavigateToLesson : domainsNavigateToLesson;
   
   // Ensure lessons is always an array to prevent errors
   const safeLessons = Array.isArray(legacyLessons) ? legacyLessons : [];
@@ -50,10 +76,13 @@ export const UnitRedux = ({
   
   // Debug migration
   if (process.env.NODE_ENV === 'development') {
-    console.log('📚 Unit Component (Domains-based):', {
+    console.log('📚 Unit Component Migration Status:', {
+      useReduxUnits,
+      useRedux,
       unitId: id,
       title,
       lessonsCount: safeLessons?.length || 0,
+      implementation: useReduxUnits ? 'Redux' : 'Domains',
       unitProgress: unitProgress ? {
         isUnlocked: unitProgress.isUnlocked,
         isCompleted: unitProgress.isCompleted,
@@ -108,12 +137,14 @@ export const UnitRedux = ({
   
   // Debug logging
   if (process.env.NODE_ENV === 'development') {
-    console.log(`🎯 Unit "${title}" Debug (Domains):`, {
+    console.log(`🎯 Unit "${title}" Debug (${useReduxUnits ? 'Redux' : 'Domains'}):`, {
       id,
       order,
       numericOrder,
       isFirstUnit,
       isUnitLocked,
+      useReduxUnits,
+      implementation: useReduxUnits ? 'Redux' : 'Domains',
       unitProgress: unitProgress ? {
         isUnlocked: unitProgress.isUnlocked,
         isCompleted: unitProgress.isCompleted,
@@ -127,7 +158,7 @@ export const UnitRedux = ({
   return (
     <>
       <UnitBanner 
-        title={`${title} 🔄 ${(isUnitLocked && !isFirstUnit) ? '🔒' : ''}`} 
+        title={`${title} ${useReduxUnits ? '🔄' : '🎯'} ${(isUnitLocked && !isFirstUnit) ? '🔒' : ''}`} 
         description={description}
       />
       
@@ -136,7 +167,7 @@ export const UnitRedux = ({
         {unitProgress && (
           <div className="w-full max-w-md mb-4 p-3 sm:p-4 bg-violet-500/10 rounded-lg border border-violet-500/20">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-violet-400 text-xs sm:text-sm font-medium">Progresso da Unidade 🔄</span>
+              <span className="text-violet-400 text-xs sm:text-sm font-medium">Progresso da Unidade {useReduxUnits ? '🔄' : '🎯'}</span>
               <span className="text-white text-xs sm:text-sm font-bold">
                 {unitProgress.completedLessons}/{unitProgress.totalLessons}
               </span>
@@ -187,7 +218,7 @@ export const UnitRedux = ({
           <div className="mt-4 p-3 sm:p-4 bg-green-500/10 rounded-lg border border-green-500/20">
             <div className="text-center">
               <div className="text-green-400 text-xs sm:text-sm font-medium mb-2">
-                🎉 Unidade Concluída! 🔄
+                🎉 Unidade Concluída! {useReduxUnits ? '🔄' : '🎯'}
               </div>
               <div className="text-green-300 text-xs">
                 Próxima unidade será desbloqueada automaticamente
@@ -200,7 +231,7 @@ export const UnitRedux = ({
         {safeLessons.length === 0 && (
           <div className="text-center py-6 sm:py-8 px-4">
             <div className="text-customgreys-dirtyGrey text-xs sm:text-sm mb-2">
-              🔄 Esta unidade ainda não possui lições
+              {useReduxUnits ? '🔄' : '🎯'} Esta unidade ainda não possui lições
             </div>
             <div className="text-customgreys-darkGrey text-xs leading-relaxed">
               Aguarde enquanto o conteúdo é preparado
