@@ -61,7 +61,7 @@ export const UnitRedux = ({
   useUnitManagementDebug(courseId);
   
   // Domains-based hooks (fallback)
-  const { getUnitProgress: domainsGetUnitProgress, getLessonProgress: domainsGetLessonProgress, navigateToLesson: domainsNavigateToLesson } = useUnitProgression(courseId || null);
+  const { getUnitProgress: domainsGetUnitProgress, getLessonProgress: domainsGetLessonProgress, navigateToLesson: domainsNavigateToLesson } = useUnitProgression(courseId ?? null);
   
   // Choose which implementation to use
   const getUnitProgress = useReduxUnits ? reduxGetUnitProgress : domainsGetUnitProgress;
