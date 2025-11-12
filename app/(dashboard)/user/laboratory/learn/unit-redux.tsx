@@ -53,12 +53,12 @@ export const UnitRedux = ({
     getUnitProgress: reduxGetUnitProgress, 
     getLessonProgress: reduxGetLessonProgress, 
     navigateToLesson: reduxNavigateToLesson 
-  } = useUnitManagement(courseId);
+  } = useUnitManagement(courseId ?? null);
   
   const { unlockNextUnit, markUnitComplete } = useUnitActions();
   
   // Debug information
-  useUnitManagementDebug(courseId);
+  useUnitManagementDebug(courseId ?? null);
   
   // Domains-based hooks (fallback)
   const { getUnitProgress: domainsGetUnitProgress, getLessonProgress: domainsGetLessonProgress, navigateToLesson: domainsNavigateToLesson } = useUnitProgression(courseId ?? null);
