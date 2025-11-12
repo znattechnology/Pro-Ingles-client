@@ -48,7 +48,7 @@ function DashboardContent({
     }
   }, [isCoursePage, pathname, setOpen, open]);
 
-  // if (isLoading) return <Loading />;
+  if (isLoading) return <Loading />;
   if (!isAuthenticated || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black text-white">

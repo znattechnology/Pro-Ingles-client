@@ -44,6 +44,7 @@ export function useDjangoAuth(): AuthHookReturn {
   
   const [clientIsAuthenticated, setClientIsAuthenticated] = useState(false);
   const [clientUser, setClientUser] = useState<User | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Initialize authentication state on client side
   useEffect(() => {
@@ -69,6 +70,7 @@ export function useDjangoAuth(): AuthHookReturn {
         setClientIsAuthenticated(false);
         setClientUser(null);
       }
+      setIsInitialized(true);
     }
   }, [dispatch]);
 
@@ -156,7 +158,7 @@ export function useDjangoAuth(): AuthHookReturn {
   return {
     isAuthenticated: clientIsAuthenticated,
     user: clientUser,
-    isLoading: authState?.isLoading || false,
+    isLoading: authState?.isLoading || !isInitialized,
     pendingVerification: authState?.pendingVerification || null,
     logout,
     checkAuth,
