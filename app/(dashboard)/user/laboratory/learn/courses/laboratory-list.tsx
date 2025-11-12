@@ -2,7 +2,7 @@
 
 import { LaboratoryCard } from "./laboratory-card";
 import { useRouter } from "next/navigation";
-import { useSelectActiveCourseMutation } from '@/src/domains/student/practice-courses/api/studentPracticeApiSlice';
+import { useSelectActiveCourseMutation, useGetCourseUnitsWithProgressQuery } from '@/src/domains/student/practice-courses/api/studentPracticeApiSlice';
 import { toast } from "sonner";
 
 // Define types for Django API responses
@@ -31,6 +31,53 @@ export const LaboratoryList = ({courses, activeCourseId, viewMode = 'grid'}: Pro
     
     // Redux mutation for updating active course
     const [selectActiveCourse, { isLoading: isUpdatingCourse }] = useSelectActiveCourseMutation();
+    
+    // Hook customizado para calcular progresso real de cada curso
+    const useRealCourseProgress = (courseId: string) => {
+        const { data: unitsData } = useGetCourseUnitsWithProgressQuery(courseId, {
+            skip: !courseId
+        });
+        
+        if (!unitsData || !unitsData.units) {
+            return {
+                realProgress: 0,
+                completedLessons: 0,
+                totalLessons: 0,
+                completedUnits: 0,
+                totalUnits: 0
+            };
+        }
+        
+        const units = unitsData.units || [];
+        
+        // Calculate exactly like useMainLearnPage does
+        const completedLessons = units.reduce((total: number, unit: any) => {
+            return total + (unit.lessons || []).filter((lesson: any) => lesson.completed).length;
+        }, 0);
+        
+        const totalLessons = units.reduce((total: number, unit: any) => {
+            return total + (unit.lessons || []).length;
+        }, 0);
+        
+        const completedUnits = units.filter((unit: any) => {
+            const unitLessons = unit.lessons || [];
+            return unitLessons.length > 0 && unitLessons.every((lesson: any) => lesson.completed);
+        }).length;
+        
+        const totalUnits = units.length;
+        
+        const realProgress = totalLessons > 0 
+            ? Math.round((completedLessons / totalLessons) * 100) 
+            : 0;
+        
+        return {
+            realProgress,
+            completedLessons,
+            totalLessons,
+            completedUnits,
+            totalUnits
+        };
+    };
 
     // Category-specific images for enhanced visual experience
     const categoryImages = {
@@ -140,20 +187,53 @@ export const LaboratoryList = ({courses, activeCourseId, viewMode = 'grid'}: Pro
             });
     }
 
-    // Function to get course statistics (from Redux API with include_stats)
-    const getCourseStats = (course: Course) => {
-        // Use statistics directly from Redux API (backend calculated)
-        const totalUnits = (course as any).totalUnits || (course as any).units_count || (course.practice_units?.length || 0);
-        const totalLessons = (course as any).total_lessons || (course as any).lessons_count || 0;
-        const totalChallenges = (course as any).total_challenges || (course as any).challenges_count || 0;
-
-        return {
-            totalUnits,
-            totalLessons,
-            totalChallenges,
-            completedUnits: course.completed_units || 0,
-            progress: course.progress || 0
+    // Componente que usa o hook para cada card individual
+    const CourseCardWithProgress = ({ course }: { course: Course }) => {
+        // Calculate real progress using the same logic as useMainLearnPage
+        const realProgressData = useRealCourseProgress(course.id);
+        
+        // Fallback to API stats if real progress is not available
+        const stats = {
+            totalUnits: realProgressData.totalUnits || (course as any).totalUnits || (course as any).units_count || (course.practice_units?.length || 0),
+            totalLessons: realProgressData.totalLessons || (course as any).total_lessons || (course as any).lessons_count || 0,
+            totalChallenges: (course as any).total_challenges || (course as any).challenges_count || 0,
+            completedUnits: realProgressData.completedUnits || course.completed_units || 0,
+            progress: realProgressData.realProgress || course.progress || 0
         };
+        
+        // Debug logging for completed courses
+        if (process.env.NODE_ENV === 'development' && stats.progress >= 100) {
+            console.log(`🎯 COURSE CARD DEBUG - Completed course "${course.title}":`, {
+                courseId: course.id,
+                progress: stats.progress,
+                isCompleted: stats.progress >= 100,
+                disabled: isUpdatingCourse,
+                onClickFunction: typeof onClick
+            });
+        }
+
+        return (
+            <LaboratoryCard
+                key={course.id}
+                id={course.id}
+                title={course.title}
+                description={course.description}
+                imageSrc={getCourseImage(course)}
+                level={course.level}
+                category={course.category}
+                template={(course as any).template}
+                customColors={(course as any).customColors}
+                totalUnits={stats.totalUnits}
+                completedUnits={stats.completedUnits}
+                totalLessons={stats.totalLessons}
+                totalChallenges={stats.totalChallenges}
+                progress={stats.progress}
+                onClick={onClick}
+                disabled={isUpdatingCourse}
+                active={course.id === activeCourseId}
+                viewMode={viewMode}
+            />
+        );
     };
 
     return (
@@ -162,32 +242,12 @@ export const LaboratoryList = ({courses, activeCourseId, viewMode = 'grid'}: Pro
                 ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6" 
                 : "space-y-3 sm:space-y-4"
         }>
-            {courses.map((course) => {
-                const stats = getCourseStats(course);
-                
-                return (
-                    <LaboratoryCard
-                        key={course.id}
-                        id={course.id}
-                        title={course.title}
-                        description={course.description}
-                        imageSrc={getCourseImage(course)}
-                        level={course.level}
-                        category={course.category}
-                        template={(course as any).template}
-                        customColors={(course as any).customColors}
-                        totalUnits={stats.totalUnits}
-                        completedUnits={stats.completedUnits}
-                        totalLessons={stats.totalLessons}
-                        totalChallenges={stats.totalChallenges}
-                        progress={stats.progress}
-                        onClick={onClick}
-                        disabled={isUpdatingCourse}
-                        active={course.id === activeCourseId}
-                        viewMode={viewMode}
-                    />
-                );
-            })}
+            {courses.map((course) => (
+                <CourseCardWithProgress 
+                    key={course.id}
+                    course={course} 
+                />
+            ))}
         </div>
     )
 }
