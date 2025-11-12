@@ -33,95 +33,67 @@ export const LaboratoryList = ({courses, activeCourseId, viewMode = 'grid'}: Pro
     // Redux mutation for updating active course
     const [selectActiveCourse, { isLoading: isUpdatingCourse }] = useSelectActiveCourseMutation();
     
-    // Calcular progresso real para todos os cursos de uma vez só
-    const courseProgressData = useMemo(() => {
-        const progressMap = new Map();
-        
-        courses.forEach(course => {
-            // Para cada curso, fazer a query individualmente mas memoizada
-            progressMap.set(course.id, {
+    // Buscar progresso real para todos os cursos de uma vez (no componente pai)
+    const courseProgressQueries = courses.map(course => 
+        useGetCourseUnitsWithProgressQuery(course.id, {
+            skip: !course.id,
+            refetchOnMountOrArgChange: false,
+            refetchOnReconnect: false,
+        })
+    );
+    
+    // Calcular progresso real para todos os cursos
+    const coursesWithRealProgress = useMemo(() => {
+        return courses.map((course, index) => {
+            const progressQuery = courseProgressQueries[index];
+            
+            // Calcular progresso real se dados estão disponíveis
+            let realProgressData = {
                 realProgress: 0,
                 completedLessons: 0,
                 totalLessons: 0,
                 completedUnits: 0,
                 totalUnits: 0
-            });
-        });
-        
-        return progressMap;
-    }, [courses]);
-    
-    // Memoize getCourseImage function to avoid recreating it
-    const getCourseImageMemo = useCallback((course: Course) => {
-        // If course has a custom image, use it
-        if (course.image) {
-            return course.image;
-        }
-        
-        // Get images for the course category
-        const categoryImageList = categoryImages[course.category as keyof typeof categoryImages] || defaultImages;
-        
-        // Use a simple hash of the course ID to consistently assign the same image from the category
-        const hash = course.id.split('').reduce((a, b) => {
-            a = ((a << 5) - a) + b.charCodeAt(0);
-            return a & a;
-        }, 0);
-        
-        const imageIndex = Math.abs(hash) % categoryImageList.length;
-        return categoryImageList[imageIndex];
-    }, [categoryImages, defaultImages]);
-    
-    // Hook otimizado para calcular progresso real de cada curso
-    const useRealCourseProgress = (courseId: string) => {
-        const { data: unitsData } = useGetCourseUnitsWithProgressQuery(courseId, {
-            skip: !courseId,
-            // Adicionar cache para evitar requests desnecessários
-            refetchOnMountOrArgChange: false,
-            refetchOnReconnect: false,
-        });
-        
-        return useMemo(() => {
-            if (!unitsData || !unitsData.units) {
-                return {
-                    realProgress: 0,
-                    completedLessons: 0,
-                    totalLessons: 0,
-                    completedUnits: 0,
-                    totalUnits: 0
+            };
+            
+            if (progressQuery.data && progressQuery.data.units) {
+                const units = progressQuery.data.units || [];
+                
+                const completedLessons = units.reduce((total: number, unit: any) => {
+                    return total + (unit.lessons || []).filter((lesson: any) => lesson.completed).length;
+                }, 0);
+                
+                const totalLessons = units.reduce((total: number, unit: any) => {
+                    return total + (unit.lessons || []).length;
+                }, 0);
+                
+                const completedUnits = units.filter((unit: any) => {
+                    const unitLessons = unit.lessons || [];
+                    return unitLessons.length > 0 && unitLessons.every((lesson: any) => lesson.completed);
+                }).length;
+                
+                const totalUnits = units.length;
+                
+                const realProgress = totalLessons > 0 
+                    ? Math.round((completedLessons / totalLessons) * 100) 
+                    : 0;
+                
+                realProgressData = {
+                    realProgress,
+                    completedLessons,
+                    totalLessons,
+                    completedUnits,
+                    totalUnits
                 };
             }
             
-            const units = unitsData.units || [];
-            
-            // Calculate exactly like useMainLearnPage does
-            const completedLessons = units.reduce((total: number, unit: any) => {
-                return total + (unit.lessons || []).filter((lesson: any) => lesson.completed).length;
-            }, 0);
-            
-            const totalLessons = units.reduce((total: number, unit: any) => {
-                return total + (unit.lessons || []).length;
-            }, 0);
-            
-            const completedUnits = units.filter((unit: any) => {
-                const unitLessons = unit.lessons || [];
-                return unitLessons.length > 0 && unitLessons.every((lesson: any) => lesson.completed);
-            }).length;
-            
-            const totalUnits = units.length;
-            
-            const realProgress = totalLessons > 0 
-                ? Math.round((completedLessons / totalLessons) * 100) 
-                : 0;
-            
+            // Combine course data with real progress
             return {
-                realProgress,
-                completedLessons,
-                totalLessons,
-                completedUnits,
-                totalUnits
+                ...course,
+                realProgressData
             };
-        }, [unitsData]);
-    };
+        });
+    }, [courses, courseProgressQueries]);
 
     // Category-specific images for enhanced visual experience
     const categoryImages = {
@@ -182,6 +154,25 @@ export const LaboratoryList = ({courses, activeCourseId, viewMode = 'grid'}: Pro
         '/service-6.jpg'
     ];
 
+    // Memoize getCourseImage function to avoid recreating it
+    const getCourseImageMemo = useCallback((course: Course) => {
+        // If course has a custom image, use it
+        if (course.image) {
+            return course.image;
+        }
+        
+        // Get images for the course category
+        const categoryImageList = categoryImages[course.category as keyof typeof categoryImages] || defaultImages;
+        
+        // Use a simple hash of the course ID to consistently assign the same image from the category
+        const hash = course.id.split('').reduce((a, b) => {
+            a = ((a << 5) - a) + b.charCodeAt(0);
+            return a & a;
+        }, 0);
+        
+        const imageIndex = Math.abs(hash) % categoryImageList.length;
+        return categoryImageList[imageIndex];
+    }, [categoryImages, defaultImages]);
 
     const onClick = useCallback((id: string) => {
         console.log('🔍 ONCLICK DEBUG: Function called with courseId:', id);
@@ -212,31 +203,20 @@ export const LaboratoryList = ({courses, activeCourseId, viewMode = 'grid'}: Pro
             });
     }, [isUpdatingCourse, activeCourseId, router, selectActiveCourse]);
 
-    // Componente memoizado que usa o hook para cada card individual
-    const CourseCardWithProgress = memo(({ course }: { course: Course }) => {
-        // Calculate real progress using the same logic as useMainLearnPage
-        const realProgressData = useRealCourseProgress(course.id);
+    // Componente que usa dados pré-calculados (sem hooks internos)
+    const CourseCardWithProgress = memo(({ courseWithProgress }: { courseWithProgress: any }) => {
+        const course = courseWithProgress;
+        const realProgressData = course.realProgressData;
         
-        // Memoize stats calculation to avoid recalculations
-        const stats = useMemo(() => ({
+        // Use real progress data if available, fallback to API stats
+        const stats = {
             totalUnits: realProgressData.totalUnits || (course as any).totalUnits || (course as any).units_count || (course.practice_units?.length || 0),
             totalLessons: realProgressData.totalLessons || (course as any).total_lessons || (course as any).lessons_count || 0,
             totalChallenges: (course as any).total_challenges || (course as any).challenges_count || 0,
             completedUnits: realProgressData.completedUnits || course.completed_units || 0,
             progress: realProgressData.realProgress || course.progress || 0
-        }), [realProgressData, course]);
+        };
         
-        // Debug logging for completed courses
-        if (process.env.NODE_ENV === 'development' && stats.progress >= 100) {
-            console.log(`🎯 COURSE CARD DEBUG - Completed course "${course.title}":`, {
-                courseId: course.id,
-                progress: stats.progress,
-                isCompleted: stats.progress >= 100,
-                disabled: isUpdatingCourse,
-                onClickFunction: typeof onClick
-            });
-        }
-
         return (
             <LaboratoryCard
                 key={course.id}
@@ -260,6 +240,9 @@ export const LaboratoryList = ({courses, activeCourseId, viewMode = 'grid'}: Pro
             />
         );
     });
+    
+    // Add display name for debugging
+    CourseCardWithProgress.displayName = 'CourseCardWithProgress';
 
     return (
         <div className={
@@ -267,10 +250,10 @@ export const LaboratoryList = ({courses, activeCourseId, viewMode = 'grid'}: Pro
                 ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6" 
                 : "space-y-3 sm:space-y-4"
         }>
-            {courses.map((course) => (
+            {coursesWithRealProgress.map((courseWithProgress) => (
                 <CourseCardWithProgress 
-                    key={course.id}
-                    course={course} 
+                    key={courseWithProgress.id}
+                    courseWithProgress={courseWithProgress} 
                 />
             ))}
         </div>
