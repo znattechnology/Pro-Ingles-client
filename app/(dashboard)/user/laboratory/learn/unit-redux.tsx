@@ -40,7 +40,7 @@ export const UnitRedux = ({
   courseId
 }: Props) => {
   // Use domains-based unit progression with exact Redux logic
-  const { getUnitProgress, getLessonProgress } = useUnitProgression(courseId || null);
+  const { getUnitProgress, getLessonProgress, navigateToLesson } = useUnitProgression(courseId || null);
   
   // Ensure lessons is always an array to prevent errors
   const safeLessons = Array.isArray(legacyLessons) ? legacyLessons : [];
@@ -95,8 +95,7 @@ export const UnitRedux = ({
       isCompleted: lessonProgress.isCompleted,
       onClick: () => {
         if (!isLessonLocked) {
-          // Navigate to lesson - you may need to implement this based on your routing
-          window.location.href = `/user/laboratory/learn/lesson/${lesson.id}`;
+          navigateToLesson(lesson.id);
         }
       },
     };

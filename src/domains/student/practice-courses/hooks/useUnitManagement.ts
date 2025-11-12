@@ -6,6 +6,7 @@
  */
 
 import { useCallback, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { 
   useGetStudentProgressQuery,
   useGetCourseUnitsWithProgressQuery,
@@ -290,6 +291,7 @@ export const useCourseSelection = () => {
  */
 export const useUnitProgression = (courseId: string | null) => {
   const { learningPath } = useUnitManagement(courseId);
+  const router = useRouter();
 
   // Check if unit should be unlocked based on previous unit completion
   const isUnitUnlocked = useCallback((unitId: string) => {
@@ -436,11 +438,17 @@ export const useUnitProgression = (courseId: string | null) => {
     };
   }, [learningPath]);
 
+  // Navigate to lesson (exactly like domains implementation)
+  const navigateToLesson = useCallback((lessonId: string) => {
+    router.push(`/user/laboratory/learn/lesson/${lessonId}`);
+  }, [router]);
+
   return {
     isUnitUnlocked,
     isLessonUnlocked,
     getUnitProgress,
     getLessonProgress,
+    navigateToLesson,
     getNextUnitToUnlock,
     getLearningStreak,
     overallProgress: learningPath.overallProgress,
