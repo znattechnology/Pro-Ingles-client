@@ -57,7 +57,7 @@ export const UnitRedux = ({
       unitProgress: unitProgress ? {
         isUnlocked: unitProgress.isUnlocked,
         isCompleted: unitProgress.isCompleted,
-        progress: unitProgress.progress
+        progressPercentage: unitProgress.progressPercentage
       } : null,
       timestamp: new Date().toISOString()
     });
@@ -118,7 +118,7 @@ export const UnitRedux = ({
       unitProgress: unitProgress ? {
         isUnlocked: unitProgress.isUnlocked,
         isCompleted: unitProgress.isCompleted,
-        progress: unitProgress.progress,
+        progressPercentage: unitProgress.progressPercentage,
         completedLessons: unitProgress.completedLessons,
         totalLessons: unitProgress.totalLessons
       } : null
