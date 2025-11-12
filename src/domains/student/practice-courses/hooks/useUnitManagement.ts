@@ -310,6 +310,40 @@ export const useUnitProgression = (courseId: string | null) => {
     return false;
   }, [learningPath]);
 
+  // Check if lesson should be unlocked based on sequential logic
+  const isLessonUnlocked = useCallback((lessonId: string, unitId: string) => {
+    const units = learningPath.unitsProgress;
+    const unit = units.find(u => u.id === unitId);
+    
+    if (!unit) return false;
+    
+    const unitIndex = units.findIndex(u => u.id === unitId);
+    const isFirstUnit = unitIndex === 0;
+    const isUnitAccessible = isUnitUnlocked(unitId);
+    
+    // If unit is locked, all lessons are locked
+    if (!isUnitAccessible) return false;
+    
+    const lessons = unit.lessons;
+    const lessonIndex = lessons.findIndex(l => l.id === lessonId);
+    
+    if (lessonIndex === -1) return false;
+    
+    // First lesson of first unit is always unlocked
+    if (lessonIndex === 0 && isFirstUnit) {
+      return true;
+    }
+    
+    // First lesson of any unit is unlocked if unit is unlocked
+    if (lessonIndex === 0) {
+      return isUnitAccessible;
+    }
+    
+    // Subsequent lessons: previous lesson must be completed
+    const previousLesson = lessons[lessonIndex - 1];
+    return previousLesson.completed;
+  }, [learningPath, isUnitUnlocked]);
+
   // Get next unit to unlock
   const getNextUnitToUnlock = useCallback(() => {
     const units = learningPath.unitsProgress;
@@ -329,6 +363,7 @@ export const useUnitProgression = (courseId: string | null) => {
 
   return {
     isUnitUnlocked,
+    isLessonUnlocked,
     getNextUnitToUnlock,
     getLearningStreak,
     overallProgress: learningPath.overallProgress,
