@@ -13,6 +13,11 @@ import { Separator } from "@/components/ui/separator";
 import React, { useState, useEffect } from "react";
 import Loading from "@/components/course/Loading";
 import { toast } from "react-hot-toast";
+// Progress APIs
+import { useGetStudentProgressQuery } from "@/src/domains/student/practice-courses/api/studentPracticeApiSlice";
+import { useGetMyVideoEnrollmentsQuery } from "@/src/domains/student/video-courses/api/studentVideoCourseApiSlice";
+import { useGetUserAchievementsQuery, useGetAchievementStatsQuery } from "@/src/domains/student/achievements/api/studentAchievementsApiSlice";
+import { Progress } from "@/components/ui/progress";
 import { 
   User, 
   Mail, 
@@ -26,7 +31,8 @@ import {
   BookOpen, 
   Target,
   Trophy,
-  Activity
+  Activity,
+  Star
 } from "lucide-react";
 
 const UserProfilePage = () => {
@@ -34,6 +40,50 @@ const UserProfilePage = () => {
   const [updateProfile, { isLoading: isUpdating }] = useUpdateProfileMutation();
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
+  
+  // Progress data from APIs
+  const { data: studentProgress, isLoading: progressLoading } = useGetStudentProgressQuery();
+  const { data: videoCoursesResponse, isLoading: coursesLoading } = useGetMyVideoEnrollmentsQuery(
+    user?.id || '', { skip: !user?.id }
+  );
+  
+  // Achievements data from APIs
+  const { data: achievements, isLoading: achievementsLoading } = useGetUserAchievementsQuery();
+  const { data: achievementStats, isLoading: achievementStatsLoading } = useGetAchievementStatsQuery();
+  
+  // Extract enrolled courses from response
+  const enrolledCourses = videoCoursesResponse?.data || [];
+  
+  // Debug logging for development
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🔍 Profile Debug:', {
+      user: user?.id,
+      videoCoursesResponse,
+      enrolledCourses,
+      coursesLoading,
+      studentProgress,
+      achievements,
+      achievementStats,
+      achievementsLoading
+    });
+    
+    // Log detailed enrollment structure
+    if (enrolledCourses?.length > 0) {
+      console.log('📊 First enrollment structure:', enrolledCourses[0]);
+      console.log('📊 Available date fields:', {
+        enrolled_at: enrolledCourses[0]?.enrolled_at,
+        created_at: enrolledCourses[0]?.created_at,
+        enrollment_date: enrolledCourses[0]?.enrollment_date,
+        updated_at: enrolledCourses[0]?.updated_at
+      });
+    }
+    
+    // Log achievements structure
+    if (achievements && achievements.length > 0) {
+      console.log('🏆 Achievements structure:', achievements[0]);
+      console.log('🏆 Achievement stats:', achievementStats);
+    }
+  }
   
   const [formData, setFormData] = useState({
     name: '',
@@ -82,6 +132,29 @@ const UserProfilePage = () => {
       .join('')
       .toUpperCase()
       .slice(0, 2);
+  };
+
+  const formatEnrollmentDate = (enrollment: any) => {
+    const dateFields = ['enrolled_at', 'created_at', 'enrollment_date', 'date_joined'];
+    
+    for (const field of dateFields) {
+      if (enrollment[field]) {
+        try {
+          const date = new Date(enrollment[field]);
+          if (!isNaN(date.getTime())) {
+            return date.toLocaleDateString('pt-BR', {
+              day: '2-digit',
+              month: '2-digit', 
+              year: 'numeric'
+            });
+          }
+        } catch (error) {
+          console.warn(`Erro ao formatar data ${field}:`, enrollment[field]);
+        }
+      }
+    }
+    
+    return 'Data não disponível';
   };
 
   const joinDate = new Date().toLocaleDateString('pt-BR', {
@@ -332,42 +405,254 @@ const UserProfilePage = () => {
 
           {/* Progress Tab */}
           <TabsContent value="progress" className="space-y-6">
-            <div className="grid md:grid-cols-3 gap-6">
-              <Card className="bg-customgreys-darkGrey border-violet-900/30">
-                <CardContent className="p-6 text-center">
-                  <BookOpen className="w-12 h-12 text-violet-400 mx-auto mb-4" />
-                  <h3 className="text-xl font-bold text-white mb-2">0</h3>
-                  <p className="text-gray-400 text-sm">Cursos Concluídos</p>
-                </CardContent>
-              </Card>
-              
-              <Card className="bg-customgreys-darkGrey border-violet-900/30">
-                <CardContent className="p-6 text-center">
-                  <Target className="w-12 h-12 text-green-400 mx-auto mb-4" />
-                  <h3 className="text-xl font-bold text-white mb-2">0</h3>
-                  <p className="text-gray-400 text-sm">Lições Completadas</p>
-                </CardContent>
-              </Card>
-              
-              <Card className="bg-customgreys-darkGrey border-violet-900/30">
-                <CardContent className="p-6 text-center">
-                  <Activity className="w-12 h-12 text-orange-400 mx-auto mb-4" />
-                  <h3 className="text-xl font-bold text-white mb-2">0h</h3>
-                  <p className="text-gray-400 text-sm">Tempo de Estudo</p>
-                </CardContent>
-              </Card>
-            </div>
+            {progressLoading || coursesLoading ? (
+              <div className="text-center py-12">
+                <Loading />
+                <p className="text-gray-400 mt-4">Carregando dados de progresso...</p>
+              </div>
+            ) : (
+              <>
+                {/* Statistics Overview */}
+                <div className="grid md:grid-cols-4 gap-6">
+                  <Card className="bg-customgreys-darkGrey border-violet-900/30">
+                    <CardContent className="p-6 text-center">
+                      <BookOpen className="w-12 h-12 text-violet-400 mx-auto mb-4" />
+                      <h3 className="text-xl font-bold text-white mb-2">
+                        {enrolledCourses?.length || 0}
+                      </h3>
+                      <p className="text-gray-400 text-sm">Cursos em Vídeo</p>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="bg-customgreys-darkGrey border-violet-900/30">
+                    <CardContent className="p-6 text-center">
+                      <Target className="w-12 h-12 text-green-400 mx-auto mb-4" />
+                      <h3 className="text-xl font-bold text-white mb-2">
+                        {studentProgress?.active_course ? '1' : '0'}
+                      </h3>
+                      <p className="text-gray-400 text-sm">Cursos Práticos</p>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="bg-customgreys-darkGrey border-violet-900/30">
+                    <CardContent className="p-6 text-center">
+                      <Activity className="w-12 h-12 text-orange-400 mx-auto mb-4" />
+                      <h3 className="text-xl font-bold text-white mb-2">{studentProgress?.points || 0}</h3>
+                      <p className="text-gray-400 text-sm">Pontos Ganhos</p>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="bg-customgreys-darkGrey border-violet-900/30">
+                    <CardContent className="p-6 text-center">
+                      <Trophy className="w-12 h-12 text-yellow-400 mx-auto mb-4" />
+                      <h3 className="text-xl font-bold text-white mb-2">{studentProgress?.streak || 0}</h3>
+                      <p className="text-gray-400 text-sm">Sequência de Dias</p>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Detailed Progress Sections */}
+                <div className="grid md:grid-cols-2 gap-6">
+                  {/* Video Courses Progress */}
+                  <Card className="bg-customgreys-darkGrey border-violet-900/30">
+                    <CardHeader>
+                      <CardTitle className="text-white flex items-center gap-2">
+                        <BookOpen className="w-5 h-5 text-violet-400" />
+                        Cursos em Vídeo
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {enrolledCourses && enrolledCourses.length > 0 ? (
+                        enrolledCourses
+                          .map((enrollment: any) => (
+                            <div key={enrollment.course?.id || enrollment.id} className="space-y-2">
+                              <div className="flex justify-between items-center">
+                                <h4 className="text-white font-medium">{enrollment.course?.title || enrollment.title}</h4>
+                                <span className="text-violet-400 text-sm">{enrollment.progress_percentage || 0}%</span>
+                              </div>
+                              <Progress value={enrollment.progress_percentage || 0} className="w-full" />
+                              <p className="text-gray-400 text-xs">
+                                {enrollment.completed_chapters || 0} de {enrollment.total_chapters || enrollment.course?.totalSections || 0} capítulos completados
+                              </p>
+                              <div className="text-xs text-gray-500">
+                                Inscrito em: {formatEnrollmentDate(enrollment)}
+                              </div>
+                            </div>
+                          ))
+                      ) : (
+                        <div className="text-center py-6">
+                          <BookOpen className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+                          <p className="text-gray-400">Nenhum curso em vídeo inscrito</p>
+                          <p className="text-gray-500 text-sm">Explore nossos cursos em vídeo!</p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Practice Course Progress */}
+                  <Card className="bg-customgreys-darkGrey border-violet-900/30">
+                    <CardHeader>
+                      <CardTitle className="text-white flex items-center gap-2">
+                        <Target className="w-5 h-5 text-green-400" />
+                        Curso Prático (Laboratório)
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {studentProgress?.active_course ? (
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-center">
+                              <h4 className="text-white font-medium">{studentProgress.active_course.title}</h4>
+                              <span className="text-green-400 text-sm">Ativo</span>
+                            </div>
+                            <p className="text-gray-400 text-sm">{studentProgress.active_course.description}</p>
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-4 pt-4">
+                            <div className="text-center">
+                              <div className="text-2xl font-bold text-white">{studentProgress.hearts || 5}</div>
+                              <div className="text-gray-400 text-xs">❤️ Vidas</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="text-2xl font-bold text-white">{studentProgress.points || 0}</div>
+                              <div className="text-gray-400 text-xs">⭐ Pontos</div>
+                            </div>
+                          </div>
+                          
+                          <div className="text-center">
+                            <div className="text-lg font-bold text-white">🔥 {studentProgress.streak || 0}</div>
+                            <div className="text-gray-400 text-xs">Dias consecutivos</div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-center py-6">
+                          <Target className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+                          <p className="text-gray-400">Nenhum curso prático ativo</p>
+                          <p className="text-gray-500 text-sm">Vá ao Laboratório para começar!</p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              </>
+            )}
           </TabsContent>
 
           {/* Achievements Tab */}
           <TabsContent value="achievements" className="space-y-6">
-            <Card className="bg-customgreys-darkGrey border-violet-900/30">
-              <CardContent className="p-6 text-center">
-                <Trophy className="w-16 h-16 text-yellow-400 mx-auto mb-4" />
-                <h3 className="text-xl font-bold text-white mb-2">Nenhuma conquista ainda</h3>
-                <p className="text-gray-400">Complete cursos e lições para desbloquear conquistas!</p>
-              </CardContent>
-            </Card>
+            {achievementsLoading ? (
+              <div className="text-center py-12">
+                <Loading />
+                <p className="text-gray-400 mt-4">Carregando conquistas...</p>
+              </div>
+            ) : (
+              <>
+                {/* Achievement Stats Overview */}
+                {achievementStats && (
+                  <div className="grid md:grid-cols-4 gap-4">
+                    <Card className="bg-customgreys-darkGrey border-yellow-500/30">
+                      <CardContent className="p-4 text-center">
+                        <Trophy className="w-8 h-8 text-yellow-400 mx-auto mb-2" />
+                        <h3 className="text-lg font-bold text-white">{achievementStats.totalUnlocked}</h3>
+                        <p className="text-gray-400 text-xs">Conquistas Desbloqueadas</p>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card className="bg-customgreys-darkGrey border-blue-500/30">
+                      <CardContent className="p-4 text-center">
+                        <Target className="w-8 h-8 text-blue-400 mx-auto mb-2" />
+                        <h3 className="text-lg font-bold text-white">{achievementStats.totalAvailable}</h3>
+                        <p className="text-gray-400 text-xs">Total Disponíveis</p>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card className="bg-customgreys-darkGrey border-purple-500/30">
+                      <CardContent className="p-4 text-center">
+                        <Activity className="w-8 h-8 text-purple-400 mx-auto mb-2" />
+                        <h3 className="text-lg font-bold text-white">{achievementStats.totalPoints}</h3>
+                        <p className="text-gray-400 text-xs">Pontos de Conquistas</p>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card className="bg-customgreys-darkGrey border-orange-500/30">
+                      <CardContent className="p-4 text-center">
+                        <Star className="w-8 h-8 text-orange-400 mx-auto mb-2" />
+                        <h3 className="text-lg font-bold text-white">{achievementStats.rareAchievements}</h3>
+                        <p className="text-gray-400 text-xs">Conquistas Raras</p>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
+
+                {/* Unlocked Achievements List */}
+                {achievements && achievements.filter(a => a.isUnlocked).length > 0 ? (
+                  <div>
+                    <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                      <Trophy className="w-5 h-5 text-yellow-400" />
+                      Suas Conquistas ({achievements.filter(a => a.isUnlocked).length})
+                    </h3>
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {achievements.filter(achievement => achievement.isUnlocked).map((achievement) => (
+                        <Card key={achievement.id} className="bg-customgreys-darkGrey border-yellow-500/50 bg-gradient-to-br from-yellow-900/20 to-orange-900/20 transition-all duration-200">
+                          <CardContent className="p-4">
+                            <div className="flex items-start gap-3">
+                              <div className="text-2xl grayscale-0">
+                                {achievement.icon || '🏆'}
+                              </div>
+                              <div className="flex-1">
+                                <h4 className="font-semibold text-yellow-400">
+                                  {achievement.title}
+                                </h4>
+                                <p className="text-gray-400 text-sm mt-1">
+                                  {achievement.description}
+                                </p>
+                                
+                                <div className="mt-2 flex items-center justify-between">
+                                  <span className="text-yellow-400 text-xs font-medium">
+                                    ✨ {achievement.points} pontos
+                                  </span>
+                                  {achievement.unlockedAt && (
+                                    <span className="text-gray-500 text-xs">
+                                      {new Date(achievement.unlockedAt).toLocaleDateString('pt-BR')}
+                                    </span>
+                                  )}
+                                </div>
+                                
+                                {/* Rarity badge */}
+                                <div className="mt-2">
+                                  <span className={`
+                                    inline-block px-2 py-1 rounded-full text-xs font-medium
+                                    ${achievement.rarity === 'common' ? 'bg-gray-700 text-gray-300' : ''}
+                                    ${achievement.rarity === 'rare' ? 'bg-blue-700 text-blue-300' : ''}
+                                    ${achievement.rarity === 'epic' ? 'bg-purple-700 text-purple-300' : ''}
+                                    ${achievement.rarity === 'legendary' ? 'bg-yellow-700 text-yellow-300' : ''}
+                                  `}>
+                                    {achievement.rarity === 'common' && '⚪'}
+                                    {achievement.rarity === 'rare' && '🔵'}
+                                    {achievement.rarity === 'epic' && '🟣'}
+                                    {achievement.rarity === 'legendary' && '🟡'}
+                                    {' '}
+                                    {achievement.rarity.charAt(0).toUpperCase() + achievement.rarity.slice(1)}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <Card className="bg-customgreys-darkGrey border-violet-900/30">
+                    <CardContent className="p-6 text-center">
+                      <Trophy className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                      <h3 className="text-xl font-bold text-white mb-2">Nenhuma conquista ainda</h3>
+                      <p className="text-gray-400">Complete cursos e lições para desbloquear conquistas!</p>
+                    </CardContent>
+                  </Card>
+                )}
+              </>
+            )}
           </TabsContent>
 
           {/* Settings Tab */}

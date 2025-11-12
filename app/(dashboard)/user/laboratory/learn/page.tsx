@@ -377,6 +377,7 @@ const LearnPage = () => {
                     activeLesson={undefined}
                     activeLessonPercentage={0}
                     courseId={activeCourse?.id}
+                    useRedux={true}
                   />
                 </div>
               ))}

@@ -87,31 +87,62 @@ export const UnitRedux = ({
       // Actual first unit (lowest order) is NEVER locked
       const lessonUnitLocked = !isFirstUnit && unitProgress ? !unitProgress.isUnlocked : false;
       
-      return {
-        id: lesson.id,
-        index,
-        totalCount: safeLessons.length - 1,
-        current: lessonProgress.isCurrent && !lessonUnitLocked,
-        locked: lessonProgress.isLocked || lessonUnitLocked,
-        percentage: lessonProgress.progressPercentage,
-        // Redux-specific props
-        isCompleted: lessonProgress.isCompleted,
-        onClick: () => {
-          if (!lessonProgress.isLocked && !lessonUnitLocked) {
-            navigateToLesson(lesson.id);
-          }
-        },
-      };
-    } else {
-      // Legacy props
-      const isCurrent = lesson.id === activeLesson?.id;
-      const isLocked = !lesson.completed && !isCurrent;
+      // **CORRECTED LOGIC FOR REDUX**: Proper unit and lesson unlock logic
+      let isLessonLocked = lessonProgress.isLocked || lessonUnitLocked;
+      if (index === 0 && isFirstUnit) {
+        // First lesson of first unit is ALWAYS unlocked
+        isLessonLocked = false;
+      } else if (index === 0) {
+        // First lesson of any unit is LOCKED if unit is LOCKED (i.e., previous unit not completed)
+        isLessonLocked = lessonUnitLocked;
+      } else {
+        // Subsequent lessons: check if previous lesson is completed AND unit is unlocked
+        const previousLesson = safeLessons[index - 1];
+        const prevLessonProgress = getLessonProgress(previousLesson.id, id);
+        isLessonLocked = !prevLessonProgress.isCompleted || lessonUnitLocked;
+      }
       
       return {
         id: lesson.id,
         index,
         totalCount: safeLessons.length - 1,
-        current: isCurrent,
+        current: (lessonProgress.isCurrent || (index === 0 && isFirstUnit && !lessonProgress.isCompleted)) && !isLessonLocked,
+        locked: isLessonLocked,
+        percentage: lessonProgress.progressPercentage,
+        // Redux-specific props
+        isCompleted: lessonProgress.isCompleted,
+        onClick: () => {
+          if (!isLessonLocked) {
+            navigateToLesson(lesson.id);
+          }
+        },
+      };
+    } else {
+      // Legacy props with proper lesson unlock logic
+      const isCurrent = lesson.id === activeLesson?.id;
+      
+      // **CORRECTED LOGIC**: Proper unit-based lesson unlock logic
+      let isLocked = false;
+      if (index === 0 && isFirstUnit) {
+        // First lesson of first unit is ALWAYS unlocked
+        isLocked = false;
+      } else if (index === 0) {
+        // First lesson of any non-first unit: check if previous unit is completed
+        // For legacy mode, we need to implement unit completion logic
+        // For now, we'll assume first lesson of non-first units are locked
+        // This should be properly implemented with unit completion tracking
+        isLocked = true; // TODO: Implement proper unit completion check
+      } else {
+        // Subsequent lessons: check if previous lesson is completed
+        const previousLesson = safeLessons[index - 1];
+        isLocked = !previousLesson?.completed;
+      }
+      
+      return {
+        id: lesson.id,
+        index,
+        totalCount: safeLessons.length - 1,
+        current: isCurrent || (index === 0 && !lesson.completed), // First lesson is current if not completed
         locked: isLocked,
         percentage: activeLessonPercentage,
         isCompleted: lesson.completed,
