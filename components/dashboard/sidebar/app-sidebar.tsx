@@ -167,9 +167,14 @@ const navLinks = {
       isActive: true,
       items: [
         {
-          title: "Praticar Conversação",
-          url: "/user/laboratory/speaking/practice",
+          title: "Conversação Real-Time",
+          url: "/user/laboratory/speaking/real-time",
           icon: MessageCircle,
+        },
+        {
+          title: "Prática Básica",
+          url: "/user/laboratory/speaking/practice",
+          icon: Mic,
         },
         {
           title: "Exercícios de Pronúncia", 

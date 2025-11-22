@@ -57,6 +57,7 @@
     "@syncfusion/ej2-react-richtexteditor": "^19.4.50",
     "@syncfusion/ej2-react-schedule": "^19.4.50",
     "@uploadthing/react": "^7.1.1",
+    "@vapi-ai/web": "^2.5.1",
     "add": "^2.0.6",
     "axios": "^1.7.2",
     "class-variance-authority": "^0.7.0",
