@@ -29,24 +29,16 @@ import {
   Target,
   Users,
   Award,
-  Zap,
   BarChart3,
   PlusCircle,
   FolderOpen,
   Wrench,
   CreditCard,
   LayoutDashboard,
-  Mic,
   MessageCircle,
-  Volume2,
-  TrendingUp,
-  Headphones,
-  PenTool,
   Crown,
   ArrowUp,
-  Receipt,
-  Globe,
-  DollarSign
+  Receipt
 } from "lucide-react";
 
 import {
@@ -161,63 +153,15 @@ const navLinks = {
       ],
     },
     {
-      title: "Speaking Practice",
-      url: "/user/laboratory/speaking",
-      icon: Mic,
+      title: "Conversação IA",
+      url: "/user/laboratory/speaking/real-time",
+      icon: MessageCircle,
       isActive: true,
       items: [
         {
-          title: "Conversação Real-Time",
+          title: "Prática em Tempo Real",
           url: "/user/laboratory/speaking/real-time",
           icon: MessageCircle,
-        },
-        {
-          title: "Prática Básica",
-          url: "/user/laboratory/speaking/practice",
-          icon: Mic,
-        },
-        {
-          title: "Exercícios de Pronúncia", 
-          url: "/user/laboratory/speaking/pronunciation",
-          icon: Volume2,
-        },
-        {
-          title: "Meu Progresso",
-          url: "/user/laboratory/speaking/progress",
-          icon: TrendingUp,
-        },
-        {
-          title: "Conquistas",
-          url: "/user/laboratory/speaking/achievements", 
-          icon: Award,
-        },
-      ],
-    },
-    {
-      title: "Listening Practice",
-      url: "/user/laboratory/listening",
-      icon: Headphones,
-      isActive: true,
-      items: [
-        {
-          title: "Compreensão Auditiva",
-          url: "/user/laboratory/listening/practice",
-          icon: Headphones,
-        },
-        {
-          title: "Ditado",
-          url: "/user/laboratory/listening/dictation",
-          icon: PenTool,
-        },
-        {
-          title: "Sotaques",
-          url: "/user/laboratory/listening/accents",
-          icon: Globe,
-        },
-        {
-          title: "Meu Progresso",
-          url: "/user/laboratory/listening/progress",
-          icon: TrendingUp,
         },
       ],
     },

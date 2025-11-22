@@ -143,7 +143,8 @@ export const studentPracticeApiSlice = createApi({
       invalidatesTags: [
         "StudentProgress",
         "StudentUnit", 
-        "StudentLesson"
+        "StudentLesson",
+        "StudentCourse"
       ],
     }),
 
@@ -153,7 +154,7 @@ export const studentPracticeApiSlice = createApi({
         method: 'PUT',
         body: data,
       }),
-      invalidatesTags: ['StudentProgress'],
+      invalidatesTags: ['StudentProgress', 'StudentCourse'],
     }),
 
     // ===== HEARTS SYSTEM =====
@@ -298,7 +299,8 @@ export const studentPracticeApiSlice = createApi({
       invalidatesTags: [
         "StudentProgress", 
         "StudentUnit", 
-        "StudentLesson"
+        "StudentLesson",
+        "StudentCourse"
       ],
     }),
 
@@ -371,7 +373,7 @@ export const studentPracticeApiSlice = createApi({
           time_spent: data.timeSpent,
         },
       }),
-      invalidatesTags: ['StudentProgress', 'StudentUnit', 'StudentLesson'],
+      invalidatesTags: ['StudentProgress', 'StudentUnit', 'StudentLesson', 'StudentCourse'],
     }),
 
     // ===== SOCIAL FEATURES =====

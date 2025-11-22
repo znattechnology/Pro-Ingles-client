@@ -16,6 +16,7 @@ import { studentPracticeApiSlice } from "@/src/domains/student/practice-courses/
 import { studentVideoCourseApiSlice } from "@/src/domains/student/video-courses/api";
 import { studentLeaderboardApiSlice } from "@/src/domains/student/leaderboard/api";
 import { studentAchievementsApiSlice } from "@/src/domains/student/achievements/api";
+import { studentSpeakingApiSlice } from "@/src/domains/student/speaking-practice/api";
 import { adminApiSlice } from "@/src/domains/admin/api";
 import courseEditorSlice from "@/redux/features/courseEditor/courseEditorSlice";
 
@@ -35,6 +36,7 @@ const rootReducer = combineReducers({
   [studentVideoCourseApiSlice.reducerPath]: studentVideoCourseApiSlice.reducer,
   [studentLeaderboardApiSlice.reducerPath]: studentLeaderboardApiSlice.reducer,
   [studentAchievementsApiSlice.reducerPath]: studentAchievementsApiSlice.reducer,
+  [studentSpeakingApiSlice.reducerPath]: studentSpeakingApiSlice.reducer,
   [adminApiSlice.reducerPath]: adminApiSlice.reducer,
 });
 
@@ -54,6 +56,7 @@ export const makeStore = () => {
           ],
           ignoredActionPaths: [
             "meta.arg.originalArgs.file",
+            "meta.arg.originalArgs.audio_file",
             "meta.arg.originalArgs.formData",
             "payload.chapter.video",
             "meta.baseQueryMeta.request",
@@ -75,6 +78,7 @@ export const makeStore = () => {
       .concat(studentVideoCourseApiSlice.middleware)
       .concat(studentLeaderboardApiSlice.middleware)
       .concat(studentAchievementsApiSlice.middleware)
+      .concat(studentSpeakingApiSlice.middleware)
       .concat(adminApiSlice.middleware),
   });
 };
