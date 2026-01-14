@@ -118,6 +118,9 @@ const TeacherProfilePage = () => {
     };
     reader.readAsDataURL(file);
 
+    // Automatically enable editing mode to show save button
+    setIsEditing(true);
+
     toast.success('Imagem selecionada! Clique em "Salvar Alterações" para fazer upload.');
   };
 
@@ -387,7 +390,14 @@ const TeacherProfilePage = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setIsEditing(!isEditing)}
+                        onClick={() => {
+                          if (isEditing) {
+                            // When canceling, clear avatar selection
+                            setAvatarFile(null);
+                            setAvatarPreview(null);
+                          }
+                          setIsEditing(!isEditing);
+                        }}
                         className="bg-emerald-500/10 border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/20 hover:border-emerald-500/50 transition-all duration-300"
                       >
                         <Edit3 className="w-4 h-4 mr-2" />
@@ -580,15 +590,19 @@ const TeacherProfilePage = () => {
                           <div className="flex gap-2">
                             <Button
                               type="submit"
-                              disabled={isUpdating}
+                              disabled={isUpdating || isUploading}
                               className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg transition-all duration-300"
                             >
-                              {isUpdating ? 'Salvando...' : 'Salvar Alterações'}
+                              {isUploading ? 'Fazendo Upload...' : isUpdating ? 'Salvando...' : 'Salvar Alterações'}
                             </Button>
                             <Button
                               type="button"
                               variant="outline"
-                              onClick={() => setIsEditing(false)}
+                              onClick={() => {
+                                setIsEditing(false);
+                                setAvatarFile(null);
+                                setAvatarPreview(null);
+                              }}
                               className="border-gray-600 text-gray-400 hover:bg-gray-800"
                             >
                               Cancelar
