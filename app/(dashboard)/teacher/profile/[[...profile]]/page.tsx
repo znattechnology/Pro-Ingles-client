@@ -130,16 +130,25 @@ const TeacherProfilePage = () => {
 
     // Append avatar file
     formDataToSend.append('avatar', file);
+    console.log('📸 Uploading avatar:', file.name, file.type, file.size, 'bytes');
 
-    // Only append fields that exist in backend User model
-    // Backend accepts: name, phone (bio, location, specialization, experience are NOT in User model)
-    const acceptedFields = ['name', 'phone'];
-    acceptedFields.forEach(field => {
-      const value = userData[field as keyof typeof userData];
-      if (value !== undefined && value !== null && value !== '') {
-        formDataToSend.append(field, value);
-      }
-    });
+    // SIMPLIFIED: Send ONLY avatar for now to avoid validation errors
+    // TODO: Add other fields after avatar upload works
+    // Note: phone field has strict regex validation requiring international format
+    // const acceptedFields = ['name', 'phone'];
+    // acceptedFields.forEach(field => {
+    //   const value = userData[field as keyof typeof userData];
+    //   if (value !== undefined && value !== null && value !== '') {
+    //     formDataToSend.append(field, value);
+    //     console.log(`📝 Adding field "${field}":`, value);
+    //   }
+    // });
+
+    // Log all FormData entries
+    console.log('📦 FormData contents:');
+    for (const [key, value] of formDataToSend.entries()) {
+      console.log(`  - ${key}:`, value instanceof File ? `File(${value.name})` : value);
+    }
 
     const token = localStorage.getItem('access_token');
     const apiUrl = process.env.NEXT_PUBLIC_DJANGO_API_URL || 'http://localhost:8000/api/v1';
@@ -156,6 +165,8 @@ const TeacherProfilePage = () => {
     if (!response.ok) {
       const error = await response.json().catch(() => ({ message: 'Erro ao fazer upload' }));
       console.error('Upload error details:', error);
+      console.error('Error details field:', error.details);
+      console.error('Full error object:', JSON.stringify(error, null, 2));
       throw new Error(error.message || error.detail || 'Erro ao fazer upload');
     }
 
