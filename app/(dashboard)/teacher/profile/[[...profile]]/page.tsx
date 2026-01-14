@@ -108,15 +108,28 @@ const TeacherProfilePage = () => {
       return;
     }
 
+    // Rename file if filename is too long (max 100 chars including extension)
+    let processedFile = file;
+    if (file.name.length > 100) {
+      const extension = file.name.substring(file.name.lastIndexOf('.'));
+      const nameWithoutExt = file.name.substring(0, file.name.lastIndexOf('.'));
+      const maxNameLength = 95 - extension.length; // Leave room for extension and safety margin
+      const truncatedName = nameWithoutExt.substring(0, maxNameLength);
+      const newFileName = `${truncatedName}${extension}`;
+
+      processedFile = new File([file], newFileName, { type: file.type });
+      console.log(`📝 Filename too long (${file.name.length} chars), renamed to: ${newFileName} (${newFileName.length} chars)`);
+    }
+
     // Store file
-    setAvatarFile(file);
+    setAvatarFile(processedFile);
 
     // Create preview
     const reader = new FileReader();
     reader.onload = (e) => {
       setAvatarPreview(e.target?.result as string);
     };
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(processedFile);
 
     // Automatically enable editing mode to show save button
     setIsEditing(true);
