@@ -69,24 +69,7 @@ const TeacherProfilePage = () => {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
-  // Debug logging on mount and state changes
-  useEffect(() => {
-    console.log('🔍 Component mounted');
-    console.log('📊 Initial states:', { avatarFile, isUploading, isUpdating, isEditing });
-  }, []);
-
-  useEffect(() => {
-    console.log('📊 State changed:', {
-      avatarFile: avatarFile?.name,
-      isUploading,
-      isUpdating,
-      isEditing,
-      buttonWillBeDisabled: isUploading
-    });
-  }, [avatarFile, isUploading, isUpdating, isEditing]);
-
-  // Log button render state
-  console.log('🎨 Rendering form. Button disabled?', isUploading, '| isUpdating:', isUpdating);
+  // Removed excessive debug logging - keeping only critical upload logs
 
   useEffect(() => {
     if (user) {
@@ -584,10 +567,7 @@ const TeacherProfilePage = () => {
                     <CardContent className="space-y-4">
                       {isEditing ? (
                         <form
-                          onSubmit={(e) => {
-                            console.log('📋 Form onSubmit event fired!');
-                            handleSubmit(e);
-                          }}
+                          onSubmit={handleSubmit}
                           className="space-y-4"
                         >
                           <div className="space-y-2">
@@ -666,13 +646,6 @@ const TeacherProfilePage = () => {
                             <Button
                               type="submit"
                               disabled={isUploading}
-                              onClick={() => {
-                                console.log('🖱️ Button clicked!');
-                                console.log('🔒 Button disabled?', isUploading);
-                                console.log('📁 avatarFile exists?', !!avatarFile);
-                                console.log('✏️ isUpdating:', isUpdating);
-                                console.log('🔄 isUploading:', isUploading);
-                              }}
                               className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               {isUploading ? (

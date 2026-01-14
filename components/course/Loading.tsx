@@ -1,5 +1,5 @@
 import { Loader2, BookOpen, Sparkles, Brain, LucideIcon } from "lucide-react";
-import React from "react";
+import React, { useState, useEffect } from "react";
 
 interface LoadingProps {
   title?: string;
@@ -15,7 +15,7 @@ interface LoadingProps {
   size?: 'sm' | 'md' | 'lg';
 }
 
-const Loading = ({ 
+const Loading = ({
   title = "ProEnglish",
   subtitle = "Learning Platform",
   description = "Preparando sua experiência de aprendizado...",
@@ -23,11 +23,25 @@ const Loading = ({
   progress = 60,
   theme = {
     primary: "violet",
-    secondary: "purple", 
+    secondary: "purple",
     accent: "yellow"
   },
   size = "md"
 }: LoadingProps) => {
+  const [particles, setParticles] = useState<Array<{ left: number; top: number; delay: number; duration: number }>>([]);
+
+  // Generate particles only on client to avoid hydration mismatch
+  useEffect(() => {
+    setParticles(
+      Array.from({ length: 12 }, (_, i) => ({
+        left: Math.random() * 100,
+        top: Math.random() * 100,
+        delay: i * 0.2,
+        duration: 2 + Math.random() * 2
+      }))
+    );
+  }, []);
+
   const sizeClasses = {
     sm: { container: "space-y-4", icon: "h-6 w-6", spinner: "w-6 h-6", text: "text-base", progress: "w-48" },
     md: { container: "space-y-8", icon: "h-8 w-8", spinner: "w-8 h-8", text: "text-lg", progress: "w-64" },
@@ -45,15 +59,15 @@ const Loading = ({
       
       {/* Animated particles */}
       <div className="absolute inset-0">
-        {[...Array(12)].map((_, i) => (
+        {particles.map((particle, i) => (
           <div
             key={i}
             className="absolute w-2 h-2 bg-violet-400/20 rounded-full animate-bounce"
             style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animationDelay: `${i * 0.2}s`,
-              animationDuration: `${2 + Math.random() * 2}s`,
+              left: `${particle.left}%`,
+              top: `${particle.top}%`,
+              animationDelay: `${particle.delay}s`,
+              animationDuration: `${particle.duration}s`,
             }}
           />
         ))}
