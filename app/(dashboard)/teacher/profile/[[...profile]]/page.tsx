@@ -131,10 +131,13 @@ const TeacherProfilePage = () => {
     // Append avatar file
     formDataToSend.append('avatar', file);
 
-    // Append other fields
-    Object.entries(userData).forEach(([key, value]) => {
+    // Only append fields that exist in backend User model
+    // Backend accepts: name, phone (bio, location, specialization, experience are NOT in User model)
+    const acceptedFields = ['name', 'phone'];
+    acceptedFields.forEach(field => {
+      const value = userData[field as keyof typeof userData];
       if (value !== undefined && value !== null && value !== '') {
-        formDataToSend.append(key, value);
+        formDataToSend.append(field, value);
       }
     });
 
@@ -142,7 +145,7 @@ const TeacherProfilePage = () => {
     const apiUrl = process.env.NEXT_PUBLIC_DJANGO_API_URL || 'http://localhost:8000/api/v1';
 
     const response = await fetch(`${apiUrl}/users/profile/`, {
-      method: 'PUT',
+      method: 'PATCH', // Changed to PATCH for partial updates
       headers: {
         'Authorization': `Bearer ${token}`,
         // Don't set Content-Type - browser sets it automatically with boundary
@@ -152,7 +155,8 @@ const TeacherProfilePage = () => {
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({ message: 'Erro ao fazer upload' }));
-      throw new Error(error.message || 'Erro ao fazer upload');
+      console.error('Upload error details:', error);
+      throw new Error(error.message || error.detail || 'Erro ao fazer upload');
     }
 
     return response.json();
