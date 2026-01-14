@@ -64,6 +64,11 @@ const TeacherProfilePage = () => {
     experience: '',
   });
 
+  // Avatar upload states
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+
   useEffect(() => {
     if (user) {
       setFormData({
@@ -86,15 +91,98 @@ const TeacherProfilePage = () => {
     }));
   };
 
+  // Avatar upload handler
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Por favor, selecione uma imagem válida');
+      return;
+    }
+
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('A imagem deve ter menos de 5MB');
+      return;
+    }
+
+    // Store file
+    setAvatarFile(file);
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setAvatarPreview(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+
+    toast.success('Imagem selecionada! Clique em "Salvar Alterações" para fazer upload.');
+  };
+
+  // Upload profile with avatar using FormData
+  const uploadProfileWithAvatar = async (file: File, userData: typeof formData) => {
+    const formDataToSend = new FormData();
+
+    // Append avatar file
+    formDataToSend.append('avatar', file);
+
+    // Append other fields
+    Object.entries(userData).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        formDataToSend.append(key, value);
+      }
+    });
+
+    const token = localStorage.getItem('access_token');
+    const apiUrl = process.env.NEXT_PUBLIC_DJANGO_API_URL || 'http://localhost:8000/api/v1';
+
+    const response = await fetch(`${apiUrl}/users/profile/`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        // Don't set Content-Type - browser sets it automatically with boundary
+      },
+      body: formDataToSend,
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Erro ao fazer upload' }));
+      throw new Error(error.message || 'Erro ao fazer upload');
+    }
+
+    return response.json();
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+    setIsUploading(true);
+
     try {
-      await updateProfile(formData).unwrap();
-      toast.success('Perfil atualizado com sucesso!');
+      let updatedUser;
+
+      if (avatarFile) {
+        // Upload with file using FormData
+        updatedUser = await uploadProfileWithAvatar(avatarFile, formData);
+        toast.success('Perfil e foto atualizados com sucesso!');
+      } else {
+        // No file, use existing mutation
+        updatedUser = await updateProfile(formData).unwrap();
+        toast.success('Perfil atualizado com sucesso!');
+      }
+
       setIsEditing(false);
+      setAvatarFile(null);
+      setAvatarPreview(null);
+
+      // Reload page to show updated avatar
+      window.location.reload();
     } catch (error: any) {
-      toast.error(error?.data?.message || 'Erro ao atualizar perfil');
+      console.error('Erro ao atualizar perfil:', error);
+      toast.error(error?.message || error?.data?.message || 'Erro ao atualizar perfil');
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -241,24 +329,42 @@ const TeacherProfilePage = () => {
               <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
                 {/* Avatar Section */}
                 <div className="relative group/avatar">
+                  {/* Hidden file input */}
+                  <input
+                    id="avatar-upload-input"
+                    type="file"
+                    accept="image/jpeg,image/png,image/jpg,image/webp"
+                    className="hidden"
+                    onChange={handleAvatarChange}
+                  />
+
                   <motion.div
                     whileHover={{ scale: 1.05, rotate: 5 }}
                     transition={{ duration: 0.3 }}
                   >
                     <Avatar className="w-32 h-32 md:w-40 md:h-40 border-4 border-emerald-500/50 shadow-2xl shadow-emerald-500/25">
-                      <AvatarImage src={user?.avatar} alt={user?.name} />
+                      <AvatarImage src={avatarPreview || user?.avatar} alt={user?.name} />
                       <AvatarFallback className="bg-gradient-to-br from-emerald-600 to-teal-600 text-white text-3xl font-bold">
                         {getInitials(user?.name || 'P')}
                       </AvatarFallback>
                     </Avatar>
                   </motion.div>
-                  <motion.button 
+                  <motion.button
+                    type="button"
+                    onClick={() => document.getElementById('avatar-upload-input')?.click()}
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.95 }}
-                    className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-200 flex items-center justify-center"
+                    className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-200 flex items-center justify-center cursor-pointer"
                   >
                     <Camera className="w-8 h-8 text-white" />
                   </motion.button>
+
+                  {/* Upload indicator */}
+                  {isUploading && (
+                    <div className="absolute inset-0 bg-black/70 rounded-full flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-emerald-400 border-r-2"></div>
+                    </div>
+                  )}
                 </div>
                 
                 {/* User Info */}
@@ -304,6 +410,22 @@ const TeacherProfilePage = () => {
                       <span className="text-sm">Membro desde {joinDate}</span>
                     </motion.div>
                   </div>
+
+                  {/* File selected indicator */}
+                  {avatarFile && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mb-4 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-center"
+                    >
+                      <p className="text-sm text-emerald-300 flex items-center justify-center gap-2">
+                        <Camera className="w-4 h-4" />
+                        <span className="font-medium">{avatarFile.name}</span>
+                        <span className="text-gray-400">({(avatarFile.size / 1024).toFixed(0)} KB)</span>
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">Clique em "Salvar Alterações" para confirmar</p>
+                    </motion.div>
+                  )}
 
                   {/* Quick Stats */}
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
