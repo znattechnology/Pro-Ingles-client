@@ -69,6 +69,16 @@ const TeacherProfilePage = () => {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
+  // Debug logging on mount and state changes
+  useEffect(() => {
+    console.log('🔍 Component mounted');
+    console.log('📊 Initial states:', { avatarFile, isUploading, isUpdating, isEditing });
+  }, []);
+
+  useEffect(() => {
+    console.log('📊 State changed:', { avatarFile: avatarFile?.name, isUploading, isUpdating, isEditing });
+  }, [avatarFile, isUploading, isUpdating, isEditing]);
+
   useEffect(() => {
     if (user) {
       setFormData({
@@ -187,17 +197,28 @@ const TeacherProfilePage = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
+    console.log('🚀 handleSubmit called! Event:', e.type);
     e.preventDefault();
+    console.log('✅ preventDefault called');
+
+    console.log('📁 avatarFile:', avatarFile);
+    console.log('📝 formData:', formData);
+    console.log('🔄 isUploading (before):', isUploading);
+    console.log('✏️ isUpdating (before):', isUpdating);
+
     setIsUploading(true);
+    console.log('✅ isUploading set to true');
 
     try {
       let updatedUser;
 
       if (avatarFile) {
+        console.log('✅ Avatar file detected, uploading...');
         // Upload with file using FormData
         updatedUser = await uploadProfileWithAvatar(avatarFile, formData);
         toast.success('Perfil e foto atualizados com sucesso!');
       } else {
+        console.log('❌ No avatar file, updating profile only...');
         // No file, use existing mutation
         updatedUser = await updateProfile(formData).unwrap();
         toast.success('Perfil atualizado com sucesso!');
@@ -542,7 +563,13 @@ const TeacherProfilePage = () => {
                     </CardHeader>
                     <CardContent className="space-y-4">
                       {isEditing ? (
-                        <form onSubmit={handleSubmit} className="space-y-4">
+                        <form
+                          onSubmit={(e) => {
+                            console.log('📋 Form onSubmit event fired!');
+                            handleSubmit(e);
+                          }}
+                          className="space-y-4"
+                        >
                           <div className="space-y-2">
                             <Label htmlFor="name" className="text-white">Nome Completo</Label>
                             <Input
@@ -619,6 +646,13 @@ const TeacherProfilePage = () => {
                             <Button
                               type="submit"
                               disabled={isUpdating || isUploading}
+                              onClick={() => {
+                                console.log('🖱️ Button clicked!');
+                                console.log('🔒 Button disabled?', isUpdating || isUploading);
+                                console.log('📁 avatarFile exists?', !!avatarFile);
+                                console.log('✏️ isUpdating:', isUpdating);
+                                console.log('🔄 isUploading:', isUploading);
+                              }}
                               className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg transition-all duration-300"
                             >
                               {isUploading ? 'Fazendo Upload...' : isUpdating ? 'Salvando...' : 'Salvar Alterações'}
@@ -804,7 +838,7 @@ const TeacherProfilePage = () => {
                       { label: 'Taxa de Conclusão', value: `${teacherStats.completionRate}%`, color: 'text-green-400' },
                       { label: 'Engajamento', value: `${teacherStats.engagement}%`, color: 'text-blue-400' },
                       { label: 'Horas Totais', value: `${teacherStats.totalHours}h`, color: 'text-purple-400' }
-                    ].map((metric, index) => (
+                    ].map((metric) => (
                       <div key={metric.label} className="flex justify-between items-center">
                         <span className="text-gray-300">{metric.label}</span>
                         <span className={`font-bold ${metric.color}`}>{metric.value}</span>
