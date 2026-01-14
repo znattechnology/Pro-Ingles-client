@@ -76,8 +76,17 @@ const TeacherProfilePage = () => {
   }, []);
 
   useEffect(() => {
-    console.log('📊 State changed:', { avatarFile: avatarFile?.name, isUploading, isUpdating, isEditing });
+    console.log('📊 State changed:', {
+      avatarFile: avatarFile?.name,
+      isUploading,
+      isUpdating,
+      isEditing,
+      buttonWillBeDisabled: isUploading
+    });
   }, [avatarFile, isUploading, isUpdating, isEditing]);
+
+  // Log button render state
+  console.log('🎨 Rendering form. Button disabled?', isUploading, '| isUpdating:', isUpdating);
 
   useEffect(() => {
     if (user) {
@@ -206,6 +215,12 @@ const TeacherProfilePage = () => {
     console.log('🔄 isUploading (before):', isUploading);
     console.log('✏️ isUpdating (before):', isUpdating);
 
+    // Prevent double submission
+    if (isUploading) {
+      console.log('⚠️ Upload already in progress, ignoring');
+      return;
+    }
+
     setIsUploading(true);
     console.log('✅ isUploading set to true');
 
@@ -224,12 +239,17 @@ const TeacherProfilePage = () => {
         toast.success('Perfil atualizado com sucesso!');
       }
 
+      // Clear upload states
       setIsEditing(false);
       setAvatarFile(null);
       setAvatarPreview(null);
 
-      // Reload page to show updated avatar
-      window.location.reload();
+      // Trigger a re-fetch of user profile instead of full reload
+      console.log('✅ Upload complete, refreshing user data...');
+      // The mutation will automatically update Redux state, triggering re-render
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     } catch (error: any) {
       console.error('Erro ao atualizar perfil:', error);
       toast.error(error?.message || error?.data?.message || 'Erro ao atualizar perfil');
@@ -645,17 +665,24 @@ const TeacherProfilePage = () => {
                           <div className="flex gap-2">
                             <Button
                               type="submit"
-                              disabled={isUpdating || isUploading}
+                              disabled={isUploading}
                               onClick={() => {
                                 console.log('🖱️ Button clicked!');
-                                console.log('🔒 Button disabled?', isUpdating || isUploading);
+                                console.log('🔒 Button disabled?', isUploading);
                                 console.log('📁 avatarFile exists?', !!avatarFile);
                                 console.log('✏️ isUpdating:', isUpdating);
                                 console.log('🔄 isUploading:', isUploading);
                               }}
-                              className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg transition-all duration-300"
+                              className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                              {isUploading ? 'Fazendo Upload...' : isUpdating ? 'Salvando...' : 'Salvar Alterações'}
+                              {isUploading ? (
+                                <span className="flex items-center gap-2">
+                                  <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-white border-r-2"></div>
+                                  Fazendo Upload...
+                                </span>
+                              ) : (
+                                'Salvar Alterações'
+                              )}
                             </Button>
                             <Button
                               type="button"
