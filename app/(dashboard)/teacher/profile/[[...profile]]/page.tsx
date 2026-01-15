@@ -4,6 +4,7 @@ import { useDjangoAuth } from "@/hooks/useDjangoAuth";
 import { useUpdateProfileMutation } from "@/src/domains/auth";
 import { userLoggedIn } from "@/src/domains/auth";
 import { useDispatch } from "react-redux";
+import { uploadAvatarToS3 } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -142,73 +143,48 @@ const TeacherProfilePage = () => {
     toast.success('Imagem selecionada! Clique em "Salvar Alterações" para fazer upload.');
   };
 
-  // Upload profile with avatar using FormData
-  const uploadProfileWithAvatar = async (file: File, userData: typeof formData) => {
-    console.log('📤 uploadProfileWithAvatar() STARTED');
+  // Upload avatar to S3 and update profile
+  const uploadProfileWithAvatar = async (file: File) => {
+    console.log('📤 Starting S3 avatar upload...');
     console.log('📁 File details:', {
       name: file.name,
       type: file.type,
       size: file.size,
-      lastModified: new Date(file.lastModified).toISOString()
     });
 
-    const formDataToSend = new FormData();
-    formDataToSend.append('avatar', file);
-    console.log('✅ File appended to FormData');
-
-    // Log all FormData entries
-    console.log('📦 FormData contents:');
-    for (const [key, value] of formDataToSend.entries()) {
-      console.log(`  - ${key}:`, value instanceof File ? `File(${value.name}, ${value.size} bytes, ${value.type})` : value);
-    }
-
-    const token = localStorage.getItem('access_token');
-    const apiUrl = process.env.NEXT_PUBLIC_DJANGO_API_URL || 'http://localhost:8000/api/v1';
-    const endpoint = `${apiUrl}/users/profile/`;
-
-    console.log('\n🌐 HTTP REQUEST:');
-    console.log('  - URL:', endpoint);
-    console.log('  - Method: PATCH');
-    console.log('  - Token:', token ? `${token.substring(0, 20)}...` : 'MISSING!');
-    console.log('  - Headers: Authorization only (Content-Type auto-set by browser)');
-
     try {
-      console.log('\n📡 Sending request...');
+      // Step 1: Upload file to S3 and get the avatar URL
+      console.log('☁️ Uploading to S3...');
+      const avatarUrl = await uploadAvatarToS3(file);
+      console.log('✅ S3 upload complete. Avatar URL:', avatarUrl);
+
+      // Step 2: Update user profile in database with the new avatar URL
+      console.log('📝 Updating user profile in database...');
+      const token = localStorage.getItem('access_token');
+      const apiUrl = process.env.NEXT_PUBLIC_DJANGO_API_URL || 'http://localhost:8000/api/v1';
+      const endpoint = `${apiUrl}/users/profile/`;
+
       const response = await fetch(endpoint, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
-          // Don't set Content-Type - browser sets it automatically with boundary
+          'Content-Type': 'application/json',
         },
-        body: formDataToSend,
+        body: JSON.stringify({
+          avatar: avatarUrl
+        }),
       });
 
-      console.log('\n📥 Response received:');
-      console.log('  - Status:', response.status, response.statusText);
-      console.log('  - OK:', response.ok);
-      console.log('  - Headers:', Object.fromEntries(response.headers.entries()));
-
       if (!response.ok) {
-        console.log('❌ Response NOT OK, parsing error...');
-        const error = await response.json().catch(() => ({ message: 'Erro ao fazer upload' }));
-        console.error('❌ SERVER ERROR RESPONSE:');
-        console.error('  - Error object:', error);
-        console.error('  - Error message:', error.message);
-        console.error('  - Error detail:', error.detail);
-        console.error('  - Error details:', error.details);
-        console.error('  - Full JSON:', JSON.stringify(error, null, 2));
-        throw new Error(error.message || error.detail || 'Erro ao fazer upload');
+        const error = await response.json().catch(() => ({ message: 'Erro ao atualizar perfil' }));
+        throw new Error(error.message || error.detail || 'Erro ao atualizar perfil');
       }
 
-      console.log('✅ Response OK, parsing JSON...');
       const data = await response.json();
-      console.log('✅ Upload successful! Response data:', data);
+      console.log('✅ Profile updated in database successfully');
       return data;
     } catch (error) {
-      console.error('\n💥 FETCH ERROR:');
-      console.error('  - Error type:', error instanceof Error ? error.constructor.name : typeof error);
-      console.error('  - Error message:', error instanceof Error ? error.message : String(error));
-      console.error('  - Full error:', error);
+      console.error('💥 Avatar upload failed:', error);
       throw error;
     }
   };
@@ -241,20 +217,19 @@ const TeacherProfilePage = () => {
       let updatedUser;
 
       if (avatarFile) {
-        console.log('✅ Avatar file detected, starting upload...');
+        console.log('✅ Avatar file detected, starting S3 upload...');
         console.log('📤 Calling uploadProfileWithAvatar()...\n');
 
-        updatedUser = await uploadProfileWithAvatar(avatarFile, formData);
+        updatedUser = await uploadProfileWithAvatar(avatarFile);
 
-        console.log('\n✅ Upload successful!');
+        console.log('\n✅ S3 upload and profile update successful!');
         console.log('📥 Response:', updatedUser);
         console.log('📥 Response.avatar:', updatedUser.avatar);
-        console.log('📥 Response.avatar_url:', updatedUser.avatar_url);
 
-        // Use avatar_url if available, otherwise use avatar
+        // Avatar field now contains the full S3/CloudFront URL
         const userToSave = {
           ...updatedUser,
-          avatar: updatedUser.avatar_url || updatedUser.avatar
+          avatar: updatedUser.avatar
         };
         console.log('💾 User object to save:', userToSave);
         console.log('💾 User.avatar:', userToSave.avatar);

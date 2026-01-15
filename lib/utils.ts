@@ -435,6 +435,70 @@ export const uploadCourseImage = async (
   }
 };
 
+// Upload user avatar to S3 using presigned URL (same pattern as course image)
+export const uploadAvatarToS3 = async (
+  imageFile: File
+): Promise<string> => {
+  try {
+    console.log('🖼️ Starting avatar upload...', {
+      fileName: imageFile.name,
+      fileType: imageFile.type,
+      size: imageFile.size
+    });
+
+    // Step 1: Get presigned URL from Django backend
+    const uploadUrlResponse = await fetch(
+      `${process.env.NEXT_PUBLIC_DJANGO_API_URL}/users/get-avatar-upload-url/`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fileName: imageFile.name,
+          fileType: imageFile.type,
+          timestamp: Date.now(), // Prevent caching
+        }),
+      }
+    );
+
+    if (!uploadUrlResponse.ok) {
+      const errorData = await uploadUrlResponse.json();
+      throw new Error(errorData.message || 'Erro ao obter URL de upload');
+    }
+
+    const { data } = await uploadUrlResponse.json();
+    const { uploadUrl, avatarUrl } = data;
+
+    console.log('✅ Got presigned URL, uploading to S3...');
+
+    // Step 2: Upload file directly to S3 using presigned URL
+    const uploadToS3Response = await fetch(uploadUrl, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': imageFile.type,
+      },
+      body: imageFile,
+    });
+
+    if (!uploadToS3Response.ok) {
+      throw new Error(`Upload failed with status: ${uploadToS3Response.status}`);
+    }
+
+    console.log('✅ Avatar uploaded to S3 successfully');
+    console.log('📸 Avatar URL:', avatarUrl);
+    toast.success('Avatar atualizado com sucesso');
+
+    // Return the avatar URL to be saved in the database by the caller
+    return avatarUrl;
+  } catch (error: any) {
+    console.error('❌ Avatar upload failed:', error);
+    toast.error(error.message || 'Erro ao fazer upload do avatar');
+    throw error;
+  }
+};
+
 export async function uploadVideo(
   chapter: Chapter,
   courseId: string,
