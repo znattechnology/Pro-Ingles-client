@@ -252,24 +252,37 @@ export function isAuthenticated(): boolean {
 // Helper function to get current user (for client-side use)
 export function getCurrentUser(): User | null {
   if (typeof window === 'undefined') return null;
-  
+
   const token = localStorage.getItem('access_token');
   if (!token) return null;
-  
+
   try {
     const decoded = jwtDecode<JWTPayload>(token);
-    
+
     if (decoded.exp * 1000 <= Date.now()) {
       return null; // Token expired
     }
-    
-    // Convert JWT payload to User interface
+
+    // Get additional user data from django_user in localStorage (includes avatar)
+    const djangoUserStr = localStorage.getItem('django_user');
+    let djangoUser: any = null;
+
+    if (djangoUserStr) {
+      try {
+        djangoUser = JSON.parse(djangoUserStr);
+      } catch (e) {
+        console.error('Error parsing django_user from localStorage:', e);
+      }
+    }
+
+    // Convert JWT payload to User interface, merging with django_user data
     return {
       id: decoded.user_id,
       email: decoded.email,
       name: decoded.name,
       role: decoded.role,
-      email_verified: true, // Assume verified if JWT exists
+      avatar: djangoUser?.avatar, // Get avatar from django_user localStorage
+      email_verified: djangoUser?.email_verified ?? true, // Assume verified if JWT exists
     };
   } catch {
     return null;
