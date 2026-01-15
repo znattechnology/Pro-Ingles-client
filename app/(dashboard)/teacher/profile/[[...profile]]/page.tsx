@@ -2,6 +2,8 @@
 
 import { useDjangoAuth } from "@/hooks/useDjangoAuth";
 import { useUpdateProfileMutation } from "@/src/domains/auth";
+import { userLoggedIn } from "@/src/domains/auth";
+import { useDispatch } from "react-redux";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -49,6 +51,7 @@ import { useRouter } from "next/navigation";
 
 const TeacherProfilePage = () => {
   const router = useRouter();
+  const dispatch = useDispatch();
   const { user, isAuthenticated, isLoading } = useDjangoAuth();
   const [updateProfile, { isLoading: isUpdating }] = useUpdateProfileMutation();
   const [isEditing, setIsEditing] = useState(false);
@@ -245,6 +248,21 @@ const TeacherProfilePage = () => {
 
         console.log('\n✅ Upload successful!');
         console.log('📥 Response:', updatedUser);
+
+        // Update localStorage with new user data
+        localStorage.setItem('django_user', JSON.stringify(updatedUser));
+        console.log('✅ Updated localStorage with new user data');
+
+        // Update Redux state with new user data
+        const accessToken = localStorage.getItem('access_token') || '';
+        const refreshToken = localStorage.getItem('refresh_token') || '';
+        dispatch(userLoggedIn({
+          accessToken,
+          refreshToken,
+          user: updatedUser
+        }));
+        console.log('✅ Updated Redux state with new user data');
+
         toast.success('Perfil e foto atualizados com sucesso!');
 
         // Clear upload states
