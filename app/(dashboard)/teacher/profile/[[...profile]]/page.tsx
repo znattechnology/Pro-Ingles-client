@@ -145,21 +145,11 @@ const TeacherProfilePage = () => {
 
   // Upload avatar to S3 and update profile
   const uploadProfileWithAvatar = async (file: File) => {
-    console.log('📤 Starting S3 avatar upload...');
-    console.log('📁 File details:', {
-      name: file.name,
-      type: file.type,
-      size: file.size,
-    });
-
     try {
       // Step 1: Upload file to S3 and get the avatar URL
-      console.log('☁️ Uploading to S3...');
       const avatarUrl = await uploadAvatarToS3(file);
-      console.log('✅ S3 upload complete. Avatar URL:', avatarUrl);
 
       // Step 2: Update user profile in database with the new avatar URL
-      console.log('📝 Updating user profile in database...');
       const token = localStorage.getItem('access_token');
       const apiUrl = process.env.NEXT_PUBLIC_DJANGO_API_URL || 'http://localhost:8000/api/v1';
       const endpoint = `${apiUrl}/users/profile/`;
@@ -181,80 +171,45 @@ const TeacherProfilePage = () => {
       }
 
       const data = await response.json();
-      console.log('✅ Profile updated in database successfully');
       return data;
     } catch (error) {
-      console.error('💥 Avatar upload failed:', error);
+      console.error('Erro ao fazer upload do avatar:', error);
       throw error;
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    console.log('\n' + '='.repeat(80));
-    console.log('🚀 FORM SUBMIT INITIATED');
-    console.log('='.repeat(80));
-    console.log('Event type:', e.type);
-
     e.preventDefault();
-    console.log('✅ preventDefault called');
-
-    console.log('\n📊 CURRENT STATE:');
-    console.log('  - avatarFile:', avatarFile ? `File(${avatarFile.name}, ${avatarFile.size} bytes)` : 'null');
-    console.log('  - isUploading:', isUploading);
-    console.log('  - isUpdating:', isUpdating);
-    console.log('  - formData:', formData);
 
     // Prevent double submission
-    if (isUploading) {
-      console.log('⚠️ Upload already in progress, ignoring');
-      return;
-    }
+    if (isUploading) return;
 
     setIsUploading(true);
-    console.log('✅ isUploading set to true\n');
 
     try {
       let updatedUser;
 
       if (avatarFile) {
-        console.log('✅ Avatar file detected, starting S3 upload...');
-        console.log('📤 Calling uploadProfileWithAvatar()...\n');
-
         updatedUser = await uploadProfileWithAvatar(avatarFile);
-
-        console.log('\n✅ S3 upload and profile update successful!');
-        console.log('📥 Response:', updatedUser);
-        console.log('📥 Response.avatar:', updatedUser.avatar);
 
         // Avatar field now contains the full S3/CloudFront URL
         const userToSave = {
           ...updatedUser,
           avatar: updatedUser.avatar
         };
-        console.log('💾 User object to save:', userToSave);
-        console.log('💾 User.avatar:', userToSave.avatar);
 
         // Update localStorage with new user data
         localStorage.setItem('django_user', JSON.stringify(userToSave));
-        console.log('✅ Updated localStorage with new user data');
 
         // Update Redux state with new user data
         const accessToken = localStorage.getItem('access_token') || '';
         const refreshToken = localStorage.getItem('refresh_token') || '';
-
-        console.log('🔄 Dispatching userLoggedIn with:', {
-          hasAccessToken: !!accessToken,
-          hasRefreshToken: !!refreshToken,
-          userId: userToSave.id,
-          userAvatar: userToSave.avatar
-        });
 
         dispatch(userLoggedIn({
           accessToken,
           refreshToken,
           user: userToSave
         }));
-        console.log('✅ Updated Redux state with new user data');
 
         toast.success('Perfil e foto atualizados com sucesso!');
 
@@ -262,32 +217,16 @@ const TeacherProfilePage = () => {
         setIsEditing(false);
         setAvatarFile(null);
         setAvatarPreview(null);
-
-        console.log('✅ States cleared, upload complete!');
-        console.log('='.repeat(80) + '\n');
       } else {
-        console.log('❌ No avatar file, updating profile only...');
         updatedUser = await updateProfile(formData).unwrap();
         toast.success('Perfil atualizado com sucesso!');
-
         setIsEditing(false);
-        console.log('✅ Profile updated (no avatar)');
-        console.log('='.repeat(80) + '\n');
       }
     } catch (error: any) {
-      console.log('\n' + '='.repeat(80));
-      console.log('❌ ERROR OCCURRED');
-      console.log('='.repeat(80));
-      console.error('Full error object:', error);
-      console.error('Error message:', error?.message);
-      console.error('Error data:', error?.data);
-      console.error('Error stack:', error?.stack);
-      console.log('='.repeat(80) + '\n');
-
+      console.error('Erro ao atualizar perfil:', error);
       toast.error(error?.message || error?.data?.message || 'Erro ao atualizar perfil');
     } finally {
       setIsUploading(false);
-      console.log('✅ isUploading set to false (finally block)');
     }
   };
 
@@ -315,30 +254,6 @@ const TeacherProfilePage = () => {
     completionRate: 89,
     engagement: 94
   };
-
-  // Debug: Log user avatar URL and localStorage
-  useEffect(() => {
-    if (user) {
-      console.log('👤 Current user object from Redux:', {
-        id: user.id,
-        name: user.name,
-        avatar: user.avatar,
-        email: user.email
-      });
-
-      // Check localStorage
-      const storedUser = localStorage.getItem('django_user');
-      if (storedUser) {
-        const parsed = JSON.parse(storedUser);
-        console.log('💾 User from localStorage:', {
-          id: parsed.id,
-          name: parsed.name,
-          avatar: parsed.avatar,
-          email: parsed.email
-        });
-      }
-    }
-  }, [user]);
 
   if (isLoading) return <Loading />;
   if (!isAuthenticated || !user) return <div>Faça login para visualizar o seu perfil.</div>;
