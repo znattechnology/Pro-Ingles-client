@@ -3,6 +3,9 @@
 import Header from "@/components/course/Header";
 import { useDjangoAuth } from "@/hooks/useDjangoAuth";
 import { useUpdateProfileMutation } from "@/src/domains/auth";
+import { userLoggedIn } from "@/src/domains/auth";
+import { useDispatch } from "react-redux";
+import { uploadAvatarToS3 } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,10 +34,16 @@ import {
 
 const UserProfilePage = () => {
   const { user, isAuthenticated, isLoading } = useDjangoAuth();
+  const dispatch = useDispatch();
   const [updateProfile, { isLoading: isUpdating }] = useUpdateProfileMutation();
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
-  
+
+  // Avatar upload states
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -63,15 +72,134 @@ const UserProfilePage = () => {
     }));
   };
 
+  // Avatar upload handler
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Por favor, selecione uma imagem válida');
+      return;
+    }
+
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('A imagem deve ter menos de 5MB');
+      return;
+    }
+
+    // Rename file if filename is too long (max 100 chars)
+    let processedFile = file;
+    if (file.name.length > 100) {
+      const extension = file.name.substring(file.name.lastIndexOf('.'));
+      const nameWithoutExt = file.name.substring(0, file.name.lastIndexOf('.'));
+      const maxNameLength = 95 - extension.length;
+      const truncatedName = nameWithoutExt.substring(0, maxNameLength);
+      const newFileName = `${truncatedName}${extension}`;
+
+      processedFile = new File([file], newFileName, { type: file.type });
+    }
+
+    setAvatarFile(processedFile);
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setAvatarPreview(e.target?.result as string);
+    };
+    reader.readAsDataURL(processedFile);
+
+    // Automatically enable editing mode
+    setIsEditing(true);
+
+    toast.success('Imagem selecionada! Clique em "Salvar Alterações" para fazer upload.');
+  };
+
+  // Upload avatar to S3 and update profile
+  const uploadProfileWithAvatar = async (file: File) => {
+    try {
+      // Step 1: Upload file to S3 and get the avatar URL
+      const avatarUrl = await uploadAvatarToS3(file);
+
+      // Step 2: Update user profile in database with the new avatar URL
+      const token = localStorage.getItem('access_token');
+      const apiUrl = process.env.NEXT_PUBLIC_DJANGO_API_URL || 'http://localhost:8000/api/v1';
+      const endpoint = `${apiUrl}/users/profile/`;
+
+      const response = await fetch(endpoint, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          avatar: avatarUrl
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: 'Erro ao atualizar perfil' }));
+        throw new Error(error.message || error.detail || 'Erro ao atualizar perfil');
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Erro ao fazer upload do avatar:', error);
+      throw error;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
+    // Prevent double submission
+    if (isUploading) return;
+
+    setIsUploading(true);
+
     try {
-      await updateProfile(formData).unwrap();
-      toast.success('Perfil atualizado com sucesso!');
-      setIsEditing(false);
+      let updatedUser;
+
+      if (avatarFile) {
+        updatedUser = await uploadProfileWithAvatar(avatarFile);
+
+        // Avatar field now contains the full S3/CloudFront URL
+        const userToSave = {
+          ...updatedUser,
+          avatar: updatedUser.avatar
+        };
+
+        // Update localStorage with new user data
+        localStorage.setItem('django_user', JSON.stringify(userToSave));
+
+        // Update Redux state with new user data
+        const accessToken = localStorage.getItem('access_token') || '';
+        const refreshToken = localStorage.getItem('refresh_token') || '';
+
+        dispatch(userLoggedIn({
+          accessToken,
+          refreshToken,
+          user: userToSave
+        }));
+
+        toast.success('Perfil e foto atualizados com sucesso!');
+
+        // Clear upload states
+        setIsEditing(false);
+        setAvatarFile(null);
+        setAvatarPreview(null);
+      } else {
+        updatedUser = await updateProfile(formData).unwrap();
+        toast.success('Perfil atualizado com sucesso!');
+        setIsEditing(false);
+      }
     } catch (error: any) {
-      toast.error(error?.data?.message || 'Erro ao atualizar perfil');
+      console.error('Erro ao atualizar perfil:', error);
+      toast.error(error?.message || error?.data?.message || 'Erro ao atualizar perfil');
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -96,6 +224,15 @@ const UserProfilePage = () => {
     <>
       <Header title="Perfil do Estudante" subtitle="Gerencie suas informações pessoais e configurações" />
       <div className="max-w-6xl mx-auto p-4 md:p-6 space-y-8">
+        {/* Hidden file input for avatar upload */}
+        <input
+          id="avatar-upload-input"
+          type="file"
+          accept="image/jpeg,image/png,image/jpg,image/webp"
+          className="hidden"
+          onChange={handleAvatarChange}
+        />
+
         {/* Profile Header Card */}
         <Card className="bg-gradient-to-r from-violet-900/20 via-purple-900/20 to-violet-900/20 border-violet-900/30 backdrop-blur-sm">
           <CardContent className="p-6">
@@ -103,12 +240,16 @@ const UserProfilePage = () => {
               {/* Avatar Section */}
               <div className="relative group">
                 <Avatar className="w-24 h-24 md:w-32 md:h-32 border-4 border-violet-500/50 shadow-xl">
-                  <AvatarImage src={user?.avatar} alt={user?.name} />
+                  <AvatarImage src={avatarPreview || user?.avatar} alt={user?.name} />
                   <AvatarFallback className="bg-gradient-to-br from-violet-600 to-purple-600 text-white text-2xl font-bold">
                     {getInitials(user?.name || 'U')}
                   </AvatarFallback>
                 </Avatar>
-                <button className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+                <button
+                  type="button"
+                  onClick={() => document.getElementById('avatar-upload-input')?.click()}
+                  className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center cursor-pointer"
+                >
                   <Camera className="w-6 h-6 text-white" />
                 </button>
               </div>
@@ -120,7 +261,14 @@ const UserProfilePage = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setIsEditing(!isEditing)}
+                    onClick={() => {
+                      setIsEditing(!isEditing);
+                      if (isEditing) {
+                        // Clear avatar states on cancel
+                        setAvatarFile(null);
+                        setAvatarPreview(null);
+                      }
+                    }}
                     className="border-violet-500 text-violet-400 hover:bg-violet-500 hover:text-white transition-colors"
                   >
                     <Edit3 className="w-4 h-4 mr-2" />
