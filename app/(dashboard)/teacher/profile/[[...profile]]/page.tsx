@@ -141,62 +141,89 @@ const TeacherProfilePage = () => {
 
   // Upload profile with avatar using FormData
   const uploadProfileWithAvatar = async (file: File, userData: typeof formData) => {
+    console.log('📤 uploadProfileWithAvatar() STARTED');
+    console.log('📁 File details:', {
+      name: file.name,
+      type: file.type,
+      size: file.size,
+      lastModified: new Date(file.lastModified).toISOString()
+    });
+
     const formDataToSend = new FormData();
-
-    // Append avatar file
     formDataToSend.append('avatar', file);
-    console.log('📸 Uploading avatar:', file.name, file.type, file.size, 'bytes');
-
-    // SIMPLIFIED: Send ONLY avatar for now to avoid validation errors
-    // TODO: Add other fields after avatar upload works
-    // Note: phone field has strict regex validation requiring international format
-    // const acceptedFields = ['name', 'phone'];
-    // acceptedFields.forEach(field => {
-    //   const value = userData[field as keyof typeof userData];
-    //   if (value !== undefined && value !== null && value !== '') {
-    //     formDataToSend.append(field, value);
-    //     console.log(`📝 Adding field "${field}":`, value);
-    //   }
-    // });
+    console.log('✅ File appended to FormData');
 
     // Log all FormData entries
     console.log('📦 FormData contents:');
     for (const [key, value] of formDataToSend.entries()) {
-      console.log(`  - ${key}:`, value instanceof File ? `File(${value.name})` : value);
+      console.log(`  - ${key}:`, value instanceof File ? `File(${value.name}, ${value.size} bytes, ${value.type})` : value);
     }
 
     const token = localStorage.getItem('access_token');
     const apiUrl = process.env.NEXT_PUBLIC_DJANGO_API_URL || 'http://localhost:8000/api/v1';
+    const endpoint = `${apiUrl}/users/profile/`;
 
-    const response = await fetch(`${apiUrl}/users/profile/`, {
-      method: 'PATCH', // Changed to PATCH for partial updates
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        // Don't set Content-Type - browser sets it automatically with boundary
-      },
-      body: formDataToSend,
-    });
+    console.log('\n🌐 HTTP REQUEST:');
+    console.log('  - URL:', endpoint);
+    console.log('  - Method: PATCH');
+    console.log('  - Token:', token ? `${token.substring(0, 20)}...` : 'MISSING!');
+    console.log('  - Headers: Authorization only (Content-Type auto-set by browser)');
 
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: 'Erro ao fazer upload' }));
-      console.error('Upload error details:', error);
-      console.error('Error details field:', error.details);
-      console.error('Full error object:', JSON.stringify(error, null, 2));
-      throw new Error(error.message || error.detail || 'Erro ao fazer upload');
+    try {
+      console.log('\n📡 Sending request...');
+      const response = await fetch(endpoint, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          // Don't set Content-Type - browser sets it automatically with boundary
+        },
+        body: formDataToSend,
+      });
+
+      console.log('\n📥 Response received:');
+      console.log('  - Status:', response.status, response.statusText);
+      console.log('  - OK:', response.ok);
+      console.log('  - Headers:', Object.fromEntries(response.headers.entries()));
+
+      if (!response.ok) {
+        console.log('❌ Response NOT OK, parsing error...');
+        const error = await response.json().catch(() => ({ message: 'Erro ao fazer upload' }));
+        console.error('❌ SERVER ERROR RESPONSE:');
+        console.error('  - Error object:', error);
+        console.error('  - Error message:', error.message);
+        console.error('  - Error detail:', error.detail);
+        console.error('  - Error details:', error.details);
+        console.error('  - Full JSON:', JSON.stringify(error, null, 2));
+        throw new Error(error.message || error.detail || 'Erro ao fazer upload');
+      }
+
+      console.log('✅ Response OK, parsing JSON...');
+      const data = await response.json();
+      console.log('✅ Upload successful! Response data:', data);
+      return data;
+    } catch (error) {
+      console.error('\n💥 FETCH ERROR:');
+      console.error('  - Error type:', error instanceof Error ? error.constructor.name : typeof error);
+      console.error('  - Error message:', error instanceof Error ? error.message : String(error));
+      console.error('  - Full error:', error);
+      throw error;
     }
-
-    return response.json();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    console.log('🚀 handleSubmit called! Event:', e.type);
+    console.log('\n' + '='.repeat(80));
+    console.log('🚀 FORM SUBMIT INITIATED');
+    console.log('='.repeat(80));
+    console.log('Event type:', e.type);
+
     e.preventDefault();
     console.log('✅ preventDefault called');
 
-    console.log('📁 avatarFile:', avatarFile);
-    console.log('📝 formData:', formData);
-    console.log('🔄 isUploading (before):', isUploading);
-    console.log('✏️ isUpdating (before):', isUpdating);
+    console.log('\n📊 CURRENT STATE:');
+    console.log('  - avatarFile:', avatarFile ? `File(${avatarFile.name}, ${avatarFile.size} bytes)` : 'null');
+    console.log('  - isUploading:', isUploading);
+    console.log('  - isUpdating:', isUpdating);
+    console.log('  - formData:', formData);
 
     // Prevent double submission
     if (isUploading) {
@@ -205,39 +232,51 @@ const TeacherProfilePage = () => {
     }
 
     setIsUploading(true);
-    console.log('✅ isUploading set to true');
+    console.log('✅ isUploading set to true\n');
 
     try {
       let updatedUser;
 
       if (avatarFile) {
-        console.log('✅ Avatar file detected, uploading...');
-        // Upload with file using FormData
+        console.log('✅ Avatar file detected, starting upload...');
+        console.log('📤 Calling uploadProfileWithAvatar()...\n');
+
         updatedUser = await uploadProfileWithAvatar(avatarFile, formData);
+
+        console.log('\n✅ Upload successful!');
+        console.log('📥 Response:', updatedUser);
         toast.success('Perfil e foto atualizados com sucesso!');
+
+        // Clear upload states
+        setIsEditing(false);
+        setAvatarFile(null);
+        setAvatarPreview(null);
+
+        console.log('✅ States cleared, upload complete!');
+        console.log('='.repeat(80) + '\n');
       } else {
         console.log('❌ No avatar file, updating profile only...');
-        // No file, use existing mutation
         updatedUser = await updateProfile(formData).unwrap();
         toast.success('Perfil atualizado com sucesso!');
+
+        setIsEditing(false);
+        console.log('✅ Profile updated (no avatar)');
+        console.log('='.repeat(80) + '\n');
       }
-
-      // Clear upload states
-      setIsEditing(false);
-      setAvatarFile(null);
-      setAvatarPreview(null);
-
-      // Trigger a re-fetch of user profile instead of full reload
-      console.log('✅ Upload complete, refreshing user data...');
-      // The mutation will automatically update Redux state, triggering re-render
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
     } catch (error: any) {
-      console.error('Erro ao atualizar perfil:', error);
+      console.log('\n' + '='.repeat(80));
+      console.log('❌ ERROR OCCURRED');
+      console.log('='.repeat(80));
+      console.error('Full error object:', error);
+      console.error('Error message:', error?.message);
+      console.error('Error data:', error?.data);
+      console.error('Error stack:', error?.stack);
+      console.log('='.repeat(80) + '\n');
+
       toast.error(error?.message || error?.data?.message || 'Erro ao atualizar perfil');
     } finally {
       setIsUploading(false);
+      console.log('✅ isUploading set to false (finally block)');
     }
   };
 
