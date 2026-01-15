@@ -323,6 +323,18 @@ const TeacherProfilePage = () => {
     engagement: 94
   };
 
+  // Debug: Log user avatar URL
+  useEffect(() => {
+    if (user) {
+      console.log('👤 Current user object:', {
+        id: user.id,
+        name: user.name,
+        avatar: user.avatar,
+        email: user.email
+      });
+    }
+  }, [user]);
+
   if (isLoading) return <Loading />;
   if (!isAuthenticated || !user) return <div>Faça login para visualizar o seu perfil.</div>;
 
