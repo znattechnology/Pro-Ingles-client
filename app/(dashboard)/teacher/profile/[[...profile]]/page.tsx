@@ -248,18 +248,36 @@ const TeacherProfilePage = () => {
 
         console.log('\n✅ Upload successful!');
         console.log('📥 Response:', updatedUser);
+        console.log('📥 Response.avatar:', updatedUser.avatar);
+        console.log('📥 Response.avatar_url:', updatedUser.avatar_url);
+
+        // Use avatar_url if available, otherwise use avatar
+        const userToSave = {
+          ...updatedUser,
+          avatar: updatedUser.avatar_url || updatedUser.avatar
+        };
+        console.log('💾 User object to save:', userToSave);
+        console.log('💾 User.avatar:', userToSave.avatar);
 
         // Update localStorage with new user data
-        localStorage.setItem('django_user', JSON.stringify(updatedUser));
+        localStorage.setItem('django_user', JSON.stringify(userToSave));
         console.log('✅ Updated localStorage with new user data');
 
         // Update Redux state with new user data
         const accessToken = localStorage.getItem('access_token') || '';
         const refreshToken = localStorage.getItem('refresh_token') || '';
+
+        console.log('🔄 Dispatching userLoggedIn with:', {
+          hasAccessToken: !!accessToken,
+          hasRefreshToken: !!refreshToken,
+          userId: userToSave.id,
+          userAvatar: userToSave.avatar
+        });
+
         dispatch(userLoggedIn({
           accessToken,
           refreshToken,
-          user: updatedUser
+          user: userToSave
         }));
         console.log('✅ Updated Redux state with new user data');
 
@@ -323,15 +341,27 @@ const TeacherProfilePage = () => {
     engagement: 94
   };
 
-  // Debug: Log user avatar URL
+  // Debug: Log user avatar URL and localStorage
   useEffect(() => {
     if (user) {
-      console.log('👤 Current user object:', {
+      console.log('👤 Current user object from Redux:', {
         id: user.id,
         name: user.name,
         avatar: user.avatar,
         email: user.email
       });
+
+      // Check localStorage
+      const storedUser = localStorage.getItem('django_user');
+      if (storedUser) {
+        const parsed = JSON.parse(storedUser);
+        console.log('💾 User from localStorage:', {
+          id: parsed.id,
+          name: parsed.name,
+          avatar: parsed.avatar,
+          email: parsed.email
+        });
+      }
     }
   }, [user]);
 
