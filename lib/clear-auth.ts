@@ -5,9 +5,10 @@
 export function clearAllAuthData() {
   if (typeof window === 'undefined') return;
 
-  // Clear localStorage
+  // Clear localStorage (including legacy django_user cache)
   localStorage.removeItem('access_token');
   localStorage.removeItem('refresh_token');
+  localStorage.removeItem('django_user'); // Legacy user data cache (deprecated)
   
   // Clear all possible cookie variations
   const cookiesToClear = ['access_token', 'refresh_token'];

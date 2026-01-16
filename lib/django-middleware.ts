@@ -249,7 +249,51 @@ export function isAuthenticated(): boolean {
   }
 }
 
-// Helper function to get current user (for client-side use)
+/**
+ * Fetch user data from backend API
+ * @returns Promise with user data or null if failed
+ */
+export async function fetchUserFromBackend(): Promise<User | null> {
+  if (typeof window === 'undefined') return null;
+
+  const token = localStorage.getItem('access_token');
+  if (!token) return null;
+
+  try {
+    const apiUrl = process.env.NEXT_PUBLIC_DJANGO_API_URL || 'http://localhost:8000/api/v1';
+    const response = await fetch(`${apiUrl}/users/profile/`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      console.error('Failed to fetch user data from backend:', response.status);
+      return null;
+    }
+
+    const userData = await response.json();
+
+    return {
+      id: userData.id,
+      email: userData.email,
+      name: userData.name,
+      role: userData.role,
+      avatar: userData.avatar,
+      email_verified: userData.email_verified,
+    };
+  } catch (error) {
+    console.error('Error fetching user from backend:', error);
+    return null;
+  }
+}
+
+/**
+ * Get current user from JWT token (basic info only)
+ * For complete user data including avatar, use fetchUserFromBackend()
+ * @deprecated Use fetchUserFromBackend() for complete user data
+ */
 export function getCurrentUser(): User | null {
   if (typeof window === 'undefined') return null;
 
@@ -263,26 +307,15 @@ export function getCurrentUser(): User | null {
       return null; // Token expired
     }
 
-    // Get additional user data from django_user in localStorage (includes avatar)
-    const djangoUserStr = localStorage.getItem('django_user');
-    let djangoUser: any = null;
-
-    if (djangoUserStr) {
-      try {
-        djangoUser = JSON.parse(djangoUserStr);
-      } catch (e) {
-        console.error('Error parsing django_user from localStorage:', e);
-      }
-    }
-
-    // Convert JWT payload to User interface, merging with django_user data
+    // Return basic user info from JWT
+    // NOTE: avatar is NOT included here - use fetchUserFromBackend() for avatar
     return {
       id: decoded.user_id,
       email: decoded.email,
       name: decoded.name,
       role: decoded.role,
-      avatar: djangoUser?.avatar, // Get avatar from django_user localStorage
-      email_verified: djangoUser?.email_verified ?? true, // Assume verified if JWT exists
+      avatar: undefined, // Will be fetched from backend when needed
+      email_verified: true, // Assume verified if JWT exists
     };
   } catch {
     return null;

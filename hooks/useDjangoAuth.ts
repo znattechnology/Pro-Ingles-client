@@ -8,8 +8,9 @@ import { useSelector, useDispatch } from "react-redux";
 import { useRouter } from "next/navigation";
 import { RootState } from "@/state/redux";
 import { userLoggedIn, userLoggedOut, User } from "@/src/domains/auth";
-import { getCurrentUser, isAuthenticated } from "@/lib/django-middleware";
+import { fetchUserFromBackend, isAuthenticated } from "@/lib/django-middleware";
 import { djangoAuth } from "@/lib/django-auth";
+import { migrateLocalStorage } from "@/lib/migrate-storage";
 
 export interface AuthHookReturn {
   // Authentication state
@@ -48,23 +49,35 @@ export function useDjangoAuth(): AuthHookReturn {
   // Initialize authentication state on client side
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      // Run storage migration to clean up legacy cache
+      migrateLocalStorage();
+
       const token = localStorage.getItem('access_token');
       const refreshToken = localStorage.getItem('refresh_token');
-      const currentUser = getCurrentUser();
-      
-      if (token && refreshToken && currentUser) {
-        // Restore authentication state from localStorage
-        dispatch(userLoggedIn({
-          accessToken: token,
-          refreshToken: refreshToken,
-          user: currentUser
-        }));
-        setClientIsAuthenticated(true);
-        setClientUser(currentUser);
+
+      if (token && refreshToken) {
+        // Fetch complete user data from backend (includes avatar)
+        fetchUserFromBackend().then(currentUser => {
+          if (currentUser) {
+            // Restore authentication state with backend data
+            dispatch(userLoggedIn({
+              accessToken: token,
+              refreshToken: refreshToken,
+              user: currentUser
+            }));
+            setClientIsAuthenticated(true);
+            setClientUser(currentUser);
+          } else {
+            // Failed to fetch user - clear invalid state
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            dispatch(userLoggedOut());
+            setClientIsAuthenticated(false);
+            setClientUser(null);
+          }
+        });
       } else {
-        // Clear any invalid state
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
+        // No tokens - clear state
         dispatch(userLoggedOut());
         setClientIsAuthenticated(false);
         setClientUser(null);
@@ -81,17 +94,19 @@ export function useDjangoAuth(): AuthHookReturn {
   }, [authState?.isAuthenticated, authState?.user]);
 
   // Check authentication status
-  const checkAuth = () => {
+  const checkAuth = async () => {
     if (typeof window === 'undefined') return;
-    
+
     const authenticated = isAuthenticated();
-    const currentUser = getCurrentUser();
-    
-    if (authenticated && currentUser) {
-      if (!authState?.isAuthenticated) {
+
+    if (authenticated) {
+      // Fetch fresh user data from backend
+      const currentUser = await fetchUserFromBackend();
+
+      if (currentUser && !authState?.isAuthenticated) {
         const token = localStorage.getItem('access_token');
         const refreshToken = localStorage.getItem('refresh_token');
-        
+
         if (token && refreshToken) {
           dispatch(userLoggedIn({
             accessToken: token,
@@ -99,6 +114,9 @@ export function useDjangoAuth(): AuthHookReturn {
             user: currentUser
           }));
         }
+      } else if (!currentUser) {
+        // Failed to fetch user - logout
+        dispatch(userLoggedOut());
       }
     } else {
       if (authState?.isAuthenticated) {

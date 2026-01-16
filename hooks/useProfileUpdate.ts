@@ -7,6 +7,7 @@ import { toast } from 'react-hot-toast';
 import { useDispatch } from 'react-redux';
 import { userLoggedIn } from '@/src/domains/auth';
 import { uploadProfileWithAvatar } from '@/lib/profile.utils';
+import { fetchUserFromBackend } from '@/lib/django-middleware';
 
 export interface UseProfileUpdateOptions {
   updateProfileMutation: any; // RTK Query mutation hook result
@@ -75,36 +76,48 @@ export const useProfileUpdate = ({
 
       if (avatarFile) {
         // Path 1: Upload avatar and update profile
-        updatedUser = await uploadProfileWithAvatar(avatarFile);
+        await uploadProfileWithAvatar(avatarFile);
 
-        // Avatar field now contains the full S3/CloudFront URL
-        const userToSave = {
-          ...updatedUser,
-          avatar: updatedUser.avatar
-        };
+        // Fetch fresh user data from backend (includes new avatar)
+        updatedUser = await fetchUserFromBackend();
 
-        // Update localStorage with new user data
-        localStorage.setItem('django_user', JSON.stringify(userToSave));
+        if (updatedUser) {
+          // Update Redux state with fresh backend data
+          const accessToken = localStorage.getItem('access_token') || '';
+          const refreshToken = localStorage.getItem('refresh_token') || '';
 
-        // Update Redux state with new user data
-        const accessToken = localStorage.getItem('access_token') || '';
-        const refreshToken = localStorage.getItem('refresh_token') || '';
+          dispatch(userLoggedIn({
+            accessToken,
+            refreshToken,
+            user: updatedUser
+          }));
 
-        dispatch(userLoggedIn({
-          accessToken,
-          refreshToken,
-          user: userToSave
-        }));
+          toast.success('Perfil e foto atualizados com sucesso!');
 
-        toast.success('Perfil e foto atualizados com sucesso!');
-
-        // Clear states
-        setIsEditing(false);
-        clearAvatarState();
+          // Clear states
+          setIsEditing(false);
+          clearAvatarState();
+        } else {
+          throw new Error('Falha ao buscar dados atualizados do servidor');
+        }
       } else {
         // Path 2: Update profile data only (no avatar)
         // formData is already validated by Zod!
         updatedUser = await updateProfileMutation(formData).unwrap();
+
+        // Fetch fresh user data from backend to ensure consistency
+        const freshUser = await fetchUserFromBackend();
+        if (freshUser) {
+          const accessToken = localStorage.getItem('access_token') || '';
+          const refreshToken = localStorage.getItem('refresh_token') || '';
+
+          dispatch(userLoggedIn({
+            accessToken,
+            refreshToken,
+            user: freshUser
+          }));
+        }
+
         toast.success('Perfil atualizado com sucesso!');
         setIsEditing(false);
       }
