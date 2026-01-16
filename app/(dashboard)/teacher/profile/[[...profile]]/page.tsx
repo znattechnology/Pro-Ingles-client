@@ -2,13 +2,11 @@
 
 import { useDjangoAuth } from "@/hooks/useDjangoAuth";
 import { useUpdateProfileMutation } from "@/src/domains/auth";
-import { userLoggedIn } from "@/src/domains/auth";
-import { useDispatch } from "react-redux";
-import { uploadAvatarToS3 } from "@/lib/utils";
-import { teacherProfileSchema, TeacherProfileFormData } from "@/lib/schemas/profile.schema";
-import { validateAvatarFile } from "@/lib/validators/avatar.validator";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { teacherProfileSchema } from "@/lib/schemas/profile.schema";
+import { getInitials, formatJoinDate } from "@/lib/profile.utils";
+import { useAvatarUpload } from "@/hooks/useAvatarUpload";
+import { useProfileForm } from "@/hooks/useProfileForm";
+import { useProfileUpdate } from "@/hooks/useProfileUpdate";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -56,186 +54,45 @@ import { useRouter } from "next/navigation";
 
 const TeacherProfilePage = () => {
   const router = useRouter();
-  const dispatch = useDispatch();
   const { user, isAuthenticated, isLoading } = useDjangoAuth();
   const [updateProfile, { isLoading: isUpdating }] = useUpdateProfileMutation();
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
 
-  // React Hook Form with Zod validation
+  // Custom hooks for form handling
   const {
     register,
     handleSubmit: handleFormSubmit,
     formState: { errors },
     reset,
-    setValue,
-    watch,
-  } = useForm<TeacherProfileFormData>({
-    resolver: zodResolver(teacherProfileSchema),
-    mode: 'onChange', // Validate on change for real-time feedback
-    defaultValues: {
-      name: '',
-      email: '',
-      phone: '',
-      bio: '',
-      location: '',
-      specialization: '',
-      experience: '',
-    },
+    formValues,
+  } = useProfileForm({
+    schema: teacherProfileSchema,
+    user,
   });
 
-  // Watch form values for display when not editing
-  const formValues = watch();
+  // Custom hook for avatar upload
+  const {
+    avatarFile,
+    avatarPreview,
+    isUploading,
+    handleAvatarChange,
+    clearAvatarState,
+    setIsUploading,
+  } = useAvatarUpload(() => setIsEditing(true));
 
-  // Avatar upload states
-  const [avatarFile, setAvatarFile] = useState<File | null>(null);
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
-
-  // Populate form with user data
-  useEffect(() => {
-    if (user) {
-      reset({
-        name: user.name || '',
-        email: user.email || '',
-        phone: (user as any).phone || '',
-        bio: (user as any).bio || '',
-        location: (user as any).location || '',
-        specialization: (user as any).specialization || '',
-        experience: (user as any).experience || '',
-      });
-    }
-  }, [user, reset]);
-
-  // Avatar upload handler with centralized validation
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Validate using centralized validator
-    const validation = validateAvatarFile(file);
-
-    if (!validation.valid) {
-      toast.error(validation.error!);
-      return;
-    }
-
-    // Store validated and processed file
-    setAvatarFile(validation.processedFile!);
-
-    // Create preview
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setAvatarPreview(e.target?.result as string);
-    };
-    reader.readAsDataURL(validation.processedFile!);
-
-    // Automatically enable editing mode to show save button
-    setIsEditing(true);
-
-    toast.success('Imagem selecionada! Clique em "Salvar Alterações" para fazer upload.');
-  };
-
-  // Upload avatar to S3 and update profile
-  const uploadProfileWithAvatar = async (file: File) => {
-    try {
-      // Step 1: Upload file to S3 and get the avatar URL
-      const avatarUrl = await uploadAvatarToS3(file);
-
-      // Step 2: Update user profile in database with the new avatar URL
-      const token = localStorage.getItem('access_token');
-      const apiUrl = process.env.NEXT_PUBLIC_DJANGO_API_URL || 'http://localhost:8000/api/v1';
-      const endpoint = `${apiUrl}/users/profile/`;
-
-      const response = await fetch(endpoint, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          avatar: avatarUrl
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({ message: 'Erro ao atualizar perfil' }));
-        throw new Error(error.message || error.detail || 'Erro ao atualizar perfil');
-      }
-
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error('Erro ao fazer upload do avatar:', error);
-      throw error;
-    }
-  };
-
-  // Form submit handler with validated data from React Hook Form
-  const onSubmit = async (formData: TeacherProfileFormData) => {
-    // Prevent double submission
-    if (isUploading) return;
-
-    setIsUploading(true);
-
-    try {
-      let updatedUser;
-
-      if (avatarFile) {
-        updatedUser = await uploadProfileWithAvatar(avatarFile);
-
-        // Avatar field now contains the full S3/CloudFront URL
-        const userToSave = {
-          ...updatedUser,
-          avatar: updatedUser.avatar
-        };
-
-        // Update localStorage with new user data
-        localStorage.setItem('django_user', JSON.stringify(userToSave));
-
-        // Update Redux state with new user data
-        const accessToken = localStorage.getItem('access_token') || '';
-        const refreshToken = localStorage.getItem('refresh_token') || '';
-
-        dispatch(userLoggedIn({
-          accessToken,
-          refreshToken,
-          user: userToSave
-        }));
-
-        toast.success('Perfil e foto atualizados com sucesso!');
-
-        // Clear upload states
-        setIsEditing(false);
-        setAvatarFile(null);
-        setAvatarPreview(null);
-      } else {
-        // Use validated formData from React Hook Form
-        updatedUser = await updateProfile(formData).unwrap();
-        toast.success('Perfil atualizado com sucesso!');
-        setIsEditing(false);
-      }
-    } catch (error: any) {
-      console.error('Erro ao atualizar perfil:', error);
-      toast.error(error?.message || error?.data?.message || 'Erro ao atualizar perfil');
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(n => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
-  const joinDate = new Date().toLocaleDateString('pt-BR', {
-    year: 'numeric',
-    month: 'long'
+  // Custom hook for profile update/form submission
+  const { onSubmit } = useProfileUpdate({
+    updateProfileMutation: updateProfile,
+    isUploading,
+    setIsUploading,
+    avatarFile,
+    setIsEditing,
+    clearAvatarState,
   });
+
+  // Format join date
+  const joinDate = formatJoinDate();
 
   // Mock data for statistics
   const teacherStats = {
@@ -426,9 +283,9 @@ const TeacherProfilePage = () => {
                         size="sm"
                         onClick={() => {
                           if (isEditing) {
-                            // When canceling, clear avatar selection
-                            setAvatarFile(null);
-                            setAvatarPreview(null);
+                            // When canceling, clear avatar selection and reset form
+                            clearAvatarState();
+                            reset();
                           }
                           setIsEditing(!isEditing);
                         }}
@@ -649,9 +506,7 @@ const TeacherProfilePage = () => {
                               variant="outline"
                               onClick={() => {
                                 setIsEditing(false);
-                                setAvatarFile(null);
-                                setAvatarPreview(null);
-                                // Reset form to original values
+                                clearAvatarState();
                                 reset();
                               }}
                               className="border-gray-600 text-gray-400 hover:bg-gray-800"
