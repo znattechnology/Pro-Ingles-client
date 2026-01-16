@@ -178,7 +178,7 @@ const PracticeLab = () => {
           </motion.div>
 
           <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
-            Practice Lab
+            English Practice Lab
             <span className="bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent"> Inteligente</span>
           </h2>
           
@@ -369,7 +369,7 @@ const PracticeLab = () => {
               Pronto para Revolucionar seu Inglês?
             </h3>
             <p className="text-gray-300 mb-6 max-w-2xl mx-auto">
-              Junte-se a mais de 25.000 angolanos que já melhoraram suas carreiras com nosso Practice Lab.
+              Junte-se a mais de 25.000 angolanos que já melhoraram suas carreiras com nosso English Practice Lab.
               <strong className="text-white"> Primeiros 7 dias gratuitos!</strong>
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -377,7 +377,7 @@ const PracticeLab = () => {
                 <Link href="/signup">
                   <Button className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white px-8 py-4 text-lg font-semibold rounded-xl shadow-xl transition-all duration-200">
                     <Zap className="w-5 h-5 mr-2" />
-                    Começar Practice Lab Grátis
+                    Começar English Practice Lab Grátis
                   </Button>
                 </Link>
               </motion.div>

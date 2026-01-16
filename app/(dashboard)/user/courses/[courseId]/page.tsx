@@ -505,7 +505,7 @@ const CourseDetailsPage = () => {
                                       ${chapter.type === 'Text' ? 'border-gray-500/50 text-gray-300' : ''}
                                     `}
                                   >
-                                    <span className="hidden sm:inline">{chapter.type === 'Exercise' ? 'Practice Lab' : chapter.type}</span>
+                                    <span className="hidden sm:inline">{chapter.type === 'Exercise' ? 'English Practice Lab' : chapter.type}</span>
                                     <span className="sm:hidden">{chapter.type === 'Exercise' ? 'Lab' : chapter.type.charAt(0)}</span>
                                   </Badge>
                                 </div>

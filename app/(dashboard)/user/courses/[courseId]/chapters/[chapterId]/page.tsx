@@ -711,7 +711,7 @@ const Course = () => {
                 </div>
               </div>
             ) : currentChapter?.type === 'Exercise' ? (
-              /* Enhanced Exercise Preview - Practice Lab Integration */
+              /* Enhanced Exercise Preview - English Practice Lab Integration */
               <div className="flex items-center justify-center p-8 w-full">
                 <div className="bg-gradient-to-br from-emerald-900/40 via-green-900/30 to-blue-900/40 backdrop-blur-sm rounded-xl p-8 max-w-lg mx-auto border border-emerald-500/30 shadow-2xl">
                   <div className="text-center">
@@ -722,7 +722,7 @@ const Course = () => {
                       Exercício Prático
                     </h3>
                     <p className="text-gray-300 mb-6 leading-relaxed">
-                      Complete este exercício do Practice Lab para fixar o conteúdo e ganhar pontos!
+                      Complete este exercício do English Practice Lab para fixar o conteúdo e ganhar pontos!
                     </p>
                   
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
@@ -1068,7 +1068,7 @@ const Course = () => {
                       )}
                     </h3>
                     <p className="text-gray-300 text-sm mt-2">
-                      Exercício do Practice Lab: <code className="bg-gray-800 px-2 py-1 rounded text-xs">{currentChapter.practice_lesson}</code>
+                      Exercício do English Practice Lab: <code className="bg-gray-800 px-2 py-1 rounded text-xs">{currentChapter.practice_lesson}</code>
                     </p>
                   </div>
                   <div className="p-6">
@@ -1076,7 +1076,7 @@ const Course = () => {
                       <div className="bg-gradient-to-r from-emerald-900/30 to-green-900/30 rounded-lg p-6 border border-emerald-500/20">
                         <h3 className="text-emerald-400 font-bold text-lg mb-2">🎯 Exercício Integrado</h3>
                         <p className="text-gray-300 mb-4">
-                          Este exercício será carregado diretamente do Practice Lab para uma experiência perfeita.
+                          Este exercício será carregado diretamente do English Practice Lab para uma experiência perfeita.
                         </p>
                         
                         <div className="flex items-center justify-center gap-4 mb-6 text-sm">
@@ -1099,15 +1099,15 @@ const Course = () => {
                           <div className="space-y-6">
                             <div className="bg-customgreys-primarybg/50 rounded-xl p-6">
                               <h3 className="text-white font-semibold text-lg mb-4">
-                                Practice Lab: {currentChapter.practice_lesson}
+                                English Practice Lab: {currentChapter.practice_lesson}
                               </h3>
                               <div className="text-gray-300 space-y-4">
-                                <p>{currentChapter?.content || 'Complete este exercício do Practice Lab.'}</p>
+                                <p>{currentChapter?.content || 'Complete este exercício do English Practice Lab.'}</p>
                                 
                                 <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-4">
                                   <h4 className="text-emerald-300 font-medium mb-2">🚀 Exercício Interativo</h4>
                                   <p className="text-gray-300 text-sm">
-                                    Este exercício carrega conteúdo do Practice Lab. Complete as atividades para ganhar pontos!
+                                    Este exercício carrega conteúdo do English Practice Lab. Complete as atividades para ganhar pontos!
                                   </p>
                                 </div>
                               </div>
@@ -1415,7 +1415,7 @@ const Course = () => {
                     size="lg"
                     className="bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
                     onClick={() => {
-                      // Navigate to Practice Lab lesson for this chapter
+                      // Navigate to English Practice Lab lesson for this chapter
                       window.open(`/user/laboratory/learn/lesson/${currentChapter.practice_lesson}`, '_blank');
                     }}
                   >
@@ -1424,7 +1424,7 @@ const Course = () => {
                   </Button>
                   
                   <p className="text-xs text-gray-400 mt-3">
-                    Abre o Practice Lab em nova aba • Sistema gamificado Duolingo-style
+                    Abre o English Practice Lab em nova aba • Sistema gamificado Duolingo-style
                   </p>
                 </div>
               </CardContent>

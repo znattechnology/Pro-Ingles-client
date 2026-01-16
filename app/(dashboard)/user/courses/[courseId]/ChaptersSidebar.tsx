@@ -43,7 +43,7 @@ const getChapterStatusBadge = (chapter: any) => {
     case 'Quiz':
       return <span className="text-xs text-purple-300 bg-purple-500/20 px-2 py-0.5 rounded">Quiz</span>;
     case 'Exercise':
-      return <span className="text-xs text-emerald-300 bg-emerald-500/20 px-2 py-0.5 rounded">Practice Lab</span>;
+      return <span className="text-xs text-emerald-300 bg-emerald-500/20 px-2 py-0.5 rounded">English Practice Lab</span>;
     case 'Text':
     default:
       return <span className="text-xs text-gray-300 bg-gray-500/20 px-2 py-0.5 rounded">Leitura</span>;

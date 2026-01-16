@@ -168,7 +168,7 @@ export const PracticeCourseSelector: React.FC<PracticeCourseSelectorProps> = ({
             <Target className="w-4 h-4 text-white" />
           </div>
           <div>
-            <h4 className="text-white font-semibold">Integração com Practice Lab</h4>
+            <h4 className="text-white font-semibold">Integração com English Practice Lab</h4>
             <p className="text-emerald-300 text-sm">
               Selecione um exercício do laboratório prático
             </p>

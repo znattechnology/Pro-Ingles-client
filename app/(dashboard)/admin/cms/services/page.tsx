@@ -63,7 +63,7 @@ const CMS_API_BASE = process.env.NEXT_PUBLIC_CMS_API_URL || 'http://localhost:80
 
 const SERVICE_TYPE_OPTIONS = [
   { value: 'course', label: 'Curso Especializado' },
-  { value: 'practice_lab', label: 'Practice Lab' },
+  { value: 'practice_lab', label: 'English Practice Lab' },
   { value: 'ai_tutor', label: 'IA Personal Tutor' },
   { value: 'other', label: 'Outros' },
 ]
@@ -307,7 +307,7 @@ export default function CMSServicesPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Practice Lab</CardTitle>
+            <CardTitle className="text-sm font-medium">English Practice Lab</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">

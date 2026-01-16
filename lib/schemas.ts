@@ -71,7 +71,7 @@ export const chapterSchema = z.object({
            data.practice_lesson.trim() !== "";
   },
   {
-    message: "Para quiz interativo, o título do quiz e lição do Practice Lab são obrigatórios",
+    message: "Para quiz interativo, o título do quiz e lição do English Practice Lab são obrigatórios",
     path: ["quiz_data"]
   }
 );

@@ -299,7 +299,7 @@ export default async function CMSAdminPage() {
               Serviços
             </CardTitle>
             <CardDescription>
-              Cursos, Practice Lab e IA Tutor
+              Cursos, English Practice Lab e IA Tutor
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">

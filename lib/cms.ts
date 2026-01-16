@@ -339,21 +339,21 @@ export function getServicesByType(cmsData: CMSLandingPageData | null, serviceTyp
 }
 
 /**
- * Get Practice Lab specific data
+ * Get English Practice Lab specific data
  */
 export function getPracticeLabData(cmsData: CMSLandingPageData | null) {
   const practiceLabServices = getServicesByType(cmsData, 'practice_lab');
-  
+
   if (practiceLabServices.length === 0) {
-    // Fallback Practice Lab data
+    // Fallback English Practice Lab data
     return {
-      title: "Practice Lab Inteligente",
+      title: "English Practice Lab Inteligente",
       description: "O laboratório de prática mais avançado de Angola. Exercícios adaptativos com IA que se ajustam ao seu progresso e necessidades profissionais específicas.",
       icon: "⚡",
       student_count: "2.8K+",
       features: [
         "Speaking Challenge com IA",
-        "Listening Lab com áudios reais", 
+        "Listening Lab com áudios reais",
         "Writing Workshop profissional",
         "Cenários interativos de trabalho",
         "Gamificação e conquistas",
@@ -361,8 +361,8 @@ export function getPracticeLabData(cmsData: CMSLandingPageData | null) {
       ]
     };
   }
-  
-  return practiceLabServices[0]; // Return first Practice Lab service
+
+  return practiceLabServices[0]; // Return first English Practice Lab service
 }
 
 /**

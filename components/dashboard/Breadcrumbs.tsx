@@ -83,7 +83,7 @@ const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ className }) => {
       'settings': 'Configurações',
       
       // Learning paths
-      'learn': 'Practice Lab',
+      'learn': 'English Practice Lab',
       'laboratory': 'Laboratório',
       'leaderboard': 'Classificações',
       'achievements': 'Conquistas',

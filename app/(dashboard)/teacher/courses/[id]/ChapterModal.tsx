@@ -816,7 +816,7 @@ const ChapterModal = () => {
                       <div className="space-y-0.5">
                         <FormLabel className="text-white text-base font-medium">Quiz Interativo</FormLabel>
                         <p className="text-sm text-gray-400">
-                          Ative um quiz gamificado para este capítulo conectado ao Practice Lab
+                          Ative um quiz gamificado para este capítulo conectado ao English Practice Lab
                         </p>
                       </div>
                       <FormControl>
@@ -841,16 +841,16 @@ const ChapterModal = () => {
                       name="practice_lesson"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-white text-sm">Lição do Practice Lab</FormLabel>
+                          <FormLabel className="text-white text-sm">Lição do English Practice Lab</FormLabel>
                           <FormControl>
                             <Input
-                              placeholder="ID da lição no sistema Practice Lab"
+                              placeholder="ID da lição no sistema English Practice Lab"
                               className="bg-customgreys-darkGrey border-gray-600 text-white"
                               {...field}
                             />
                           </FormControl>
                           <p className="text-xs text-gray-400">
-                            Esta lição deve estar criada no Practice Lab com os exercícios apropriados
+                            Esta lição deve estar criada no English Practice Lab com os exercícios apropriados
                           </p>
                           <FormMessage className="text-red-400" />
                         </FormItem>
@@ -949,7 +949,7 @@ const ChapterModal = () => {
                         💡 Dica sobre Gamificação
                       </h4>
                       <p className="text-sm text-blue-200">
-                        Os quizzes conectam-se ao sistema de pontos, corações e conquistas do Practice Lab, 
+                        Os quizzes conectam-se ao sistema de pontos, corações e conquistas do English Practice Lab, 
                         motivando os estudantes através da gamificação e acompanhamento de progresso.
                       </p>
                     </div>
@@ -967,7 +967,7 @@ const ChapterModal = () => {
                     
                     <div className="flex-1">
                       <h3 className="text-white font-bold text-lg mb-2 flex items-center gap-2">
-                        Exercício do Practice Lab
+                        Exercício do English Practice Lab
                         {methods.watch("practice_lesson") ? (
                           <CheckCircle className="w-5 h-5 text-emerald-400" />
                         ) : (
@@ -976,7 +976,7 @@ const ChapterModal = () => {
                       </h3>
                       
                       <p className="text-gray-300 text-sm mb-4">
-                        Selecione um exercício específico do Practice Lab para este capítulo. 
+                        Selecione um exercício específico do English Practice Lab para este capítulo. 
                         Os estudantes responderão diretamente na interface do curso.
                       </p>
                       
@@ -1048,7 +1048,7 @@ const ChapterModal = () => {
                               {exercisesLoading && (
                                 <div className="flex items-center gap-2 text-xs text-gray-400 mt-1">
                                   <div className="w-3 h-3 border border-violet-400 border-t-transparent rounded-full animate-spin"></div>
-                                  <span>Carregando exercícios do Practice Lab...</span>
+                                  <span>Carregando exercícios do English Practice Lab...</span>
                                 </div>
                               )}
                               

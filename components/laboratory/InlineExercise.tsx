@@ -143,7 +143,7 @@ const InlineExercise: React.FC<InlineExerciseProps> = ({
             </div>
             <div>
               <h3 className="text-white font-medium mb-1">Carregando Exercício...</h3>
-              <p className="text-gray-400 text-sm">Conectando com o Practice Lab</p>
+              <p className="text-gray-400 text-sm">Conectando com o English Practice Lab</p>
             </div>
           </div>
         </CardContent>
@@ -162,7 +162,7 @@ const InlineExercise: React.FC<InlineExerciseProps> = ({
             <div>
               <h3 className="text-red-400 font-medium mb-1">Erro ao Carregar</h3>
               <p className="text-gray-400 text-sm mb-4">
-                Não foi possível carregar o exercício do Practice Lab
+                Não foi possível carregar o exercício do English Practice Lab
               </p>
               <Button 
                 variant="outline" 
