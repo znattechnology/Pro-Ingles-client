@@ -5,6 +5,7 @@
 
 import { toast } from 'react-hot-toast';
 import { useDispatch } from 'react-redux';
+import { useState } from 'react';
 import { userLoggedIn } from '@/src/domains/auth';
 import { uploadProfileWithAvatar } from '@/lib/profile.utils';
 import { fetchUserFromBackend } from '@/lib/django-middleware';
@@ -18,8 +19,12 @@ export interface UseProfileUpdateOptions {
   clearAvatarState: () => void;
 }
 
+export type LoadingStep = 'idle' | 'uploading-avatar' | 'saving-profile' | 'fetching-data';
+
 export interface UseProfileUpdateReturn {
   onSubmit: (formData: any) => Promise<void>;
+  loadingStep: LoadingStep;
+  loadingMessage: string;
 }
 
 /**
@@ -60,6 +65,23 @@ export const useProfileUpdate = ({
   clearAvatarState,
 }: UseProfileUpdateOptions): UseProfileUpdateReturn => {
   const dispatch = useDispatch();
+  const [loadingStep, setLoadingStep] = useState<LoadingStep>('idle');
+
+  // Generate loading message based on current step
+  const getLoadingMessage = (step: LoadingStep): string => {
+    switch (step) {
+      case 'uploading-avatar':
+        return 'Fazendo upload da foto...';
+      case 'saving-profile':
+        return 'Salvando dados do perfil...';
+      case 'fetching-data':
+        return 'Atualizando perfil...';
+      default:
+        return '';
+    }
+  };
+
+  const loadingMessage = getLoadingMessage(loadingStep);
 
   /**
    * Form submission handler with avatar upload support
@@ -70,15 +92,18 @@ export const useProfileUpdate = ({
     if (isUploading) return;
 
     setIsUploading(true);
+    setLoadingStep('idle');
 
     try {
       let updatedUser;
 
       if (avatarFile) {
         // Path 1: Upload avatar and update profile
+        setLoadingStep('uploading-avatar');
         await uploadProfileWithAvatar(avatarFile);
 
         // Fetch fresh user data from backend (includes new avatar)
+        setLoadingStep('fetching-data');
         updatedUser = await fetchUserFromBackend();
 
         if (updatedUser) {
@@ -103,9 +128,11 @@ export const useProfileUpdate = ({
       } else {
         // Path 2: Update profile data only (no avatar)
         // formData is already validated by Zod!
+        setLoadingStep('saving-profile');
         updatedUser = await updateProfileMutation(formData).unwrap();
 
         // Fetch fresh user data from backend to ensure consistency
+        setLoadingStep('fetching-data');
         const freshUser = await fetchUserFromBackend();
         if (freshUser) {
           const accessToken = localStorage.getItem('access_token') || '';
@@ -126,10 +153,13 @@ export const useProfileUpdate = ({
       toast.error(error?.message || error?.data?.message || 'Erro ao atualizar perfil');
     } finally {
       setIsUploading(false);
+      setLoadingStep('idle');
     }
   };
 
   return {
     onSubmit,
+    loadingStep,
+    loadingMessage,
   };
 };

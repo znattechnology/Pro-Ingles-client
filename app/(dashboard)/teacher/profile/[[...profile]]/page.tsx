@@ -82,7 +82,7 @@ const TeacherProfilePage = () => {
   } = useAvatarUpload(() => setIsEditing(true));
 
   // Custom hook for profile update/form submission
-  const { onSubmit } = useProfileUpdate({
+  const { onSubmit, loadingStep, loadingMessage } = useProfileUpdate({
     updateProfileMutation: updateProfile,
     isUploading,
     setIsUploading,
@@ -495,7 +495,7 @@ const TeacherProfilePage = () => {
                               {isUploading ? (
                                 <span className="flex items-center gap-2">
                                   <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-white border-r-2"></div>
-                                  Fazendo Upload...
+                                  {loadingMessage || 'Processando...'}
                                 </span>
                               ) : (
                                 'Salvar Alterações'

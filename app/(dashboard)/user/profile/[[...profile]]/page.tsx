@@ -63,7 +63,7 @@ const UserProfilePage = () => {
   } = useAvatarUpload(() => setIsEditing(true));
 
   // Custom hook for profile update/form submission
-  const { onSubmit } = useProfileUpdate({
+  const { onSubmit, loadingStep, loadingMessage } = useProfileUpdate({
     updateProfileMutation: updateProfile,
     isUploading,
     setIsUploading,
@@ -107,9 +107,17 @@ const UserProfilePage = () => {
                   type="button"
                   onClick={() => document.getElementById('avatar-upload-input')?.click()}
                   className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center cursor-pointer"
+                  disabled={isUploading}
                 >
                   <Camera className="w-6 h-6 text-white" />
                 </button>
+
+                {/* Upload indicator */}
+                {isUploading && (
+                  <div className="absolute inset-0 bg-black/70 rounded-full flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-violet-400 border-r-2"></div>
+                  </div>
+                )}
               </div>
               
               {/* User Info */}
@@ -150,6 +158,18 @@ const UserProfilePage = () => {
                     <span className="text-sm">Membro desde {joinDate}</span>
                   </div>
                 </div>
+
+                {/* Avatar file selected indicator */}
+                {avatarFile && !isUploading && (
+                  <div className="mt-4 p-3 bg-violet-900/30 border border-violet-500/30 rounded-lg">
+                    <p className="text-sm text-violet-300 flex items-center justify-center md:justify-start gap-2">
+                      <Camera className="w-4 h-4" />
+                      <span className="font-medium">{avatarFile.name}</span>
+                      <span className="text-gray-400">({(avatarFile.size / 1024).toFixed(0)} KB)</span>
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1 text-center md:text-left">Clique em "Salvar Alterações" para confirmar</p>
+                  </div>
+                )}
               </div>
             </div>
           </CardContent>
@@ -244,10 +264,17 @@ const UserProfilePage = () => {
                       <div className="flex gap-2">
                         <Button
                           type="submit"
-                          disabled={isUpdating}
-                          className="flex-1 bg-violet-800 hover:bg-violet-900 text-white"
+                          disabled={isUploading}
+                          className="flex-1 bg-violet-800 hover:bg-violet-900 text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          {isUpdating ? 'Salvando...' : 'Salvar Alterações'}
+                          {isUploading ? (
+                            <span className="flex items-center gap-2">
+                              <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-white border-r-2"></div>
+                              {loadingMessage || 'Processando...'}
+                            </span>
+                          ) : (
+                            'Salvar Alterações'
+                          )}
                         </Button>
                         <Button
                           type="button"
