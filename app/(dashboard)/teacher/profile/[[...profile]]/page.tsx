@@ -5,6 +5,10 @@ import { useUpdateProfileMutation } from "@/src/domains/auth";
 import { userLoggedIn } from "@/src/domains/auth";
 import { useDispatch } from "react-redux";
 import { uploadAvatarToS3 } from "@/lib/utils";
+import { teacherProfileSchema, TeacherProfileFormData } from "@/lib/schemas/profile.schema";
+import { validateAvatarFile } from "@/lib/validators/avatar.validator";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -57,27 +61,41 @@ const TeacherProfilePage = () => {
   const [updateProfile, { isLoading: isUpdating }] = useUpdateProfileMutation();
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
-  
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    bio: '',
-    location: '',
-    specialization: '',
-    experience: '',
+
+  // React Hook Form with Zod validation
+  const {
+    register,
+    handleSubmit: handleFormSubmit,
+    formState: { errors },
+    reset,
+    setValue,
+    watch,
+  } = useForm<TeacherProfileFormData>({
+    resolver: zodResolver(teacherProfileSchema),
+    mode: 'onChange', // Validate on change for real-time feedback
+    defaultValues: {
+      name: '',
+      email: '',
+      phone: '',
+      bio: '',
+      location: '',
+      specialization: '',
+      experience: '',
+    },
   });
+
+  // Watch form values for display when not editing
+  const formValues = watch();
 
   // Avatar upload states
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
-  // Removed excessive debug logging - keeping only critical upload logs
-
+  // Populate form with user data
   useEffect(() => {
     if (user) {
-      setFormData({
+      reset({
         name: user.name || '',
         email: user.email || '',
         phone: (user as any).phone || '',
@@ -87,55 +105,30 @@ const TeacherProfilePage = () => {
         experience: (user as any).experience || '',
       });
     }
-  }, [user]);
+  }, [user, reset]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  // Avatar upload handler
+  // Avatar upload handler with centralized validation
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      toast.error('Por favor, selecione uma imagem válida');
+    // Validate using centralized validator
+    const validation = validateAvatarFile(file);
+
+    if (!validation.valid) {
+      toast.error(validation.error!);
       return;
     }
 
-    // Validate file size (5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('A imagem deve ter menos de 5MB');
-      return;
-    }
-
-    // Rename file if filename is too long (max 100 chars including extension)
-    let processedFile = file;
-    if (file.name.length > 100) {
-      const extension = file.name.substring(file.name.lastIndexOf('.'));
-      const nameWithoutExt = file.name.substring(0, file.name.lastIndexOf('.'));
-      const maxNameLength = 95 - extension.length; // Leave room for extension and safety margin
-      const truncatedName = nameWithoutExt.substring(0, maxNameLength);
-      const newFileName = `${truncatedName}${extension}`;
-
-      processedFile = new File([file], newFileName, { type: file.type });
-      console.log(`📝 Filename too long (${file.name.length} chars), renamed to: ${newFileName} (${newFileName.length} chars)`);
-    }
-
-    // Store file
-    setAvatarFile(processedFile);
+    // Store validated and processed file
+    setAvatarFile(validation.processedFile!);
 
     // Create preview
     const reader = new FileReader();
     reader.onload = (e) => {
       setAvatarPreview(e.target?.result as string);
     };
-    reader.readAsDataURL(processedFile);
+    reader.readAsDataURL(validation.processedFile!);
 
     // Automatically enable editing mode to show save button
     setIsEditing(true);
@@ -178,9 +171,8 @@ const TeacherProfilePage = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  // Form submit handler with validated data from React Hook Form
+  const onSubmit = async (formData: TeacherProfileFormData) => {
     // Prevent double submission
     if (isUploading) return;
 
@@ -218,6 +210,7 @@ const TeacherProfilePage = () => {
         setAvatarFile(null);
         setAvatarPreview(null);
       } else {
+        // Use validated formData from React Hook Form
         updatedUser = await updateProfile(formData).unwrap();
         toast.success('Perfil atualizado com sucesso!');
         setIsEditing(false);
@@ -556,79 +549,84 @@ const TeacherProfilePage = () => {
                     <CardContent className="space-y-4">
                       {isEditing ? (
                         <form
-                          onSubmit={handleSubmit}
+                          onSubmit={handleFormSubmit(onSubmit)}
                           className="space-y-4"
                         >
                           <div className="space-y-2">
                             <Label htmlFor="name" className="text-white">Nome Completo</Label>
                             <Input
                               id="name"
-                              name="name"
-                              value={formData.name}
-                              onChange={handleInputChange}
+                              {...register('name')}
                               className="bg-customgreys-primarybg/50 border-emerald-500/30 text-white focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 transition-all duration-300"
-                              required
                             />
+                            {errors.name && (
+                              <p className="text-sm text-red-400 mt-1">{errors.name.message}</p>
+                            )}
                           </div>
                           
                           <div className="space-y-2">
                             <Label htmlFor="phone" className="text-white">Telefone</Label>
                             <Input
                               id="phone"
-                              name="phone"
-                              value={formData.phone}
-                              onChange={handleInputChange}
+                              {...register('phone')}
                               className="bg-customgreys-primarybg/50 border-emerald-500/30 text-white focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 transition-all duration-300"
-                              placeholder="(11) 99999-9999"
+                              placeholder="+244912345678"
                             />
+                            {errors.phone && (
+                              <p className="text-sm text-red-400 mt-1">{errors.phone.message}</p>
+                            )}
                           </div>
-                          
+
                           <div className="space-y-2">
                             <Label htmlFor="location" className="text-white">Localização</Label>
                             <Input
                               id="location"
-                              name="location"
-                              value={formData.location}
-                              onChange={handleInputChange}
+                              {...register('location')}
                               className="bg-customgreys-primarybg/50 border-emerald-500/30 text-white focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 transition-all duration-300"
                               placeholder="Cidade, Estado"
                             />
+                            {errors.location && (
+                              <p className="text-sm text-red-400 mt-1">{errors.location.message}</p>
+                            )}
                           </div>
-                          
+
                           <div className="space-y-2">
                             <Label htmlFor="specialization" className="text-white">Especialização</Label>
                             <Input
                               id="specialization"
-                              name="specialization"
-                              value={formData.specialization}
-                              onChange={handleInputChange}
+                              {...register('specialization')}
                               className="bg-customgreys-primarybg/50 border-emerald-500/30 text-white focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 transition-all duration-300"
                               placeholder="Ex: Inglês Avançado, Business English"
                             />
+                            {errors.specialization && (
+                              <p className="text-sm text-red-400 mt-1">{errors.specialization.message}</p>
+                            )}
                           </div>
-                          
+
                           <div className="space-y-2">
                             <Label htmlFor="experience" className="text-white">Experiência</Label>
                             <Input
                               id="experience"
-                              name="experience"
-                              value={formData.experience}
-                              onChange={handleInputChange}
+                              {...register('experience')}
                               className="bg-customgreys-primarybg/50 border-emerald-500/30 text-white focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 transition-all duration-300"
                               placeholder="Ex: 5 anos ensinando inglês"
                             />
+                            {errors.experience && (
+                              <p className="text-sm text-red-400 mt-1">{errors.experience.message}</p>
+                            )}
                           </div>
-                          
+
                           <div className="space-y-2">
                             <Label htmlFor="bio" className="text-white">Biografia</Label>
                             <textarea
                               id="bio"
-                              name="bio"
-                              value={formData.bio}
-                              onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
+                              {...register('bio')}
                               className="w-full min-h-[100px] p-3 bg-customgreys-primarybg/50 border border-emerald-500/30 rounded-md text-white placeholder:text-gray-400 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 transition-all duration-300"
                               placeholder="Conte sobre sua experiência como professor..."
                             />
+                            {errors.bio && (
+                              <p className="text-sm text-red-400 mt-1">{errors.bio.message}</p>
+                            )}
                           </div>
                           
                           <div className="flex gap-2">
@@ -653,6 +651,8 @@ const TeacherProfilePage = () => {
                                 setIsEditing(false);
                                 setAvatarFile(null);
                                 setAvatarPreview(null);
+                                // Reset form to original values
+                                reset();
                               }}
                               className="border-gray-600 text-gray-400 hover:bg-gray-800"
                             >
@@ -663,11 +663,11 @@ const TeacherProfilePage = () => {
                       ) : (
                         <div className="space-y-4">
                           {[
-                            { icon: User, label: 'Nome', value: formData.name },
-                            { icon: Phone, label: 'Telefone', value: formData.phone },
-                            { icon: MapPin, label: 'Localização', value: formData.location },
-                            { icon: Briefcase, label: 'Especialização', value: formData.specialization },
-                            { icon: Award, label: 'Experiência', value: formData.experience }
+                            { icon: User, label: 'Nome', value: formValues.name },
+                            { icon: Phone, label: 'Telefone', value: formValues.phone },
+                            { icon: MapPin, label: 'Localização', value: formValues.location },
+                            { icon: Briefcase, label: 'Especialização', value: formValues.specialization },
+                            { icon: Award, label: 'Experiência', value: formValues.experience }
                           ].map((item, index) => (
                             <motion.div
                               key={item.label}
@@ -683,7 +683,7 @@ const TeacherProfilePage = () => {
                               </div>
                             </motion.div>
                           ))}
-                          {formData.bio && (
+                          {formValues.bio && (
                             <motion.div
                               initial={{ opacity: 0, y: 10 }}
                               animate={{ opacity: 1, y: 0 }}
@@ -692,7 +692,7 @@ const TeacherProfilePage = () => {
                             >
                               <Label className="text-emerald-400 text-sm font-medium">Biografia</Label>
                               <p className="text-gray-300 text-sm leading-relaxed">
-                                {formData.bio}
+                                {formValues.bio}
                               </p>
                             </motion.div>
                           )}
