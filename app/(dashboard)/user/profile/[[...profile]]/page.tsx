@@ -6,6 +6,10 @@ import { useUpdateProfileMutation } from "@/src/domains/auth";
 import { userLoggedIn } from "@/src/domains/auth";
 import { useDispatch } from "react-redux";
 import { uploadAvatarToS3 } from "@/lib/utils";
+import { studentProfileSchema, StudentProfileFormData } from "@/lib/schemas/profile.schema";
+import { validateAvatarFile } from "@/lib/validators/avatar.validator";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -39,22 +43,37 @@ const UserProfilePage = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
 
+  // React Hook Form with Zod validation
+  const {
+    register,
+    handleSubmit: handleFormSubmit,
+    formState: { errors },
+    reset,
+    watch,
+  } = useForm<StudentProfileFormData>({
+    resolver: zodResolver(studentProfileSchema),
+    mode: 'onChange', // Validate on change for real-time feedback
+    defaultValues: {
+      name: '',
+      email: '',
+      phone: '',
+      bio: '',
+      location: '',
+    },
+  });
+
+  // Watch form values for display when not editing
+  const formValues = watch();
+
   // Avatar upload states
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    bio: '',
-    location: '',
-  });
-
+  // Populate form with user data when user changes
   useEffect(() => {
     if (user) {
-      setFormData({
+      reset({
         name: user.name || '',
         email: user.email || '',
         phone: (user as any).phone || '',
@@ -62,46 +81,21 @@ const UserProfilePage = () => {
         location: (user as any).location || '',
       });
     }
-  }, [user]);
+  }, [user, reset]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  // Avatar upload handler
+  // Avatar upload handler with centralized validation
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      toast.error('Por favor, selecione uma imagem válida');
+    // Use centralized avatar validator
+    const validation = validateAvatarFile(file);
+    if (!validation.valid) {
+      toast.error(validation.error!);
       return;
     }
 
-    // Validate file size (5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('A imagem deve ter menos de 5MB');
-      return;
-    }
-
-    // Rename file if filename is too long (max 100 chars)
-    let processedFile = file;
-    if (file.name.length > 100) {
-      const extension = file.name.substring(file.name.lastIndexOf('.'));
-      const nameWithoutExt = file.name.substring(0, file.name.lastIndexOf('.'));
-      const maxNameLength = 95 - extension.length;
-      const truncatedName = nameWithoutExt.substring(0, maxNameLength);
-      const newFileName = `${truncatedName}${extension}`;
-
-      processedFile = new File([file], newFileName, { type: file.type });
-    }
-
-    setAvatarFile(processedFile);
+    setAvatarFile(validation.processedFile!);
 
     // Create preview
     const reader = new FileReader();
@@ -151,9 +145,8 @@ const UserProfilePage = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  // Form submission handler with validated data
+  const onSubmit = async (formData: StudentProfileFormData) => {
     // Prevent double submission
     if (isUploading) return;
 
@@ -191,6 +184,7 @@ const UserProfilePage = () => {
         setAvatarFile(null);
         setAvatarPreview(null);
       } else {
+        // formData is already validated by Zod!
         updatedUser = await updateProfile(formData).unwrap();
         toast.success('Perfil atualizado com sucesso!');
         setIsEditing(false);
@@ -264,9 +258,10 @@ const UserProfilePage = () => {
                     onClick={() => {
                       setIsEditing(!isEditing);
                       if (isEditing) {
-                        // Clear avatar states on cancel
+                        // Clear avatar states and reset form on cancel
                         setAvatarFile(null);
                         setAvatarPreview(null);
+                        reset();
                       }
                     }}
                     className="border-violet-500 text-violet-400 hover:bg-violet-500 hover:text-white transition-colors"
@@ -331,53 +326,56 @@ const UserProfilePage = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {isEditing ? (
-                    <form onSubmit={handleSubmit} className="space-y-4">
+                    <form onSubmit={handleFormSubmit(onSubmit)} className="space-y-4">
                       <div className="space-y-2">
                         <Label htmlFor="name" className="text-white">Nome Completo</Label>
                         <Input
                           id="name"
-                          name="name"
-                          value={formData.name}
-                          onChange={handleInputChange}
+                          {...register('name')}
                           className="bg-customgreys-primarybg border-violet-900/30 text-white"
-                          required
                         />
+                        {errors.name && (
+                          <p className="text-sm text-red-400 mt-1">{errors.name.message}</p>
+                        )}
                       </div>
                       
                       <div className="space-y-2">
                         <Label htmlFor="phone" className="text-white">Telefone</Label>
                         <Input
                           id="phone"
-                          name="phone"
-                          value={formData.phone}
-                          onChange={handleInputChange}
+                          {...register('phone')}
                           className="bg-customgreys-primarybg border-violet-900/30 text-white"
-                          placeholder="(11) 99999-9999"
+                          placeholder="+244912345678"
                         />
+                        {errors.phone && (
+                          <p className="text-sm text-red-400 mt-1">{errors.phone.message}</p>
+                        )}
                       </div>
                       
                       <div className="space-y-2">
                         <Label htmlFor="location" className="text-white">Localização</Label>
                         <Input
                           id="location"
-                          name="location"
-                          value={formData.location}
-                          onChange={handleInputChange}
+                          {...register('location')}
                           className="bg-customgreys-primarybg border-violet-900/30 text-white"
                           placeholder="Cidade, Estado"
                         />
+                        {errors.location && (
+                          <p className="text-sm text-red-400 mt-1">{errors.location.message}</p>
+                        )}
                       </div>
                       
                       <div className="space-y-2">
                         <Label htmlFor="bio" className="text-white">Biografia</Label>
                         <textarea
                           id="bio"
-                          name="bio"
-                          value={formData.bio}
-                          onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
+                          {...register('bio')}
                           className="w-full min-h-[100px] p-3 bg-customgreys-primarybg border border-violet-900/30 rounded-md text-white placeholder:text-gray-400 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20"
                           placeholder="Conte um pouco sobre você..."
                         />
+                        {errors.bio && (
+                          <p className="text-sm text-red-400 mt-1">{errors.bio.message}</p>
+                        )}
                       </div>
                       
                       <div className="flex gap-2">
@@ -391,7 +389,12 @@ const UserProfilePage = () => {
                         <Button
                           type="button"
                           variant="outline"
-                          onClick={() => setIsEditing(false)}
+                          onClick={() => {
+                            setIsEditing(false);
+                            setAvatarFile(null);
+                            setAvatarPreview(null);
+                            reset(); // Reset form to original values
+                          }}
                           className="border-gray-600 text-gray-400 hover:bg-gray-800"
                         >
                           Cancelar
@@ -402,21 +405,21 @@ const UserProfilePage = () => {
                     <div className="space-y-4">
                       <div className="flex items-center gap-3 text-gray-300">
                         <User className="w-4 h-4 text-violet-400" />
-                        <span>{formData.name || 'Não informado'}</span>
+                        <span>{formValues.name || 'Não informado'}</span>
                       </div>
                       <div className="flex items-center gap-3 text-gray-300">
                         <Phone className="w-4 h-4 text-violet-400" />
-                        <span>{formData.phone || 'Não informado'}</span>
+                        <span>{formValues.phone || 'Não informado'}</span>
                       </div>
                       <div className="flex items-center gap-3 text-gray-300">
                         <MapPin className="w-4 h-4 text-violet-400" />
-                        <span>{formData.location || 'Não informado'}</span>
+                        <span>{formValues.location || 'Não informado'}</span>
                       </div>
-                      {formData.bio && (
+                      {formValues.bio && (
                         <div className="space-y-2">
                           <Label className="text-white">Biografia</Label>
                           <p className="text-gray-300 text-sm leading-relaxed">
-                            {formData.bio}
+                            {formValues.bio}
                           </p>
                         </div>
                       )}
