@@ -29,12 +29,14 @@ const baseProfileSchema = z.object({
       'Telefone deve estar no formato internacional (ex: +244912345678)'
     ),
 
+  // ✅ CATEGORIA 1: Bio sem limite (conteúdo longo)
   bio: z
     .string()
-    .max(500, 'A biografia deve ter no máximo 500 caracteres')
+    .max(1_000_000, 'Biografia muito longa (máximo 1MB)')  // Anti-spam (era 500)
     .optional()
     .or(z.literal('')),
 
+  // ✅ CATEGORIA 3: Location mantido em 100 (campo curto)
   location: z
     .string()
     .max(100, 'A localização deve ter no máximo 100 caracteres')
@@ -47,15 +49,17 @@ const baseProfileSchema = z.object({
 // ═══════════════════════════════════════════════════════════════════════════
 
 export const teacherProfileSchema = baseProfileSchema.extend({
+  // ✅ CATEGORIA 3: Specialization aumentado para 200 chars (era 150)
   specialization: z
     .string()
-    .max(150, 'A especialização deve ter no máximo 150 caracteres')
+    .max(200, 'A especialização deve ter no máximo 200 caracteres')
     .optional()
     .or(z.literal('')),
 
+  // ✅ CATEGORIA 1: Experience sem limite (conteúdo longo)
   experience: z
     .string()
-    .max(200, 'A experiência deve ter no máximo 200 caracteres')
+    .max(1_000_000, 'Experiência muito longa (máximo 1MB)')  // Anti-spam (era 200)
     .optional()
     .or(z.literal('')),
 });

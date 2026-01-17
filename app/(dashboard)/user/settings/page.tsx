@@ -353,9 +353,9 @@ export default function UserSettingsPage() {
                         onChange={(e) => setSettings(prev => ({ ...prev, bio: e.target.value }))}
                         className="w-full h-16 sm:h-20 px-3 py-2 bg-customgreys-darkGrey border border-gray-600 rounded-md text-white text-sm sm:text-base placeholder:text-gray-400 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 resize-none"
                         placeholder="Fale-nos um pouco sobre si..."
-                        maxLength={150}
+                        // ✅ CATEGORIA 1: Removido maxLength - bio sem limite
                       />
-                      <p className="text-xs text-gray-400">{settings.bio.length}/150 caracteres</p>
+                      <p className="text-xs text-gray-400">{settings.bio.length} caracteres</p>
                     </div>
                   </div>
 

@@ -382,9 +382,9 @@ export default function TeacherSettingsPage() {
                         onChange={(e) => setSettings(prev => ({ ...prev, bio: e.target.value }))}
                         className="w-full h-20 sm:h-24 px-3 py-2 bg-customgreys-darkGrey border border-gray-600 rounded-md text-white text-sm sm:text-base placeholder:text-gray-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 resize-none"
                         placeholder="Descreva a sua experiência e qualificações..."
-                        maxLength={250}
+                        // ✅ CATEGORIA 1: Removido maxLength - bio sem limite
                       />
-                      <p className="text-xs text-gray-400">{settings.bio.length}/250 caracteres</p>
+                      <p className="text-xs text-gray-400">{settings.bio.length} caracteres</p>
                     </div>
                   </div>
 
