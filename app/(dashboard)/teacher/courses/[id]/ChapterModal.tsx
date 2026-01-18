@@ -574,7 +574,7 @@ const ChapterModal = () => {
                 <CustomFormField
                   name="content"
                   label="Conteúdo do capítulo"
-                  type="textarea"
+                  type="rich-text"  // ✅ WYSIWYG Editor com formatação rica
                   placeholder="Descreva o conteúdo principal do capítulo..."
                 />
 
