@@ -1,9 +1,11 @@
 /**
  * HTTP Interceptor for Django JWT Authentication
  * Automatically handles token refresh and request retries
+ *
+ * ✅ Updated to use TokenRefreshCoordinator to prevent race conditions
  */
 
-import { djangoAuth } from './django-auth';
+import { tokenRefreshCoordinator } from './token-refresh-coordinator';
 
 export interface RequestConfig {
   url: string;
@@ -12,23 +14,7 @@ export interface RequestConfig {
 }
 
 class HttpInterceptor {
-  private isRefreshing = false;
-  private failedQueue: Array<{
-    resolve: (value?: any) => void;
-    reject: (error?: any) => void;
-  }> = [];
-
-  private processQueue(error: any, token: string | null = null) {
-    this.failedQueue.forEach(({ resolve, reject }) => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve(token);
-      }
-    });
-    
-    this.failedQueue = [];
-  }
+  // ✅ Removed local queue - coordinator handles queuing now
 
   async request({ url, options = {}, skipAuth = false }: RequestConfig): Promise<Response> {
     // Add default headers
@@ -39,7 +25,8 @@ class HttpInterceptor {
 
     // Add authentication header if not skipped
     if (!skipAuth) {
-      const token = djangoAuth.getAccessToken();
+      // Get token from localStorage (coordinator syncs it with cookies)
+      const token = localStorage.getItem('access_token');
       if (token) {
         headers.set('Authorization', `Bearer ${token}`);
       }
@@ -60,56 +47,40 @@ class HttpInterceptor {
 
       return response;
     } catch (error) {
-      console.error('HTTP request failed:', error);
+      console.error('[HttpInterceptor] HTTP request failed:', error);
       throw error;
     }
   }
 
   private async handleTokenExpiration(url: string, options: RequestInit): Promise<Response> {
-    const originalRequest = { url, options };
-
-    if (this.isRefreshing) {
-      // If already refreshing, queue this request
-      return new Promise((resolve, reject) => {
-        this.failedQueue.push({ resolve, reject });
-      }).then(() => {
-        const token = djangoAuth.getAccessToken();
-        if (token && options.headers) {
-          (options.headers as Headers).set('Authorization', `Bearer ${token}`);
-        }
-        return fetch(url, options);
-      });
-    }
-
-    this.isRefreshing = true;
-
+    // ✅ Use coordinator - it automatically queues if refresh is in progress
     try {
-      // Try to refresh the token
-      await djangoAuth.refreshToken();
-      
+      console.log('[HttpInterceptor] Token expired, attempting coordinated refresh...');
+
+      // Coordinator handles queuing and prevents race conditions
+      const newToken = await tokenRefreshCoordinator.refreshToken();
+
+      console.log('[HttpInterceptor] Token refreshed successfully, retrying request...');
+
       // Update the original request with new token
-      const newToken = djangoAuth.getAccessToken();
       if (newToken && options.headers) {
         (options.headers as Headers).set('Authorization', `Bearer ${newToken}`);
       }
 
-      this.processQueue(null, newToken);
-      
       // Retry the original request
       return fetch(url, options);
     } catch (refreshError) {
-      // Refresh failed, logout user
-      this.processQueue(refreshError, null);
-      await djangoAuth.logout();
-      
+      console.error('[HttpInterceptor] Token refresh failed:', refreshError);
+
+      // Refresh failed, clear tokens and redirect
+      tokenRefreshCoordinator.clearTokens();
+
       // Redirect to login page
       if (typeof window !== 'undefined') {
-        window.location.href = '/signin';
+        window.location.href = '/signin?reason=session_expired';
       }
-      
+
       throw refreshError;
-    } finally {
-      this.isRefreshing = false;
     }
   }
 

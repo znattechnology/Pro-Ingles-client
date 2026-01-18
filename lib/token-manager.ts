@@ -1,9 +1,11 @@
 /**
  * Token Manager - Handles automatic token refresh and session management
+ *
+ * ✅ Updated to use TokenRefreshCoordinator to prevent race conditions
  */
 
 import { jwtDecode } from 'jwt-decode';
-import { djangoAuth } from './django-auth';
+import { tokenRefreshCoordinator } from './token-refresh-coordinator';
 
 interface JWTPayload {
   user_id: string;
@@ -98,21 +100,23 @@ class TokenManager {
 
   /**
    * Safely refresh token with error handling
+   * ✅ Now uses TokenRefreshCoordinator to prevent race conditions
    */
   private async refreshTokenSafely() {
     if (this.isRefreshing) return;
 
     try {
       this.isRefreshing = true;
-      console.log('Automatically refreshing token...');
-      
-      await djangoAuth.refreshToken();
-      console.log('Token refreshed successfully');
-      
+      console.log('[TokenManager] Automatically refreshing token...');
+
+      // Use coordinator instead of direct refresh
+      await tokenRefreshCoordinator.refreshToken();
+      console.log('[TokenManager] Token refreshed successfully');
+
       // Schedule next refresh
       this.checkTokenAndScheduleRefresh();
     } catch (error) {
-      console.error('Automatic token refresh failed:', error);
+      console.error('[TokenManager] Automatic token refresh failed:', error);
       this.clearTokens();
     } finally {
       this.isRefreshing = false;
@@ -171,33 +175,18 @@ class TokenManager {
 
   /**
    * Check if current token is valid
+   * ✅ Now uses TokenRefreshCoordinator for consistency
    */
   isTokenValid(): boolean {
-    const token = localStorage.getItem('access_token');
-    if (!token) return false;
-
-    try {
-      const decoded = jwtDecode<JWTPayload>(token);
-      return decoded.exp * 1000 > Date.now();
-    } catch {
-      return false;
-    }
+    return tokenRefreshCoordinator.isTokenValid();
   }
 
   /**
    * Get time until token expires (in seconds)
+   * ✅ Now uses TokenRefreshCoordinator for consistency
    */
   getTimeUntilExpiry(): number | null {
-    const token = localStorage.getItem('access_token');
-    if (!token) return null;
-
-    try {
-      const decoded = jwtDecode<JWTPayload>(token);
-      const now = Date.now() / 1000;
-      return Math.max(0, decoded.exp - now);
-    } catch {
-      return null;
-    }
+    return tokenRefreshCoordinator.getTimeUntilExpiry();
   }
 }
 

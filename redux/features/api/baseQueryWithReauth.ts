@@ -1,9 +1,11 @@
 /**
  * Reusable base query with automatic token refresh for Redux RTK Query
+ *
+ * ✅ Updated to use TokenRefreshCoordinator to prevent race conditions
  */
 
 import { fetchBaseQuery, BaseQueryFn, FetchArgs, FetchBaseQueryError } from '@reduxjs/toolkit/query/react';
-import { djangoAuth } from '@/lib/django-auth';
+import { tokenRefreshCoordinator } from '@/lib/token-refresh-coordinator';
 
 export const createBaseQueryWithReauth = (baseUrl: string): BaseQueryFn<
   string | FetchArgs,
@@ -26,21 +28,23 @@ export const createBaseQueryWithReauth = (baseUrl: string): BaseQueryFn<
     let result = await baseQuery(args, api, extraOptions);
 
     if (result.error && result.error.status === 401) {
-      // Try to refresh the token
+      // ✅ Use TokenRefreshCoordinator to prevent race conditions
       try {
-        console.log('Token expired, attempting refresh...');
-        await djangoAuth.refreshToken();
-        console.log('Token refreshed successfully, retrying request...');
-        
+        console.log('[BaseQuery] Token expired, attempting coordinated refresh...');
+
+        // Use coordinator - it will queue this request if refresh is already in progress
+        await tokenRefreshCoordinator.refreshToken();
+
+        console.log('[BaseQuery] Token refreshed successfully, retrying request...');
+
         // Retry the original request with new token
         result = await baseQuery(args, api, extraOptions);
       } catch (refreshError) {
-        console.error('Token refresh failed:', refreshError);
-        
+        console.error('[BaseQuery] Token refresh failed:', refreshError);
+
         // Refresh failed, clear auth and redirect to login
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-        
+        tokenRefreshCoordinator.clearTokens();
+
         if (typeof window !== 'undefined') {
           // Use a slight delay to avoid immediate redirect issues
           setTimeout(() => {

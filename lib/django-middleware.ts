@@ -98,9 +98,9 @@ function getUserFromToken(request: NextRequest): JWTPayload | null {
     }
 
     const decoded = jwtDecode<JWTPayload>(token);
-    
-    // Check if token is expired (with 30 second buffer)
-    if (decoded.exp * 1000 <= Date.now() + 30000) {
+
+    // ✅ FIX P5: Check if token is expired (no buffer - let auto-refresh handle it)
+    if (decoded.exp * 1000 <= Date.now()) {
       return null;
     }
 

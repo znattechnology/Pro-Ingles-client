@@ -1,6 +1,8 @@
 /**
  * Custom React Hook for Django Authentication
  * Provides authentication state and utilities
+ *
+ * ✅ Enhanced with retry logic and TokenRefreshCoordinator integration
  */
 
 import { useEffect, useState } from "react";
@@ -11,6 +13,7 @@ import { userLoggedIn, userLoggedOut, User } from "@/src/domains/auth";
 import { fetchUserFromBackend, isAuthenticated } from "@/lib/django-middleware";
 import { djangoAuth } from "@/lib/django-auth";
 import { migrateLocalStorage } from "@/lib/migrate-storage";
+import { tokenRefreshCoordinator } from "@/lib/token-refresh-coordinator";
 
 export interface AuthHookReturn {
   // Authentication state
@@ -46,7 +49,7 @@ export function useDjangoAuth(): AuthHookReturn {
   const [clientIsAuthenticated, setClientIsAuthenticated] = useState(false);
   const [clientUser, setClientUser] = useState<User | null>(null);
 
-  // Initialize authentication state on client side
+  // ✅ Enhanced initialization with retry logic and token validation
   useEffect(() => {
     if (typeof window !== 'undefined') {
       // Run storage migration to clean up legacy cache
@@ -56,26 +59,103 @@ export function useDjangoAuth(): AuthHookReturn {
       const refreshToken = localStorage.getItem('refresh_token');
 
       if (token && refreshToken) {
-        // Fetch complete user data from backend (includes avatar)
-        fetchUserFromBackend().then(currentUser => {
-          if (currentUser) {
-            // Restore authentication state with backend data
-            dispatch(userLoggedIn({
-              accessToken: token,
-              refreshToken: refreshToken,
-              user: currentUser
-            }));
-            setClientIsAuthenticated(true);
-            setClientUser(currentUser);
-          } else {
-            // Failed to fetch user - clear invalid state
-            localStorage.removeItem('access_token');
-            localStorage.removeItem('refresh_token');
-            dispatch(userLoggedOut());
-            setClientIsAuthenticated(false);
-            setClientUser(null);
-          }
-        });
+        // ✅ STEP 1: Validate token locally first
+        const isValid = tokenRefreshCoordinator.isTokenValid();
+
+        if (!isValid) {
+          console.log('[useDjangoAuth] Token expired, attempting refresh before fetching user...');
+
+          // Token expired, try to refresh first
+          tokenRefreshCoordinator.refreshToken()
+            .then(() => {
+              // Refresh successful, now fetch user
+              return fetchUserFromBackend();
+            })
+            .then(currentUser => {
+              if (currentUser) {
+                const newToken = localStorage.getItem('access_token');
+                const newRefreshToken = localStorage.getItem('refresh_token');
+
+                dispatch(userLoggedIn({
+                  accessToken: newToken || token,
+                  refreshToken: newRefreshToken || refreshToken,
+                  user: currentUser
+                }));
+                setClientIsAuthenticated(true);
+                setClientUser(currentUser);
+              } else {
+                // Clear invalid state
+                tokenRefreshCoordinator.clearTokens();
+                dispatch(userLoggedOut());
+                setClientIsAuthenticated(false);
+                setClientUser(null);
+              }
+            })
+            .catch(error => {
+              console.error('[useDjangoAuth] Token refresh failed:', error);
+              // Only clear state after refresh fails
+              tokenRefreshCoordinator.clearTokens();
+              dispatch(userLoggedOut());
+              setClientIsAuthenticated(false);
+              setClientUser(null);
+            });
+        } else {
+          // ✅ STEP 2: Token is valid, fetch user data
+          fetchUserFromBackend()
+            .then(currentUser => {
+              if (currentUser) {
+                // Restore authentication state with backend data
+                dispatch(userLoggedIn({
+                  accessToken: token,
+                  refreshToken: refreshToken,
+                  user: currentUser
+                }));
+                setClientIsAuthenticated(true);
+                setClientUser(currentUser);
+              } else {
+                // ✅ STEP 3: Fetch failed, try refresh before giving up
+                console.warn('[useDjangoAuth] Failed to fetch user, attempting refresh...');
+
+                tokenRefreshCoordinator.refreshToken()
+                  .then(() => fetchUserFromBackend())
+                  .then(retryUser => {
+                    if (retryUser) {
+                      const newToken = localStorage.getItem('access_token');
+                      const newRefreshToken = localStorage.getItem('refresh_token');
+
+                      dispatch(userLoggedIn({
+                        accessToken: newToken || token,
+                        refreshToken: newRefreshToken || refreshToken,
+                        user: retryUser
+                      }));
+                      setClientIsAuthenticated(true);
+                      setClientUser(retryUser);
+                    } else {
+                      // Failed even after refresh, logout
+                      tokenRefreshCoordinator.clearTokens();
+                      dispatch(userLoggedOut());
+                      setClientIsAuthenticated(false);
+                      setClientUser(null);
+                    }
+                  })
+                  .catch(error => {
+                    console.error('[useDjangoAuth] Retry failed:', error);
+                    tokenRefreshCoordinator.clearTokens();
+                    dispatch(userLoggedOut());
+                    setClientIsAuthenticated(false);
+                    setClientUser(null);
+                  });
+              }
+            })
+            .catch(error => {
+              // Network error or other failure
+              console.error('[useDjangoAuth] Error fetching user:', error);
+
+              // Don't logout immediately on network errors
+              // Just log the error and keep existing state
+              console.warn('[useDjangoAuth] Keeping existing auth state despite fetch error');
+            });
+        }
       } else {
         // No tokens - clear state
         dispatch(userLoggedOut());
