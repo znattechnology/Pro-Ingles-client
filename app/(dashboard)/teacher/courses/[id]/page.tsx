@@ -989,7 +989,7 @@ const CourseEditor = () => {
               <CustomFormField
                 name="courseDescription"
                 label=""
-                type="textarea"
+                type="rich-text"
                 placeholder="Descreva o que os alunos vão aprender neste curso incrível..."
                 className="bg-customgreys-darkGrey/50 border-violet-900/30 text-white placeholder:text-gray-400 focus:border-violet-500 focus:ring-1 focus:ring-violet-500/20 transition-all duration-200 rounded-md min-h-[120px] resize-none"
                 initialValue={course?.description}

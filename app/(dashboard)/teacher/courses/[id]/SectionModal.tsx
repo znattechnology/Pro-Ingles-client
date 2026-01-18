@@ -157,7 +157,7 @@ const SectionModal = () => {
                   <CustomFormField
                     name="description"
                     label=""
-                    type="textarea"
+                    type="rich-text"
                     placeholder="Descreva o que os alunos vão aprender nesta secção..."
                     className="bg-customgreys-darkGrey/50 border-violet-900/30 text-white placeholder:text-gray-400 focus:border-violet-500 focus:ring-1 focus:ring-violet-500/20 transition-all duration-200 rounded-md px-4 lg:px-6 py-3 lg:py-4 text-base lg:text-lg min-h-[100px] lg:min-h-[120px] resize-none"
                   />
