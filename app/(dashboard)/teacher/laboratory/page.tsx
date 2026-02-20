@@ -599,23 +599,60 @@ const LaboratoryDashboard = () => {
               <div className="relative p-8 bg-gradient-to-br from-yellow-500/10 to-orange-500/10 backdrop-blur-xl rounded-3xl border border-yellow-500/20 hover:border-yellow-400/40 transition-all duration-300 h-full overflow-hidden">
                 <div className="absolute top-4 right-4 w-1.5 h-1.5 bg-yellow-400 rounded-full animate-pulse opacity-60" />
                 <div className="absolute inset-0 bg-gradient-to-br from-yellow-600/5 to-orange-600/5 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                
+
                 <div className="relative">
                   <div className="w-16 h-16 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                    <Trophy className="w-8 h-8 text-white drop-shadow-sm" />
+                    <Award className="w-8 h-8 text-white drop-shadow-sm" />
                   </div>
-                  
+
                   <h3 className="text-2xl font-bold text-white mb-4 group-hover:text-yellow-100 transition-colors">
                     Gestão de Conquistas
                   </h3>
-                  
+
                   <p className="text-gray-300 leading-relaxed mb-6">
                     Crie e gerencie badges e conquistas para gamificação
                   </p>
-                  
+
                   <div className="flex items-center text-yellow-400 font-medium group-hover:text-yellow-300 transition-colors">
                     <span>Gerenciar conquistas</span>
                     <Award className="w-4 h-4 ml-2 group-hover:scale-110 transition-transform" />
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Leaderboard & Competitions Card */}
+            <motion.div
+              whileHover={{ y: -8, scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => {
+                if (useReduxDashboard && reduxActions) {
+                  reduxPerformance?.trackNavigation('leaderboard');
+                }
+                router.push('/teacher/laboratory/leaderboard');
+              }}
+              className="group cursor-pointer"
+            >
+              <div className="relative p-8 bg-gradient-to-br from-amber-500/10 to-yellow-500/10 backdrop-blur-xl rounded-3xl border border-amber-500/20 hover:border-amber-400/40 transition-all duration-300 h-full overflow-hidden">
+                <div className="absolute top-4 right-4 w-1.5 h-1.5 bg-amber-400 rounded-full animate-pulse opacity-60" />
+                <div className="absolute inset-0 bg-gradient-to-br from-amber-600/5 to-yellow-600/5 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+                <div className="relative">
+                  <div className="w-16 h-16 bg-gradient-to-br from-amber-500 to-yellow-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                    <Trophy className="w-8 h-8 text-white drop-shadow-sm" />
+                  </div>
+
+                  <h3 className="text-2xl font-bold text-white mb-4 group-hover:text-amber-100 transition-colors">
+                    Leaderboard & Competições
+                  </h3>
+
+                  <p className="text-gray-300 leading-relaxed mb-6">
+                    Visualize rankings, gerencie ligas e crie competições
+                  </p>
+
+                  <div className="flex items-center text-amber-400 font-medium group-hover:text-amber-300 transition-colors">
+                    <span>Ver rankings</span>
+                    <Trophy className="w-4 h-4 ml-2 group-hover:scale-110 transition-transform" />
                   </div>
                 </div>
               </div>
