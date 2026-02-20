@@ -41,56 +41,16 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Loading from '@/components/course/Loading';
-// TODO: Implementar funcionalidades de achievements na nova API
-// import {
-//   useGetTeacherAchievementsQuery,
-//   useCreateAchievementMutation,
-//   useUpdateAchievementMutation,
-//   useDeleteAchievementMutation,
-//   useToggleAchievementStatusMutation,
-//   useGetTeacherAchievementStatsQuery,
-//   type TeacherAchievement,
-//   type CreateAchievementData
-// } from '@modules/teacher';
-
-
-// Temporary interface until API is implemented
-interface TeacherAchievement {
-  id: string;
-  title: string;
-  description: string;
-  icon: string;
-  category: string;
-  rarity: 'common' | 'rare' | 'epic' | 'legendary';
-  points: number;
-  requirement_type: string;
-  requirement_target: number;
-  requirement_unit: string;
-  is_secret: boolean;
-  is_active: boolean;
-  unlocked_count: number;
-}
-
-interface CreateAchievementData {
-  title: string;
-  description: string;
-  icon: string;
-  category: string;
-  rarity: 'common' | 'rare' | 'epic' | 'legendary';
-  points: number;
-  requirement_type: string;
-  requirement_target: number;
-  requirement_unit: string;
-  is_secret: boolean;
-}
-
-// Temporary mock functions until API is implemented
-const useGetTeacherAchievementsQuery = () => ({ data: [], isLoading: false });
-const useGetTeacherAchievementStatsQuery = () => ({ data: null });
-const useCreateAchievementMutation = () => [async () => ({ unwrap: () => Promise.resolve() })];
-const useUpdateAchievementMutation = () => [async () => ({ unwrap: () => Promise.resolve() })];
-const useDeleteAchievementMutation = () => [async () => ({ unwrap: () => Promise.resolve() })];
-const useToggleAchievementStatusMutation = () => [async () => ({ unwrap: () => Promise.resolve() })];
+import {
+  useGetTeacherAchievementsQuery,
+  useCreateAchievementMutation,
+  useUpdateAchievementMutation,
+  useDeleteAchievementMutation,
+  useToggleAchievementStatusMutation,
+  useGetTeacherAchievementStatsQuery,
+  type TeacherAchievement,
+  type CreateAchievementData
+} from '@/src/modules2/teacher/services/teacherAchievementsApi';
 
 // Using TeacherAchievement interface from API
 type Achievement = TeacherAchievement;
