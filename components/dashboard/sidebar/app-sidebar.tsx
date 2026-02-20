@@ -84,6 +84,32 @@ const navLinks = {
       ],
     },
     {
+      title: "Notas",
+      url: "/user/grades",
+      icon: BarChart3,
+      isActive: true,
+      items: [
+        {
+          title: "Minhas Notas",
+          url: "/user/grades",
+          icon: BarChart3,
+        },
+      ],
+    },
+    {
+      title: "Certificados",
+      url: "/user/certificates",
+      icon: Award,
+      isActive: true,
+      items: [
+        {
+          title: "Meus Certificados",
+          url: "/user/certificates",
+          icon: Award,
+        },
+      ],
+    },
+    {
       title: "Assinatura",
       url: "/user/subscription",
       icon: Crown,
@@ -163,6 +189,12 @@ const navLinks = {
           url: "/user/laboratory/speaking/real-time",
           icon: MessageCircle,
         },
+        // TODO: Reativar quando resolver o problema do loading infinito
+        // {
+        //   title: "Progresso de Conversação",
+        //   url: "/user/laboratory/speaking/progress",
+        //   icon: BarChart3,
+        // },
       ],
     },
     {
@@ -264,6 +296,16 @@ const navLinks = {
           title: "Analytics",
           url: "/teacher/laboratory/analytics",
           icon: BarChart3,
+        },
+        {
+          title: "Conquistas",
+          url: "/teacher/laboratory/achievements",
+          icon: Award,
+        },
+        {
+          title: "Leaderboard",
+          url: "/teacher/laboratory/leaderboard",
+          icon: Trophy,
         },
       ],
     },
