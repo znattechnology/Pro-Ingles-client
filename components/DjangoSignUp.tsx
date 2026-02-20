@@ -21,6 +21,7 @@ const DjangoSignUp = () => {
   
   const isCheckoutPage = searchParams.get("showSignUp") !== null;
   const courseId = searchParams.get("id");
+  const selectedPlan = searchParams.get("plan"); // PREMIUM or PREMIUM_PLUS from landing page
 
   const [formData, setFormData] = useState({
     name: '',
@@ -102,9 +103,10 @@ const DjangoSignUp = () => {
       const result = await register(formData).unwrap();
       
       toast.success(result.message || 'Registro realizado com sucesso!');
-      
-      // Redirect to email verification
-      router.push(`/verify-email?email=${encodeURIComponent(result.email)}&registration=true`);
+
+      // Redirect to email verification (pass plan param if coming from pricing page)
+      const verifyUrl = `/verify-email?email=${encodeURIComponent(result.email)}&registration=true${selectedPlan ? `&plan=${selectedPlan}` : ''}`;
+      router.push(verifyUrl);
     } catch (error: any) {
       console.error('Registration error:', error);
       

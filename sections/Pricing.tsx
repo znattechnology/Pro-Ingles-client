@@ -4,79 +4,80 @@ import { CheckIcon, Crown, MapPin, Star, ArrowRight, TrendingUp } from "lucide-r
 import { twMerge } from "tailwind-merge";
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { isAuthenticated } from "@/lib/django-middleware";
 
 const pricingTiers = [
   {
-    title: "Básico",
+    title: "Gratuito",
     subtitle: "Para começar",
     monthlyPrice: 0,
     yearlyPrice: 0,
     buttonText: "Começar Grátis",
     popular: false,
     inverse: false,
-    icon: "🚀",
+    icon: "🎁",
     badge: null,
     features: [
       "3 lições por dia",
-      "5 min de Speaking com IA",
-      "5 min de Listening diário", 
-      "3 vidas (recarrega 4h)",
-      "1 curso: Inglês Geral",
+      "5 min de conversação IA/dia",
+      "5 min de audição/dia",
+      "3 vidas (recarrega a cada 4h)",
+      "7 dias de trial completo",
+      "1 dispositivo",
       "Progresso básico",
       "Comunidade ProEnglish Angola"
     ],
     angolaBenefit: "Ideal para testar nossa metodologia angolana",
-    testimonial: "Perfeito para começar!" 
+    testimonial: "Perfeito para começar!"
   },
   {
-    title: "Professional",
-    subtitle: "Para quem quer crescer",
+    title: "Premium",
+    subtitle: "Aprendizagem sem limites",
     monthlyPrice: 14950,
     yearlyPrice: 149500,
     discount: "2 meses grátis",
-    buttonText: "Acelerar Carreira",
+    buttonText: "Fazer Upgrade",
     popular: true,
     inverse: true,
-    icon: "👑",
-    badge: "Mais Escolhido",
+    icon: "⚡",
+    badge: "Mais Popular",
     features: [
       "Lições ILIMITADAS",
-      "Speaking & Listening ILIMITADO",
+      "10 min de conversação IA/dia",
+      "Audição ILIMITADA",
       "Vidas infinitas",
-      "15+ cursos especializados",
-      "Inglês para Petróleo & Gás",
-      "Inglês Bancário (BAI/BFA)",
-      "Certificados oficiais",
-      "Analytics detalhado",
+      "Certificados de conclusão",
+      "Relatórios avançados de progresso",
       "Download offline",
-      "Suporte especializado",
-      "2 dispositivos simultâneos"
+      "1 proteção de sequência/semana",
+      "2 dispositivos simultâneos",
+      "Todos os cursos disponíveis"
     ],
     angolaBenefit: "Criado especificamente para profissionais angolanos",
-    testimonial: "Consegui promoção na Sonangol!" 
+    testimonial: "Consegui promoção na Sonangol!"
   },
   {
-    title: "Enterprise",
-    subtitle: "Para líderes",
+    title: "Premium Plus",
+    subtitle: "Experiência VIP completa",
     monthlyPrice: 24950,
     yearlyPrice: 249500,
     discount: "2 meses grátis",
-    buttonText: "Ser Líder Global",
+    buttonText: "Ser VIP",
     popular: false,
     inverse: false,
-    icon: "⚡",
-    badge: "Mais Avançado",
+    icon: "👑",
+    badge: "Mais Completo",
     features: [
-      "TUDO do Professional",
-      "IA Personal Tutor exclusivo",
-      "2 sessões com nativos/mês",
-      "Correção avançada com IA",
-      "Inglês para C-Level",
-      "Preparação para reuniões internacionais",
-      "Suporte VIP 24/7",
-      "Acesso antecipado",
+      "TUDO do Premium +",
+      "20 min de conversação IA/dia",
+      "AI Tutor pessoal 24/7",
+      "2 sessões com professores nativos/mês",
+      "Suporte prioritário",
+      "2 proteções de sequência/semana",
       "3 dispositivos simultâneos",
-      "Relatórios executivos"
+      "Inglês para Petróleo & Gás",
+      "Inglês Bancário",
+      "Preparação para reuniões internacionais"
     ],
     angolaBenefit: "Para executivos que lideram em empresas multinacionais",
     testimonial: "Essencial para meu cargo executivo!"
@@ -85,7 +86,6 @@ const pricingTiers = [
 
 const Pricing = () => {
   const [isYearly, setIsYearly] = useState(false);
-  const [hoveredCard, setHoveredCard] = useState<string | null>(null);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('pt-AO', {
@@ -213,8 +213,6 @@ const Pricing = () => {
                   initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1, duration: 0.6 }}
-                  onHoverStart={() => setHoveredCard(tier.title)}
-                  onHoverEnd={() => setHoveredCard(null)}
                   whileHover={{ scale: 1.02, y: -8 }}
                   className={twMerge( 
                     "relative bg-gradient-to-br from-violet-900/20 to-purple-900/20 backdrop-blur-xl border rounded-3xl p-8 transition-all duration-300",
@@ -276,22 +274,42 @@ const Pricing = () => {
                   </div>
                   
                   {/* CTA Button */}
-                  <motion.button 
+                  <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     className={twMerge(
-                      "w-full py-4 rounded-xl font-bold text-lg transition-all duration-300 mb-8 flex items-center justify-center gap-2", 
-                      tier.inverse 
-                        ? "bg-white text-black hover:bg-gray-100 shadow-xl" 
-                        : tier.title === "Básico"
+                      "w-full py-4 rounded-xl font-bold text-lg transition-all duration-300 mb-8 flex items-center justify-center gap-2",
+                      tier.inverse
+                        ? "bg-white text-black hover:bg-gray-100 shadow-xl"
+                        : tier.title === "Gratuito"
                         ? "bg-gradient-to-r from-gray-600 to-gray-700 text-white hover:from-gray-500 hover:to-gray-600"
                         : "bg-gradient-to-r from-violet-600 to-purple-600 text-white hover:from-violet-700 hover:to-purple-700 shadow-xl"
                     )}
                     onClick={() => {
-                      if (tier.title === "Básico") {
-                        window.location.href = "/signup";
+                      const userIsAuthenticated = isAuthenticated();
+
+                      if (userIsAuthenticated) {
+                        // Usuário autenticado - redirecionar diretamente para upgrade
+                        if (tier.title === "Gratuito") {
+                          window.location.href = "/user/courses";
+                        } else if (tier.title === "Premium") {
+                          window.location.href = "/user/upgrade?plan=PREMIUM";
+                        } else if (tier.title === "Premium Plus") {
+                          window.location.href = "/user/upgrade?plan=PREMIUM_PLUS";
+                        } else {
+                          window.location.href = "/user/courses";
+                        }
                       } else {
-                        window.location.href = "/user/upgrade";
+                        // Usuário não autenticado - redirecionar para signup
+                        if (tier.title === "Gratuito") {
+                          window.location.href = "/signup";
+                        } else if (tier.title === "Premium") {
+                          window.location.href = "/signup?plan=PREMIUM";
+                        } else if (tier.title === "Premium Plus") {
+                          window.location.href = "/signup?plan=PREMIUM_PLUS";
+                        } else {
+                          window.location.href = "/signup";
+                        }
                       }
                     }}
                   >
@@ -333,39 +351,22 @@ const Pricing = () => {
           )}
         </div>
 
-        {/* Bottom CTA */}
+        {/* Simplified Bottom CTA */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.8 }}
-          className="text-center mt-16"
+          transition={{ duration: 0.6, delay: 0.5 }}
+          className="text-center mt-12"
         >
-          <div className="bg-gradient-to-r from-violet-900/40 to-purple-900/40 backdrop-blur-xl border border-violet-500/30 rounded-3xl p-8 max-w-3xl mx-auto">
-            <TrendingUp className="w-12 h-12 text-violet-400 mx-auto mb-4" />
-            <h3 className="text-2xl font-bold text-white mb-4">
+          <div className="inline-flex items-center gap-2 bg-green-900/30 border border-green-700/30 rounded-full px-4 py-2 mb-4">
+            <TrendingUp className="w-4 h-4 text-green-400" />
+            <span className="text-green-300 text-sm font-medium">
               Garantia de 30 dias ou seu dinheiro de volta
-            </h3>
-            <p className="text-gray-300 mb-6">
-              Estamos tão confiantes nos nossos resultados que oferecemos garantia total. 
-              Se não ver progresso em 30 dias, devolvemos 100% do valor pago.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white px-8 py-3 rounded-xl font-semibold shadow-xl transition-all duration-300"
-              >
-                Começar Teste Grátis
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="border-2 border-violet-500 text-violet-300 hover:bg-violet-900/20 px-8 py-3 rounded-xl font-semibold transition-all duration-300"
-              >
-                Falar com Consultor
-              </motion.button>
-            </div>
+            </span>
           </div>
+          <p className="text-gray-400 text-sm">
+            Sem compromisso. Cancele quando quiser.
+          </p>
         </motion.div>
       </div>
     </section>
