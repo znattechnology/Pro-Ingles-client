@@ -35,7 +35,8 @@ const ROUTE_CONFIG = {
     '/signup',
     '/verify-email',
     '/forgot-password',
-    '/checkout' // May need auth for later steps
+    '/checkout', // May need auth for later steps
+    '/auth/google/callback' // Google OAuth callback
   ],
 
   // Student routes
@@ -78,6 +79,12 @@ const ROUTE_CONFIG = {
 function hasRefreshToken(request: NextRequest): boolean {
   const refreshToken = request.cookies.get('refresh_token')?.value;
   return !!refreshToken && refreshToken.trim() !== '';
+}
+
+// Check if user has auth_state cookie (set by frontend after successful login)
+function hasAuthState(request: NextRequest): boolean {
+  const authState = request.cookies.get('auth_state')?.value;
+  return authState === 'authenticated';
 }
 
 // Get user from JWT token stored in cookie or localStorage (for server-side)
@@ -197,20 +204,26 @@ export function djangoAuthMiddleware(request: NextRequest) {
 
   // If route is public, allow access
   if (isPublicRoute(pathname)) {
-    // Only redirect authenticated users from auth pages if they have a valid token
-    if (user && !needsRefresh && ['/signin', '/signup'].includes(pathname)) {
-      const token = request.cookies.get('access_token')?.value;
-      // Double check token validity before redirecting
-      if (token) {
-        try {
-          const decoded = jwtDecode<JWTPayload>(token);
-          const isValid = decoded.exp * 1000 > Date.now();
-          if (isValid) {
-            return NextResponse.redirect(new URL(getDefaultRedirect(user.role), request.url));
+    // Redirect authenticated users from auth pages
+    if (['/signin', '/signup'].includes(pathname)) {
+      // Check if user has valid token OR auth_state cookie
+      if (user && !needsRefresh) {
+        const token = request.cookies.get('access_token')?.value;
+        if (token) {
+          try {
+            const decoded = jwtDecode<JWTPayload>(token);
+            const isValid = decoded.exp * 1000 > Date.now();
+            if (isValid) {
+              return NextResponse.redirect(new URL(getDefaultRedirect(user.role), request.url));
+            }
+          } catch {
+            // Token invalid, allow access to auth pages
           }
-        } catch {
-          // Token invalid, allow access to auth pages
         }
+      } else if (hasAuthState(request)) {
+        // Has auth_state but no token - redirect based on user_role cookie
+        const userRole = request.cookies.get('user_role')?.value || 'student';
+        return NextResponse.redirect(new URL(getDefaultRedirect(userRole), request.url));
       }
     }
     return NextResponse.next();
@@ -218,7 +231,14 @@ export function djangoAuthMiddleware(request: NextRequest) {
 
   // If route requires authentication but user is not authenticated
   // IMPORTANT: If needsRefresh is true, allow the page to load - client will handle refresh
+  // Also check for auth_state cookie (set by frontend for cross-origin cookie scenarios)
   if (!user && !needsRefresh && requiredRole) {
+    // Check for auth_state cookie as fallback (for HttpOnly cookie cross-origin scenarios)
+    if (hasAuthState(request)) {
+      // User has auth_state cookie - allow access, client-side will verify with backend
+      return NextResponse.next();
+    }
+
     // Store the intended destination for redirect after login
     const loginUrl = new URL('/signin', request.url);
     loginUrl.searchParams.set('redirect', pathname);
