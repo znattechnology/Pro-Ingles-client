@@ -2,9 +2,11 @@
 
 /**
  * Teacher Leaderboard Dashboard - Student Rankings Management
- * 
+ *
  * This page allows teachers to view student rankings, competition stats,
  * and manage class competitions for better engagement and motivation.
+ *
+ * Uses the same leaderboard endpoints as students since rankings are global.
  */
 
 import { useState } from 'react';
@@ -19,11 +21,11 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { motion } from "framer-motion";
-import { 
-  Trophy, 
-  Crown, 
-  Star, 
-  Users, 
+import {
+  Trophy,
+  Crown,
+  Star,
+  Users,
   ArrowLeft,
   ArrowUp,
   ArrowDown,
@@ -44,23 +46,23 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Loading from '@/components/course/Loading';
-import { 
-  useGetTeacherDashboardQuery,
-  useGetStudentProgressListQuery
-} from '@/src/domains/teacher/practice-courses/api';
-
-
+// Use existing student leaderboard hooks - same data for teachers
+import {
+  useGetGlobalLeaderboardQuery,
+  useGetLeaguesInfoQuery,
+  useGetActiveCompetitionsQuery,
+} from '@/src/domains/student/leaderboard/api';
 
 export default function TeacherLeaderboardPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('rankings');
   const [isCreateCompetitionOpen, setIsCreateCompetitionOpen] = useState(false);
   const [selectedTimeRange, setSelectedTimeRange] = useState<'week' | 'month' | 'all'>('week');
-  
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const studentsPerPage = 10;
-  
+
   // Competition form state
   const [competitionForm, setCompetitionForm] = useState({
     title: '',
@@ -72,18 +74,48 @@ export default function TeacherLeaderboardPage() {
     targetValue: '100'
   });
 
-  // API queries
-  const { data: studentsResponse, isLoading: studentsLoading } = useGetTeacherClassRankingsQuery({
-    timeRange: selectedTimeRange
-  });
+  // API queries - using existing student leaderboard endpoints
+  const { data: leaderboardData, isLoading: leaderboardLoading } = useGetGlobalLeaderboardQuery();
+  const { data: leagues = [], isLoading: leaguesLoading } = useGetLeaguesInfoQuery();
+  const { data: competitions = [], isLoading: competitionsLoading } = useGetActiveCompetitionsQuery();
+
+  // Transform leaderboard data to student rankings format
+  const students = leaderboardData?.leaderboard?.map((user, index) => ({
+    id: user.id,
+    name: user.username || `Estudante ${index + 1}`,
+    rank: user.rank || index + 1,
+    points: user.points || 0,
+    league: user.league || 'bronze',
+    streak: user.streak || 0,
+    weeklyPoints: 0, // Not in current API response
+    completedLessons: 0, // Not in current API response
+    change: user.change || 'same',
+    changeAmount: user.changeAmount || 0,
+  })) || [];
 
   // Pagination logic
-  const students = studentsResponse || [];
   const totalStudents = students.length;
   const totalPages = Math.ceil(totalStudents / studentsPerPage);
   const startIndex = (currentPage - 1) * studentsPerPage;
   const endIndex = startIndex + studentsPerPage;
   const currentStudents = students.slice(startIndex, endIndex);
+
+  // Calculate stats from leaderboard data
+  const stats = {
+    totalStudents: students.length,
+    activeStudents: students.filter(s => s.streak > 0).length,
+    activeCompetitions: competitions.length, // All returned competitions are active
+    completedCompetitions: 0, // Would need separate endpoint
+    averagePoints: students.length > 0 ? students.reduce((acc, s) => acc + s.points, 0) / students.length : 0,
+    averageStreak: students.length > 0 ? students.reduce((acc, s) => acc + s.streak, 0) / students.length : 0,
+    engagementRate: students.length > 0 ? (students.filter(s => s.streak > 0).length / students.length) * 100 : 0,
+    leagueDistribution: {
+      gold: leagues.find(l => l.name === 'gold')?.participants || 0,
+      silver: leagues.find(l => l.name === 'silver')?.participants || 0,
+      bronze: leagues.find(l => l.name === 'bronze')?.participants || 0,
+      diamond: leagues.find(l => l.name === 'diamond')?.participants || 0,
+    }
+  };
 
   // Reset to first page when time range changes
   const handleTimeRangeChange = (value: 'week' | 'month' | 'all') => {
@@ -94,20 +126,12 @@ export default function TeacherLeaderboardPage() {
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
-  
-  const { data: stats, isLoading: statsLoading } = useGetTeacherLeaderboardStatsQuery({
-    timeRange: selectedTimeRange
-  });
-  
-  const { data: competitions = [], isLoading: competitionsLoading } = useGetTeacherCompetitionsQuery({
-    status: 'all'
-  });
-
-  // Mutations
-  const [createCompetition, { isLoading: isCreating }] = useCreateTeacherCompetitionMutation();
 
   // Loading state
-  const isLoading = studentsLoading || statsLoading || competitionsLoading;
+  const isLoading = leaderboardLoading || leaguesLoading || competitionsLoading;
+
+  // Create competition handler (TODO: implement backend endpoint)
+  const isCreating = false;
 
   const getChangeIcon = (change: string) => {
     switch (change) {
@@ -139,31 +163,20 @@ export default function TeacherLeaderboardPage() {
   };
 
   const handleCreateCompetition = async () => {
-    try {
-      await createCompetition({
-        title: competitionForm.title,
-        description: competitionForm.description,
-        type: competitionForm.type,
-        duration: competitionForm.type === 'custom' ? parseInt(competitionForm.duration) : undefined,
-        prize: competitionForm.prize,
-        targetMetric: competitionForm.targetMetric,
-        targetValue: parseInt(competitionForm.targetValue),
-        autoEnroll: true // Automatically enroll all students
-      }).unwrap();
-      
-      setIsCreateCompetitionOpen(false);
-      setCompetitionForm({
-        title: '',
-        description: '',
-        type: 'weekly',
-        duration: '7',
-        prize: '',
-        targetMetric: 'points',
-        targetValue: '100'
-      });
-    } catch (error) {
-      console.error('Error creating competition:', error);
-    }
+    // TODO: Implement backend endpoint for creating competitions
+    // For now, just close the dialog and show a message
+    console.log('Creating competition:', competitionForm);
+    alert('Funcionalidade de criar competição será implementada em breve!');
+    setIsCreateCompetitionOpen(false);
+    setCompetitionForm({
+      title: '',
+      description: '',
+      type: 'weekly',
+      duration: '7',
+      prize: '',
+      targetMetric: 'points',
+      targetValue: '100'
+    });
   };
 
   if (isLoading) {
@@ -596,14 +609,11 @@ export default function TeacherLeaderboardPage() {
                           {competition.description}
                         </p>
                       </div>
-                      <Badge 
+                      <Badge
                         variant="outline"
-                        className={`${
-                          competition.status === 'active' ? 'border-green-500 text-green-400' :
-                          'border-gray-500 text-gray-400'
-                        }`}
+                        className="border-green-500 text-green-400"
                       >
-                        {competition.status === 'active' ? 'Ativa' : 'Finalizada'}
+                        Ativa
                       </Badge>
                     </div>
                   </CardHeader>
