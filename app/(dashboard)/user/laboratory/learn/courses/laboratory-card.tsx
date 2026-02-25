@@ -1,10 +1,9 @@
 import { cn } from "@/lib/utils";
-import { Check, Target, Trophy, Play, Book, ArrowRight, Zap, Mic, Headphones, Globe, Briefcase, Code, Stethoscope, Scale, BookOpen, Fuel, Building2, Crown, Brain, Sparkles } from "lucide-react";
+import { Check, Target, Trophy, Play, Book, ArrowRight, Zap, Globe, Briefcase, Code, Stethoscope, Scale, BookOpen, Fuel, Building2, Crown, Brain, Sparkles } from "lucide-react";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { useRouter } from "next/navigation";
 
 type Props = {
     title: string;
@@ -155,7 +154,6 @@ const getCategoryIcon = (category: string) => {
 };
 
 export const LaboratoryCard = ({title, id, imageSrc, description, level, category, template, customColors, totalUnits, completedUnits, totalLessons, totalChallenges, progress = 0, onClick, disabled, active, viewMode = 'grid'}:Props) => {
-    const router = useRouter();
     const levelInfo = levelConfig[level as keyof typeof levelConfig] || levelConfig.Beginner;
     const isCompleted = progress >= 100;
     const progressPercentage = Math.round(progress);
@@ -184,22 +182,6 @@ export const LaboratoryCard = ({title, id, imageSrc, description, level, categor
     }
     
     const CategoryIcon = getCategoryIcon(category || template || 'general');
-
-    // Handler para navegar para speaking practice
-    const handleSpeakingClick = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        e.preventDefault();
-        console.log('🎤 SPEAKING DEBUG: Speaking clicked for course:', id);
-        router.push(`/user/laboratory/learn/courses/${id}/speaking`);
-    };
-
-    // Handler para navegar para listening practice
-    const handleListeningClick = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        e.preventDefault();
-        console.log('🎧 LISTENING DEBUG: Listening clicked for course:', id);
-        router.push(`/user/laboratory/learn/courses/${id}/listening`);
-    };
 
     // Handler para botão principal
     const handleMainClick = (e: React.MouseEvent) => {
@@ -356,28 +338,8 @@ export const LaboratoryCard = ({title, id, imageSrc, description, level, categor
                             <Play className="h-3 w-3 sm:h-4 sm:w-4" />
                         )}
                     </Button>
-                    
-                    {/* Botões Secundários - Speaking/Listening */}
-                    <div className="flex gap-1 sm:gap-1 relative z-10">
-                        <Button
-                            onClick={handleSpeakingClick}
-                            size="sm"
-                            className="flex-1 bg-blue-500/20 border border-blue-500/30 text-blue-400 hover:bg-blue-500/30 hover:border-blue-500/50 hover:text-blue-300 transition-colors cursor-pointer min-h-[32px] px-2 sm:px-3"
-                        >
-                            <Mic className="h-3 w-3 mr-1" />
-                            <span className="text-xs">Speaking</span>
-                        </Button>
-                        <Button
-                            onClick={handleListeningClick}
-                            size="sm"
-                            className="flex-1 bg-orange-500/20 border border-orange-500/30 text-orange-400 hover:bg-orange-500/30 hover:border-orange-500/50 hover:text-orange-300 transition-colors cursor-pointer min-h-[32px] px-2 sm:px-3"
-                        >
-                            <Headphones className="h-3 w-3 mr-1" />
-                            <span className="text-xs">Listening</span>
-                        </Button>
-                    </div>
                 </div>
-                
+
                 {/* Hover Effect Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-r from-customgreys-primarybg/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
             </div>
@@ -654,36 +616,6 @@ export const LaboratoryCard = ({title, id, imageSrc, description, level, categor
                         )}
                         <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 ml-auto" />
                     </Button>
-                    
-                    {/* Botões Secundários - Speaking/Listening */}
-                    <div className="grid grid-cols-2 gap-1.5 sm:gap-2 relative z-30">
-                        <Button
-                            onClick={handleSpeakingClick}
-                            disabled={disabled}
-                            size="sm"
-                            className={cn(
-                                "bg-blue-500/20 border border-blue-500/30 text-blue-400 hover:bg-blue-500/30 hover:border-blue-500/50 hover:text-blue-300 transition-colors cursor-pointer relative min-h-[32px]",
-                                "hover:transform hover:scale-[1.02] active:scale-[0.98]",
-                                disabled && "opacity-50 cursor-not-allowed"
-                            )}
-                        >
-                            <Mic className="h-3 w-3 mr-1" />
-                            <span className="text-xs font-medium">Speaking</span>
-                        </Button>
-                        <Button
-                            onClick={handleListeningClick}
-                            disabled={disabled}
-                            size="sm"
-                            className={cn(
-                                "bg-orange-500/20 border border-orange-500/30 text-orange-400 hover:bg-orange-500/30 hover:border-orange-500/50 hover:text-orange-300 transition-colors cursor-pointer relative min-h-[32px]",
-                                "hover:transform hover:scale-[1.02] active:scale-[0.98]",
-                                disabled && "opacity-50 cursor-not-allowed"
-                            )}
-                        >
-                            <Headphones className="h-3 w-3 mr-1" />
-                            <span className="text-xs font-medium">Listening</span>
-                        </Button>
-                    </div>
                 </div>
             </div>
             
