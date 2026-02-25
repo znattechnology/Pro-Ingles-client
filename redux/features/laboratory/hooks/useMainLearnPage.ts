@@ -180,8 +180,8 @@ export const useLearnPageNavigation = () => {
     router.push(`/user/laboratory/learn/lesson/${lessonId}`);
   }, []);
   
-  const navigateToShop = useCallback((router: any) => {
-    router.push('/user/laboratory/learn/shop');
+  const navigateToSubscription = useCallback((router: any) => {
+    router.push('/user/subscription');
   }, []);
   
   const navigateToAchievements = useCallback((router: any) => {
@@ -195,7 +195,7 @@ export const useLearnPageNavigation = () => {
   return {
     navigateToActiveCourse,
     navigateToLesson,
-    navigateToShop,
+    navigateToSubscription,
     navigateToAchievements,
     navigateToLeaderboard,
   };

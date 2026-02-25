@@ -97,6 +97,8 @@ export const studentPracticeApiSlice = createApi({
         points: response.points || 0,
         user_image_src: response.user_image_src || '/mascot.jpg',
         streak: response.streak || 0,
+        hasActiveSubscription: response.has_active_subscription || false,
+        hasUnlimitedHearts: response.has_unlimited_hearts || false,
       }),
       providesTags: ['StudentProgress'],
     }),
@@ -268,27 +270,72 @@ export const studentPracticeApiSlice = createApi({
     }),
 
     // ===== CHALLENGE INTERACTION =====
-    
-    // Complete challenge - adapted for new structure
+
+    // Complete challenge - adapted for new structure with extended data support
     submitChallenge: builder.mutation<{
-      challenge_progress: any;
-      user_progress: { hearts: number; points: number };
+      success: boolean;
+      correct: boolean;
+      challenge_progress?: any;
+      user_progress?: { hearts: number; points: number };
+      heartsRemaining?: number;
+      heartsUsed?: number;
     }, {
-      challengeId: string;
-      selectedOptionId: string;
-      timeSpent?: number;
+      challenge_id: string;
+      selected_option?: string;
+      text_answer?: string;           // For FILL_BLANK/TRANSLATION (single blank)
+      text_answers?: string[];        // For FILL_BLANK (multiple blanks)
+      ordered_options?: string[];     // For SENTENCE_ORDER
+      paired_options?: { [key: string]: string }; // For MATCH_PAIRS
+      pronunciation_score?: number;   // For SPEAKING challenges
+      time_spent?: number;
       attempts?: number;
     }>({
       query: (data) => {
         console.log('🔍 submitChallenge: Sending data:', data);
-        // Adapt new data structure to backend expected format
-        const bodyData = {
-          challenge: data.challengeId,
-          completed: true, // Assume completion for now
-          selected_option: data.selectedOptionId,
-          time_spent: data.timeSpent,
-          attempts: data.attempts,
+        // Build payload based on what data is provided
+        const bodyData: any = {
+          challenge: data.challenge_id,
+          completed: true,
         };
+
+        // Add selected_option for simple types
+        if (data.selected_option) {
+          bodyData.selected_option = data.selected_option;
+        }
+
+        // Add text_answer for FILL_BLANK/TRANSLATION (single blank)
+        if (data.text_answer) {
+          bodyData.text_answer = data.text_answer;
+        }
+
+        // Add text_answers for FILL_BLANK (multiple blanks)
+        if (data.text_answers && data.text_answers.length > 0) {
+          bodyData.text_answers = data.text_answers;
+        }
+
+        // Add ordered_options for SENTENCE_ORDER
+        if (data.ordered_options) {
+          bodyData.ordered_options = data.ordered_options;
+        }
+
+        // Add paired_options for MATCH_PAIRS
+        if (data.paired_options) {
+          bodyData.paired_options = data.paired_options;
+        }
+
+        // Add pronunciation_score for SPEAKING challenges
+        if (data.pronunciation_score !== undefined) {
+          bodyData.pronunciation_score = data.pronunciation_score;
+        }
+
+        if (data.time_spent) {
+          bodyData.time_spent = data.time_spent;
+        }
+
+        if (data.attempts) {
+          bodyData.attempts = data.attempts;
+        }
+
         console.log('🔍 submitChallenge: Adapted body data:', bodyData);
         return {
           url: "challenge-progress/",
@@ -296,9 +343,17 @@ export const studentPracticeApiSlice = createApi({
           body: bodyData,
         };
       },
+      transformResponse: (response: any) => ({
+        success: response.success ?? true,
+        correct: response.correct ?? false,
+        challenge_progress: response.challenge_progress,
+        user_progress: response.user_progress,
+        heartsRemaining: response.user_progress?.hearts,
+        heartsUsed: response.correct ? 0 : 1,
+      }),
       invalidatesTags: [
-        "StudentProgress", 
-        "StudentUnit", 
+        "StudentProgress",
+        "StudentUnit",
         "StudentLesson",
         "StudentCourse"
       ],

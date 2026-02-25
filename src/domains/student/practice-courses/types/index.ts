@@ -102,6 +102,9 @@ export interface StudentUserProgress extends BaseUserProgress {
     current: number;
     completed: boolean;
   };
+  // Subscription status
+  hasActiveSubscription?: boolean;
+  hasUnlimitedHearts?: boolean;
 }
 
 // Achievement types

@@ -354,11 +354,11 @@ export const uploadCourseImage = async (
   imageFile: File
 ): Promise<string> => {
   try {
-    console.log('🖼️ Starting course image upload...', { 
-      courseId, 
+    console.log('🖼️ Starting course image upload...', {
+      courseId,
       fileName: imageFile.name,
       fileType: imageFile.type,
-      size: imageFile.size 
+      size: imageFile.size
     });
 
     // Step 1: Get presigned URL from Django backend
@@ -367,9 +367,9 @@ export const uploadCourseImage = async (
       {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // Sends HttpOnly cookies automatically
         body: JSON.stringify({
           fileName: imageFile.name,
           fileType: imageFile.type,
@@ -410,9 +410,9 @@ export const uploadCourseImage = async (
       {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // Sends HttpOnly cookies automatically
         body: JSON.stringify({
           imageUrl: imageUrl,
         }),
@@ -446,9 +446,9 @@ export const uploadAvatarToS3 = async (
       {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // Sends HttpOnly cookies automatically
         body: JSON.stringify({
           fileName: imageFile.name,
           fileType: imageFile.type,

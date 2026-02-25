@@ -39,10 +39,35 @@ const LearnCourse = () => {
   const { data: coursesData, isLoading, error } = useGetAvailableVideoCoursesQuery({});
   
   // Get video courses directly from API
-  // Handle both paginated format and direct array format
-  const courses = Array.isArray(coursesData?.data) 
-    ? coursesData.data 
-    : [];
+  // Handle both paginated format (with results) and direct array format
+  const courses = React.useMemo(() => {
+    if (!coursesData) return [];
+
+    // Cast to any to handle different response formats
+    const data = coursesData as any;
+
+    // New paginated format: { data: { results: [...], count, ... } }
+    if (data.data?.results && Array.isArray(data.data.results)) {
+      return data.data.results;
+    }
+
+    // Direct results from RTK Query transformation
+    if (Array.isArray(data.results)) {
+      return data.results;
+    }
+
+    // Legacy format: direct array
+    if (Array.isArray(data)) {
+      return data;
+    }
+
+    // Legacy format: { data: [...] }
+    if (Array.isArray(data.data)) {
+      return data.data;
+    }
+
+    return [];
+  }, [coursesData]);
 
   // Filter and sort courses
   const filteredAndSortedCourses = React.useMemo(() => {

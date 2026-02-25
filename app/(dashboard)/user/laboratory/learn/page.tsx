@@ -46,15 +46,24 @@ const LearnPage = () => {
     error,
     stats,
     actions,
+    refetch,
   } = useFullMainLearnPage();
-  
+
   // Extract data from Redux
   const userProgress = data?.userProgress;
   const units = data?.units || [];
   const courseProgress = data?.courseProgress;
   const lessonPercentage = data?.lessonPercentage || 0;
 
-  
+  // Refetch data when page is mounted to ensure fresh progress data
+  useEffect(() => {
+    if (refetch) {
+      console.log('🔄 Learn page mounted - refetching progress data');
+      refetch();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only on mount - refetch intentionally excluded
+
   // Handle Redux navigation and redirects
   const pageNavigation = useLearnPageNavigation();
   
@@ -321,7 +330,7 @@ const LearnPage = () => {
                       if (actions) {
                         actions.buyHearts();
                       }
-                      router.push('/user/laboratory/learn/shop');
+                      router.push('/user/subscription');
                     }}
                     className="w-full justify-start text-customgreys-dirtyGrey hover:text-white hover:bg-red-500/10 hover:border-red-500/20 border border-transparent transition-all duration-200 group min-h-[36px]"
                   >

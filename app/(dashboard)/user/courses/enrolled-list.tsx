@@ -39,63 +39,56 @@ export const EnrolledList = ({courses, activeCourseId, viewMode = 'grid'}: Props
 
     const onClick = async (id: string) => {
         if (pending) return;
-        
+
         startTransition(async () => {
             try {
                 // First, try to get the course data to find the first chapter
                 const response = await fetch(`http://localhost:8000/api/v1/courses/${id}/`, {
+                    credentials: 'include',
                     headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
                         'Content-Type': 'application/json',
                     },
                 });
 
-                if (response.ok) {
-                    const courseData = await response.json();
-                    const course = courseData.data;
-                    
-                    console.log('🔍 Course data structure:', {
-                        courseId: id,
-                        title: course.title,
-                        sectionsCount: course.sections?.length,
-                        sections: course.sections?.map((s: any, idx: number) => ({
-                            index: idx,
-                            id: s.sectionId,
-                            title: s.sectionTitle,
-                            chaptersCount: s.chapters?.length,
-                            chapters: s.chapters?.map((c: any) => ({
-                                id: c.chapterId,
-                                title: c.title,
-                                type: c.type
-                            }))
-                        }))
-                    });
-                    
-                    // Find first section that has chapters and its first chapter
-                    const firstSectionWithChapters = course.sections?.find((section: any) => 
-                        section.chapters && section.chapters.length > 0
-                    );
-                    const firstChapter = firstSectionWithChapters?.chapters?.[0];
-                    
-                    console.log('🎯 First section with chapters:', firstSectionWithChapters);
-                    console.log('🎯 First chapter:', firstChapter);
-                    
-                    if (firstChapter) {
-                        console.log('✅ Navigating to:', `/user/courses/${id}/chapters/${firstChapter.chapterId}`);
-                        router.push(`/user/courses/${id}/chapters/${firstChapter.chapterId}`);
-                        return;
-                    } else {
-                        console.log('❌ No first chapter found');
-                        console.log('❌ Course sections:', course.sections);
-                    }
+                if (!response.ok) {
+                    toast.error("Não foi possível carregar os dados do curso");
+                    return;
                 }
-                
-                // Fallback: if we can't get course data, show error
-                toast.error("Não foi possível encontrar o primeiro capítulo do curso");
-                
+
+                const courseData = await response.json();
+                const course = courseData.data;
+
+                // Check if course has any sections
+                if (!course.sections || course.sections.length === 0) {
+                    toast.error("Este curso ainda não tem conteúdo disponível", {
+                        description: "O professor ainda está a preparar as aulas. Tente novamente mais tarde.",
+                        duration: 5000,
+                    });
+                    return;
+                }
+
+                // Find first section that has chapters and its first chapter
+                const firstSectionWithChapters = course.sections?.find((section: any) =>
+                    section.chapters && section.chapters.length > 0
+                );
+                const firstChapter = firstSectionWithChapters?.chapters?.[0];
+
+                if (firstChapter) {
+                    router.push(`/user/courses/${id}/chapters/${firstChapter.chapterId}`);
+                    return;
+                }
+
+                // Course has sections but no chapters
+                toast.error("Este curso ainda não tem aulas disponíveis", {
+                    description: "As seções foram criadas mas ainda não há capítulos. Aguarde o professor adicionar conteúdo.",
+                    duration: 5000,
+                });
+
             } catch (error) {
                 console.error("Error accessing course:", error);
-                toast.error("Alguma coisa não correu bem");
+                toast.error("Erro ao aceder ao curso", {
+                    description: "Verifique a sua ligação à internet e tente novamente.",
+                });
             }
         });
     }

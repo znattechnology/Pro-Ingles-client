@@ -10,7 +10,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { useRouter } from "next/navigation";
 import { RootState } from "@/state/redux";
 import { userLoggedIn, userLoggedOut, User } from "@/src/domains/auth";
-import { fetchUserFromBackend, isAuthenticated } from "@/lib/django-middleware";
+import { fetchUserFromBackend } from "@/lib/django-middleware";
 import { djangoAuth } from "@/lib/django-auth";
 import { migrateLocalStorage } from "@/lib/migrate-storage";
 import { tokenRefreshCoordinator } from "@/lib/token-refresh-coordinator";
@@ -49,115 +49,61 @@ export function useDjangoAuth(): AuthHookReturn {
   const [clientIsAuthenticated, setClientIsAuthenticated] = useState(false);
   const [clientUser, setClientUser] = useState<User | null>(null);
 
-  // ✅ Enhanced initialization with retry logic and token validation
+  // Initialize auth state from HttpOnly cookies
+  // Note: We can't read HttpOnly cookies directly, so we:
+  // 1. Check for auth_state cookie (non-HttpOnly flag)
+  // 2. Try to fetch user profile (backend reads HttpOnly cookies)
+  // 3. Handle 401 errors by attempting refresh
   useEffect(() => {
     if (typeof window !== 'undefined') {
       // Run storage migration to clean up legacy cache
       migrateLocalStorage();
 
-      const token = localStorage.getItem('access_token');
-      const refreshToken = localStorage.getItem('refresh_token');
+      // Check if user appears to be authenticated
+      const hasAuthState = tokenRefreshCoordinator.isAuthenticated();
+      const userInfoStr = localStorage.getItem('user_info');
 
-      if (token && refreshToken) {
-        // ✅ STEP 1: Validate token locally first
-        const isValid = tokenRefreshCoordinator.isTokenValid();
+      if (hasAuthState || userInfoStr) {
+        // Try to use cached user info first for immediate UI
+        if (userInfoStr) {
+          try {
+            const cachedUser = JSON.parse(userInfoStr);
+            setClientUser(cachedUser);
+            setClientIsAuthenticated(true);
+            dispatch(userLoggedIn({
+              accessToken: '',
+              refreshToken: '',
+              user: cachedUser
+            }));
+          } catch {
+            // Failed to parse cached user info - will verify with backend
+          }
+        }
 
-        if (!isValid) {
-          console.log('[useDjangoAuth] Token expired, attempting refresh before fetching user...');
-
-          // Token expired, try to refresh first
-          tokenRefreshCoordinator.refreshToken()
-            .then(() => {
-              // Refresh successful, now fetch user
-              return fetchUserFromBackend();
-            })
-            .then(currentUser => {
-              if (currentUser) {
-                const newToken = localStorage.getItem('access_token');
-                const newRefreshToken = localStorage.getItem('refresh_token');
-
-                dispatch(userLoggedIn({
-                  accessToken: newToken || token,
-                  refreshToken: newRefreshToken || refreshToken,
-                  user: currentUser
-                }));
-                setClientIsAuthenticated(true);
-                setClientUser(currentUser);
-              } else {
-                // Clear invalid state
-                tokenRefreshCoordinator.clearTokens();
-                dispatch(userLoggedOut());
-                setClientIsAuthenticated(false);
-                setClientUser(null);
-              }
-            })
-            .catch(error => {
-              console.error('[useDjangoAuth] Token refresh failed:', error);
-              // Only clear state after refresh fails
+        // Then verify with backend in background (non-blocking)
+        fetchUserFromBackend()
+          .then(currentUser => {
+            if (currentUser) {
+              dispatch(userLoggedIn({
+                accessToken: '',
+                refreshToken: '',
+                user: currentUser
+              }));
+              setClientIsAuthenticated(true);
+              setClientUser(currentUser);
+            } else {
+              // Backend says not authenticated - clear state
               tokenRefreshCoordinator.clearTokens();
               dispatch(userLoggedOut());
               setClientIsAuthenticated(false);
               setClientUser(null);
-            });
-        } else {
-          // ✅ STEP 2: Token is valid, fetch user data
-          fetchUserFromBackend()
-            .then(currentUser => {
-              if (currentUser) {
-                // Restore authentication state with backend data
-                dispatch(userLoggedIn({
-                  accessToken: token,
-                  refreshToken: refreshToken,
-                  user: currentUser
-                }));
-                setClientIsAuthenticated(true);
-                setClientUser(currentUser);
-              } else {
-                // ✅ STEP 3: Fetch failed, try refresh before giving up
-                console.warn('[useDjangoAuth] Failed to fetch user, attempting refresh...');
-
-                tokenRefreshCoordinator.refreshToken()
-                  .then(() => fetchUserFromBackend())
-                  .then(retryUser => {
-                    if (retryUser) {
-                      const newToken = localStorage.getItem('access_token');
-                      const newRefreshToken = localStorage.getItem('refresh_token');
-
-                      dispatch(userLoggedIn({
-                        accessToken: newToken || token,
-                        refreshToken: newRefreshToken || refreshToken,
-                        user: retryUser
-                      }));
-                      setClientIsAuthenticated(true);
-                      setClientUser(retryUser);
-                    } else {
-                      // Failed even after refresh, logout
-                      tokenRefreshCoordinator.clearTokens();
-                      dispatch(userLoggedOut());
-                      setClientIsAuthenticated(false);
-                      setClientUser(null);
-                    }
-                  })
-                  .catch(error => {
-                    console.error('[useDjangoAuth] Retry failed:', error);
-                    tokenRefreshCoordinator.clearTokens();
-                    dispatch(userLoggedOut());
-                    setClientIsAuthenticated(false);
-                    setClientUser(null);
-                  });
-              }
-            })
-            .catch(error => {
-              // Network error or other failure
-              console.error('[useDjangoAuth] Error fetching user:', error);
-
-              // Don't logout immediately on network errors
-              // Just log the error and keep existing state
-              console.warn('[useDjangoAuth] Keeping existing auth state despite fetch error');
-            });
-        }
+            }
+          })
+          .catch(() => {
+            // On network error, keep cached state (don't logout on network issues)
+          });
       } else {
-        // No tokens - clear state
+        // No auth state - user is not logged in
         dispatch(userLoggedOut());
         setClientIsAuthenticated(false);
         setClientUser(null);
@@ -173,35 +119,36 @@ export function useDjangoAuth(): AuthHookReturn {
     }
   }, [authState?.isAuthenticated, authState?.user]);
 
-  // Check authentication status
+  // Check authentication status by fetching user profile
+  // Backend validates HttpOnly cookies automatically
   const checkAuth = async () => {
     if (typeof window === 'undefined') return;
 
-    const authenticated = isAuthenticated();
-
-    if (authenticated) {
+    try {
       // Fetch fresh user data from backend
+      // Backend reads tokens from HttpOnly cookies
       const currentUser = await fetchUserFromBackend();
 
-      if (currentUser && !authState?.isAuthenticated) {
-        const token = localStorage.getItem('access_token');
-        const refreshToken = localStorage.getItem('refresh_token');
-
-        if (token && refreshToken) {
+      if (currentUser) {
+        if (!authState?.isAuthenticated) {
           dispatch(userLoggedIn({
-            accessToken: token,
-            refreshToken: refreshToken,
+            accessToken: '', // Tokens are in HttpOnly cookies
+            refreshToken: '',
             user: currentUser
           }));
         }
-      } else if (!currentUser) {
+        setClientIsAuthenticated(true);
+        setClientUser(currentUser);
+      } else {
         // Failed to fetch user - logout
+        tokenRefreshCoordinator.clearTokens();
         dispatch(userLoggedOut());
+        setClientIsAuthenticated(false);
+        setClientUser(null);
       }
-    } else {
-      if (authState?.isAuthenticated) {
-        dispatch(userLoggedOut());
-      }
+    } catch (error) {
+      console.error('[useDjangoAuth] checkAuth failed:', error);
+      // Keep existing state on network errors
     }
   };
 
@@ -299,22 +246,64 @@ export function useAuthGuard(requiredRole?: 'student' | 'teacher' | 'admin') {
   };
 }
 
+/**
+ * Validate redirect URL to prevent Open Redirect attacks
+ * Only allows relative paths within the same origin
+ *
+ * @param url - The URL to validate
+ * @returns The validated URL or null if invalid
+ */
+function validateRedirectUrl(url: string | null): string | null {
+  if (!url) return null;
+
+  // Must start with / (relative path)
+  if (!url.startsWith('/')) return null;
+
+  // Must not start with // (protocol-relative URL)
+  if (url.startsWith('//')) return null;
+
+  // Must not contain protocol
+  if (url.includes('://')) return null;
+
+  // Must not contain newlines or null bytes (header injection)
+  if (/[\r\n\0]/.test(url)) return null;
+
+  // Must not start with /\ (Windows path injection)
+  if (url.startsWith('/\\')) return null;
+
+  // Decode and re-check (prevent double encoding attacks)
+  try {
+    const decoded = decodeURIComponent(url);
+    if (decoded !== url) {
+      // URL was encoded, validate the decoded version
+      if (decoded.includes('://') || decoded.startsWith('//')) return null;
+    }
+  } catch {
+    // Invalid encoding
+    return null;
+  }
+
+  return url;
+}
+
 // Hook for redirect after login
 export function useLoginRedirect() {
   const router = useRouter();
 
   return (user: User, searchParams?: URLSearchParams) => {
-    // Check for redirect parameter
-    const redirect = searchParams?.get('redirect');
-    if (redirect) {
-      router.push(redirect);
+    // Check for redirect parameter with validation
+    const redirectParam = searchParams?.get('redirect') ?? null;
+    const validatedRedirect = validateRedirectUrl(redirectParam);
+
+    if (validatedRedirect) {
+      router.push(validatedRedirect);
       return;
     }
 
     // Check for checkout context
     const isCheckout = searchParams?.get('showSignUp') !== null;
     const courseId = searchParams?.get('id');
-    
+
     if (isCheckout && courseId) {
       router.push(`/checkout?step=2&id=${courseId}`);
       return;

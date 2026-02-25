@@ -20,7 +20,8 @@ import ChallengeConstructor from '@/components/laboratory/ChallengeConstructor';
 import { useGetTeacherCoursesQuery } from '@/src/domains/teacher/practice-courses/api';
 
 interface Course {
-  id: string;
+  id?: string;
+  courseId?: string;  // Backend pode retornar courseId em vez de id
   title: string;
   description?: string;
   level?: string;
@@ -32,6 +33,11 @@ interface Course {
   challenges_count?: number;
   total_progress?: number;
 }
+
+// Helper para obter o ID do curso independente do nome do campo
+const getCourseId = (course: Course): string | undefined => {
+  return course.id || course.courseId;
+};
 
 export default function ChallengeConstructorPage() {
   const router = useRouter();
@@ -61,18 +67,65 @@ export default function ChallengeConstructorPage() {
 
   // If a course is selected, show the challenge constructor
   if (selectedCourse) {
-    // Transform course to match ChallengeConstructor's expected interface
+    // 🔒 VALIDAÇÃO: Obter ID do curso (pode ser 'id' ou 'courseId')
+    const courseId = getCourseId(selectedCourse);
+
+    if (!courseId) {
+      console.error('❌ CRITICAL: No course ID found:', {
+        selectedCourse,
+        keys: Object.keys(selectedCourse),
+        id: selectedCourse.id,
+        courseId: selectedCourse.courseId
+      });
+
+      return (
+        <div className="min-h-screen bg-customgreys-primarybg text-white flex items-center justify-center">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="text-center p-8 max-w-md"
+          >
+            <div className="text-red-400 text-6xl mb-6">⚠️</div>
+            <h2 className="text-2xl font-bold mb-4 text-white">Erro de Dados</h2>
+            <p className="text-gray-400 mb-6 leading-relaxed">
+              O curso selecionado não possui um ID válido.
+              Isso pode ocorrer se o curso foi criado mas não foi salvo corretamente.
+            </p>
+            <div className="space-y-3">
+              <Button
+                onClick={() => {
+                  setSelectedCourse(null);
+                  window.location.reload();
+                }}
+                className="w-full bg-violet-600 hover:bg-violet-700"
+              >
+                Recarregar e Tentar Novamente
+              </Button>
+              <Button
+                onClick={handleBackToCourseSelection}
+                variant="outline"
+                className="w-full border-gray-600 text-gray-300 hover:bg-gray-800"
+              >
+                Voltar à Seleção de Cursos
+              </Button>
+            </div>
+          </motion.div>
+        </div>
+      );
+    }
+
+    // ✅ SAFE: Course tem id validado
     const challengeConstructorCourse = {
-      id: selectedCourse.id,
+      id: courseId,  // Usar courseId validado (pode vir de course.id ou course.courseId)
       title: selectedCourse.title,
       description: selectedCourse.description || '',
       level: selectedCourse.level || 'Beginner',
       category: selectedCourse.category || 'General'
     };
-    
+
     return (
-      <ChallengeConstructor 
-        course={challengeConstructorCourse} 
+      <ChallengeConstructor
+        course={challengeConstructorCourse}
         onBack={handleBackToCourseSelection}
       />
     );
@@ -403,7 +456,7 @@ export default function ChallengeConstructorPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
               {filteredCourses.map((course, index) => (
                 <motion.div
-                  key={course.id}
+                  key={getCourseId(course) || index}
                   initial={{ opacity: 0, y: 30, scale: 0.9 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   transition={{ 

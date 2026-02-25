@@ -2,7 +2,9 @@
  * HTTP Interceptor for Django JWT Authentication
  * Automatically handles token refresh and request retries
  *
- * ✅ Updated to use TokenRefreshCoordinator to prevent race conditions
+ * Security: Uses HttpOnly cookies for authentication
+ * - Backend middleware reads access_token from cookie
+ * - No localStorage token access needed
  */
 
 import { tokenRefreshCoordinator } from './token-refresh-coordinator';
@@ -14,8 +16,6 @@ export interface RequestConfig {
 }
 
 class HttpInterceptor {
-  // ✅ Removed local queue - coordinator handles queuing now
-
   async request({ url, options = {}, skipAuth = false }: RequestConfig): Promise<Response> {
     // Add default headers
     const headers = new Headers(options.headers);
@@ -23,18 +23,12 @@ class HttpInterceptor {
       headers.set('Content-Type', 'application/json');
     }
 
-    // Add authentication header if not skipped
-    if (!skipAuth) {
-      // Get token from localStorage (coordinator syncs it with cookies)
-      const token = localStorage.getItem('access_token');
-      if (token) {
-        headers.set('Authorization', `Bearer ${token}`);
-      }
-    }
+    // No Authorization header needed - backend middleware reads from HttpOnly cookie
 
     const requestOptions: RequestInit = {
       ...options,
       headers,
+      credentials: 'include', // Sends HttpOnly cookies automatically
     };
 
     try {
@@ -53,21 +47,15 @@ class HttpInterceptor {
   }
 
   private async handleTokenExpiration(url: string, options: RequestInit): Promise<Response> {
-    // ✅ Use coordinator - it automatically queues if refresh is in progress
     try {
       console.log('[HttpInterceptor] Token expired, attempting coordinated refresh...');
 
       // Coordinator handles queuing and prevents race conditions
-      const newToken = await tokenRefreshCoordinator.refreshToken();
+      await tokenRefreshCoordinator.refreshToken();
 
       console.log('[HttpInterceptor] Token refreshed successfully, retrying request...');
 
-      // Update the original request with new token
-      if (newToken && options.headers) {
-        (options.headers as Headers).set('Authorization', `Bearer ${newToken}`);
-      }
-
-      // Retry the original request
+      // Retry the original request - new cookies are automatically included
       return fetch(url, options);
     } catch (refreshError) {
       console.error('[HttpInterceptor] Token refresh failed:', refreshError);

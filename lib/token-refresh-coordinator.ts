@@ -1,34 +1,18 @@
 /**
  * Token Refresh Coordinator - Centralized token refresh logic
  *
- * ✅ FIX P2: Prevents race conditions by coordinating all refresh attempts
+ * Security: Tokens are now stored in HttpOnly cookies by the backend.
+ * This coordinator handles refresh coordination without direct token access.
  *
  * Features:
  * - Single refresh promise shared across all callers
  * - Automatic retry with exponential backoff
  * - Request queuing during refresh
- * - Synchronized localStorage + cookies
- * - Detailed logging for debugging
+ * - Works with HttpOnly cookies (no direct token access)
  */
 
-import { jwtDecode } from 'jwt-decode';
-
-interface JWTPayload {
-  user_id: string;
-  email: string;
-  role: 'student' | 'teacher' | 'admin';
-  name: string;
-  exp: number;
-  iat: number;
-}
-
-interface RefreshResponse {
-  access: string;
-  refresh?: string; // Some backends return new refresh token
-}
-
 interface QueuedRequest {
-  resolve: (token: string) => void;
+  resolve: () => void;
   reject: (error: any) => void;
 }
 
@@ -37,7 +21,7 @@ export class TokenRefreshCoordinator {
 
   // Refresh state
   private isRefreshing = false;
-  private refreshPromise: Promise<string> | null = null;
+  private refreshPromise: Promise<void> | null = null;
   private requestQueue: QueuedRequest[] = [];
 
   // Retry configuration
@@ -49,7 +33,7 @@ export class TokenRefreshCoordinator {
   private enableLogging = process.env.NODE_ENV === 'development';
 
   private constructor() {
-    this.log('🔧 TokenRefreshCoordinator initialized');
+    this.log('🔧 TokenRefreshCoordinator initialized (HttpOnly mode)');
   }
 
   static getInstance(): TokenRefreshCoordinator {
@@ -61,8 +45,9 @@ export class TokenRefreshCoordinator {
 
   /**
    * Main refresh method - coordinates all refresh attempts
+   * Returns void since we can't access the token (it's in HttpOnly cookies)
    */
-  async refreshToken(): Promise<string> {
+  async refreshToken(): Promise<void> {
     // If already refreshing, return existing promise
     if (this.isRefreshing && this.refreshPromise) {
       this.log('⏳ Refresh already in progress, returning existing promise');
@@ -74,16 +59,15 @@ export class TokenRefreshCoordinator {
     this.log('🔄 Starting new token refresh');
 
     this.refreshPromise = this.performRefresh()
-      .then(newAccessToken => {
+      .then(() => {
         this.log('✅ Token refresh successful');
-        this.retryCount = 0; // Reset retry counter on success
-        this.processQueue(null, newAccessToken);
+        this.retryCount = 0;
+        this.processQueue(null);
         this.resetRefreshState();
-        return newAccessToken;
       })
       .catch(error => {
         this.log('❌ Token refresh failed:', error.message);
-        this.processQueue(error, null);
+        this.processQueue(error);
         this.resetRefreshState();
         throw error;
       });
@@ -94,85 +78,44 @@ export class TokenRefreshCoordinator {
   /**
    * Queue a request to wait for token refresh
    */
-  async waitForRefresh(): Promise<string> {
+  async waitForRefresh(): Promise<void> {
     if (!this.isRefreshing) {
       return this.refreshToken();
     }
 
     this.log('📋 Queuing request to wait for refresh');
 
-    return new Promise<string>((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       this.requestQueue.push({ resolve, reject });
     });
   }
 
   /**
-   * Check if token needs refresh (5 minutes before expiry)
+   * Check if we should attempt a refresh
+   * Since we can't read HttpOnly cookies, we rely on API errors to trigger refresh
    */
   shouldRefreshToken(): boolean {
-    const token = this.getStoredAccessToken();
-    if (!token) return false;
-
-    try {
-      const decoded = jwtDecode<JWTPayload>(token);
-      const now = Date.now() / 1000;
-      const timeUntilExpiry = decoded.exp - now;
-
-      // Refresh if less than 5 minutes remaining
-      const shouldRefresh = timeUntilExpiry <= 300; // 5 minutes
-
-      if (shouldRefresh) {
-        this.log(`⚠️ Token expires in ${Math.round(timeUntilExpiry)} seconds, refresh needed`);
-      }
-
-      return shouldRefresh;
-    } catch (error) {
-      this.log('❌ Error checking token expiry:', error);
-      return false;
-    }
+    // Can't check token expiry directly with HttpOnly cookies
+    // Return false - let API errors trigger refresh
+    return false;
   }
 
   /**
-   * Check if token is valid (not expired)
+   * Check if user appears to be authenticated
+   * This is a quick UI check, not authoritative
    */
-  isTokenValid(): boolean {
-    const token = this.getStoredAccessToken();
-    if (!token) return false;
+  isAuthenticated(): boolean {
+    if (typeof window === 'undefined') return false;
 
-    try {
-      const decoded = jwtDecode<JWTPayload>(token);
-      return decoded.exp * 1000 > Date.now();
-    } catch {
-      return false;
-    }
-  }
-
-  /**
-   * Get time until token expires (in seconds)
-   */
-  getTimeUntilExpiry(): number | null {
-    const token = this.getStoredAccessToken();
-    if (!token) return null;
-
-    try {
-      const decoded = jwtDecode<JWTPayload>(token);
-      const now = Date.now() / 1000;
-      return Math.max(0, decoded.exp - now);
-    } catch {
-      return null;
-    }
+    // Check for auth state cookie (non-HttpOnly flag set on login)
+    return document.cookie.includes('auth_state=authenticated');
   }
 
   /**
    * Perform actual token refresh with retry logic
+   * Backend reads refresh token from HttpOnly cookie
    */
-  private async performRefresh(): Promise<string> {
-    const refreshToken = this.getStoredRefreshToken();
-
-    if (!refreshToken) {
-      throw new Error('No refresh token available');
-    }
-
+  private async performRefresh(): Promise<void> {
     try {
       const apiUrl = process.env.NEXT_PUBLIC_DJANGO_API_URL || 'http://localhost:8000/api/v1';
 
@@ -183,7 +126,8 @@ export class TokenRefreshCoordinator {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ refresh: refreshToken }),
+        body: JSON.stringify({}), // Backend reads from HttpOnly cookie
+        credentials: 'include', // Send and receive HttpOnly cookies
       });
 
       if (!response.ok) {
@@ -191,16 +135,9 @@ export class TokenRefreshCoordinator {
         throw new Error(errorData.error || errorData.message || `HTTP ${response.status}`);
       }
 
-      const data: RefreshResponse = await response.json();
+      // Success - backend has set new HttpOnly cookies in the response
+      this.log('✅ Refresh successful - new cookies set by backend');
 
-      if (!data.access) {
-        throw new Error('No access token in refresh response');
-      }
-
-      // ✅ FIX P3: Unified storage - sync both localStorage and cookies
-      this.storeTokens(data.access, data.refresh || refreshToken);
-
-      return data.access;
     } catch (error: any) {
       // Retry logic with exponential backoff
       if (this.retryCount < this.maxRetries) {
@@ -220,82 +157,16 @@ export class TokenRefreshCoordinator {
   }
 
   /**
-   * Store tokens in both localStorage and cookies (unified storage)
-   */
-  private storeTokens(accessToken: string, refreshToken: string) {
-    if (typeof window === 'undefined') return;
-
-    this.log('💾 Storing tokens in localStorage and cookies');
-
-    // Primary: localStorage
-    localStorage.setItem('access_token', accessToken);
-    localStorage.setItem('refresh_token', refreshToken);
-
-    // Secondary: Cookies (for SSR middleware access)
-    const accessMaxAge = 3600; // 1 hour
-    const refreshMaxAge = 604800; // 7 days
-
-    document.cookie = `access_token=${accessToken}; path=/; max-age=${accessMaxAge}; SameSite=strict; Secure`;
-    document.cookie = `refresh_token=${refreshToken}; path=/; max-age=${refreshMaxAge}; SameSite=strict; Secure`;
-
-    this.log('✅ Tokens stored successfully');
-  }
-
-  /**
-   * Get access token from storage (prioritize localStorage)
-   */
-  private getStoredAccessToken(): string | null {
-    if (typeof window === 'undefined') return null;
-
-    // Try localStorage first
-    const token = localStorage.getItem('access_token');
-    if (token) return token;
-
-    // Fallback to cookies
-    return this.getCookie('access_token');
-  }
-
-  /**
-   * Get refresh token from storage (prioritize localStorage)
-   */
-  private getStoredRefreshToken(): string | null {
-    if (typeof window === 'undefined') return null;
-
-    // Try localStorage first
-    const token = localStorage.getItem('refresh_token');
-    if (token) return token;
-
-    // Fallback to cookies
-    return this.getCookie('refresh_token');
-  }
-
-  /**
-   * Get cookie value by name
-   */
-  private getCookie(name: string): string | null {
-    if (typeof document === 'undefined') return null;
-
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-
-    if (parts.length === 2) {
-      return parts.pop()?.split(';').shift() || null;
-    }
-
-    return null;
-  }
-
-  /**
    * Process queued requests after refresh completes
    */
-  private processQueue(error: any, token: string | null) {
+  private processQueue(error: any) {
     this.log(`📤 Processing ${this.requestQueue.length} queued requests`);
 
     this.requestQueue.forEach(({ resolve, reject }) => {
       if (error) {
         reject(error);
-      } else if (token) {
-        resolve(token);
+      } else {
+        resolve();
       }
     });
 
@@ -327,17 +198,20 @@ export class TokenRefreshCoordinator {
   }
 
   /**
-   * Clear all tokens and reset state
+   * Clear authentication state
+   * Note: HttpOnly cookies are cleared by the backend on logout
    */
   clearTokens() {
-    this.log('🧹 Clearing all tokens');
+    this.log('🧹 Clearing auth state');
 
     if (typeof window !== 'undefined') {
+      // Clear legacy localStorage tokens if they exist
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
+      localStorage.removeItem('user_info');
 
-      document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-      document.cookie = 'refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+      // Clear auth state cookie (this one is not HttpOnly)
+      document.cookie = 'auth_state=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
     }
 
     this.resetRefreshState();

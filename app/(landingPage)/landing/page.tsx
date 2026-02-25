@@ -47,7 +47,25 @@ const LoadingSkeleton = () => {
 const Landing = () => {
   const router = useRouter();
   const currentImage = useCarousel({ totalImages: 3 });
-  const { data: courses, isLoading,  } = useGetCoursesQuery({});
+  const { data: coursesData, isLoading } = useGetCoursesQuery({});
+
+  // Handle both paginated format and direct array format
+  const courses = React.useMemo(() => {
+    if (!coursesData) return [];
+    const data = coursesData as any;
+
+    // Paginated format: { results: [...] }
+    if (data.results && Array.isArray(data.results)) {
+      return data.results;
+    }
+
+    // Direct array format
+    if (Array.isArray(data)) {
+      return data;
+    }
+
+    return [];
+  }, [coursesData]);
 
   const handleCourseClick = (courseId: string) => {
     router.push(`/search?id=${courseId}`, {
@@ -128,8 +146,8 @@ const Landing = () => {
         </div>
 
         <div className="landing__courses">
-          {courses &&
-            courses.slice(0, 4).map((course, index) => (
+          {courses.length > 0 &&
+            courses.slice(0, 4).map((course: any, index: number) => (
               <motion.div
                 key={course.courseId}
                 initial={{ y: 50, opacity: 0 }}

@@ -5,13 +5,16 @@
 export function clearAllAuthData() {
   if (typeof window === 'undefined') return;
 
-  // Clear localStorage (including legacy django_user cache)
-  localStorage.removeItem('access_token');
-  localStorage.removeItem('refresh_token');
-  localStorage.removeItem('django_user'); // Legacy user data cache (deprecated)
-  
+  // Clear localStorage (including legacy data)
+  localStorage.removeItem('access_token'); // Legacy
+  localStorage.removeItem('refresh_token'); // Legacy
+  localStorage.removeItem('django_user'); // Legacy user data cache
+  localStorage.removeItem('user_info'); // Current user info cache
+
   // Clear all possible cookie variations
-  const cookiesToClear = ['access_token', 'refresh_token'];
+  // Note: HttpOnly cookies (access_token, refresh_token) can only be cleared by the server
+  // We clear auth_state which is a non-HttpOnly flag cookie
+  const cookiesToClear = ['access_token', 'refresh_token', 'auth_state'];
   const domains = [window.location.hostname, 'localhost', '127.0.0.1'];
   const paths = ['/', '/signin', '/signup', '/user', '/teacher', '/admin'];
   

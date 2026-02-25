@@ -149,9 +149,18 @@ export default function VapiConversationPracticeRefactored() {
     const storedSessionId = sessionRecovery.getStoredSessionId();
     const storedMessages = sessionRecovery.getStoredMessages();
 
+    // Debug logging
+    console.log('[END_CALL] Session ID from storage:', storedSessionId);
+    console.log('[END_CALL] Messages from storage:', storedMessages);
+    console.log('[END_CALL] Messages from vapiCall.messages:', vapiCall.messages);
+
+    // Use messages from vapiCall if storage is empty
+    const messagesToAnalyze = storedMessages.length > 0 ? storedMessages : vapiCall.messages;
+    console.log('[END_CALL] Messages to analyze:', messagesToAnalyze);
+
     if (storedSessionId) {
-      // Send batch analysis
-      const success = await backendAPI.sendBatchAnalysis(storedSessionId, storedMessages);
+      // Send batch analysis with elapsed time
+      const success = await backendAPI.sendBatchAnalysis(storedSessionId, messagesToAnalyze, timer.elapsed);
 
       if (success) {
         vapiLogger.info('Batch analysis successful, redirecting to summary');

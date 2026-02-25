@@ -10,7 +10,11 @@ import AITutorDemo from "@/components/AITutorDemo";
 
 const Hero = () => {
   const handlePlayDemo = () => {
-    console.log("Demo button clicked");
+    // Scroll to practice lab section for demo
+    const element = document.getElementById('practice-lab');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   const stats = [

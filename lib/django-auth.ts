@@ -1,7 +1,12 @@
 /**
  * Django Authentication Service
  * Handles all authentication-related API calls to Django backend
+ *
+ * Security: Uses HttpOnly cookies for token storage (set by backend).
+ * All requests use credentials: 'include' to send/receive cookies automatically.
  */
+
+import { tokenRefreshCoordinator } from './token-refresh-coordinator';
 
 const DJANGO_BASE_URL = process.env.NEXT_PUBLIC_DJANGO_API_URL || 'http://localhost:8000/api/v1';
 
@@ -49,19 +54,48 @@ export interface PasswordResetConfirmData {
 }
 
 class DjangoAuthService {
-  private getHeaders(includeAuth: boolean = false) {
-    const headers: HeadersInit = {
+  /**
+   * Mark user as authenticated (non-sensitive flag cookie)
+   * The actual tokens are stored in HttpOnly cookies by the backend
+   */
+  private markAuthenticated(user: User) {
+    if (typeof window === 'undefined') return;
+
+    // Store user info for UI purposes (non-sensitive)
+    // Actual authentication is handled by HttpOnly cookies
+    localStorage.setItem('user_info', JSON.stringify({
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      avatar: user.avatar,
+    }));
+
+    // Set a flag cookie for quick auth state check (not a security token)
+    document.cookie = 'auth_state=authenticated; path=/; max-age=604800; SameSite=Lax';
+  }
+
+  /**
+   * Clear authentication state
+   */
+  private clearAuthState() {
+    if (typeof window === 'undefined') return;
+
+    localStorage.removeItem('user_info');
+    // Clear legacy tokens if they exist
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+
+    // Clear auth state cookie
+    document.cookie = 'auth_state=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+  }
+
+  private getHeaders() {
+    // No need to manually add Authorization header anymore
+    // HttpOnly cookies are sent automatically with credentials: 'include'
+    return {
       'Content-Type': 'application/json',
     };
-
-    if (includeAuth) {
-      const token = localStorage.getItem('access_token');
-      if (token) {
-        headers.Authorization = `Bearer ${token}`;
-      }
-    }
-
-    return headers;
   }
 
   private async handleResponse(response: Response) {
@@ -87,14 +121,14 @@ class DjangoAuthService {
       method: 'POST',
       headers: this.getHeaders(),
       body: JSON.stringify(data),
+      credentials: 'include', // Receives HttpOnly cookies from backend
     });
 
     const result = await this.handleResponse(response);
-    
-    // Store tokens in localStorage
-    if (result.access) {
-      localStorage.setItem('access_token', result.access);
-      localStorage.setItem('refresh_token', result.refresh);
+
+    // Mark user as authenticated (tokens are in HttpOnly cookies from backend)
+    if (result.user) {
+      this.markAuthenticated(result.user);
     }
 
     return result;
@@ -105,14 +139,14 @@ class DjangoAuthService {
       method: 'POST',
       headers: this.getHeaders(),
       body: JSON.stringify(data),
+      credentials: 'include', // Receives HttpOnly cookies from backend
     });
 
     const result = await this.handleResponse(response);
-    
-    // Store tokens after email verification
-    if (result.access) {
-      localStorage.setItem('access_token', result.access);
-      localStorage.setItem('refresh_token', result.refresh);
+
+    // Mark user as authenticated (tokens are in HttpOnly cookies from backend)
+    if (result.user) {
+      this.markAuthenticated(result.user);
     }
 
     return result;
@@ -123,6 +157,7 @@ class DjangoAuthService {
       method: 'POST',
       headers: this.getHeaders(),
       body: JSON.stringify({ email }),
+      credentials: 'include', // ✅ FASE 2: Permite envio/recebimento de cookies HttpOnly
     });
 
     return this.handleResponse(response);
@@ -133,6 +168,7 @@ class DjangoAuthService {
       method: 'POST',
       headers: this.getHeaders(),
       body: JSON.stringify(data),
+      credentials: 'include', // ✅ FASE 2: Permite envio/recebimento de cookies HttpOnly
     });
 
     return this.handleResponse(response);
@@ -143,57 +179,52 @@ class DjangoAuthService {
       method: 'POST',
       headers: this.getHeaders(),
       body: JSON.stringify(data),
+      credentials: 'include', // ✅ FASE 2: Permite envio/recebimento de cookies HttpOnly
     });
 
     return this.handleResponse(response);
   }
 
-  async refreshToken(): Promise<{ access: string }> {
-    const refreshToken = localStorage.getItem('refresh_token');
-    if (!refreshToken) {
-      throw new Error('No refresh token available');
-    }
-
+  /**
+   * Refresh token - backend reads refresh token from HttpOnly cookie
+   * New tokens are returned in HttpOnly cookies automatically
+   */
+  async refreshToken(): Promise<{ access: string; refresh?: string }> {
+    // No need to send refresh token in body - backend reads from HttpOnly cookie
     const response = await fetch(`${DJANGO_BASE_URL}/users/refresh-token/`, {
       method: 'POST',
       headers: this.getHeaders(),
-      body: JSON.stringify({ refresh: refreshToken }),
+      body: JSON.stringify({}), // Backend reads from cookie
+      credentials: 'include', // Sends HttpOnly cookies, receives new ones
     });
 
-    const result = await this.handleResponse(response);
-    
-    // Store new access token
-    if (result.access) {
-      localStorage.setItem('access_token', result.access);
-    }
-
-    return result;
+    return this.handleResponse(response);
   }
 
   async logout(): Promise<void> {
-    const refreshToken = localStorage.getItem('refresh_token');
-    
     try {
-      if (refreshToken) {
-        await fetch(`${DJANGO_BASE_URL}/users/logout/`, {
-          method: 'POST',
-          headers: this.getHeaders(true),
-          body: JSON.stringify({ refresh_token: refreshToken }),
-        });
-      }
+      // Backend reads refresh token from HttpOnly cookie and blacklists it
+      // Backend also clears the HttpOnly cookies
+      await fetch(`${DJANGO_BASE_URL}/users/logout/`, {
+        method: 'POST',
+        headers: this.getHeaders(),
+        body: JSON.stringify({}),
+        credentials: 'include', // Sends HttpOnly cookies for backend to clear
+      });
     } catch (error) {
       console.error('Logout request failed:', error);
     } finally {
-      // Always clear tokens from localStorage
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('refresh_token');
+      // Clear local auth state
+      this.clearAuthState();
+      tokenRefreshCoordinator.clearTokens();
     }
   }
 
   async getProfile(): Promise<User> {
     const response = await fetch(`${DJANGO_BASE_URL}/users/profile/`, {
       method: 'GET',
-      headers: this.getHeaders(true),
+      headers: this.getHeaders(),
+      credentials: 'include', // HttpOnly cookies sent automatically
     });
 
     return this.handleResponse(response);
@@ -202,23 +233,58 @@ class DjangoAuthService {
   async updateProfile(data: Partial<User>): Promise<User> {
     const response = await fetch(`${DJANGO_BASE_URL}/users/profile/`, {
       method: 'PUT',
-      headers: this.getHeaders(true),
+      headers: this.getHeaders(),
       body: JSON.stringify(data),
+      credentials: 'include', // HttpOnly cookies sent automatically
     });
 
     return this.handleResponse(response);
   }
 
+  /**
+   * Check if user appears to be authenticated (quick UI check)
+   * Note: This checks local state, not actual token validity.
+   * Use getProfile() for authoritative auth check.
+   */
   isAuthenticated(): boolean {
-    return !!localStorage.getItem('access_token');
+    if (typeof window === 'undefined') return false;
+
+    // Check for auth state cookie (set on login)
+    const hasAuthState = document.cookie.includes('auth_state=authenticated');
+    const hasUserInfo = !!localStorage.getItem('user_info');
+
+    return hasAuthState || hasUserInfo;
   }
 
+  /**
+   * Get cached user info (for UI purposes)
+   * Note: This is not a security check - tokens are in HttpOnly cookies
+   */
+  getCachedUserInfo(): User | null {
+    if (typeof window === 'undefined') return null;
+
+    try {
+      const userInfo = localStorage.getItem('user_info');
+      return userInfo ? JSON.parse(userInfo) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * @deprecated Tokens are now stored in HttpOnly cookies
+   */
   getAccessToken(): string | null {
-    return localStorage.getItem('access_token');
+    console.warn('[DEPRECATED] getAccessToken() - Tokens are now in HttpOnly cookies and cannot be accessed via JavaScript');
+    return null;
   }
 
+  /**
+   * @deprecated Tokens are now stored in HttpOnly cookies
+   */
   getRefreshToken(): string | null {
-    return localStorage.getItem('refresh_token');
+    console.warn('[DEPRECATED] getRefreshToken() - Tokens are now in HttpOnly cookies and cannot be accessed via JavaScript');
+    return null;
   }
 
   // Helper method to get user role redirect URL

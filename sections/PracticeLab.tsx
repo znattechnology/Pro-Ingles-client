@@ -1,14 +1,13 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { 
-  Zap, 
-  Target, 
-  Trophy, 
-  Brain, 
-  Headphones, 
-  Mic, 
-  MessageSquare, 
+import {
+  Zap,
+  Target,
+  Trophy,
+  Brain,
+  Headphones,
+  Mic,
   BookOpen,
   Users,
   Clock,
@@ -19,7 +18,6 @@ import {
   Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -256,7 +254,7 @@ const PracticeLab = () => {
             {/* Exercise Type Selector */}
             <div className="lg:col-span-1">
               <div className="space-y-4">
-                {exerciseTypes.map((exercise, index) => (
+                {exerciseTypes.map((exercise) => (
                   <motion.button
                     key={exercise.id}
                     onClick={() => setActiveExercise(exercise.id)}
@@ -357,41 +355,24 @@ const PracticeLab = () => {
           </div>
         </motion.div>
 
-        {/* Bottom CTA */}
+        {/* Simplified Bottom CTA */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.8 }}
-          className="text-center"
+          transition={{ duration: 0.6, delay: 0.6 }}
+          className="text-center mt-8"
         >
-          <div className="bg-gradient-to-r from-violet-900/40 to-purple-900/40 backdrop-blur-xl border border-violet-500/30 rounded-3xl p-8 max-w-4xl mx-auto">
-            <h3 className="text-2xl font-bold text-white mb-4">
-              Pronto para Revolucionar seu Inglês?
-            </h3>
-            <p className="text-gray-300 mb-6 max-w-2xl mx-auto">
-              Junte-se a mais de 25.000 angolanos que já melhoraram suas carreiras com nosso English Practice Lab.
-              <strong className="text-white"> Primeiros 7 dias gratuitos!</strong>
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Link href="/signup">
-                  <Button className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white px-8 py-4 text-lg font-semibold rounded-xl shadow-xl transition-all duration-200">
-                    <Zap className="w-5 h-5 mr-2" />
-                    Começar English Practice Lab Grátis
-                  </Button>
-                </Link>
-              </motion.div>
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Button 
-                  variant="outline" 
-                  className="border-2 border-violet-500 text-violet-300 hover:bg-violet-900/20 px-8 py-4 text-lg font-semibold rounded-xl transition-all duration-200"
-                >
-                  <MessageSquare className="w-5 h-5 mr-2" />
-                  Ver Demo do Lab
-                </Button>
-              </motion.div>
-            </div>
-          </div>
+          <p className="text-gray-400 mb-4">
+            Experimente todos os exercícios gratuitamente por 7 dias
+          </p>
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Link href="/signup">
+              <Button className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white px-8 py-4 text-lg font-semibold rounded-xl shadow-xl transition-all duration-200">
+                <Zap className="w-5 h-5 mr-2" />
+                Começar Grátis
+              </Button>
+            </Link>
+          </motion.div>
         </motion.div>
 
       </div>

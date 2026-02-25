@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,7 +12,8 @@ import LessonConstructor from '@/components/laboratory/LessonConstructor';
 import { useGetTeacherCoursesQuery } from '@/src/domains/teacher/practice-courses/api';
 
 interface Course {
-  id: string;
+  id?: string;
+  courseId?: string;  // Backend pode retornar courseId em vez de id
   title: string;
   description?: string;
   level?: string;
@@ -23,6 +24,11 @@ interface Course {
   lessons_count?: number;
 }
 
+// Helper para obter o ID do curso independente do nome do campo
+const getCourseId = (course: Course): string | undefined => {
+  return course.id || course.courseId;
+};
+
 export default function LessonConstructorPage() {
   const router = useRouter();
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
@@ -30,7 +36,26 @@ export default function LessonConstructorPage() {
   
   // Use Redux hook to get teacher courses (including drafts)
   const { data: coursesData, isLoading: loading } = useGetTeacherCoursesQuery({ includeDrafts: true });
-  
+
+  // 🔍 DEBUG: Log API response to check fields
+  useEffect(() => {
+    if (coursesData && coursesData.length > 0) {
+      console.log('📊 API Response - coursesData:', {
+        count: coursesData.length,
+        firstCourse: coursesData[0],
+        firstCourseKeys: Object.keys(coursesData[0]),
+        // IDs
+        id: coursesData[0].id,
+        courseId: (coursesData[0] as any).courseId,
+        // Stats - verificar todos os possíveis nomes
+        units_count: coursesData[0].units_count,
+        lessons_count: coursesData[0].lessons_count,
+        units: (coursesData[0] as any).units,
+        lessons: (coursesData[0] as any).lessons,
+      });
+    }
+  }, [coursesData]);
+
   // Transform courses data to match expected interface
   const courses = coursesData || [];
 
@@ -51,18 +76,67 @@ export default function LessonConstructorPage() {
 
   // If a course is selected, show the lesson constructor
   if (selectedCourse) {
-    // Transform course to match LessonConstructor's expected interface
+    // 🔒 VALIDAÇÃO: Obter ID do curso (pode ser 'id' ou 'courseId')
+    const courseId = getCourseId(selectedCourse);
+
+    if (!courseId) {
+      console.error('❌ CRITICAL: No course ID found:', {
+        selectedCourse,
+        keys: Object.keys(selectedCourse),
+        id: selectedCourse.id,
+        courseId: selectedCourse.courseId
+      });
+
+      // Reset selection e mostrar mensagem de erro
+      return (
+        <div className="min-h-screen bg-customgreys-primarybg text-white flex items-center justify-center">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="text-center p-8 max-w-md"
+          >
+            <div className="text-red-400 text-6xl mb-6">⚠️</div>
+            <h2 className="text-2xl font-bold mb-4 text-white">Erro de Dados</h2>
+            <p className="text-gray-400 mb-6 leading-relaxed">
+              O curso selecionado não possui um ID válido.
+              Isso pode ocorrer se o curso foi criado mas não foi salvo corretamente,
+              ou se houve um problema de sincronização.
+            </p>
+            <div className="space-y-3">
+              <Button
+                onClick={() => {
+                  setSelectedCourse(null);
+                  window.location.reload();
+                }}
+                className="w-full bg-violet-600 hover:bg-violet-700"
+              >
+                Recarregar e Tentar Novamente
+              </Button>
+              <Button
+                onClick={handleBackToCourseSelection}
+                variant="outline"
+                className="w-full border-gray-600 text-gray-300 hover:bg-gray-800"
+              >
+                Voltar à Seleção de Cursos
+              </Button>
+            </div>
+          </motion.div>
+        </div>
+      );
+    }
+
+    // ✅ SAFE: Course tem id validado
     const lessonConstructorCourse = {
-      id: selectedCourse.id,
+      id: courseId,  // Usar courseId validado (pode vir de course.id ou course.courseId)
       title: selectedCourse.title,
       description: selectedCourse.description || '',
       level: selectedCourse.level || 'Beginner',
       category: selectedCourse.category || 'General'
     };
-    
+
     return (
-      <LessonConstructor 
-        course={lessonConstructorCourse} 
+      <LessonConstructor
+        course={lessonConstructorCourse}
         onBack={handleBackToCourseSelection}
       />
     );
@@ -385,7 +459,7 @@ export default function LessonConstructorPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
               {filteredCourses.map((course, index) => (
                 <motion.div
-                  key={course.id}
+                  key={getCourseId(course) || index}
                   initial={{ opacity: 0, y: 30, scale: 0.9 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   transition={{ 
@@ -404,7 +478,15 @@ export default function LessonConstructorPage() {
                   }}
                   whileTap={{ scale: 0.98 }}
                   className="cursor-pointer perspective-1000"
-                  onClick={() => setSelectedCourse(course)}
+                  onClick={() => {
+                    console.log('🔍 Course clicked:', {
+                      course,
+                      hasId: 'id' in course,
+                      idValue: course.id,
+                      keys: Object.keys(course)
+                    });
+                    setSelectedCourse(course);
+                  }}
                   style={{
                     transformStyle: 'preserve-3d'
                   }}

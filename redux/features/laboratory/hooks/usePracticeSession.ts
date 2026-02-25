@@ -53,8 +53,17 @@ export interface LessonManagementResult {
   refetch: () => void;
 }
 
+// Extended data for complex challenge types (camelCase to match quiz.tsx)
+export interface ExtendedChallengeData {
+  textAnswer?: string;              // For FILL_BLANK/TRANSLATION (single blank)
+  textAnswers?: string[];           // For FILL_BLANK (multiple blanks)
+  orderedOptions?: string[];        // For SENTENCE_ORDER
+  pairedOptions?: { [key: string]: string }; // For MATCH_PAIRS
+  pronunciationScore?: number;      // For SPEAKING
+}
+
 export interface ChallengeActions {
-  submitAnswer: (challengeId: string, selectedOptionId: string) => Promise<any>;
+  submitAnswer: (challengeId: string, selectedOptionId?: string, extendedData?: ExtendedChallengeData) => Promise<any>;
   skipChallenge: () => void;
   nextChallenge: () => void;
   endSession: () => void;
@@ -147,32 +156,91 @@ export const usePracticeSession = (lessonId: string | null) => {
     }
   }, [lesson, challenges, useRedux, dispatch]);
   
-  const submitAnswer = useCallback(async (challengeId: string, selectedOptionId: string) => {
+  const submitAnswer = useCallback(async (
+    challengeId: string,
+    selectedOptionId?: string,
+    extendedData?: ExtendedChallengeData
+  ) => {
     if (useRedux) {
       try {
-        console.log('🧪 Using Redux for challenge submission', { challengeId, selectedOptionId });
-        const result = await submitChallengeRedux({
-          challengeId,
-          selectedOptionId,
-          timeSpent: Date.now(), // This would be calculated properly
+        console.log('🧪 Using Redux for challenge submission', { challengeId, selectedOptionId, extendedData });
+
+        // Build payload with correct field names (snake_case for backend)
+        const payload: {
+          challenge_id: string;
+          selected_option?: string;
+          text_answer?: string;
+          text_answers?: string[];
+          ordered_options?: string[];
+          paired_options?: { [key: string]: string };
+          pronunciation_score?: number;
+          time_spent?: number;
+          attempts?: number;
+        } = {
+          challenge_id: challengeId,
+          time_spent: Date.now(),
           attempts: 1,
-        }).unwrap();
-        
+        };
+
+        // Add extended data for complex challenge types (convert camelCase to snake_case)
+        // Process extendedData FIRST, before selected_option
+        if (extendedData) {
+          if (extendedData.textAnswer) {
+            payload.text_answer = extendedData.textAnswer;
+          }
+          // Handle multiple blanks - IMPORTANT: send array for multi-blank validation
+          if (extendedData.textAnswers && extendedData.textAnswers.length > 0) {
+            payload.text_answers = extendedData.textAnswers;
+          }
+          if (extendedData.orderedOptions) {
+            payload.ordered_options = extendedData.orderedOptions;
+          }
+          if (extendedData.pairedOptions) {
+            payload.paired_options = extendedData.pairedOptions;
+          }
+          if (extendedData.pronunciationScore !== undefined) {
+            payload.pronunciation_score = extendedData.pronunciationScore;
+          }
+        } else if (selectedOptionId) {
+          // Only add selected_option for simple challenge types when no extendedData
+          // and when it's a valid UUID (not a placeholder like 'text-input' or 'match-pairs')
+          const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+          if (uuidRegex.test(selectedOptionId)) {
+            payload.selected_option = selectedOptionId;
+          }
+        }
+
+        console.log('🧪 Submitting with payload:', payload);
+        const result = await submitChallengeRedux(payload).unwrap();
+
         // Update local session state
         dispatch(submitChallengeAnswer({
           correct: result.correct,
-          pointsEarned: result.pointsEarned,
-          heartsUsed: result.heartsUsed,
+          pointsEarned: result.user_progress?.points || 0,
+          heartsUsed: result.heartsUsed || 0,
         }));
-        
+
         return result;
-      } catch (error) {
+      } catch (error: any) {
         console.error('Failed to submit challenge:', error);
+
+        // Check if it's a hearts error from the backend
+        const errorData = error?.data || error?.response?.data;
+        if (errorData?.error === 'hearts') {
+          // Return a special response for hearts error so quiz.tsx can handle it
+          return {
+            success: false,
+            correct: false,
+            error: 'hearts',
+            message: errorData?.message || 'No hearts remaining',
+          };
+        }
+
         throw error;
       }
     } else {
-      // Legacy implementation
-      return await upsertChallengeProgress(challengeId, selectedOptionId);
+      // Legacy implementation is no longer supported
+      throw new Error('Legacy practice session system not available. Enable REDUX_PRACTICE_SESSION feature flag.');
     }
   }, [useRedux, submitChallengeRedux, dispatch]);
   

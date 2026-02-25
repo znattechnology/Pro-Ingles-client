@@ -51,7 +51,7 @@ const Loading = ({
   const currentSize = sizeClasses[size];
 
   return (
-    <div className="fixed inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-customgreys-secondarybg via-violet-950/20 to-purple-950/30 overflow-hidden">
+    <div className="fixed inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-customgreys-secondarybg via-violet-950/20 to-purple-950/30 overflow-hidden z-50">
       {/* Background Effects */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(139,92,246,0.1),transparent_70%)]" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(168,85,247,0.08),transparent_70%)]" />
@@ -78,12 +78,12 @@ const Loading = ({
         
         {/* Logo/Brand section */}
         <div className="flex items-center gap-4 mb-4">
-          <div className={`relative bg-gradient-to-br from-${theme.primary}-500 to-${theme.secondary}-600 p-4 rounded-2xl shadow-2xl animate-pulse`}>
+          <div className="relative bg-gradient-to-br from-violet-500 to-purple-600 p-4 rounded-2xl shadow-2xl animate-pulse">
             <IconComponent className={`${currentSize.icon} text-white`} />
-            <div className={`absolute -top-1 -right-1 w-4 h-4 bg-${theme.accent}-400 rounded-full animate-ping`} />
+            <div className="absolute -top-1 -right-1 w-4 h-4 bg-yellow-400 rounded-full animate-ping" />
           </div>
           <div className="text-center">
-            <h1 className={`${currentSize.text} font-bold bg-gradient-to-r from-${theme.primary}-400 to-${theme.secondary}-400 bg-clip-text text-transparent`}>
+            <h1 className={`${currentSize.text} font-bold bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent`}>
               {title}
             </h1>
             <p className="text-customgreys-dirtyGrey text-sm">{subtitle}</p>
@@ -92,9 +92,9 @@ const Loading = ({
 
         {/* Enhanced Loading Spinner */}
         <div className="relative">
-          <div className={`absolute inset-0 bg-gradient-to-r from-${theme.primary}-500/20 to-${theme.secondary}-500/20 rounded-full blur-lg animate-pulse`} />
-          <div className={`relative bg-gradient-to-br from-customgreys-primarybg to-customgreys-secondarybg p-6 rounded-full border border-${theme.primary}-500/20 shadow-2xl`}>
-            <Loader2 className={`${currentSize.spinner} animate-spin text-${theme.primary}-400`} />
+          <div className="absolute inset-0 bg-gradient-to-r from-violet-500/20 to-purple-500/20 rounded-full blur-lg animate-pulse" />
+          <div className="relative bg-gradient-to-br from-customgreys-primarybg to-customgreys-secondarybg p-6 rounded-full border border-violet-500/20 shadow-2xl">
+            <Loader2 className={`${currentSize.spinner} animate-spin text-violet-400`} />
           </div>
           
           {/* Orbiting elements */}
@@ -119,19 +119,19 @@ const Loading = ({
           <div className="flex items-center gap-3 justify-center">
             <span className={`${currentSize.text} font-semibold text-white animate-pulse`}>Carregando</span>
             <div className="flex space-x-1">
-              <div className={`w-2 h-2 bg-${theme.primary}-400 rounded-full animate-bounce`} />
-              <div className={`w-2 h-2 bg-${theme.primary}-400 rounded-full animate-bounce delay-100`} />
-              <div className={`w-2 h-2 bg-${theme.primary}-400 rounded-full animate-bounce delay-200`} />
+              <div className="w-2 h-2 bg-violet-400 rounded-full animate-bounce" />
+              <div className="w-2 h-2 bg-violet-400 rounded-full animate-bounce delay-100" />
+              <div className="w-2 h-2 bg-violet-400 rounded-full animate-bounce delay-200" />
             </div>
           </div>
-          
+
           {/* Loading progress bar */}
           <div className={`${currentSize.progress} bg-customgreys-darkGrey rounded-full h-2 overflow-hidden shadow-inner`}>
-            <div className={`h-full bg-gradient-to-r from-${theme.primary}-500 to-${theme.secondary}-500 rounded-full animate-pulse`} 
-                 style={{ 
+            <div className="h-full bg-gradient-to-r from-violet-500 to-purple-500 rounded-full animate-pulse"
+                 style={{
                    width: `${progress}%`,
                    animation: 'loading-bar 2s ease-in-out infinite'
-                 }} 
+                 }}
             />
           </div>
           

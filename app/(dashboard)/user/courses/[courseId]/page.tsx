@@ -74,22 +74,13 @@ const CourseDetailsPage = () => {
       return;
     }
 
-    const token = localStorage.getItem('access_token');
-    if (!token) {
-      console.log('⚠️ No access token found');
-      setIsEnrolled(false); // Ensure not enrolled state when no token
-      return;
-    }
-    
-    console.log('🔑 Token found, proceeding with API call');
-
     try {
       setCheckingEnrollment(true);
-      
-      // Use the enrollment status endpoint directly
+
+      // Use the enrollment status endpoint directly (HttpOnly cookies)
       const response = await fetch(`http://localhost:8000/api/v1/student/video-courses/${courseId}/enrollment-status/`, {
+        credentials: 'include',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
@@ -166,9 +157,9 @@ const CourseDetailsPage = () => {
       setIsEnrolling(true);
       const response = await fetch('http://localhost:8000/api/v1/courses/transactions/create/', {
         method: 'POST',
+        credentials: 'include',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           courseId: courseId,
@@ -200,17 +191,29 @@ const CourseDetailsPage = () => {
   };
 
   const handleAccessCourse = () => {
-    // Navigate to the first section/chapter of the course using the correct route structure
-    if (course?.sections && course.sections.length > 0) {
-      const firstSection = course.sections[0];
-      if (firstSection.chapters && firstSection.chapters.length > 0) {
-        const firstChapter = firstSection.chapters[0];
-        router.push(`/user/courses/${courseId}/chapters/${firstChapter.chapterId}`);
-      } else {
-        router.push(`/user/courses/${courseId}`);
-      }
+    // Check if course has sections
+    if (!course?.sections || course.sections.length === 0) {
+      toast.error("Este curso ainda não tem conteúdo disponível", {
+        description: "O professor ainda está a preparar as aulas. Tente novamente mais tarde.",
+        duration: 5000,
+      });
+      return;
+    }
+
+    // Find first section with chapters
+    const firstSectionWithChapters = course.sections.find((section: any) =>
+      section.chapters && section.chapters.length > 0
+    );
+
+    if (firstSectionWithChapters) {
+      const firstChapter = firstSectionWithChapters.chapters[0];
+      router.push(`/user/courses/${courseId}/chapters/${firstChapter.chapterId}`);
     } else {
-      router.push(`/user/courses/${courseId}`);
+      // Course has sections but no chapters
+      toast.error("Este curso ainda não tem aulas disponíveis", {
+        description: "As seções foram criadas mas ainda não há capítulos. Aguarde o professor adicionar conteúdo.",
+        duration: 5000,
+      });
     }
   };
 
@@ -383,14 +386,25 @@ const CourseDetailsPage = () => {
                     
                     if (isEnrolled) {
                       return (
-                        <Button
-                          onClick={handleAccessCourse}
-                          className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg h-11 sm:h-12 text-sm sm:text-base lg:text-lg font-semibold"
-                        >
-                          <PlayCircle className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                          <span className="hidden sm:inline">Acessar Curso</span>
-                          <span className="sm:hidden">Acessar</span>
-                        </Button>
+                        <div className="space-y-3">
+                          <Button
+                            onClick={handleAccessCourse}
+                            className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg h-11 sm:h-12 text-sm sm:text-base lg:text-lg font-semibold"
+                          >
+                            <PlayCircle className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                            <span className="hidden sm:inline">Acessar Curso</span>
+                            <span className="sm:hidden">Acessar</span>
+                          </Button>
+                          <Button
+                            variant="outline"
+                            onClick={() => router.push(`/user/courses/${courseId}/grades`)}
+                            className="w-full border-violet-500/50 text-violet-300 hover:bg-violet-500/10 h-10 sm:h-11 text-sm sm:text-base"
+                          >
+                            <Trophy className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                            <span className="hidden sm:inline">Ver Minhas Notas</span>
+                            <span className="sm:hidden">Notas</span>
+                          </Button>
+                        </div>
                       );
                     }
                     

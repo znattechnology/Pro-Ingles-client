@@ -1,70 +1,67 @@
 import { fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { BaseQueryApi, FetchArgs } from '@reduxjs/toolkit/query';
+import { tokenRefreshCoordinator } from '@/lib/token-refresh-coordinator';
 
 const DJANGO_BASE_URL = process.env.NEXT_PUBLIC_DJANGO_API_URL || 'http://localhost:8000/api/v1';
 
-// Shared base query with reauth logic
+/**
+ * Centralized token refresh handler using TokenRefreshCoordinator
+ * Works with HttpOnly cookies - backend handles token reading/writing
+ */
+async function handleTokenRefresh(
+  args: string | FetchArgs,
+  api: BaseQueryApi,
+  extraOptions: any,
+  baseQuery: any
+) {
+  try {
+    console.log('🔄 Token expired, refreshing via HttpOnly cookies...');
+
+    // Coordinator calls backend which reads refresh token from cookie
+    await tokenRefreshCoordinator.refreshToken();
+
+    console.log('✅ Token refreshed, retrying original request...');
+
+    // Retry the original request - cookies updated by backend
+    return await baseQuery(args, api, extraOptions);
+  } catch (error) {
+    console.error('❌ Token refresh failed:', error);
+
+    // Clear auth state and redirect to login
+    tokenRefreshCoordinator.clearTokens();
+    window.location.href = '/signin?reason=session_expired';
+
+    return {
+      error: {
+        status: 401,
+        data: { message: 'Session expired' }
+      }
+    };
+  }
+}
+
+/**
+ * Shared base query with HttpOnly cookie authentication
+ * - credentials: 'include' sends HttpOnly cookies automatically
+ * - Backend middleware reads cookies and injects Authorization header
+ */
 export const createSharedBaseQuery = () => {
   const baseQuery = fetchBaseQuery({
     baseUrl: DJANGO_BASE_URL,
-    credentials: 'include',
+    credentials: 'include', // Sends HttpOnly cookies automatically
     prepareHeaders: (headers) => {
-      // Get token from localStorage for Django API
-      const token = localStorage.getItem('access_token');
-      if (token) {
-        headers.set('Authorization', `Bearer ${token}`);
-      }
       headers.set('Content-Type', 'application/json');
       return headers;
     },
   });
 
   return async (args: string | FetchArgs, api: BaseQueryApi, extraOptions: any) => {
-    console.log('🔄 API Call:', args);
     let result = await baseQuery(args, api, extraOptions);
 
-    // Handle 401 errors with token refresh
+    // Handle 401 errors with centralized token refresh
     if (result.error && result.error.status === 401) {
-      console.log('🚨 401 Error on:', args);
-      console.log('🚨 Error details:', result.error);
-      const refreshToken = localStorage.getItem('refresh_token');
-      
-      if (refreshToken) {
-        try {
-          // Try to refresh token
-          const refreshResult = await baseQuery(
-            {
-              url: '/auth/token/refresh/',
-              method: 'POST',
-              body: { refresh: refreshToken },
-            },
-            api,
-            extraOptions
-          );
-
-          if (refreshResult.data) {
-            // Store new token
-            const { access } = refreshResult.data as { access: string };
-            localStorage.setItem('access_token', access);
-            
-            // Retry original request
-            result = await baseQuery(args, api, extraOptions);
-          } else {
-            // Refresh failed - redirect to login
-            localStorage.removeItem('access_token');
-            localStorage.removeItem('refresh_token');
-            window.location.href = '/sign-in';
-          }
-        } catch {
-          // Refresh failed - redirect to login
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('refresh_token');
-          window.location.href = '/sign-in';
-        }
-      } else {
-        // No refresh token - redirect to login
-        window.location.href = '/sign-in';
-      }
+      console.log('🚨 401 Error, attempting token refresh...');
+      result = await handleTokenRefresh(args, api, extraOptions, baseQuery);
     }
 
     return result;
@@ -74,61 +71,22 @@ export const createSharedBaseQuery = () => {
 // Export for use in different API slices
 export const sharedBaseQuery = createSharedBaseQuery();
 
-// Student-specific base queries for organized API structure
+// Student-specific base queries
 export const createStudentVideoCoursesBaseQuery = () => {
   const baseQuery = fetchBaseQuery({
     baseUrl: `${DJANGO_BASE_URL}/student/video-courses`,
     credentials: 'include',
     prepareHeaders: (headers) => {
-      const token = localStorage.getItem('access_token');
-      if (token) {
-        headers.set('Authorization', `Bearer ${token}`);
-      }
       headers.set('Content-Type', 'application/json');
       return headers;
     },
   });
 
   return async (args: string | FetchArgs, api: BaseQueryApi, extraOptions: any) => {
-    const fullUrl = typeof args === 'string' ? `${DJANGO_BASE_URL}/student/video-courses${args}` : `${DJANGO_BASE_URL}/student/video-courses${args.url}`;
-    console.log('🎓 STUDENT API - Full URL:', fullUrl);
-    console.log('🎓 STUDENT API - Args:', args);
     let result = await baseQuery(args, api, extraOptions);
 
-    // Handle 401 errors with token refresh (same logic as shared)
     if (result.error && result.error.status === 401) {
-      console.log('🚨 401 Error on Student Video Courses:', args);
-      const refreshToken = localStorage.getItem('refresh_token');
-      
-      if (refreshToken) {
-        try {
-          const refreshResult = await baseQuery(
-            {
-              url: '/auth/token/refresh/',
-              method: 'POST',
-              body: { refresh: refreshToken },
-            },
-            api,
-            extraOptions
-          );
-
-          if (refreshResult.data) {
-            const { access } = refreshResult.data as { access: string };
-            localStorage.setItem('access_token', access);
-            result = await baseQuery(args, api, extraOptions);
-          } else {
-            localStorage.removeItem('access_token');
-            localStorage.removeItem('refresh_token');
-            window.location.href = '/sign-in';
-          }
-        } catch {
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('refresh_token');
-          window.location.href = '/sign-in';
-        }
-      } else {
-        window.location.href = '/sign-in';
-      }
+      result = await handleTokenRefresh(args, api, extraOptions, baseQuery);
     }
 
     return result;
@@ -140,173 +98,60 @@ export const createStudentPracticeCoursesBaseQuery = () => {
     baseUrl: `${DJANGO_BASE_URL}/student/practice-courses`,
     credentials: 'include',
     prepareHeaders: (headers) => {
-      const token = localStorage.getItem('access_token');
-      if (token) {
-        headers.set('Authorization', `Bearer ${token}`);
-      }
       headers.set('Content-Type', 'application/json');
       return headers;
     },
   });
 
   return async (args: string | FetchArgs, api: BaseQueryApi, extraOptions: any) => {
-    console.log('🎯 Student Practice Courses API Call:', args);
     let result = await baseQuery(args, api, extraOptions);
 
-    // Handle 401 errors with token refresh (same logic as shared)
     if (result.error && result.error.status === 401) {
-      console.log('🚨 401 Error on Student Practice Courses:', args);
-      const refreshToken = localStorage.getItem('refresh_token');
-      
-      if (refreshToken) {
-        try {
-          const refreshResult = await baseQuery(
-            {
-              url: '/auth/token/refresh/',
-              method: 'POST',
-              body: { refresh: refreshToken },
-            },
-            api,
-            extraOptions
-          );
-
-          if (refreshResult.data) {
-            const { access } = refreshResult.data as { access: string };
-            localStorage.setItem('access_token', access);
-            result = await baseQuery(args, api, extraOptions);
-          } else {
-            localStorage.removeItem('access_token');
-            localStorage.removeItem('refresh_token');
-            window.location.href = '/sign-in';
-          }
-        } catch {
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('refresh_token');
-          window.location.href = '/sign-in';
-        }
-      } else {
-        window.location.href = '/sign-in';
-      }
+      result = await handleTokenRefresh(args, api, extraOptions, baseQuery);
     }
 
     return result;
   };
 };
 
-// Teacher-specific base queries for organized API structure
+// Teacher-specific base queries
 export const createTeacherVideoCoursesBaseQuery = () => {
   const baseQuery = fetchBaseQuery({
     baseUrl: `${DJANGO_BASE_URL}/teacher/video-courses`,
     credentials: 'include',
     prepareHeaders: (headers) => {
-      const token = localStorage.getItem('access_token');
-      if (token) {
-        headers.set('Authorization', `Bearer ${token}`);
-      }
       headers.set('Content-Type', 'application/json');
       return headers;
     },
   });
 
   return async (args: string | FetchArgs, api: BaseQueryApi, extraOptions: any) => {
-    const fullUrl = typeof args === 'string' ? `${DJANGO_BASE_URL}/teacher/video-courses${args}` : `${DJANGO_BASE_URL}/teacher/video-courses${args.url}`;
-    console.log('👨‍🏫 TEACHER API - Full URL:', fullUrl);
-    console.log('👨‍🏫 TEACHER API - Args:', args);
     let result = await baseQuery(args, api, extraOptions);
 
-    // Handle 401 errors with token refresh (same logic as shared)
     if (result.error && result.error.status === 401) {
-      console.log('🚨 401 Error on Teacher Video Courses:', args);
-      const refreshToken = localStorage.getItem('refresh_token');
-      
-      if (refreshToken) {
-        try {
-          const refreshResult = await baseQuery(
-            {
-              url: '/auth/token/refresh/',
-              method: 'POST',
-              body: { refresh: refreshToken },
-            },
-            api,
-            extraOptions
-          );
-
-          if (refreshResult.data) {
-            const { access } = refreshResult.data as { access: string };
-            localStorage.setItem('access_token', access);
-            result = await baseQuery(args, api, extraOptions);
-          } else {
-            localStorage.removeItem('access_token');
-            localStorage.removeItem('refresh_token');
-            window.location.href = '/sign-in';
-          }
-        } catch {
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('refresh_token');
-          window.location.href = '/sign-in';
-        }
-      } else {
-        window.location.href = '/sign-in';
-      }
+      result = await handleTokenRefresh(args, api, extraOptions, baseQuery);
     }
 
     return result;
   };
 };
 
-// Admin-specific base query for organized API structure
+// Admin-specific base query
 export const createAdminBaseQuery = () => {
   const baseQuery = fetchBaseQuery({
     baseUrl: `${DJANGO_BASE_URL}`,
     credentials: 'include',
     prepareHeaders: (headers) => {
-      const token = localStorage.getItem('access_token');
-      if (token) {
-        headers.set('Authorization', `Bearer ${token}`);
-      }
       headers.set('Content-Type', 'application/json');
       return headers;
     },
   });
 
   return async (args: string | FetchArgs, api: BaseQueryApi, extraOptions: any) => {
-    console.log('👑 ADMIN API Call:', args);
     let result = await baseQuery(args, api, extraOptions);
 
-    // Handle 401 errors with token refresh (same logic as shared)
     if (result.error && result.error.status === 401) {
-      console.log('🚨 401 Error on Admin API:', args);
-      const refreshToken = localStorage.getItem('refresh_token');
-      
-      if (refreshToken) {
-        try {
-          const refreshResult = await baseQuery(
-            {
-              url: '/auth/token/refresh/',
-              method: 'POST',
-              body: { refresh: refreshToken },
-            },
-            api,
-            extraOptions
-          );
-
-          if (refreshResult.data) {
-            const { access } = refreshResult.data as { access: string };
-            localStorage.setItem('access_token', access);
-            result = await baseQuery(args, api, extraOptions);
-          } else {
-            localStorage.removeItem('access_token');
-            localStorage.removeItem('refresh_token');
-            window.location.href = '/sign-in';
-          }
-        } catch {
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('refresh_token');
-          window.location.href = '/sign-in';
-        }
-      } else {
-        window.location.href = '/sign-in';
-      }
+      result = await handleTokenRefresh(args, api, extraOptions, baseQuery);
     }
 
     return result;
@@ -317,59 +162,20 @@ export const createStudentSpeakingPracticeBaseQuery = () => {
   const baseQuery = fetchBaseQuery({
     baseUrl: `${DJANGO_BASE_URL}/practice/speaking`,
     credentials: 'include',
-    prepareHeaders: (headers, { endpoint, type }) => {
-      const token = localStorage.getItem('access_token');
-      if (token) {
-        headers.set('Authorization', `Bearer ${token}`);
-      }
-      
+    prepareHeaders: (headers, { endpoint }) => {
       // Don't set Content-Type for file upload endpoints to allow FormData
       if (!['createSpeakingTurn', 'analyzeSpeech'].includes(endpoint || '')) {
         headers.set('Content-Type', 'application/json');
       }
-      
       return headers;
     },
   });
 
   return async (args: string | FetchArgs, api: BaseQueryApi, extraOptions: any) => {
-    console.log('🎙️ Speaking Practice API Call:', args);
     let result = await baseQuery(args, api, extraOptions);
 
-    // Handle 401 errors with token refresh
     if (result.error && result.error.status === 401) {
-      console.log('🚨 401 Error on Speaking Practice:', args);
-      const refreshToken = localStorage.getItem('refresh_token');
-      
-      if (refreshToken) {
-        try {
-          const refreshResult = await baseQuery(
-            {
-              url: '/auth/token/refresh/',
-              method: 'POST',
-              body: { refresh: refreshToken },
-            },
-            api,
-            extraOptions
-          );
-
-          if (refreshResult.data) {
-            const { access } = refreshResult.data as { access: string };
-            localStorage.setItem('access_token', access);
-            result = await baseQuery(args, api, extraOptions);
-          } else {
-            localStorage.removeItem('access_token');
-            localStorage.removeItem('refresh_token');
-            window.location.href = '/sign-in';
-          }
-        } catch {
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('refresh_token');
-          window.location.href = '/sign-in';
-        }
-      } else {
-        window.location.href = '/sign-in';
-      }
+      result = await handleTokenRefresh(args, api, extraOptions, baseQuery);
     }
 
     return result;

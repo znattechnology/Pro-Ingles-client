@@ -39,7 +39,9 @@ export const apiSlice = createApi({
         'ChapterResource',
         'ChapterQuiz',
         'QuizAttempt',
-        'QuizSummary'
+        'QuizSummary',
+        // User settings tags
+        'NotificationSettings'
     ],
     endpoints: (builder)=> ({
         // Base API slice - endpoints moved to specific domain APIs

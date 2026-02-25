@@ -50,6 +50,10 @@ interface SubscriptionPlan {
   daily_listening_minutes: number | null;
   hearts_limit: number;
   hearts_recharge_hours: number;
+  // Trial settings (para novos usuários)
+  trial_days: number;
+  trial_speaking_minutes: number;
+  // Premium features
   offline_downloads: boolean;
   certificates: boolean;
   ai_tutor: boolean;
@@ -84,6 +88,10 @@ export default function AdminSubscriptionPlansPage() {
     daily_listening_minutes: 5,
     hearts_limit: 3,
     hearts_recharge_hours: 4,
+    // Trial defaults
+    trial_days: 0,
+    trial_speaking_minutes: 0,
+    // Premium features
     offline_downloads: false,
     certificates: false,
     ai_tutor: false,
@@ -549,6 +557,54 @@ export default function AdminSubscriptionPlansPage() {
                 </div>
               </div>
 
+              {/* Trial Section - Only for FREE plan */}
+              {editingPlan.plan_type === 'FREE' && (
+                <div className="border-t border-gray-600 pt-6">
+                  <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
+                    <span className="text-2xl">🎁</span>
+                    Período de Teste (Trial)
+                  </h3>
+                  <Alert className="mb-4 bg-yellow-900/30 border-yellow-600">
+                    <AlertCircle className="h-4 w-4 text-yellow-400" />
+                    <AlertDescription className="text-yellow-200">
+                      Novos usuários terão acesso ao Speaking Practice durante o trial, mesmo com limite 0 no plano.
+                    </AlertDescription>
+                  </Alert>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-gray-300 flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-yellow-400" />
+                        Dias de Trial
+                      </Label>
+                      <Input
+                        type="number"
+                        value={editingPlan.trial_days || 0}
+                        onChange={(e) => updateEditingPlan('trial_days', parseInt(e.target.value) || 0)}
+                        className="bg-customgreys-darkGrey border-gray-600 text-white"
+                        placeholder="Ex: 3 dias"
+                        min={0}
+                      />
+                      <p className="text-xs text-gray-400 mt-1">0 = Sem trial</p>
+                    </div>
+                    <div>
+                      <Label className="text-gray-300 flex items-center gap-2">
+                        <Users className="w-4 h-4 text-green-400" />
+                        Speaking no Trial (min/dia)
+                      </Label>
+                      <Input
+                        type="number"
+                        value={editingPlan.trial_speaking_minutes || 0}
+                        onChange={(e) => updateEditingPlan('trial_speaking_minutes', parseInt(e.target.value) || 0)}
+                        className="bg-customgreys-darkGrey border-gray-600 text-white"
+                        placeholder="Ex: 10 minutos"
+                        min={0}
+                      />
+                      <p className="text-xs text-gray-400 mt-1">Minutos diários durante o trial</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Features Section */}
               <div className="border-t border-gray-600 pt-6">
                 <h3 className="text-white font-semibold mb-4">Funcionalidades Premium</h3>
@@ -730,8 +786,26 @@ export default function AdminSubscriptionPlansPage() {
                       </motion.div>
                     )}
 
+                    {/* Trial Badge - Only for FREE plans with trial */}
+                    {plan.plan_type === 'FREE' && plan.trial_days > 0 && (
+                      <motion.div
+                        className="p-3 bg-gradient-to-r from-green-950/40 to-emerald-950/30 border border-green-500/30 rounded-lg backdrop-blur-sm"
+                        whileHover={{ scale: 1.02 }}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                      >
+                        <div className="flex items-center gap-2 text-sm text-green-300 font-medium">
+                          <span className="text-lg">🎁</span>
+                          {plan.trial_days} dias de teste grátis
+                        </div>
+                        <div className="text-xs text-green-400/80 mt-1">
+                          {plan.trial_speaking_minutes} min de Speaking/dia no trial
+                        </div>
+                      </motion.div>
+                    )}
+
                     {/* Enhanced Limits */}
-                    <motion.div 
+                    <motion.div
                       className="space-y-2"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}

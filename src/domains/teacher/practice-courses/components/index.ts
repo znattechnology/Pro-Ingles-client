@@ -5,6 +5,5 @@
 
 // Re-export all teacher practice course components
 export { default as LessonConstructor } from './LessonConstructor';
-export { default as ChallengeConstructor } from './ChallengeConstructor';
 export { default as TeacherPracticeCourseCard } from './TeacherPracticeCourseCard';
 export type { TeacherPracticeCourseCardProps } from './TeacherPracticeCourseCard';

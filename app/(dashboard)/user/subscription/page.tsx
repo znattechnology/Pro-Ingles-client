@@ -85,10 +85,14 @@ export default function MySubscriptionPage() {
   const fetchAnalytics = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/v1/subscriptions?endpoint=analytics');
+      const response = await fetch('/api/v1/subscriptions?endpoint=analytics', {
+        credentials: 'include', // Ensure HttpOnly cookies are sent
+      });
       if (response.ok) {
         const data = await response.json();
         setAnalytics(data);
+      } else if (response.status === 401) {
+        setError('Sessão expirada. Por favor, faça login novamente.');
       } else {
         setError('Falha ao carregar dados da subscrição');
       }

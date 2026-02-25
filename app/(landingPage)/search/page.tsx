@@ -11,14 +11,32 @@ import SelectedCourse from "./SelectedCourse";
 const Search = () => {
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
-  const { data: courses, isLoading, isError } = useGetCoursesQuery({});
+  const { data: coursesData, isLoading, isError } = useGetCoursesQuery({});
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const router = useRouter();
 
+  // Handle both paginated format and direct array format
+  const courses = React.useMemo(() => {
+    if (!coursesData) return [];
+    const data = coursesData as any;
+
+    // Paginated format: { results: [...] }
+    if (data.results && Array.isArray(data.results)) {
+      return data.results;
+    }
+
+    // Direct array format
+    if (Array.isArray(data)) {
+      return data;
+    }
+
+    return [];
+  }, [coursesData]);
+
   useEffect(() => {
-    if (courses) {
+    if (courses && courses.length > 0) {
       if (id) {
-        const course = courses.find((c) => c.courseId === id);
+        const course = courses.find((c: Course) => c.courseId === id);
         setSelectedCourse(course || courses[0]);
       } else {
         setSelectedCourse(courses[0]);
@@ -27,7 +45,7 @@ const Search = () => {
   }, [courses, id]);
 
   if (isLoading) return <Loading />;
-  if (isError || !courses) return <div>Failed to fetch courses</div>;
+  if (isError || courses.length === 0) return <div>Failed to fetch courses</div>;
 
   const handleCourseSelect = (course: Course) => {
     setSelectedCourse(course);

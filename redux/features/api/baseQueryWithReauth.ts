@@ -1,7 +1,10 @@
 /**
  * Reusable base query with automatic token refresh for Redux RTK Query
  *
- * ✅ Updated to use TokenRefreshCoordinator to prevent race conditions
+ * Security: Uses HttpOnly cookies for authentication.
+ * - Backend middleware reads access_token from cookie and injects Authorization header
+ * - Frontend only needs to include credentials with requests
+ * - No localStorage token access needed
  */
 
 import { fetchBaseQuery, BaseQueryFn, FetchArgs, FetchBaseQueryError } from '@reduxjs/toolkit/query/react';
@@ -14,11 +17,9 @@ export const createBaseQueryWithReauth = (baseUrl: string): BaseQueryFn<
 > => {
   const baseQuery = fetchBaseQuery({
     baseUrl,
+    credentials: 'include', // Sends HttpOnly cookies automatically
     prepareHeaders: (headers) => {
-      const token = localStorage.getItem('access_token');
-      if (token) {
-        headers.set('Authorization', `Bearer ${token}`);
-      }
+      // No Authorization header needed - backend middleware reads from HttpOnly cookie
       headers.set('Content-Type', 'application/json');
       return headers;
     },
@@ -28,19 +29,15 @@ export const createBaseQueryWithReauth = (baseUrl: string): BaseQueryFn<
     let result = await baseQuery(args, api, extraOptions);
 
     if (result.error && result.error.status === 401) {
-      // ✅ Use TokenRefreshCoordinator to prevent race conditions
+      // Use TokenRefreshCoordinator to prevent race conditions
       try {
-        console.log('[BaseQuery] Token expired, attempting coordinated refresh...');
-
-        // Use coordinator - it will queue this request if refresh is already in progress
+        // Coordinator will queue this request if refresh is already in progress
         await tokenRefreshCoordinator.refreshToken();
-
-        console.log('[BaseQuery] Token refreshed successfully, retrying request...');
 
         // Retry the original request with new token
         result = await baseQuery(args, api, extraOptions);
-      } catch (refreshError) {
-        console.error('[BaseQuery] Token refresh failed:', refreshError);
+      } catch {
+        // Refresh failed - clear auth and redirect to login
 
         // Refresh failed, clear auth and redirect to login
         tokenRefreshCoordinator.clearTokens();

@@ -363,3 +363,164 @@ export interface WishlistItem {
   priority?: number;
   course: StudentVideoCourse;
 }
+
+// Weight Info for grade calculation
+export interface GradeWeightInfo {
+  quiz_weight: number;
+  practice_weight: number;
+  conversation_weight: number;
+  mode: 'full' | 'simplified' | 'no_content';
+  mode_explanation: string;
+  active_components: string[];
+  weights_adjusted: boolean;
+}
+
+// Grading Types
+export interface CourseGrade {
+  course: {
+    id: string;
+    title: string;
+    level?: string;
+  };
+  grades: {
+    quizzes: QuizGradeDetails;
+    practice: PracticeGradeDetails;
+    conversation: ConversationGradeDetails;
+  };
+  final_grade: {
+    percentage: number;
+    letter: string;
+  };
+  weight_info?: GradeWeightInfo;
+  certificate_eligibility: {
+    is_eligible: boolean;
+    details: Record<string, EligibilityDetail>;
+    missing_requirements: MissingRequirement[];
+  };
+  last_calculated_at: string;
+}
+
+export interface QuizGradeDetails {
+  score: number;
+  count: number;
+  completed: number;
+  passed: number;
+  details: QuizDetail[];
+}
+
+export interface QuizDetail {
+  quiz_id: string;
+  quiz_title: string;
+  chapter_title: string;
+  section_title: string;
+  score: number;
+  is_passed: boolean;
+  attempts_used: number;
+  max_attempts: number;
+  passing_score: number;
+}
+
+export interface PracticeGradeDetails {
+  score: number;
+  count: number;
+  completed: number;
+  details: PracticeDetail[];
+}
+
+export interface PracticeDetail {
+  chapter_id: string;
+  chapter_title: string;
+  section_title: string;
+  practice_lesson_id: string;
+  total_challenges: number;
+  completed_challenges: number;
+  completion_percentage: number;
+}
+
+export interface ConversationGradeDetails {
+  score: number;
+  sessions: number;
+  minutes: number;
+  required: boolean;
+  details: ConversationSessionDetail[];
+  fluency_average?: number;
+  pronunciation_average?: number;
+  grammar_average?: number;
+  vocabulary_average?: number;
+}
+
+export interface ConversationSessionDetail {
+  session_id: string;
+  date: string;
+  level: string;
+  domain: string;
+  duration_minutes: number;
+  overall_score: number;
+  fluency: number;
+  pronunciation: number;
+  grammar: number;
+  vocabulary: number;
+}
+
+export interface EligibilityDetail {
+  met: boolean;
+  required: number | null;
+  actual: number;
+  message: string;
+  skipped?: boolean;  // True if this requirement was skipped (component doesn't exist)
+  info_only?: boolean; // True if this is informational only (not a requirement)
+}
+
+export interface MissingRequirement {
+  requirement: string;
+  message: string;
+  required: number;
+  actual: number;
+}
+
+export interface CertificateEligibility {
+  course: {
+    id: string;
+    title: string;
+  };
+  is_eligible: boolean;
+  final_grade: {
+    percentage: number;
+    letter: string;
+  };
+  requirements: EligibilityRequirement[];
+  can_generate_certificate: boolean;
+}
+
+export interface EligibilityRequirement {
+  name: string;
+  required_value: string;
+  current_value: string;
+  met: boolean;
+}
+
+export interface GradeHistoryEntry {
+  id: string;
+  date: string;
+  change_reason: string;
+  quiz_score: number;
+  practice_score: number;
+  conversation_score: number;
+  final_grade_percentage: number;
+  final_grade_letter: string;
+  is_eligible: boolean;
+  details: Record<string, any>;
+}
+
+export interface GradeHistory {
+  course: {
+    id: string;
+    title: string;
+  };
+  current_grade: {
+    percentage: number;
+    letter: string;
+    is_eligible: boolean;
+  };
+  history: GradeHistoryEntry[];
+}

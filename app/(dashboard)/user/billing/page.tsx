@@ -35,7 +35,6 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { formatPrice } from "@/lib/utils";
-import { useGetTransactionsQuery, useGetSubscriptionHistoryQuery } from "@/state/api";
 import { useDjangoAuth } from "@/hooks/useDjangoAuth";
 import Loading from "@/components/course/Loading";
 
@@ -97,62 +96,68 @@ const UserBilling = () => {
   const [initialLoading, setInitialLoading] = useState(true);
   
   const { user, isAuthenticated, isLoading: authLoading } = useDjangoAuth();
-  
-  // Legacy course transactions
-  const { data: courseTransactions, isLoading: isLoadingCourseTransactions } =
-    useGetTransactionsQuery(user?.id || "", {
-      skip: !isAuthenticated || !user,
-    });
-    
-  // Subscription payment history  
-  const { data: subscriptionPayments, isLoading: isLoadingSubscriptionPayments } =
-    useGetSubscriptionHistoryQuery(user?.id || "", {
-      skip: !isAuthenticated || !user,
-    });
+  const [paymentHistory, setPaymentHistory] = useState<SubscriptionPayment[]>([]);
+  const [paymentHistoryLoading, setPaymentHistoryLoading] = useState(true);
 
-  // Combine and process transaction data
-  useEffect(() => {
-    if (!isLoadingCourseTransactions && !isLoadingSubscriptionPayments) {
-      setTransactionsLoading(true);
-      
-      // Process course transactions
-      const courses: CourseTransaction[] = (courseTransactions || []).map((t: any) => ({
-        transactionId: t.transactionId,
-        amount: t.amount,
-        currency: t.currency || 'EUR',
-        status: t.status,
-        dateTime: t.dateTime,
-        paymentProvider: t.paymentProvider,
-        payment_intent_id: t.payment_intent_id,
-        course: t.course
-      }));
-      
-      // Create mock subscription payments for demonstration
-      // In real implementation, this would use subscriptionPayments data
-      const subscriptionMockData: SubscriptionPayment[] = subscriptionInfo ? [
-        {
-          id: 'sub_payment_1',
-          event_type: 'PAYMENT_SUCCESS',
-          amount_paid: '2500.00',
-          created_at: subscriptionInfo.started_at,
-          notes: `Pagamento da subscrição ${subscriptionInfo.plan_name}`,
-          new_plan: subscriptionInfo.plan_name
-        }
-      ] : [];
-      
-      const totalCourseAmount = courses.reduce((sum, t) => sum + t.amount, 0).toString();
-      const totalSubAmount = subscriptionMockData.reduce((sum, t) => sum + parseFloat(t.amount_paid), 0).toString();
-      
-      setAllTransactions({
-        subscription_payments: subscriptionMockData,
-        course_purchases: courses,
-        total_subscription_amount: totalSubAmount,
-        total_course_amount: totalCourseAmount
+  // Fetch payment history from Django backend
+  const fetchPaymentHistory = async () => {
+    try {
+      setPaymentHistoryLoading(true);
+      const response = await fetch('/api/v1/subscriptions?endpoint=payment-history', {
+        credentials: 'include'
       });
-      
+      if (response.ok) {
+        const data = await response.json();
+        // Map Django response to expected format
+        const history = (data.payment_history || []).map((item: any) => ({
+          id: item.id,
+          event_type: item.event_type,
+          amount_paid: String(item.amount || 0),
+          created_at: item.date,
+          notes: item.notes,
+          new_plan: item.new_plan?.name,
+          previous_plan: item.previous_plan?.name
+        }));
+        setPaymentHistory(history);
+      }
+    } catch (err) {
+      console.error('Erro ao carregar histórico de pagamentos:', err);
+    } finally {
+      setPaymentHistoryLoading(false);
+    }
+  };
+
+  // Process transaction data when subscription info and payment history are loaded
+  useEffect(() => {
+    if (!paymentHistoryLoading && subscriptionInfo) {
+      setTransactionsLoading(true);
+
+      // Use real payment history if available, otherwise create from subscription info
+      const subscriptionPaymentsData: SubscriptionPayment[] = paymentHistory.length > 0
+        ? paymentHistory
+        : subscriptionInfo ? [
+            {
+              id: 'sub_payment_1',
+              event_type: 'PAYMENT_SUCCESS',
+              amount_paid: '2500.00',
+              created_at: subscriptionInfo.started_at,
+              notes: `Pagamento da subscrição ${subscriptionInfo.plan_name}`,
+              new_plan: subscriptionInfo.plan_name
+            }
+          ] : [];
+
+      const totalSubAmount = subscriptionPaymentsData.reduce((sum, t) => sum + parseFloat(t.amount_paid || '0'), 0).toString();
+
+      setAllTransactions({
+        subscription_payments: subscriptionPaymentsData,
+        course_purchases: [],
+        total_subscription_amount: totalSubAmount,
+        total_course_amount: "0"
+      });
+
       setTransactionsLoading(false);
     }
-  }, [courseTransactions, subscriptionPayments, isLoadingCourseTransactions, isLoadingSubscriptionPayments, subscriptionInfo]);
+  }, [paymentHistory, paymentHistoryLoading, subscriptionInfo]);
 
   // Filter transactions based on type and payment method
   const getFilteredTransactions = () => {
@@ -330,18 +335,19 @@ const UserBilling = () => {
   useEffect(() => {
     if (isAuthenticated && user) {
       fetchSubscriptionInfo();
+      fetchPaymentHistory();
     }
   }, [isAuthenticated, user]);
 
   // Initial loading management
   useEffect(() => {
-    if (!authLoading && (!subscriptionLoading && !transactionsLoading)) {
+    if (!authLoading && !subscriptionLoading && !paymentHistoryLoading && !transactionsLoading) {
       const timer = setTimeout(() => {
         setInitialLoading(false);
-      }, 1000); // Small delay to ensure smooth transition
+      }, 500); // Small delay to ensure smooth transition
       return () => clearTimeout(timer);
     }
-  }, [authLoading, subscriptionLoading, transactionsLoading]);
+  }, [authLoading, subscriptionLoading, paymentHistoryLoading, transactionsLoading]);
 
   if (authLoading || initialLoading) {
     return (

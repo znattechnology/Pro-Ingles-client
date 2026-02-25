@@ -31,6 +31,9 @@ export interface TeacherVideoCourse extends BaseCourse {
   total_enrollments?: number;
   sections?: CourseSection[];
   enrollments?: { userId: string }[];
+  // Practice Lab course association
+  practice_course?: string | null;
+  practice_course_title?: string | null;
 }
 
 export interface CourseSection {
@@ -75,6 +78,8 @@ export interface CreateVideoCourseData {
   teacher?: string;
   teacherName?: string;
   teacherId?: string;
+  // Practice Lab course association
+  practice_course?: string | null;
 }
 
 export interface UpdateVideoCourseData extends Partial<CreateVideoCourseData> {

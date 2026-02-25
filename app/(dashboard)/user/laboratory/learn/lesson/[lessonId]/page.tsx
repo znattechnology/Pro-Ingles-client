@@ -62,16 +62,24 @@ const LessonIdPage = ({ params }: Props) => {
         challenges.length) * 100
     : 0;
 
-  // Get hearts count from user progress
+  // Get hearts count and subscription status from user progress
   const hearts = (userProgress as any)?.hearts || 5;
+  const hasActiveSubscription = (userProgress as any)?.hasActiveSubscription || false;
+  const hasUnlimitedHearts = (userProgress as any)?.hasUnlimitedHearts || false;
+
+  // Build subscription object for Quiz component
+  const userSubscription = hasActiveSubscription ? {
+    isActive: true,
+    hasUnlimitedHearts: hasUnlimitedHearts
+  } : null;
 
   return (
     <Quiz
       initialLessonId={lesson.id}
       initialLessonChallenges={challenges}
-      initialHearts={hearts}
+      initialHearts={hasUnlimitedHearts ? 999 : hearts}
       initialPercentage={initialPercentage}
-      userSubscription={null}
+      userSubscription={userSubscription}
       useReduxPractice={true}
     />
   );

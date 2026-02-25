@@ -1,12 +1,31 @@
 import { apiSlice } from "../../../../redux/features/api/apiSlice";
-import { 
-  userLoggedIn, 
-  userRegistration, 
-  userLoggedOut, 
+import {
+  userLoggedIn,
+  userRegistration,
+  userLoggedOut,
   setPendingVerification,
   setLoading,
   User
 } from "./authSlice";
+import { tokenRefreshCoordinator } from "@/lib/token-refresh-coordinator";
+
+/**
+ * ✅ Helper to store tokens consistently in both localStorage and cookies
+ */
+const storeTokens = (accessToken: string, refreshToken: string) => {
+  if (typeof window === 'undefined') return;
+
+  // Primary: localStorage
+  localStorage.setItem('access_token', accessToken);
+  localStorage.setItem('refresh_token', refreshToken);
+
+  // Secondary: Cookies (for SSR middleware access)
+  const accessMaxAge = 3600; // 1 hour
+  const refreshMaxAge = 604800; // 7 days
+
+  document.cookie = `access_token=${accessToken}; path=/; max-age=${accessMaxAge}; SameSite=strict; Secure`;
+  document.cookie = `refresh_token=${refreshToken}; path=/; max-age=${refreshMaxAge}; SameSite=strict; Secure`;
+};
 
 type RegistrationResponse = {
   message: string;
@@ -90,11 +109,10 @@ export const authApi = apiSlice.injectEndpoints({
         dispatch(setLoading(true));
         try {
           const result = await queryFulfilled;
-          
-          // Store tokens in localStorage
-          localStorage.setItem('access_token', result.data.access);
-          localStorage.setItem('refresh_token', result.data.refresh);
-          
+
+          // ✅ Store tokens in both localStorage AND cookies
+          storeTokens(result.data.access, result.data.refresh);
+
           dispatch(
             userLoggedIn({
               accessToken: result.data.access,
@@ -128,15 +146,10 @@ export const authApi = apiSlice.injectEndpoints({
         dispatch(setLoading(true));
         try {
           const result = await queryFulfilled;
-          
-          // Store tokens in localStorage and cookies
-          localStorage.setItem('access_token', result.data.access);
-          localStorage.setItem('refresh_token', result.data.refresh);
-          
-          // Also set cookies for server-side middleware access
-          document.cookie = `access_token=${result.data.access}; path=/; max-age=3600; SameSite=strict`;
-          document.cookie = `refresh_token=${result.data.refresh}; path=/; max-age=604800; SameSite=strict`;
-          
+
+          // ✅ Store tokens in both localStorage AND cookies (with Secure flag)
+          storeTokens(result.data.access, result.data.refresh);
+
           dispatch(
             userLoggedIn({
               accessToken: result.data.access,
@@ -147,9 +160,14 @@ export const authApi = apiSlice.injectEndpoints({
         } catch (error: any) {
           console.error('Login error:', error);
           dispatch(setLoading(false));
-          
+
+          // Extract error message safely (could be string, object, or array)
+          const errorMessage = typeof error?.error?.message === 'string'
+            ? error.error.message
+            : (typeof error?.data?.error === 'string' ? error.data.error : null);
+
           // Check if it's an email verification error
-          if (error?.error?.message?.includes('Email não verificado')) {
+          if (errorMessage?.includes('Email não verificado')) {
             dispatch(setPendingVerification({
               email: arg.email,
               isRegistration: false,
