@@ -306,15 +306,16 @@ export function useFormValidation<T extends Record<string, any>>(
 // HOOK ESPECÍFICO PARA CRIAÇÃO DE CURSO
 // =============================================
 
+// ✅ CATEGORIA 2: Título 500 chars | CATEGORIA 1: Description/objectives sem limite
 export function useCourseValidation(initialData: any) {
   return useFormValidation(
     z.object({
-      title: z.string().min(3).max(200),
-      description: z.string().min(10).max(1000),
+      title: z.string().min(3).max(500),  // Aumentado de 200 → 500
+      description: z.string().min(10).max(1_000_000),  // Anti-spam (era 1000)
       category: z.string().min(1),
       level: z.string().min(1),
-      learningObjectives: z.array(z.string().min(5)).min(1),
-      targetAudience: z.string().min(10),
+      learningObjectives: z.array(z.string().min(5).max(1_000_000)).min(1).max(15),  // Aumentado para 15 items
+      targetAudience: z.string().min(10).max(1_000_000),  // Anti-spam
       hearts: z.number().int().min(1).max(10),
       pointsPerChallenge: z.number().int().min(1).max(100),
       passingScore: z.number().int().min(50).max(100),
@@ -332,18 +333,19 @@ export function useCourseValidation(initialData: any) {
 // HOOK ESPECÍFICO PARA CRIAÇÃO DE DESAFIOS
 // =============================================
 
+// ✅ CATEGORIA 1: Challenge question sem limite | CATEGORIA 3: Options 300 chars
 export function useChallengeValidation(initialData: any, challengeType?: string) {
   // Schema básico para desafios
   const challengeSchema = z.object({
     type: z.string().min(1, 'Tipo de desafio é obrigatório'),
-    question: z.string().min(5, 'Pergunta deve ter pelo menos 5 caracteres').max(500, 'Pergunta muito longa'),
+    question: z.string().min(5, 'Pergunta deve ter pelo menos 5 caracteres').max(1_000_000, 'Pergunta muito longa'),  // Anti-spam (era 500)
     options: z.array(z.object({
-      text: z.string().min(1, 'Texto da opção é obrigatório'),
+      text: z.string().min(1, 'Texto da opção é obrigatório').max(300, 'Opção muito longa'),  // Aumentado de 200 → 300
       is_correct: z.boolean(),
       order: z.number(),
     })).min(0), // Mínimo pode ser 0 para speaking
-    hints: z.array(z.string()).optional(),
-    explanation: z.string().optional(),
+    hints: z.array(z.string().max(300, 'Dica muito longa')).optional(),  // Aumentado de 200 → 300
+    explanation: z.string().max(1_000_000, 'Explicação muito longa').optional(),  // Anti-spam
   });
 
   return useFormValidation(

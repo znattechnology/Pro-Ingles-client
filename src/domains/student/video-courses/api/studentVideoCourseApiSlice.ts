@@ -2,6 +2,8 @@ import { createApi } from '@reduxjs/toolkit/query/react';
 import { studentVideoCoursesBaseQuery } from '../../../shared/api/baseQuery';
 import type {
   StudentVideoCourse,
+  StudentVideoSection,
+  StudentVideoChapter,
   CourseEnrollment,
   StudentCourseProgress,
   VideoProgressUpdate,
@@ -100,22 +102,13 @@ export const studentVideoCourseApiSlice = createApi({
           include_chapter_data: true, // Request full chapter data including quiz_data, practice_selection
         },
       }),
-      transformResponse: (response: any) => {
-        console.log('🎓 Student API Response (full):', response);
-        
+      transformResponse: (response: { message?: string; data?: StudentVideoCourse } | StudentVideoCourse) => {
         // Se a resposta tem o formato {message, data}, extrair apenas data
-        if (response && response.data) {
-          console.log('🎓 Course sections:', response.data.sections);
-          if (response.data.sections && response.data.sections[0]) {
-            console.log('🎓 First section chapters:', response.data.sections[0].chapters);
-            if (response.data.sections[0].chapters && response.data.sections[0].chapters[0]) {
-              console.log('🎓 First chapter details:', response.data.sections[0].chapters[0]);
-            }
-          }
+        if (response && 'data' in response && response.data) {
           return response.data;
         }
         // Caso contrário, retornar como está
-        return response;
+        return response as StudentVideoCourse;
       },
       providesTags: (result, error, courseId) => [
         { type: 'StudentVideoCourse', id: courseId },
@@ -159,7 +152,7 @@ export const studentVideoCourseApiSlice = createApi({
       invalidatesTags: ['CourseEnrollment', 'StudentVideoCourse', 'StudentVideoAnalytics'],
     }),
 
-    getMyVideoEnrollments: builder.query<{message: string, data: any[]}, string>({
+    getMyVideoEnrollments: builder.query<{message: string, data: CourseEnrollment[]}, string>({
       query: (userId) => `/users/${userId}/enrolled/`,
       providesTags: ['CourseEnrollment'],
     }),
@@ -173,7 +166,7 @@ export const studentVideoCourseApiSlice = createApi({
 
     // ===== COURSE PROGRESS =====
     
-    getVideoCourseProgress: builder.query<{message: string, data: any}, {courseId: string, userId: string}>({
+    getVideoCourseProgress: builder.query<{message: string, data: StudentCourseProgress}, {courseId: string, userId: string}>({
       query: ({courseId, userId}) => `/users/${userId}/progress/${courseId}/`,
       providesTags: (result, error, {courseId}) => [
         { type: 'VideoProgress', id: courseId },
@@ -198,7 +191,7 @@ export const studentVideoCourseApiSlice = createApi({
       },
     }),
 
-    markChapterComplete: builder.mutation<any, ChapterCompletion>({
+    markChapterComplete: builder.mutation<{ message: string; success: boolean }, ChapterCompletion>({
       query: (data) => ({
         url: '/chapters/complete/',
         method: 'POST',
@@ -209,19 +202,19 @@ export const studentVideoCourseApiSlice = createApi({
 
     // ===== COURSE CONTENT =====
     
-    getVideoCourseSections: builder.query<any[], string>({
+    getVideoCourseSections: builder.query<StudentVideoSection[], string>({
       query: (courseId) => `/${courseId}/sections/`,
       providesTags: (result, error, courseId) => [
         { type: 'StudentVideoCourse', id: courseId },
       ],
     }),
 
-    getSectionChapters: builder.query<any[], string>({
+    getSectionChapters: builder.query<StudentVideoChapter[], string>({
       query: (sectionId) => `/sections/${sectionId}/chapters/`,
       providesTags: ['StudentVideoCourse'],
     }),
 
-    getChapterDetail: builder.query<any, string>({
+    getChapterDetail: builder.query<StudentVideoChapter, string>({
       query: (chapterId) => `/chapters/${chapterId}/`,
       providesTags: ['StudentVideoCourse'],
     }),
@@ -372,7 +365,7 @@ export const studentVideoCourseApiSlice = createApi({
       providesTags: ['StudentVideoAnalytics'],
     }),
 
-    updateLearningGoals: builder.mutation<any, { daily?: number; weekly?: number }>({
+    updateLearningGoals: builder.mutation<{ message: string; success: boolean }, { daily?: number; weekly?: number }>({
       query: (goals) => ({
         url: '/analytics/learning-goals/',
         method: 'POST',

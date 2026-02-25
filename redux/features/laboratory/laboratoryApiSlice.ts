@@ -148,7 +148,6 @@ export const laboratoryApiSlice = apiSlice.injectEndpoints({
         method: 'GET',
       }),
       transformResponse: (response: any) => {
-        console.log('👤 User progress received:', response);
         return {
           hearts: response.hearts || 5,
           points: response.points || 0,
@@ -196,8 +195,6 @@ export const laboratoryApiSlice = apiSlice.injectEndpoints({
         method: 'GET',
       }),
       transformResponse: (response: any) => {
-        console.log('📖 Units with progress received:', response);
-        
         // Handle different response structures
         if (response.units && Array.isArray(response.units)) {
           return {
@@ -232,7 +229,6 @@ export const laboratoryApiSlice = apiSlice.injectEndpoints({
         method: 'GET',
       }),
       transformResponse: (response: any) => {
-        console.log('📝 Lesson detail received:', response);
         return {
           ...response,
           challenges: response.challenges || [],
@@ -257,7 +253,6 @@ export const laboratoryApiSlice = apiSlice.injectEndpoints({
         },
       }),
       transformResponse: (response: any) => {
-        console.log('✅ Challenge progress submitted:', response);
         return {
           success: response.success || false,
           correct: response.correct || false,
@@ -267,10 +262,7 @@ export const laboratoryApiSlice = apiSlice.injectEndpoints({
           nextChallenge: response.next_challenge || response.nextChallenge,
         };
       },
-      transformErrorResponse: (response: any) => {
-        console.error('❌ Challenge submission error:', response);
-        return response;
-      },
+      transformErrorResponse: (response: any) => response,
       invalidatesTags: ['UserProgress', 'CourseUnits'],
       // Optimistic update para hearts/points
       async onQueryStarted({ challengeId }, { dispatch, queryFulfilled }) {
@@ -355,7 +347,6 @@ export const laboratoryApiSlice = apiSlice.injectEndpoints({
         },
       }),
       transformResponse: (response: any[]) => {
-        console.log('🎓 Practice courses for teacher with statistics:', response);
         // Ensure consistency with expected fields
         return response.map(course => ({
           ...course,
@@ -415,11 +406,6 @@ export const laboratoryApiSlice = apiSlice.injectEndpoints({
           passingScore: courseData.passingScore || 70,
         };
         
-        // Log the validated data for debugging
-        if (process.env.NODE_ENV === 'development') {
-          console.log('🛡️ DEFENSIVE - Validated course data before API call:', validatedData);
-        }
-        
         return {
           url: '/practice/courses/create/',
           method: 'POST',
@@ -428,8 +414,6 @@ export const laboratoryApiSlice = apiSlice.injectEndpoints({
       },
       invalidatesTags: ['PracticeCourses'],
       transformErrorResponse: (response: any) => {
-        // Enhanced error handling
-        console.error('❌ Course creation failed:', response);
         const errorMessage = response?.data?.error || response?.error || 'Failed to create course';
         return { message: errorMessage, status: response?.status };
       },
@@ -446,10 +430,7 @@ export const laboratoryApiSlice = apiSlice.injectEndpoints({
               }
             })
           );
-          
-          console.log('✅ Course created successfully and cache updated:', newCourse);
-        } catch (error) {
-          console.error('💥 Failed to create course or update cache:', error);
+        } catch {
           // If the request fails, the invalidation will handle refetching
         }
       },
@@ -597,10 +578,7 @@ export const laboratoryApiSlice = apiSlice.injectEndpoints({
         url: '/practice/available-exercises/',
         method: 'GET',
       }),
-      transformResponse: (response: any) => {
-        console.log('🎯 Available exercises for integration:', response);
-        return response;
-      },
+      transformResponse: (response: any) => response,
       providesTags: ['AvailableExercises'],
     }),
     
@@ -635,7 +613,6 @@ export const laboratoryApiSlice = apiSlice.injectEndpoints({
           },
         }),
         transformResponse: (response: any) => {
-          console.log('✅ Exercise progress submitted from course:', response);
           return {
             ...response,
             success: response.success || response.correct,
@@ -659,17 +636,8 @@ export const laboratoryApiSlice = apiSlice.injectEndpoints({
               })
             );
             
-            // If exercise completed successfully and we have course context, 
-            // we'll let the course component handle chapter completion
-            console.log('🎆 Exercise completed from course integration:', {
-              success: data.success,
-              courseId,
-              chapterId,
-              points: data.pointsEarned
-            });
-            
-          } catch (error) {
-            console.error('❌ Failed to sync exercise progress:', error);
+          } catch {
+            // Failed to sync exercise progress - will retry on next request
           }
         },
         invalidatesTags: ['UserProgress', 'ExerciseDetail'],
@@ -691,10 +659,7 @@ export const laboratoryApiSlice = apiSlice.injectEndpoints({
             source: 'course_completion',
           },
         }),
-        transformResponse: (response: any) => {
-          console.log('🔄 Chapter progress synced with lab:', response);
-          return response;
-        },
+        transformResponse: (response: any) => response,
         invalidatesTags: ['UserProgress'],
       }
     ),

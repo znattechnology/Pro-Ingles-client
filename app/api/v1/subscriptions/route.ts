@@ -34,8 +34,9 @@ function getUserFromToken(request: NextRequest): JWTPayload | null {
 
     const decoded = jwtDecode<JWTPayload>(token);
     
-    // Check if token is expired
-    if (decoded.exp * 1000 <= Date.now() + 30000) {
+    // Check if token is expired with 5 minute tolerance (consistent with middleware)
+    const EXPIRY_TOLERANCE_MS = 5 * 60 * 1000; // 5 minutes
+    if (decoded.exp * 1000 + EXPIRY_TOLERANCE_MS <= Date.now()) {
       return null;
     }
 
@@ -88,6 +89,9 @@ export async function GET(request: NextRequest) {
       case 'my-subscription':
         djangoEndpoint = '/api/v1/subscriptions/my-subscription/';
         break;
+      case 'payment-history':
+        djangoEndpoint = '/api/v1/subscriptions/payment-history/';
+        break;
       case 'apply-promo-code':
         djangoEndpoint = '/api/v1/subscriptions/apply-promo-code/';
         break;
@@ -107,7 +111,7 @@ export async function GET(request: NextRequest) {
     };
 
     // Add authentication for protected endpoints
-    const protectedEndpoints = ['admin-plans', 'admin-subscriptions', 'admin-stats', 'admin-promo-codes', 'admin-promo-code-usage', 'admin-promo-code-stats', 'admin-reports', 'analytics', 'my-subscription', 'upgrade'];
+    const protectedEndpoints = ['admin-plans', 'admin-subscriptions', 'admin-stats', 'admin-promo-codes', 'admin-promo-code-usage', 'admin-promo-code-stats', 'admin-reports', 'analytics', 'my-subscription', 'payment-history', 'upgrade'];
     if (protectedEndpoints.includes(endpoint)) {
       if (!user) {
         return NextResponse.json(

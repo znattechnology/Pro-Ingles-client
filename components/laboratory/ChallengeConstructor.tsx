@@ -13,6 +13,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { useChallengeValidation } from '@/hooks/useFormValidation';
 import { laboratoryNotifications } from '@/lib/toast';
 import { 
@@ -38,15 +46,17 @@ import {
   Star,
   Trophy
 } from 'lucide-react';
-import { 
+import {
   useGetCourseUnitsQuery,
   useGetUnitLessonsQuery,
   useCreateTeacherChallengeMutation,
+  useUpdateTeacherChallengeMutation,
   useGetPracticeLessonDetailsQuery,
   useUpdateChallengeOptionMutation,
+  useDeleteTeacherChallengeMutation,
   useGenerateTranslationSuggestionsMutation
 } from '@/src/domains/teacher/practice-courses/api';
-import { uploadAudioToS3, uploadImageToS3, generateReferenceAudio } from '@modules/teacher';
+import { uploadAudioToS3, uploadImageToS3, generateReferenceAudio, generatePronunciationExercise } from '@modules/teacher';
 
 interface Course {
   id: string;
@@ -82,6 +92,7 @@ interface ChallengeOption {
 interface Challenge {
   type: ChallengeType;
   question: string;
+  instruction?: string;
   options: ChallengeOption[];
   order: number;
   hints?: string[];
@@ -288,11 +299,13 @@ export default function ChallengeConstructor({ course, onBack }: ChallengeConstr
   const { data: lessonsData, isLoading: lessonsLoading } = useGetUnitLessonsQuery(selectedUnitId || '', {
     skip: !selectedUnitId
   });
-  const { data: lessonDetails } = useGetPracticeLessonDetailsQuery(selectedLessonId || '', {
+  const { data: lessonDetails, isLoading: isLoadingLessonDetails } = useGetPracticeLessonDetailsQuery(selectedLessonId || '', {
     skip: !selectedLessonId
   });
   const [createPracticeChallenge] = useCreateTeacherChallengeMutation();
+  const [updatePracticeChallenge] = useUpdateTeacherChallengeMutation();
   const [updateCourseOption] = useUpdateChallengeOptionMutation();
+  const [deleteChallenge] = useDeleteTeacherChallengeMutation();
   const [generateTranslationSuggestions] = useGenerateTranslationSuggestionsMutation();
   
   // State management
@@ -304,6 +317,7 @@ export default function ChallengeConstructor({ course, onBack }: ChallengeConstr
   const [currentChallenge, setCurrentChallenge] = useState<Challenge>({
     type: 'multiple-choice',
     question: '',
+    instruction: '',
     options: [
       { text: '', is_correct: true, order: 0 },
       { text: '', is_correct: false, order: 1 },
@@ -316,6 +330,15 @@ export default function ChallengeConstructor({ course, onBack }: ChallengeConstr
   });
   const [previewMode, setPreviewMode] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // Delete confirmation modal state
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [challengeToDelete, setChallengeToDelete] = useState<{ id: string; question: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Edit mode state
+  const [editingChallengeId, setEditingChallengeId] = useState<string | null>(null);
+  const [showEditSuccess, setShowEditSuccess] = useState(false);
 
   // Get units and lessons from Redux data
   const units = unitsData?.units || [];
@@ -338,8 +361,10 @@ export default function ChallengeConstructor({ course, onBack }: ChallengeConstr
   // AI Pronunciation states
   const [pronunciationSuggestion, setPronunciationSuggestion] = useState<any>(null);
   const [loadingPronunciationAI, setLoadingPronunciationAI] = useState(false);
-  const [referenceAudioUrl, setReferenceAudioUrl] = useState<string>('');
+  const [referenceAudioUrl, setReferenceAudioUrl] = useState<string>(''); // For preview (blob or S3)
+  const [referenceAudioS3Url, setReferenceAudioS3Url] = useState<string>(''); // Permanent S3 URL for saving
   const [generatingAudio, setGeneratingAudio] = useState(false);
+  const [generatingOptionAudio, setGeneratingOptionAudio] = useState<number | null>(null); // Track which option is generating audio
 
   // Units are loaded automatically by Redux hook
   useEffect(() => {
@@ -444,6 +469,7 @@ export default function ChallengeConstructor({ course, onBack }: ChallengeConstr
     const newChallenge: Challenge = {
       type: template.id,
       question: '',
+      instruction: '',
       options: options,
       order: challenges.length,
       hints: template.structure.supportsHints ? [''] : [],
@@ -514,34 +540,31 @@ export default function ChallengeConstructor({ course, onBack }: ChallengeConstr
       setLoadingPronunciationAI(true);
       setPronunciationSuggestion(null);
       console.log('🎤 Generating pronunciation exercise with AI...');
-      
-      // TODO: Implement pronunciation exercise generation with Redux
-      // const result = await generatePronunciationExercise({
-      //   topic: selectedLesson?.title || 'daily conversation',
-      //   difficultyLevel: 'intermediate',
-      //   exerciseType: 'sentence'
-      // });
-      
-      // Temporary placeholder until API is implemented
-      const result = { success: false };
-      
+
+      const result = await generatePronunciationExercise({
+        topic: selectedLesson?.title || 'daily conversation',
+        difficultyLevel: 'intermediate',
+        exerciseType: 'sentence'
+      });
+
       if (result.success && result.exercise) {
         const exercise = result.exercise;
         setPronunciationSuggestion(exercise);
-        
+
         // Auto-fill the question with AI suggestion
         setCurrentChallenge(prev => ({
           ...prev,
-          question: exercise.text_to_speak
+          question: exercise.text_to_speak || exercise.text || ''
         }));
-        
+
         console.log('✅ Pronunciation exercise generated:', exercise);
       } else {
         console.warn('⚠️ No exercise generated by AI');
+        laboratoryNotifications.creationError('exercício de pronúncia', 'Tente novamente');
       }
     } catch (error) {
       console.error('❌ Error generating pronunciation exercise:', error);
-      alert('Erro ao gerar exercício de pronúncia com IA. Tente novamente.');
+      laboratoryNotifications.creationError('exercício de pronúncia', String(error));
     } finally {
       setLoadingPronunciationAI(false);
     }
@@ -552,28 +575,70 @@ export default function ChallengeConstructor({ course, onBack }: ChallengeConstr
       alert('Por favor, digite o texto primeiro para gerar o áudio de referência.');
       return;
     }
-    
+
     try {
       setGeneratingAudio(true);
       console.log('🔊 Generating reference audio for:', currentChallenge.question);
-      
+
+      // Generate and save to S3 directly
       const result = await generateReferenceAudio({
         text: currentChallenge.question,
-        voice: 'alloy'
+        voice: 'alloy',
+        saveToS3: true
       });
-      
+
       if (result.audioUrl) {
-        setReferenceAudioUrl(result.audioUrl);
-        console.log('✅ Reference audio generated successfully');
-        laboratoryNotifications.success('Áudio de referência gerado com sucesso!');
+        setReferenceAudioUrl(result.audioUrl); // For preview
+        setReferenceAudioS3Url(result.s3Url || result.audioUrl); // For saving
+        console.log('✅ Reference audio saved to S3:', result.audioUrl);
       } else {
         throw new Error('No audio URL received');
       }
     } catch (error) {
       console.error('❌ Error generating reference audio:', error);
-      alert('Erro ao gerar áudio de referência. Tente novamente.');
+      laboratoryNotifications.creationError('áudio de referência', String(error));
     } finally {
       setGeneratingAudio(false);
+    }
+  };
+
+  // Generate AI audio for a specific option (Listening challenges)
+  const handleGenerateOptionAudio = async (optionIndex: number) => {
+    const option = currentChallenge.options[optionIndex];
+    if (!option?.text?.trim()) {
+      alert('Por favor, digite o texto da opção primeiro para gerar o áudio.');
+      return;
+    }
+
+    try {
+      setGeneratingOptionAudio(optionIndex);
+      console.log(`🔊 Generating AI audio for option ${optionIndex}:`, option.text);
+
+      const result = await generateReferenceAudio({
+        text: option.text,
+        voice: 'alloy',
+        saveToS3: true
+      });
+
+      if (result.audioUrl) {
+        // Update the option with the generated audio URL
+        setCurrentChallenge(prev => ({
+          ...prev,
+          options: prev.options.map((opt, i) =>
+            i === optionIndex
+              ? { ...opt, audio_url: result.audioUrl, audioFile: undefined }
+              : opt
+          )
+        }));
+        console.log(`✅ AI audio generated for option ${optionIndex}:`, result.audioUrl);
+      } else {
+        throw new Error('No audio URL received');
+      }
+    } catch (error) {
+      console.error(`❌ Error generating AI audio for option ${optionIndex}:`, error);
+      laboratoryNotifications.creationError('áudio da opção', String(error));
+    } finally {
+      setGeneratingOptionAudio(null);
     }
   };
 
@@ -700,22 +765,105 @@ export default function ChallengeConstructor({ course, onBack }: ChallengeConstr
       case 'speaking':
         // Speaking não precisa de opções
         break;
-      
+
+      case 'true-false':
+        // TRUE_FALSE precisa de exatamente 2 opções e uma resposta correta
+        if (currentChallenge.options.length !== 2) {
+          laboratoryNotifications.challengeValidationError('Verdadeiro/Falso precisa de exatamente 2 opções');
+          return;
+        }
+
+        const hasTrueFalseText = currentChallenge.options.every(opt => opt.text && opt.text.trim().length > 0);
+        if (!hasTrueFalseText) {
+          laboratoryNotifications.challengeValidationError('As opções Verdadeiro/Falso precisam ter texto');
+          return;
+        }
+
+        const hasTrueFalseCorrect = currentChallenge.options.some(opt => opt.is_correct);
+        if (!hasTrueFalseCorrect) {
+          laboratoryNotifications.challengeValidationError('Selecione a resposta correta: Verdadeiro ou Falso');
+          return;
+        }
+        break;
+
       case 'multiple-choice':
       case 'listening':
-      case 'true-false':
-        // Estes tipos precisam de pelo menos uma resposta correta
-        if (currentChallenge.options.length > 0) {
-          const hasCorrectAnswer = currentChallenge.options.some(opt => opt.is_correct);
+        // Estes tipos precisam de opções com texto e pelo menos uma resposta correta
+        {
+          const optionsWithText = currentChallenge.options.filter(opt => opt.text && opt.text.trim());
+          if (optionsWithText.length < 2) {
+            laboratoryNotifications.challengeValidationError('Preencha pelo menos 2 opções de resposta');
+            return;
+          }
+          const hasCorrectAnswer = optionsWithText.some(opt => opt.is_correct);
           if (!hasCorrectAnswer) {
             laboratoryNotifications.challengeValidationError('Pelo menos uma resposta deve estar marcada como correta');
             return;
           }
         }
         break;
-      
+
+      case 'translation':
+      case 'fill-blank':
+        // Translation e Fill-blank precisam ter a resposta correta preenchida
+        {
+          const correctAnswer = currentChallenge.options[0]?.text?.trim();
+          if (!correctAnswer) {
+            laboratoryNotifications.challengeValidationError(
+              currentChallenge.type === 'translation'
+                ? 'Digite a tradução correta para o exercício'
+                : 'Digite a resposta correta para preencher a lacuna'
+            );
+            return;
+          }
+        }
+        break;
+
+      case 'match-pairs':
+        // Match pairs precisam ter pares completos (formato: "Inglês - Português")
+        {
+          const validPairs = currentChallenge.options.filter(opt => {
+            const text = opt.text?.trim() || '';
+            return text.includes(' - ') || text.includes(' – ') || text.includes(' = ');
+          });
+          if (validPairs.length < 2) {
+            laboratoryNotifications.challengeValidationError('Adicione pelo menos 2 pares no formato "Palavra - Tradução"');
+            return;
+          }
+        }
+        break;
+
+      case 'sentence-order':
+        // Sentence order precisa de pelo menos 3 palavras
+        {
+          const wordsWithText = currentChallenge.options.filter(opt => opt.text && opt.text.trim());
+          if (wordsWithText.length < 3) {
+            laboratoryNotifications.challengeValidationError('Adicione pelo menos 3 palavras para ordenar');
+            return;
+          }
+        }
+        break;
+
+      case 'speaking':
+        // Speaking precisa ter o texto para pronunciar (pode estar em question ou options[0])
+        {
+          const speakingText = currentChallenge.question?.trim() || currentChallenge.options[0]?.text?.trim();
+          if (!speakingText) {
+            laboratoryNotifications.challengeValidationError('Digite o texto que o aluno deve pronunciar (na pergunta ou instrução)');
+            return;
+          }
+        }
+        break;
+
       default:
-        // Outros tipos são flexíveis
+        // Para tipos não especificados, validar que há pelo menos uma opção com texto
+        {
+          const anyOptionWithText = currentChallenge.options.some(opt => opt.text && opt.text.trim());
+          if (!anyOptionWithText && currentChallenge.options.length > 0) {
+            laboratoryNotifications.challengeValidationError('Preencha pelo menos uma opção de resposta');
+            return;
+          }
+        }
         break;
     }
     
@@ -732,35 +880,86 @@ export default function ChallengeConstructor({ course, onBack }: ChallengeConstr
         throw new Error(`Tipo de desafio não mapeado: ${currentChallenge.type}`);
       }
       
-      // Get the next available order number from the Redux lesson details
-      console.log('🔄 Getting current challenges from Redux...');
-      const existingChallenges = lessonDetails?.challenges || [];
-      const maxOrder = existingChallenges.length > 0 
-        ? Math.max(...existingChallenges.map((c: any) => c.order || 0))
-        : 0;
-      const nextOrder = maxOrder + 1;
-      
-      console.log('📊 Current challenges in backend:', existingChallenges.length);
-      console.log('📊 Max order found:', maxOrder);
-      console.log('📊 Next order to use:', nextOrder);
+      // Clean options - remove File objects (audioFile, imageFile) before sending to Redux
+      // Files will be uploaded separately after challenge creation
+      const cleanOptions = currentChallenge.options.map(opt => ({
+        text: opt.text,
+        is_correct: opt.is_correct,
+        order: opt.order,
+        // Only include URLs if they exist (not File objects)
+        ...(opt.audio_url && typeof opt.audio_url === 'string' ? { audio_url: opt.audio_url } : {}),
+        ...(opt.image_url && typeof opt.image_url === 'string' ? { image_url: opt.image_url } : {}),
+      }));
 
-      const challengeData = {
-        lesson: selectedLesson.id,
-        type: mappedType,
-        question: currentChallenge.question,
-        order: nextOrder,
-        options: currentChallenge.options
-      };
-      
-      console.log('📤 Challenge data to send:', challengeData);
-      
-      // Create the challenge first with toast notification
-      const createdChallenge = await laboratoryNotifications.asyncOperation(
-        createPracticeChallenge(challengeData).unwrap(),
-        'Criando exercício',
-        selectedTemplate?.name || 'Exercício'
-      );
-      console.log('✅ Challenge created successfully:', createdChallenge);
+      let createdChallenge: any;
+      const wasEditMode = !!editingChallengeId;
+
+      if (editingChallengeId) {
+        // UPDATE MODE
+        console.log('🔄 Updating existing challenge:', editingChallengeId);
+
+        const updateData: any = {
+          type: mappedType,
+          question: currentChallenge.question,
+          instruction: currentChallenge.instruction || '',
+          options: cleanOptions
+        };
+
+        // Add reference audio URL for challenges that support audio
+        if (referenceAudioS3Url && ['speaking', 'translation', 'listening', 'fill-blank'].includes(currentChallenge.type)) {
+          updateData.reference_audio_url = referenceAudioS3Url;
+        }
+
+        console.log('📤 Challenge update data:', updateData);
+
+        createdChallenge = await laboratoryNotifications.asyncOperation(
+          updatePracticeChallenge({ challengeId: editingChallengeId, data: updateData }).unwrap(),
+          'Atualizando exercício',
+          selectedTemplate?.name || 'Exercício'
+        );
+        console.log('✅ Challenge updated successfully:', createdChallenge);
+
+        // Reset editing mode
+        setEditingChallengeId(null);
+      } else {
+        // CREATE MODE
+        // Get the next available order number from the Redux lesson details
+        console.log('🔄 Getting current challenges from Redux...');
+        const existingChallenges = lessonDetails?.challenges || [];
+        const maxOrder = existingChallenges.length > 0
+          ? Math.max(...existingChallenges.map((c: any) => c.order || 0))
+          : 0;
+        const nextOrder = maxOrder + 1;
+
+        console.log('📊 Current challenges in backend:', existingChallenges.length);
+        console.log('📊 Max order found:', maxOrder);
+        console.log('📊 Next order to use:', nextOrder);
+
+        const challengeData: any = {
+          lesson: selectedLesson.id,
+          type: mappedType,
+          question: currentChallenge.question,
+          instruction: currentChallenge.instruction || '',
+          order: nextOrder,
+          options: cleanOptions
+        };
+
+        // Add reference audio URL for challenges that support audio (speaking, translation, listening, fill-blank)
+        if (referenceAudioS3Url && ['speaking', 'translation', 'listening', 'fill-blank'].includes(currentChallenge.type)) {
+          challengeData.reference_audio_url = referenceAudioS3Url;
+          console.log('🔊 Including reference audio URL:', referenceAudioS3Url);
+        }
+
+        console.log('📤 Challenge data to send:', challengeData);
+
+        // Create the challenge with toast notification
+        createdChallenge = await laboratoryNotifications.asyncOperation(
+          createPracticeChallenge(challengeData).unwrap(),
+          'Criando exercício',
+          selectedTemplate?.name || 'Exercício'
+        );
+        console.log('✅ Challenge created successfully:', createdChallenge);
+      }
 
 
       // Handle media uploads for each option in listening challenges
@@ -825,36 +1024,53 @@ export default function ChallengeConstructor({ course, onBack }: ChallengeConstr
         }
       }
       
-      // Add to local state with the correct order
-      const savedChallenge = { ...currentChallenge, order: nextOrder };
-      setChallenges([...challenges, savedChallenge]);
-      
-      // Show success notification for specific challenge type
-      laboratoryNotifications.challengeCreated(currentChallenge.type);
-      
       // Reset for next challenge
       if (!selectedTemplate) {
         console.error('❌ selectedTemplate is null during reset');
         return;
       }
-      
+
+      // Get current max order for reset
+      const currentChallenges = lessonDetails?.challenges || [];
+      const currentMaxOrder = currentChallenges.length > 0
+        ? Math.max(...currentChallenges.map((c: any) => c.order || 0))
+        : 0;
+
       console.log('🔄 Resetting challenge for next creation...');
-      
+
       const newChallenge: Challenge = {
         type: selectedTemplate.id,
         question: '',
+        instruction: '',
         options: Array.from({ length: selectedTemplate.structure.minOptions }, (_, i) => ({
           text: '',
           is_correct: i === 0,
           order: i
         })),
-        order: nextOrder + 1, // Use the next order after the one just created
+        order: currentMaxOrder + 1,
         hints: selectedTemplate.structure.supportsHints ? [''] : [],
         explanation: ''
       };
-      
+
       setCurrentChallenge(newChallenge);
-      setCurrentStep(5); // Go to success/continue step
+
+      // Reset reference audio states for speaking challenges
+      setReferenceAudioUrl('');
+      setReferenceAudioS3Url('');
+      setPronunciationSuggestion(null);
+
+      // Different behavior for edit vs create
+      if (wasEditMode) {
+        // Edit mode - show success message briefly
+        console.log('✅ Edit completed, showing success');
+        setShowEditSuccess(true);
+        setTimeout(() => setShowEditSuccess(false), 3000); // Hide after 3 seconds
+      } else {
+        // Create mode - go to success step
+        setChallenges([...challenges, { ...currentChallenge, order: currentMaxOrder }]);
+        laboratoryNotifications.challengeCreated(currentChallenge.type);
+        setCurrentStep(5); // Go to success/continue step
+      }
       
     } catch (error) {
       console.error('❌ Error saving challenge:', error);
@@ -863,6 +1079,115 @@ export default function ChallengeConstructor({ course, onBack }: ChallengeConstr
       laboratoryNotifications.creationError('exercício', errorMessage);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Open delete confirmation modal
+  const openDeleteModal = (challenge: { id: string; question: string }) => {
+    setChallengeToDelete(challenge);
+    setDeleteModalOpen(true);
+  };
+
+  // Handle delete challenge confirmation
+  const handleDeleteChallenge = async () => {
+    if (!challengeToDelete) return;
+
+    setIsDeleting(true);
+    try {
+      await laboratoryNotifications.asyncOperation(
+        deleteChallenge(challengeToDelete.id).unwrap(),
+        'Eliminando',
+        'Desafio'
+      );
+      setDeleteModalOpen(false);
+      setChallengeToDelete(null);
+    } catch (error) {
+      console.error('❌ Error deleting challenge:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      laboratoryNotifications.deleteError('desafio', errorMessage);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  // Load challenge for editing
+  const loadChallengeForEdit = (challenge: any) => {
+    // Map backend type to frontend type
+    const typeMapping: Record<string, ChallengeType> = {
+      'SELECT': 'multiple-choice',
+      'FILL_BLANK': 'fill-blank',
+      'TRANSLATION': 'translation',
+      'LISTENING': 'listening',
+      'SPEAKING': 'speaking',
+      'MATCH_PAIRS': 'match-pairs',
+      'SENTENCE_ORDER': 'sentence-order',
+      'TRUE_FALSE': 'true-false'
+    };
+
+    const frontendType = typeMapping[challenge.type] || 'multiple-choice';
+
+    // Find and set the template
+    const template = CHALLENGE_TEMPLATES.find(t => t.id === frontendType);
+    if (template) {
+      setSelectedTemplate(template);
+    }
+
+    // Map options from backend format
+    const mappedOptions = challenge.options?.map((opt: any, index: number) => ({
+      text: opt.text || '',
+      is_correct: opt.is_correct || false,
+      order: opt.order || index,
+      audio_url: opt.audio_url,
+      image_url: opt.image_url,
+    })) || [];
+
+    // Set current challenge with loaded data
+    setCurrentChallenge({
+      type: frontendType,
+      question: challenge.question || '',
+      instruction: challenge.instruction || '',
+      options: mappedOptions.length > 0 ? mappedOptions : [
+        { text: '', is_correct: true, order: 0 },
+        { text: '', is_correct: false, order: 1 }
+      ],
+      order: challenge.order || 0,
+      hints: challenge.hints || [''],
+      explanation: challenge.explanation || ''
+    });
+
+    // Load reference audio for challenges that support it
+    if (challenge.reference_audio_url && ['SPEAKING', 'FILL_BLANK', 'TRANSLATION', 'LISTENING'].includes(challenge.type)) {
+      setReferenceAudioUrl(challenge.reference_audio_url);
+      setReferenceAudioS3Url(challenge.reference_audio_url);
+    } else {
+      setReferenceAudioUrl('');
+      setReferenceAudioS3Url('');
+    }
+
+    // Set editing mode
+    setEditingChallengeId(challenge.id);
+    setCurrentStep(4);
+  };
+
+  // Cancel editing and reset form
+  const cancelEditing = () => {
+    setEditingChallengeId(null);
+    setReferenceAudioUrl('');
+    setReferenceAudioS3Url('');
+    if (selectedTemplate) {
+      setCurrentChallenge({
+        type: selectedTemplate.id,
+        question: '',
+        instruction: '',
+        options: Array.from({ length: selectedTemplate.structure.minOptions }, (_, i) => ({
+          text: '',
+          is_correct: i === 0,
+          order: i
+        })),
+        order: 0,
+        hints: selectedTemplate.structure.supportsHints ? [''] : [],
+        explanation: ''
+      });
     }
   };
 
@@ -1012,30 +1337,46 @@ export default function ChallengeConstructor({ course, onBack }: ChallengeConstr
           </div>
         </div>
 
-        {/* Progress Steps */}
+        {/* Progress Steps - Clickable */}
         <div className="flex items-center gap-4 mb-6">
           {[
-            { step: 1, title: "Selecionar Unidade", icon: Target },
-            { step: 2, title: "Selecionar Lição", icon: Edit3 },
-            { step: 3, title: "Tipo de Desafio", icon: Brain },
-            { step: 4, title: "Criar Exercício", icon: Plus },
-            { step: 5, title: "Preview & Salvar", icon: Eye }
-          ].map(({ step, title, icon: Icon }) => (
-            <div 
-              key={step} 
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
-                currentStep === step 
-                  ? 'bg-violet-600 text-white' 
-                  : currentStep > step 
-                    ? 'bg-green-600 text-white'
-                    : 'bg-customgreys-secondarybg text-customgreys-dirtyGrey'
-              }`}
-            >
-              <Icon className="w-4 h-4" />
-              <span className="font-medium text-xs lg:text-sm">{title}</span>
-              {currentStep > step && <CheckCircle className="w-4 h-4" />}
-            </div>
-          ))}
+            { step: 1, title: "Selecionar Unidade", icon: Target, canNavigate: true },
+            { step: 2, title: "Selecionar Lição", icon: Edit3, canNavigate: !!selectedUnit },
+            { step: 3, title: "Tipo de Desafio", icon: Brain, canNavigate: !!selectedLesson },
+            { step: 4, title: "Criar Exercício", icon: Plus, canNavigate: !!selectedTemplate },
+            { step: 5, title: "Preview & Salvar", icon: Eye, canNavigate: false }
+          ].map(({ step, title, icon: Icon, canNavigate }) => {
+            const isCompleted = currentStep > step;
+            const isCurrent = currentStep === step;
+            const isClickable = canNavigate && (isCompleted || step < currentStep);
+
+            return (
+              <div
+                key={step}
+                onClick={() => {
+                  if (isClickable) {
+                    // Cancel editing mode if navigating away
+                    if (editingChallengeId) {
+                      setEditingChallengeId(null);
+                    }
+                    setShowEditSuccess(false);
+                    setCurrentStep(step);
+                  }
+                }}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
+                  isCurrent
+                    ? 'bg-violet-600 text-white'
+                    : isCompleted
+                      ? 'bg-green-600 text-white cursor-pointer hover:bg-green-700'
+                      : 'bg-customgreys-secondarybg text-customgreys-dirtyGrey'
+                } ${isClickable && !isCurrent ? 'cursor-pointer hover:opacity-80' : ''}`}
+              >
+                <Icon className="w-4 h-4" />
+                <span className="font-medium text-xs lg:text-sm">{title}</span>
+                {isCompleted && <CheckCircle className="w-4 h-4" />}
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -1053,7 +1394,16 @@ export default function ChallengeConstructor({ course, onBack }: ChallengeConstr
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {units.length === 0 ? (
+                {unitsLoading ? (
+                  <div className="text-center py-8">
+                    <div className="flex flex-col items-center gap-4">
+                      <div className="w-12 h-12 border-4 border-violet-500/30 border-t-violet-500 rounded-full animate-spin" />
+                      <p className="text-customgreys-dirtyGrey">
+                        Carregando unidades...
+                      </p>
+                    </div>
+                  </div>
+                ) : units.length === 0 ? (
                   <div className="text-center py-8">
                     <Target className="w-12 h-12 text-customgreys-dirtyGrey mx-auto mb-4" />
                     <p className="text-customgreys-dirtyGrey">
@@ -1093,7 +1443,16 @@ export default function ChallengeConstructor({ course, onBack }: ChallengeConstr
                 </p>
               </CardHeader>
               <CardContent className="space-y-3">
-                {selectedUnit.lessons?.length === 0 ? (
+                {lessonsLoading ? (
+                  <div className="text-center py-8">
+                    <div className="flex flex-col items-center gap-4">
+                      <div className="w-12 h-12 border-4 border-violet-500/30 border-t-violet-500 rounded-full animate-spin" />
+                      <p className="text-customgreys-dirtyGrey">
+                        Carregando lições...
+                      </p>
+                    </div>
+                  </div>
+                ) : selectedUnit.lessons?.length === 0 ? (
                   <div className="text-center py-8">
                     <Edit3 className="w-12 h-12 text-customgreys-dirtyGrey mx-auto mb-4" />
                     <p className="text-customgreys-dirtyGrey">
@@ -1177,23 +1536,77 @@ export default function ChallengeConstructor({ course, onBack }: ChallengeConstr
             </Card>
           )}
 
-          {/* Step 4: Create Challenge */}
+          {/* Step 4: Create/Edit Challenge */}
           {currentStep === 4 && selectedTemplate && (
-            <Card className="bg-customgreys-secondarybg border-customgreys-darkerGrey">
+            <Card className={`bg-customgreys-secondarybg border-customgreys-darkerGrey ${editingChallengeId ? 'border-blue-500/50' : ''}`}>
               <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
-                  <Plus className="w-5 h-5" />
-                  Criar {selectedTemplate.name}
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-white flex items-center gap-2">
+                    {editingChallengeId ? (
+                      <>
+                        <Edit3 className="w-5 h-5 text-blue-400" />
+                        <span>Editar {selectedTemplate.name}</span>
+                        <Badge className="ml-2 bg-blue-500/20 text-blue-300 border-blue-500/30">
+                          Modo Edição
+                        </Badge>
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="w-5 h-5" />
+                        Criar {selectedTemplate.name}
+                      </>
+                    )}
+                  </CardTitle>
+                  {editingChallengeId && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={cancelEditing}
+                      className="bg-customgreys-primarybg border-customgreys-darkerGrey text-white hover:bg-red-500/20 hover:border-red-500/50 hover:text-red-300"
+                    >
+                      <X className="w-4 h-4 mr-1" />
+                      Cancelar
+                    </Button>
+                  )}
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Success message after edit */}
+                {showEditSuccess && (
+                  <div className="p-4 bg-green-500/20 border border-green-500/30 rounded-lg flex items-center gap-3">
+                    <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0" />
+                    <div className="flex-1">
+                      <p className="text-green-300 font-medium">Desafio atualizado com sucesso!</p>
+                      <p className="text-green-400/70 text-sm">O formulário foi limpo para criar um novo desafio.</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Instruction (optional) */}
+                <div>
+                  <label className="text-white font-medium mb-2 block">
+                    Instrução <span className="text-gray-400 font-normal text-sm">(opcional)</span>
+                  </label>
+                  <Input
+                    placeholder="Ex: Choose the best answer to complete each sentence."
+                    value={currentChallenge.instruction || ''}
+                    onChange={(e) => {
+                      setCurrentChallenge(prev => ({ ...prev, instruction: e.target.value }));
+                    }}
+                    className="bg-customgreys-primarybg border-2 border-customgreys-darkerGrey focus:border-violet-500 text-white"
+                  />
+                  <p className="text-gray-500 text-xs mt-1">
+                    Orientação geral do exercício. Aparece acima da pergunta para o aluno.
+                  </p>
+                </div>
+
                 {/* Question */}
                 <div>
                   <label className="text-white font-medium mb-2 block">
-                    Pergunta/Instrução
+                    Pergunta
                   </label>
                   <Textarea
-                    placeholder="Digite a pergunta ou instrução do desafio..."
+                    placeholder="Ex: ___ morning, Mr. Silva. How ___ you?"
                     value={currentChallenge.question}
                     onChange={(e) => {
                       const newValue = e.target.value;
@@ -1239,70 +1652,325 @@ export default function ChallengeConstructor({ course, onBack }: ChallengeConstr
                   )}
                 </div>
 
-                {/* Listening Comprehension - Explanation */}
-                {selectedTemplate.id === 'listening' && (
-                  <div className="p-6 bg-gradient-to-r from-violet-500/10 to-purple-500/10 border border-violet-500/20 rounded-lg">
-                    <div className="flex items-start gap-4">
-                      <div className="bg-violet-500/20 rounded-lg p-3">
-                        <svg className="w-6 h-6 text-violet-400" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
-                        </svg>
-                      </div>
-                      
-                      <div className="flex-1">
-                        <h3 className="text-white font-bold text-lg mb-3 flex items-center gap-2">
-                          🎧 Como Criar Desafios de Compreensão Auditiva Avançados
-                        </h3>
-                        
-                        <div className="space-y-4 text-gray-300">
-                          <div className="bg-violet-900/20 rounded-lg p-4">
-                            <h4 className="text-violet-400 font-semibold mb-2 flex items-center gap-2">
-                              <span className="bg-violet-500 text-white text-xs px-2 py-1 rounded-full">1</span>
-                              Pergunta Principal
-                            </h4>
-                            <p className="text-sm">
-                              Introduza a sua pergunta no campo "Pergunta" acima. Ex: "Ouça e escolha o animal correto"
-                            </p>
+                {/* Listening Comprehension - Dictation Style */}
+                {selectedTemplate.id === 'listening' && (() => {
+                  // Count blanks in question (same logic as fill-blank)
+                  const listeningBlankMatches = currentChallenge.question.match(/_{1,}/g);
+                  const listeningDetectedBlanks = listeningBlankMatches ? listeningBlankMatches.length : 0;
+
+                  // Ensure we have enough options for all blanks
+                  const ensureListeningOptionsForBlanks = (count: number) => {
+                    if (count > currentChallenge.options.length) {
+                      const newOptions = [...currentChallenge.options];
+                      for (let i = currentChallenge.options.length; i < count; i++) {
+                        newOptions.push({ text: '', is_correct: true, order: i });
+                      }
+                      setCurrentChallenge(prev => ({ ...prev, options: newOptions }));
+                    }
+                  };
+
+                  // Auto-adjust options when blanks are detected
+                  if (listeningDetectedBlanks > 0 && listeningDetectedBlanks !== currentChallenge.options.length) {
+                    setTimeout(() => ensureListeningOptionsForBlanks(listeningDetectedBlanks), 0);
+                  }
+
+                  return (
+                    <div className="space-y-4">
+                      {/* Header explicativo */}
+                      <div className="p-4 bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/30 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center">
+                            <Volume2 className="w-5 h-5 text-amber-400" />
                           </div>
-                          
-                          <div className="bg-blue-900/20 rounded-lg p-4">
-                            <h4 className="text-blue-400 font-semibold mb-2 flex items-center gap-2">
-                              <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">2</span>
-                              Opções com Mídia Individual
-                            </h4>
-                            <p className="text-sm mb-2">
-                              Cada opção de resposta pode ter seu próprio áudio e imagem:
-                            </p>
-                            <ul className="text-xs space-y-1 ml-4">
-                              <li>• <strong>Texto:</strong> "Um cachorro" / "Um gato" / "Um pássaro"</li>
-                              <li>• <strong>Áudio:</strong> Som de latido / miado / canto de pássaro</li>
-                              <li>• <strong>Imagem:</strong> Foto de cachorro / gato / pássaro</li>
-                            </ul>
-                          </div>
-                          
-                          <div className="bg-green-900/20 rounded-lg p-4">
-                            <h4 className="text-green-400 font-semibold mb-2 flex items-center gap-2">
-                              <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">3</span>
-                              Experiência do Estudante
-                            </h4>
-                            <p className="text-sm">
-                              O estudante verá a pergunta, poderá reproduzir o áudio de cada opção e ver as imagens para fazer sua escolha com apoio multimídia completo.
-                            </p>
+                          <div>
+                            <h3 className="text-amber-300 font-bold">🎧 Exercício de Ditado / Compreensão Auditiva</h3>
+                            <p className="text-amber-200/70 text-sm">O estudante ouve o áudio e preenche as lacunas</p>
                           </div>
                         </div>
-                        
-                        <div className="mt-4 p-3 bg-yellow-900/20 border border-yellow-600/30 rounded-lg">
-                          <p className="text-yellow-300 text-sm">
-                            <strong>💡 Dica:</strong> Use áudios de 10-30 segundos para cada opção e imagens claras que correspondam ao som para máxima eficácia pedagógica.
+                      </div>
+
+                      {/* Instrução geral */}
+                      <div>
+                        <label className="text-white font-medium mb-2 block">
+                          📋 Instrução (contexto do exercício)
+                        </label>
+                        <Input
+                          placeholder="Ex: Listen and complete the conversation with the words from the list."
+                          value={currentChallenge.instruction || ''}
+                          onChange={(e) => setCurrentChallenge(prev => ({ ...prev, instruction: e.target.value }))}
+                          className="bg-customgreys-primarybg border-customgreys-darkerGrey text-white"
+                        />
+                      </div>
+
+                      {/* Blank detection info */}
+                      {listeningDetectedBlanks > 0 && (
+                        <div className={`p-3 rounded-lg border ${
+                          listeningDetectedBlanks > 8 ? 'bg-yellow-500/10 border-yellow-500/30' :
+                          listeningDetectedBlanks > 1 ? 'bg-violet-500/10 border-violet-500/30' :
+                          'bg-blue-500/10 border-blue-500/30'
+                        }`}>
+                          <p className={`text-sm font-medium ${
+                            listeningDetectedBlanks > 8 ? 'text-yellow-300' :
+                            listeningDetectedBlanks > 1 ? 'text-violet-300' : 'text-blue-300'
+                          }`}>
+                            {listeningDetectedBlanks > 8 ? (
+                              <>⚠️ <strong>{listeningDetectedBlanks} lacunas</strong> detectadas. Exercícios com muitas lacunas podem ser difíceis.</>
+                            ) : listeningDetectedBlanks > 1 ? (
+                              <>🔢 Detectadas <strong>{listeningDetectedBlanks} lacunas</strong> na frase. Preencha a resposta correta para cada.</>
+                            ) : (
+                              <>✅ Detectada <strong>1 lacuna</strong> na frase.</>
+                            )}
                           </p>
                         </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
+                      )}
 
-                {/* Multiple Choice Options */}
-                {(selectedTemplate.id === 'multiple-choice' || selectedTemplate.id === 'listening') && (
+                      {/* Warning for very long text */}
+                      {currentChallenge.question.length > 300 && (
+                        <div className="p-3 rounded-lg border bg-yellow-500/10 border-yellow-500/30">
+                          <p className="text-yellow-300 text-sm">
+                            ⚠️ Texto longo ({currentChallenge.question.length} caracteres). O áudio gerado pode ser extenso.
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Respostas corretas - uma para cada lacuna */}
+                      <div className="space-y-3">
+                        <label className="text-white font-medium block">
+                          ✅ Resposta{listeningDetectedBlanks > 1 ? 's' : ''} Correta{listeningDetectedBlanks > 1 ? 's' : ''} (o que o estudante deve escrever)
+                        </label>
+
+                        {(listeningDetectedBlanks > 0 ? Array.from({ length: listeningDetectedBlanks }) : [0]).map((_, index) => (
+                          <div key={index} className="flex items-center gap-3">
+                            {listeningDetectedBlanks > 1 && (
+                              <span className="text-amber-400 font-bold text-sm min-w-[80px]">
+                                Lacuna {index + 1}:
+                              </span>
+                            )}
+                            <Input
+                              placeholder={`Ex: ${index === 0 ? 'Good' : index === 1 ? 'are' : 'resposta'}`}
+                              value={currentChallenge.options[index]?.text || ''}
+                              onChange={(e) => {
+                                const newOptions = [...currentChallenge.options];
+                                if (!newOptions[index]) {
+                                  newOptions[index] = { text: '', is_correct: true, order: index };
+                                }
+                                newOptions[index] = { ...newOptions[index], text: e.target.value };
+                                setCurrentChallenge(prev => ({ ...prev, options: newOptions }));
+                              }}
+                              className="bg-customgreys-primarybg border-customgreys-darkerGrey text-white flex-1"
+                            />
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Gerar Áudio com IA */}
+                      <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
+                        <div className="flex items-center gap-2 mb-3">
+                          <Brain className="w-5 h-5 text-green-400" />
+                          <label className="text-green-300 font-medium">
+                            🎙️ Áudio da Frase Completa (obrigatório)
+                          </label>
+                        </div>
+                        <p className="text-green-200/70 text-xs mb-3">
+                          Gere o áudio da frase completa. O estudante ouvirá este áudio e preencherá as lacunas.
+                        </p>
+
+                        <div className="flex gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            disabled={!currentChallenge.question.trim() || !currentChallenge.options[0]?.text || generatingAudio}
+                            onClick={async () => {
+                              if (!currentChallenge.question.trim()) return;
+                              setGeneratingAudio(true);
+                              try {
+                                // Replace blanks with correct answers for audio generation
+                                let fullSentence = currentChallenge.question;
+                                const blanks = fullSentence.match(/_{1,}/g) || [];
+                                blanks.forEach((blank, idx) => {
+                                  if (currentChallenge.options[idx]?.text) {
+                                    fullSentence = fullSentence.replace(blank, currentChallenge.options[idx].text);
+                                  }
+                                });
+
+                                const result = await generateReferenceAudio({
+                                  text: fullSentence,
+                                  voice: 'alloy',
+                                  saveToS3: true
+                                });
+                                if (result.audioUrl) {
+                                  setReferenceAudioUrl(result.audioUrl);
+                                  if (result.s3Url) {
+                                    setReferenceAudioS3Url(result.s3Url);
+                                  }
+                                }
+                              } catch (error) {
+                                console.error('Error generating audio:', error);
+                              } finally {
+                                setGeneratingAudio(false);
+                              }
+                            }}
+                            className="border-green-500/50 text-green-300 hover:bg-green-500/20"
+                          >
+                            {generatingAudio ? (
+                              <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-400 mr-2" />
+                                Gerando...
+                              </>
+                            ) : (
+                              <>
+                                <Volume2 className="w-4 h-4 mr-2" />
+                                🤖 Gerar Áudio com IA
+                              </>
+                            )}
+                          </Button>
+
+                          {referenceAudioUrl && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setReferenceAudioUrl('');
+                                setReferenceAudioS3Url('');
+                              }}
+                              className="text-red-400 hover:bg-red-500/20"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </div>
+
+                        {/* Preview do áudio */}
+                        {referenceAudioUrl && (
+                          <div className="mt-3 bg-customgreys-secondarybg rounded-lg p-3">
+                            <p className="text-green-400 text-sm mb-2 flex items-center gap-2">
+                              <CheckCircle className="w-4 h-4" />
+                              Áudio gerado com sucesso:
+                            </p>
+                            <audio
+                              controls
+                              src={referenceAudioUrl}
+                              className="w-full"
+                              style={{ height: '32px' }}
+                            >
+                              Seu navegador não suporta áudio.
+                            </audio>
+                          </div>
+                        )}
+
+                        {!referenceAudioUrl && currentChallenge.question && currentChallenge.options[0]?.text && (
+                          <p className="text-customgreys-dirtyGrey text-xs mt-2">
+                            💡 Frase que será gerada: "{
+                              (() => {
+                                let preview = currentChallenge.question;
+                                const blanks = preview.match(/_{1,}/g) || [];
+                                blanks.forEach((blank, idx) => {
+                                  if (currentChallenge.options[idx]?.text) {
+                                    preview = preview.replace(blank, currentChallenge.options[idx].text);
+                                  }
+                                });
+                                return preview;
+                              })()
+                            }"
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Imagem opcional */}
+                      <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-4">
+                        <div className="flex items-center gap-2 mb-3">
+                          <svg className="w-5 h-5 text-purple-400" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+                          </svg>
+                          <label className="text-purple-300 font-medium">
+                            🖼️ Imagem de Contexto (opcional)
+                          </label>
+                        </div>
+                        <p className="text-purple-200/70 text-xs mb-3">
+                          Adicione uma imagem que ajude o estudante a entender o contexto do diálogo.
+                        </p>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              const newOptions = [...currentChallenge.options];
+                              if (newOptions[0]) {
+                                newOptions[0] = { ...newOptions[0], imageFile: file };
+                                setCurrentChallenge(prev => ({ ...prev, options: newOptions }));
+                              }
+                            }
+                          }}
+                          className="w-full px-3 py-2 bg-customgreys-primarybg border border-customgreys-darkerGrey rounded-lg text-white text-sm file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:bg-purple-600 file:text-white hover:file:bg-purple-700 cursor-pointer"
+                        />
+                        {currentChallenge.options[0]?.imageFile && (
+                          <div className="mt-2 p-2 bg-purple-500/10 border border-purple-500/20 rounded text-xs">
+                            <div className="flex items-center gap-1 text-purple-400">
+                              <CheckCircle className="w-3 h-3" />
+                              <span>Imagem: {currentChallenge.options[0].imageFile.name}</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Guia rápido */}
+                      <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                        <p className="text-blue-300 text-sm font-medium mb-2">
+                          💡 <strong>Como criar este exercício:</strong>
+                        </p>
+                        <div className="space-y-1 text-blue-200 text-xs">
+                          <p><strong>1.</strong> Escreva a frase com lacunas usando <code className="bg-blue-800/50 px-1 rounded">___</code></p>
+                          <p><strong>2.</strong> Preencha as respostas corretas para cada lacuna</p>
+                          <p><strong>3.</strong> Clique em "Gerar Áudio com IA" para criar o áudio</p>
+                          <p><strong>4.</strong> O estudante ouvirá o áudio e preencherá as lacunas</p>
+                        </div>
+                      </div>
+
+                      {/* Preview do exercício */}
+                      {currentChallenge.question && currentChallenge.options[0]?.text && referenceAudioUrl && (
+                        <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
+                          <p className="text-green-300 text-sm font-medium mb-3">✅ Preview do exercício:</p>
+                          {currentChallenge.instruction && (
+                            <p className="text-green-200 text-sm mb-2">
+                              <strong>Instrução:</strong> {currentChallenge.instruction}
+                            </p>
+                          )}
+                          <p className="text-green-200 text-sm mb-2">
+                            <strong>Frase com lacunas:</strong> {currentChallenge.question}
+                          </p>
+                          <div className="text-green-200 text-sm mb-2">
+                            <strong>Resposta{listeningDetectedBlanks > 1 ? 's' : ''}:</strong>{' '}
+                            {currentChallenge.options.slice(0, listeningDetectedBlanks || 1).map((opt, i) => (
+                              <span key={i} className="text-amber-300">
+                                {listeningDetectedBlanks > 1 && <span>({i + 1}) </span>}
+                                "{opt.text}"
+                                {i < (listeningDetectedBlanks || 1) - 1 && ', '}
+                              </span>
+                            ))}
+                          </div>
+                          <p className="text-green-200 text-sm">
+                            <strong>Áudio:</strong> <span className="text-green-400">✅ Pronto</span>
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Aviso se falta áudio */}
+                      {currentChallenge.question && currentChallenge.options[0]?.text && !referenceAudioUrl && (
+                        <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                          <p className="text-yellow-300 text-sm">
+                            ⚠️ <strong>Atenção:</strong> Não se esqueça de gerar o áudio antes de salvar!
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+
+                {/* Multiple Choice Options - only for multiple-choice type */}
+                {selectedTemplate.id === 'multiple-choice' && (
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <label className="text-white font-medium">
@@ -1390,60 +2058,6 @@ export default function ChallengeConstructor({ course, onBack }: ChallengeConstr
                             )}
                           </div>
 
-                          {/* Media uploads for listening challenges */}
-                          {selectedTemplate.id === 'listening' && (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              {/* Audio upload for this option */}
-                              <div>
-                                <label className="text-gray-300 text-sm mb-2 block">Áudio da opção</label>
-                                <input
-                                  type="file"
-                                  accept="audio/*"
-                                  onChange={(e) => {
-                                    const file = e.target.files?.[0];
-                                    if (file) {
-                                      updateOption(index, 'audioFile', file);
-                                    }
-                                  }}
-                                  className="w-full px-2 py-1 bg-customgreys-primarybg border border-customgreys-darkerGrey rounded text-white text-xs file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer"
-                                />
-                                {option.audioFile && (
-                                  <div className="mt-2 p-2 bg-blue-500/10 border border-blue-500/20 rounded text-xs">
-                                    <div className="flex items-center gap-1 text-blue-400">
-                                      <Volume2 className="w-3 h-3" />
-                                      <span>Áudio: {option.audioFile.name}</span>
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-
-                              {/* Image upload for this option */}
-                              <div>
-                                <label className="text-gray-300 text-sm mb-2 block">Imagem da opção</label>
-                                <input
-                                  type="file"
-                                  accept="image/*"
-                                  onChange={(e) => {
-                                    const file = e.target.files?.[0];
-                                    if (file) {
-                                      updateOption(index, 'imageFile', file);
-                                    }
-                                  }}
-                                  className="w-full px-2 py-1 bg-customgreys-primarybg border border-customgreys-darkerGrey rounded text-white text-xs file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-purple-600 file:text-white hover:file:bg-purple-700 cursor-pointer"
-                                />
-                                {option.imageFile && (
-                                  <div className="mt-2 p-2 bg-purple-500/10 border border-purple-500/20 rounded text-xs">
-                                    <div className="flex items-center gap-1 text-purple-400">
-                                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
-                                      </svg>
-                                      <span>Imagem: {option.imageFile.name}</span>
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          )}
                         </div>
                       ))}
                     </div>
@@ -1451,44 +2065,263 @@ export default function ChallengeConstructor({ course, onBack }: ChallengeConstr
                 )}
 
                 {/* Fill in the Blank */}
-                {selectedTemplate.id === 'fill-blank' && (
-                  <div>
-                    <label className="text-white font-medium mb-2 block">
-                      Resposta Correta (palavra ou frase que falta)
-                    </label>
-                    <Input
-                      placeholder="Ex: name, beautiful, quickly, etc."
-                      value={currentChallenge.options[0]?.text || ''}
-                      onChange={(e) => updateOption(0, 'text', e.target.value)}
-                      className="bg-customgreys-primarybg border-customgreys-darkerGrey text-white"
-                    />
-                    
-                    <div className="mt-3 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                {selectedTemplate.id === 'fill-blank' && (() => {
+                  // Count blanks in question
+                  const blankMatches = currentChallenge.question.match(/_{1,}/g);
+                  const detectedBlanks = blankMatches ? blankMatches.length : 0;
+
+                  // Ensure we have enough options for all blanks
+                  const ensureOptionsForBlanks = (count: number) => {
+                    if (count > currentChallenge.options.length) {
+                      const newOptions = [...currentChallenge.options];
+                      for (let i = currentChallenge.options.length; i < count; i++) {
+                        newOptions.push({ text: '', is_correct: true, order: i });
+                      }
+                      setCurrentChallenge(prev => ({ ...prev, options: newOptions }));
+                    }
+                  };
+
+                  // Auto-adjust options when blanks are detected
+                  if (detectedBlanks > 0 && detectedBlanks !== currentChallenge.options.length) {
+                    setTimeout(() => ensureOptionsForBlanks(detectedBlanks), 0);
+                  }
+
+                  return (
+                  <div className="space-y-4">
+                    {/* Instrução geral */}
+                    <div>
+                      <label className="text-white font-medium mb-2 block">
+                        📋 Instrução Geral (contexto do exercício)
+                      </label>
+                      <Input
+                        placeholder="Ex: Complete the sentences using I / You / am / are."
+                        value={currentChallenge.instruction || ''}
+                        onChange={(e) => setCurrentChallenge(prev => ({ ...prev, instruction: e.target.value }))}
+                        className="bg-customgreys-primarybg border-customgreys-darkerGrey text-white"
+                      />
+                      <p className="text-customgreys-dirtyGrey text-xs mt-1">
+                        Esta instrução aparece no topo e dá contexto para todas as frases do exercício
+                      </p>
+                    </div>
+
+                    {/* Áudio de Referência (opcional) - para exercícios de ditado/listening */}
+                    <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Volume2 className="w-5 h-5 text-amber-400" />
+                        <label className="text-amber-300 font-medium">
+                          🎧 Áudio de Referência (opcional)
+                        </label>
+                      </div>
+                      <p className="text-amber-200/70 text-xs mb-3">
+                        Adicione um áudio da frase completa para exercícios de ditado. O estudante ouvirá o áudio e preencherá as lacunas.
+                      </p>
+
+                      <div className="space-y-3">
+                        {/* Gerar com IA */}
+                        <div className="flex gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            disabled={!currentChallenge.question.trim() || generatingAudio}
+                            onClick={async () => {
+                              if (!currentChallenge.question.trim()) return;
+                              setGeneratingAudio(true);
+                              try {
+                                // Replace blanks with correct answers for audio generation
+                                let fullSentence = currentChallenge.question;
+                                const blanks = fullSentence.match(/_{1,}/g) || [];
+                                blanks.forEach((blank, idx) => {
+                                  if (currentChallenge.options[idx]?.text) {
+                                    fullSentence = fullSentence.replace(blank, currentChallenge.options[idx].text);
+                                  }
+                                });
+
+                                const result = await generateReferenceAudio({
+                                  text: fullSentence,
+                                  voice: 'alloy',
+                                  saveToS3: true
+                                });
+                                if (result.audioUrl) {
+                                  setReferenceAudioUrl(result.audioUrl);
+                                  if (result.s3Url) {
+                                    setReferenceAudioS3Url(result.s3Url);
+                                  }
+                                }
+                              } catch (error) {
+                                console.error('Error generating audio:', error);
+                              } finally {
+                                setGeneratingAudio(false);
+                              }
+                            }}
+                            className="border-amber-500/50 text-amber-300 hover:bg-amber-500/20"
+                          >
+                            {generatingAudio ? (
+                              <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-amber-400 mr-2" />
+                                Gerando...
+                              </>
+                            ) : (
+                              <>
+                                <Brain className="w-4 h-4 mr-2" />
+                                🤖 Gerar Áudio com IA
+                              </>
+                            )}
+                          </Button>
+
+                          {referenceAudioUrl && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setReferenceAudioUrl('');
+                                setReferenceAudioS3Url('');
+                              }}
+                              className="text-red-400 hover:bg-red-500/20"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </div>
+
+                        {/* Preview do áudio */}
+                        {referenceAudioUrl && (
+                          <div className="bg-customgreys-secondarybg rounded-lg p-3">
+                            <p className="text-green-400 text-sm mb-2 flex items-center gap-2">
+                              <CheckCircle className="w-4 h-4" />
+                              Áudio gerado - o estudante ouvirá antes de responder:
+                            </p>
+                            <audio
+                              controls
+                              src={referenceAudioUrl}
+                              className="w-full"
+                              style={{ height: '32px' }}
+                            >
+                              Seu navegador não suporta o elemento de áudio.
+                            </audio>
+                          </div>
+                        )}
+
+                        {!referenceAudioUrl && currentChallenge.question && currentChallenge.options[0]?.text && (
+                          <p className="text-customgreys-dirtyGrey text-xs">
+                            💡 Clique em "Gerar Áudio" para criar um áudio da frase: "{
+                              (() => {
+                                let preview = currentChallenge.question;
+                                const blanks = preview.match(/_{1,}/g) || [];
+                                blanks.forEach((blank, idx) => {
+                                  if (currentChallenge.options[idx]?.text) {
+                                    preview = preview.replace(blank, currentChallenge.options[idx].text);
+                                  }
+                                });
+                                return preview;
+                              })()
+                            }"
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Blank detection info */}
+                    {detectedBlanks > 0 && (
+                      <div className={`p-3 rounded-lg border ${
+                        detectedBlanks > 8 ? 'bg-yellow-500/10 border-yellow-500/30' :
+                        detectedBlanks > 1 ? 'bg-violet-500/10 border-violet-500/30' :
+                        'bg-blue-500/10 border-blue-500/30'
+                      }`}>
+                        <p className={`text-sm font-medium ${
+                          detectedBlanks > 8 ? 'text-yellow-300' :
+                          detectedBlanks > 1 ? 'text-violet-300' : 'text-blue-300'
+                        }`}>
+                          {detectedBlanks > 8 ? (
+                            <>⚠️ <strong>{detectedBlanks} lacunas</strong> detectadas. Exercícios com muitas lacunas podem ser difíceis para os estudantes.</>
+                          ) : detectedBlanks > 1 ? (
+                            <>🔢 Detectadas <strong>{detectedBlanks} lacunas</strong> na pergunta. Preencha uma resposta para cada.</>
+                          ) : (
+                            <>✅ Detectada <strong>1 lacuna</strong> na pergunta.</>
+                          )}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Warning for very long text */}
+                    {currentChallenge.question.length > 300 && (
+                      <div className="p-3 rounded-lg border bg-yellow-500/10 border-yellow-500/30">
+                        <p className="text-yellow-300 text-sm">
+                          ⚠️ Texto longo ({currentChallenge.question.length} caracteres). Certifique-se de que está legível no mobile.
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Respostas corretas - uma para cada lacuna */}
+                    <div className="space-y-3">
+                      <label className="text-white font-medium block">
+                        ✅ Resposta{detectedBlanks > 1 ? 's' : ''} Correta{detectedBlanks > 1 ? 's' : ''} (uma para cada lacuna)
+                      </label>
+
+                      {(detectedBlanks > 0 ? Array.from({ length: detectedBlanks }) : [0]).map((_, index) => (
+                        <div key={index} className="flex items-center gap-3">
+                          {detectedBlanks > 1 && (
+                            <span className="text-violet-400 font-bold text-sm min-w-[80px]">
+                              Lacuna {index + 1}:
+                            </span>
+                          )}
+                          <Input
+                            placeholder={`Ex: ${index === 0 ? 'Good' : index === 1 ? 'are' : 'resposta'}`}
+                            value={currentChallenge.options[index]?.text || ''}
+                            onChange={(e) => {
+                              const newOptions = [...currentChallenge.options];
+                              if (!newOptions[index]) {
+                                newOptions[index] = { text: '', is_correct: true, order: index };
+                              }
+                              newOptions[index] = { ...newOptions[index], text: e.target.value };
+                              setCurrentChallenge(prev => ({ ...prev, options: newOptions }));
+                            }}
+                            className="bg-customgreys-primarybg border-customgreys-darkerGrey text-white flex-1"
+                          />
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
                       <p className="text-blue-300 text-sm font-medium mb-2">
                         💡 <strong>Como criar um exercício de completar lacuna:</strong>
                       </p>
                       <div className="space-y-2 text-blue-200 text-xs">
-                        <p><strong>1. Na pergunta acima:</strong> Digite a frase com "_" onde quer a lacuna</p>
-                        <p><strong>Exemplo:</strong> "My ___ is John" ou "I ___ to school every day"</p>
-                        <p><strong>2. Neste campo:</strong> Digite apenas a resposta correta</p>
-                        <p><strong>Exemplo:</strong> "name" ou "go"</p>
+                        <p><strong>1. Instrução:</strong> Contexto geral (ex: "Complete using I/You/am/are")</p>
+                        <p><strong>2. Pergunta:</strong> Use <code className="bg-blue-800/50 px-1 rounded">___</code> para marcar as lacunas</p>
+                        <p><strong>3. Exemplo com 1 lacuna:</strong> "Hello! ___ am Maria." → Resposta: "I"</p>
+                        <p><strong>4. Exemplo com 2 lacunas:</strong> "___ morning. How ___ you?" → Respostas: "Good", "are"</p>
                       </div>
                     </div>
-                    
+
                     {/* Preview */}
                     {currentChallenge.question && currentChallenge.options[0]?.text && (
-                      <div className="mt-3 p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
-                        <p className="text-green-300 text-sm font-medium mb-1">✅ Preview do exercício:</p>
-                        <p className="text-green-200 text-sm">
-                          <strong>Pergunta:</strong> {currentChallenge.question}
+                      <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+                        <p className="text-green-300 text-sm font-medium mb-2">✅ Preview do exercício:</p>
+                        {currentChallenge.instruction && (
+                          <p className="text-green-200 text-sm mb-1">
+                            <strong>Instrução:</strong> {currentChallenge.instruction}
+                          </p>
+                        )}
+                        <p className="text-green-200 text-sm mb-1">
+                          <strong>Frase:</strong> {currentChallenge.question}
                         </p>
-                        <p className="text-green-200 text-sm">
-                          <strong>Resposta:</strong> {currentChallenge.options[0]?.text}
-                        </p>
+                        <div className="text-green-200 text-sm">
+                          <strong>Resposta{detectedBlanks > 1 ? 's' : ''}:</strong>{' '}
+                          {currentChallenge.options.slice(0, detectedBlanks || 1).map((opt, i) => (
+                            <span key={i}>
+                              {detectedBlanks > 1 && <span className="text-violet-300">({i + 1}) </span>}
+                              "{opt.text}"
+                              {i < (detectedBlanks || 1) - 1 && ', '}
+                            </span>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </div>
-                )}
+                  );
+                })()}
 
                 {/* Translation with AI Integration */}
                 {selectedTemplate.id === 'translation' && (
@@ -1502,8 +2335,24 @@ export default function ChallengeConstructor({ course, onBack }: ChallengeConstr
                         <h4 className="text-violet-400 font-medium">Sistema de Tradução Inteligente</h4>
                       </div>
                       <p className="text-customgreys-dirtyGrey text-sm">
-                        Este desafio usa IA para validar traduções com feedback inteligente. 
+                        Este desafio usa IA para validar traduções com feedback inteligente.
                         O sistema aceita múltiplas traduções corretas e fornece pontuação detalhada.
+                      </p>
+                    </div>
+
+                    {/* Instruction Field */}
+                    <div>
+                      <label className="text-white font-medium mb-2 block">
+                        Instrução (opcional)
+                      </label>
+                      <Input
+                        placeholder="Ex: Traduza esta frase para português..."
+                        value={currentChallenge.instruction || ''}
+                        onChange={(e) => setCurrentChallenge(prev => ({ ...prev, instruction: e.target.value }))}
+                        className="bg-customgreys-primarybg border-customgreys-darkerGrey text-white"
+                      />
+                      <p className="text-customgreys-dirtyGrey text-xs mt-1">
+                        Instrução que aparecerá para o aluno antes da frase a traduzir
                       </p>
                     </div>
 
@@ -1531,27 +2380,92 @@ export default function ChallengeConstructor({ course, onBack }: ChallengeConstr
                           )}
                         </Button>
                       </div>
-                      <Textarea
-                        placeholder="Digite a tradução correta (a IA aceitará variações equivalentes)..."
-                        value={currentChallenge.options[0]?.text || ''}
-                        onChange={(e) => updateOption(0, 'text', e.target.value)}
-                        className="bg-customgreys-primarybg border-customgreys-darkerGrey text-white"
-                        rows={2}
-                      />
-                      
+                      {/* Multiple correct translations */}
+                      <div className="space-y-2">
+                        {currentChallenge.options.map((option, index) => (
+                          <div key={index} className="flex gap-2">
+                            <Input
+                              placeholder={index === 0 ? "Tradução principal..." : `Variação ${index + 1} (opcional)...`}
+                              value={option.text || ''}
+                              onChange={(e) => updateOption(index, 'text', e.target.value)}
+                              className="bg-customgreys-primarybg border-customgreys-darkerGrey text-white flex-1"
+                            />
+                            {index > 0 && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  const newOptions = currentChallenge.options.filter((_, i) => i !== index);
+                                  setCurrentChallenge(prev => ({ ...prev, options: newOptions }));
+                                }}
+                                className="bg-red-600/20 border-red-600/30 text-red-400 hover:bg-red-600/30"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </Button>
+                            )}
+                          </div>
+                        ))}
+
+                        {/* Add more translations button */}
+                        {currentChallenge.options.length < 5 && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              const newOption = {
+                                text: '',
+                                is_correct: true, // All translation options are correct
+                                order: currentChallenge.options.length
+                              };
+                              setCurrentChallenge(prev => ({
+                                ...prev,
+                                options: [...prev.options, newOption]
+                              }));
+                            }}
+                            className="w-full bg-green-600/10 border-green-600/30 text-green-400 hover:bg-green-600/20"
+                          >
+                            <Plus className="w-3 h-3 mr-1" />
+                            Adicionar Variação de Tradução
+                          </Button>
+                        )}
+
+                        <p className="text-customgreys-dirtyGrey text-xs">
+                          💡 Adicione várias traduções aceitas para maior flexibilidade (ex: "Ouça" e "Ouve")
+                        </p>
+                      </div>
+
                       {/* AI Suggestions Display */}
                       {aiSuggestions.length > 0 && (
                         <div className="mt-3 p-3 bg-customgreys-secondarybg rounded-lg">
-                          <h5 className="text-violet-400 text-sm font-medium mb-2">💡 Sugestões da IA:</h5>
+                          <h5 className="text-violet-400 text-sm font-medium mb-2">💡 Sugestões da IA (clique para adicionar):</h5>
                           <div className="space-y-1">
                             {aiSuggestions.map((suggestion, index) => (
                               <button
                                 key={index}
                                 type="button"
-                                onClick={() => updateOption(0, 'text', suggestion)}
+                                onClick={() => {
+                                  // Add as new option if not already exists
+                                  const exists = currentChallenge.options.some(opt => opt.text === suggestion);
+                                  if (!exists && currentChallenge.options.length < 5) {
+                                    const newOption = {
+                                      text: suggestion,
+                                      is_correct: true,
+                                      order: currentChallenge.options.length
+                                    };
+                                    setCurrentChallenge(prev => ({
+                                      ...prev,
+                                      options: [...prev.options, newOption]
+                                    }));
+                                  } else if (!exists) {
+                                    // Replace first empty option or first option
+                                    const emptyIndex = currentChallenge.options.findIndex(opt => !opt.text);
+                                    const targetIndex = emptyIndex >= 0 ? emptyIndex : 0;
+                                    updateOption(targetIndex, 'text', suggestion);
+                                  }
+                                }}
                                 className="block w-full text-left p-2 text-sm text-customgreys-dirtyGrey hover:bg-violet-600/20 hover:text-white rounded transition-colors"
                               >
-                                {suggestion}
+                                + {suggestion}
                               </button>
                             ))}
                           </div>
@@ -1559,15 +2473,66 @@ export default function ChallengeConstructor({ course, onBack }: ChallengeConstr
                       )}
                     </div>
 
-                    {/* AI Validation Preview */}
+                    {/* Reference Audio for Translation (Listen and Write) */}
+                    {currentChallenge.question.trim() && (
+                      <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <h5 className="text-blue-400 text-sm font-medium">🔊 Áudio de Referência (Opcional)</h5>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={handleGenerateReferenceAudio}
+                            disabled={generatingAudio}
+                            className="bg-blue-600 border-blue-600 text-white hover:bg-blue-700 text-xs"
+                          >
+                            {generatingAudio ? (
+                              <>
+                                <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin mr-1"></div>
+                                Gerando...
+                              </>
+                            ) : (
+                              <>🔊 Gerar Áudio IA</>
+                            )}
+                          </Button>
+                        </div>
+                        <p className="text-blue-300 text-sm mb-3">
+                          Para exercícios de ditado ou "ouvir e escrever", gere um áudio que o aluno irá ouvir antes de traduzir/escrever.
+                        </p>
+
+                        {referenceAudioUrl && (
+                          <div className="bg-customgreys-secondarybg rounded-lg p-3">
+                            <p className="text-green-400 text-sm mb-2">✅ Áudio de referência gerado:</p>
+                            <audio
+                              controls
+                              src={referenceAudioUrl}
+                              className="w-full"
+                              style={{ height: '32px' }}
+                            >
+                              Seu navegador não suporta o elemento de áudio.
+                            </audio>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Validation Preview */}
                     {currentChallenge.question.trim() && currentChallenge.options[0]?.text && (
                       <div className="bg-customgreys-secondarybg rounded-lg p-3">
-                        <h5 className="text-violet-400 text-sm font-medium mb-2">🎯 Preview da Validação IA:</h5>
+                        <h5 className="text-violet-400 text-sm font-medium mb-2">🎯 Preview da Validação:</h5>
                         <div className="text-xs text-customgreys-dirtyGrey space-y-1">
-                          <p>• <strong>Pergunta:</strong> "{currentChallenge.question}"</p>
-                          <p>• <strong>Resposta esperada:</strong> "{currentChallenge.options[0]?.text}"</p>
-                          <p>• <strong>Sistema IA:</strong> Aceitará traduções semanticamente equivalentes</p>
-                          <p>• <strong>Pontuação:</strong> 0-10 pontos baseado na qualidade da tradução</p>
+                          {currentChallenge.instruction && (
+                            <p>• <strong>Instrução:</strong> "{currentChallenge.instruction}"</p>
+                          )}
+                          <p>• <strong>Texto a traduzir:</strong> "{currentChallenge.question}"</p>
+                          <p>• <strong>Traduções aceitas:</strong></p>
+                          <ul className="ml-4 space-y-0.5">
+                            {currentChallenge.options.filter(opt => opt.text?.trim()).map((opt, i) => (
+                              <li key={i} className="text-green-400">✓ "{opt.text}"</li>
+                            ))}
+                          </ul>
+                          {referenceAudioUrl && <p>• <strong>Áudio:</strong> ✅ Incluído (aluno ouvirá antes de responder)</p>}
+                          <p>• <strong>Validação:</strong> Remove acentos e pontuação, tolerância de 70%</p>
+                          <p className="text-yellow-400">💡 "Ouça" = "ouca" = "Ouca" (variações aceitas)</p>
                         </div>
                       </div>
                     )}
@@ -1575,83 +2540,226 @@ export default function ChallengeConstructor({ course, onBack }: ChallengeConstr
                 )}
 
                 {/* Match Pairs */}
-                {selectedTemplate.id === 'match-pairs' && (
-                  <div>
-                    <label className="text-white font-medium mb-3 block">
-                      Pares para Combinar
-                    </label>
-                    <div className="space-y-3">
-                      {currentChallenge.options.map((option, index) => (
-                        <div key={index} className="grid grid-cols-2 gap-2">
-                          <div>
-                            <Input
-                              placeholder={`Elemento ${index + 1}A`}
-                              value={option.text}
-                              onChange={(e) => updateOption(index, 'text', e.target.value)}
-                              className="bg-customgreys-primarybg border-customgreys-darkerGrey text-white"
-                            />
+                {selectedTemplate.id === 'match-pairs' && (() => {
+                  // Helper to parse pair text (stored as "English - Portuguese")
+                  const parsePair = (text: string) => {
+                    if (!text) return { left: '', right: '' };
+                    const parts = text.split(' - ');
+                    return {
+                      left: parts[0]?.trim() || '',
+                      right: parts[1]?.trim() || ''
+                    };
+                  };
+
+                  // Helper to combine pair text
+                  const combinePair = (left: string, right: string) => {
+                    return `${left.trim()} - ${right.trim()}`;
+                  };
+
+                  // Update left side of pair
+                  const updatePairLeft = (index: number, value: string) => {
+                    const current = parsePair(currentChallenge.options[index]?.text || '');
+                    updateOption(index, 'text', combinePair(value, current.right));
+                  };
+
+                  // Update right side of pair
+                  const updatePairRight = (index: number, value: string) => {
+                    const current = parsePair(currentChallenge.options[index]?.text || '');
+                    updateOption(index, 'text', combinePair(current.left, value));
+                  };
+
+                  return (
+                    <div className="space-y-4">
+                      {/* Header explicativo */}
+                      <div className="p-4 bg-gradient-to-r from-orange-500/10 to-amber-500/10 border border-orange-500/30 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center">
+                            <Shuffle className="w-5 h-5 text-orange-400" />
                           </div>
-                          <div className="flex gap-2">
-                            <Input
-                              placeholder={`Elemento ${index + 1}B (par)`}
-                              value={option.text} // We'll need to adjust this data structure
-                              onChange={(e) => updateOption(index, 'text', e.target.value)}
-                              className="bg-customgreys-primarybg border-customgreys-darkerGrey text-white"
-                            />
-                            {currentChallenge.options.length > selectedTemplate.structure.minOptions && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => removeOption(index)}
-                                className="bg-red-600 border-red-600 text-white hover:bg-red-700"
-                              >
-                                <Trash2 className="w-3 h-3" />
-                              </Button>
-                            )}
+                          <div>
+                            <h3 className="text-orange-300 font-bold">🔗 Combinar Pares</h3>
+                            <p className="text-orange-200/70 text-sm">O estudante deve ligar cada termo à sua correspondência</p>
                           </div>
                         </div>
-                      ))}
-                      {currentChallenge.options.length < selectedTemplate.structure.maxOptions && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={addOption}
-                          className="bg-customgreys-primarybg border-customgreys-darkerGrey text-white hover:bg-customgreys-darkerGrey"
-                        >
-                          <Plus className="w-3 h-3 mr-1" />
-                          Adicionar Par
-                        </Button>
+                      </div>
+
+                      <div>
+                        <div className="flex items-center justify-between mb-3">
+                          <label className="text-white font-medium">
+                            Pares para Combinar
+                          </label>
+                          <span className="text-customgreys-dirtyGrey text-xs">
+                            {currentChallenge.options.length} pares
+                          </span>
+                        </div>
+
+                        {/* Column Headers */}
+                        <div className="grid grid-cols-2 gap-3 mb-2">
+                          <div className="text-center">
+                            <span className="text-sm font-medium text-blue-400">🇺🇸 Coluna A (Inglês)</span>
+                          </div>
+                          <div className="text-center">
+                            <span className="text-sm font-medium text-green-400">🇦🇴 Coluna B (Português)</span>
+                          </div>
+                        </div>
+
+                        <div className="space-y-3">
+                          {currentChallenge.options.map((option, index) => {
+                            const pair = parsePair(option.text);
+                            return (
+                              <div key={index} className="p-3 bg-customgreys-darkGrey/50 border border-customgreys-darkerGrey rounded-lg">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <span className="w-6 h-6 rounded-full bg-orange-500 text-white text-xs font-bold flex items-center justify-center">
+                                    {index + 1}
+                                  </span>
+                                  <span className="text-customgreys-dirtyGrey text-xs">Par {index + 1}</span>
+                                  {currentChallenge.options.length > 4 && (
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => removeOption(index)}
+                                      className="ml-auto h-6 w-6 p-0 text-red-400 hover:text-red-300 hover:bg-red-500/20"
+                                    >
+                                      <Trash2 className="w-3 h-3" />
+                                    </Button>
+                                  )}
+                                </div>
+                                <div className="grid grid-cols-2 gap-3">
+                                  <div>
+                                    <Input
+                                      placeholder="Ex: Hello"
+                                      value={pair.left}
+                                      onChange={(e) => updatePairLeft(index, e.target.value)}
+                                      className="bg-customgreys-primarybg border-blue-500/50 text-white placeholder-gray-500 focus:border-blue-400"
+                                    />
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-orange-400">↔</span>
+                                    <Input
+                                      placeholder="Ex: Olá"
+                                      value={pair.right}
+                                      onChange={(e) => updatePairRight(index, e.target.value)}
+                                      className="bg-customgreys-primarybg border-green-500/50 text-white placeholder-gray-500 focus:border-green-400 flex-1"
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        {currentChallenge.options.length < 8 && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={addOption}
+                            className="mt-3 bg-customgreys-primarybg border-customgreys-darkerGrey text-white hover:bg-customgreys-darkerGrey"
+                          >
+                            <Plus className="w-3 h-3 mr-1" />
+                            Adicionar Par
+                          </Button>
+                        )}
+                      </div>
+
+                      {/* Guia rápido */}
+                      <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                        <p className="text-blue-300 text-sm font-medium mb-2">
+                          💡 <strong>Dicas:</strong>
+                        </p>
+                        <div className="space-y-1 text-blue-200 text-xs">
+                          <p>• Use pares claros e concisos (ex: "Apple - Maçã")</p>
+                          <p>• Recomendado: 4-6 pares por exercício</p>
+                          <p>• As colunas serão embaralhadas para o estudante</p>
+                          <p>• Validação aceita pequenos erros de digitação (85% tolerância)</p>
+                        </div>
+                      </div>
+
+                      {/* Preview */}
+                      {currentChallenge.options.filter(o => {
+                        const p = parsePair(o.text);
+                        return p.left && p.right;
+                      }).length >= 2 && (
+                        <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
+                          <p className="text-green-300 text-sm font-medium mb-3">✅ Preview dos pares:</p>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <p className="text-xs text-gray-400 mb-2">Coluna A (embaralhada)</p>
+                              <div className="space-y-1">
+                                {currentChallenge.options.map((o, i) => {
+                                  const p = parsePair(o.text);
+                                  return p.left && (
+                                    <div key={i} className="bg-blue-500/20 text-blue-300 text-sm px-2 py-1 rounded">
+                                      {p.left}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                            <div>
+                              <p className="text-xs text-gray-400 mb-2">Coluna B (embaralhada)</p>
+                              <div className="space-y-1">
+                                {[...currentChallenge.options].reverse().map((o, i) => {
+                                  const p = parsePair(o.text);
+                                  return p.right && (
+                                    <div key={i} className="bg-green-500/20 text-green-300 text-sm px-2 py-1 rounded">
+                                      {p.right}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       )}
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
 
                 {/* Sentence Order */}
                 {selectedTemplate.id === 'sentence-order' && (
-                  <div>
-                    <label className="text-white font-medium mb-2 block">
-                      Frase Completa (na ordem correta)
-                    </label>
-                    <Input
-                      placeholder="Digite a frase completa (ex: What is your name?)"
-                      defaultValue=""
-                      onChange={(e) => {
-                        const sentence = e.target.value;
-                        // Split by spaces, keeping empty array if no input
-                        const words = sentence.trim() === '' ? [] : sentence.trim().split(/\s+/);
-                        const newOptions = words.map((word, index) => ({
-                          text: word,
-                          is_correct: false,
-                          order: index
-                        }));
-                        setCurrentChallenge(prev => ({
-                          ...prev,
-                          options: newOptions
-                        }));
-                      }}
-                      className="bg-customgreys-primarybg border-customgreys-darkerGrey text-white"
-                    />
-                    
+                  <div className="space-y-4">
+                    {/* Instrução geral */}
+                    <div>
+                      <label className="text-white font-medium mb-2 block">
+                        📋 Instrução do Exercício
+                      </label>
+                      <Input
+                        placeholder="Ex: Reorder the words to make correct WH-questions."
+                        value={currentChallenge.instruction || ''}
+                        onChange={(e) => setCurrentChallenge(prev => ({ ...prev, instruction: e.target.value }))}
+                        className="bg-customgreys-primarybg border-customgreys-darkerGrey text-white"
+                      />
+                      <p className="text-customgreys-dirtyGrey text-xs mt-1">
+                        Esta instrução aparece no topo e explica ao aluno o que deve fazer
+                      </p>
+                    </div>
+
+                    {/* Frase completa */}
+                    <div>
+                      <label className="text-white font-medium mb-2 block">
+                        Frase Completa (na ordem correta)
+                      </label>
+                      <Input
+                        placeholder="Digite a frase completa (ex: What is your name?)"
+                        defaultValue=""
+                        onChange={(e) => {
+                          const sentence = e.target.value;
+                          // Split by spaces, keeping empty array if no input
+                          const words = sentence.trim() === '' ? [] : sentence.trim().split(/\s+/);
+                          const newOptions = words.map((word, index) => ({
+                            text: word,
+                            is_correct: false,
+                            order: index
+                          }));
+                          setCurrentChallenge(prev => ({
+                            ...prev,
+                            options: newOptions
+                          }));
+                        }}
+                        className="bg-customgreys-primarybg border-customgreys-darkerGrey text-white"
+                      />
+                    </div>
+
                     {/* Preview das palavras */}
                     {currentChallenge.options.length > 0 && (
                       <div className="mt-3">
@@ -1675,10 +2783,23 @@ export default function ChallengeConstructor({ course, onBack }: ChallengeConstr
                         </p>
                       </div>
                     )}
-                    
+
                     <p className="text-customgreys-dirtyGrey text-xs mt-2">
                       💡 <strong>Como funciona:</strong> Digite a frase completa acima usando ESPAÇOS entre as palavras. O sistema separará automaticamente as palavras e as embaralhará para o aluno ordenar.
                     </p>
+
+                    {/* Preview completo */}
+                    {currentChallenge.instruction && currentChallenge.options.length > 0 && (
+                      <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+                        <p className="text-green-300 text-sm font-medium mb-2">✅ Preview do exercício:</p>
+                        <p className="text-green-200 text-sm mb-1">
+                          <strong>Instrução:</strong> {currentChallenge.instruction}
+                        </p>
+                        <p className="text-green-200 text-sm">
+                          <strong>Pergunta:</strong> {currentChallenge.question || '(adicione na pergunta acima)'}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -1879,16 +3000,20 @@ export default function ChallengeConstructor({ course, onBack }: ChallengeConstr
                 <Button
                   onClick={saveChallenge}
                   disabled={!currentChallenge.question.trim() || loading}
-                  className="w-full bg-violet-600 hover:bg-violet-700 disabled:opacity-50"
+                  className={`w-full disabled:opacity-50 ${
+                    editingChallengeId
+                      ? 'bg-blue-600 hover:bg-blue-700'
+                      : 'bg-violet-600 hover:bg-violet-700'
+                  }`}
                 >
                   {loading ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Salvando...
+                      {editingChallengeId ? 'Atualizando...' : 'Salvando...'}
                     </>
                   ) : (
                     <>
-                      Salvar Desafio
+                      {editingChallengeId ? 'Salvar Alterações' : 'Salvar Desafio'}
                       <Check className="w-4 h-4 ml-2" />
                     </>
                   )}
@@ -1995,7 +3120,7 @@ export default function ChallengeConstructor({ course, onBack }: ChallengeConstr
                       {selectedLesson.title}
                     </h3>
                     <p className="text-customgreys-dirtyGrey text-sm">
-                      {challenges.length} desafio{challenges.length !== 1 ? 's' : ''} criado{challenges.length !== 1 ? 's' : ''}
+                      {lessonDetails?.challenges?.length || 0} desafio{(lessonDetails?.challenges?.length || 0) !== 1 ? 's' : ''} criado{(lessonDetails?.challenges?.length || 0) !== 1 ? 's' : ''}
                     </p>
                     <div className="mt-2 text-xs text-violet-300">
                       💡 Recomendação: 8-12 desafios por lição para melhor experiência
@@ -2005,8 +3130,166 @@ export default function ChallengeConstructor({ course, onBack }: ChallengeConstr
               </CardContent>
             </Card>
           )}
+
+          {/* Existing Challenges List */}
+          {selectedLesson && (
+            <Card className="bg-customgreys-secondarybg border-customgreys-darkerGrey">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-white flex items-center gap-2 text-base">
+                  <CheckCircle className="w-5 h-5 text-green-400" />
+                  Desafios Existentes {!isLoadingLessonDetails && lessonDetails?.challenges ? `(${lessonDetails.challenges.length})` : ''}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="max-h-[400px] overflow-y-auto">
+                {isLoadingLessonDetails ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-violet-400"></div>
+                    <span className="ml-2 text-customgreys-dirtyGrey">Carregando desafios...</span>
+                  </div>
+                ) : lessonDetails?.challenges && lessonDetails.challenges.length > 0 ? (
+                  <div className="space-y-2">
+                    {lessonDetails.challenges.map((challenge: any, index: number) => (
+                      <div
+                        key={challenge.id}
+                        className="p-3 bg-customgreys-primarybg rounded-lg border border-customgreys-darkerGrey hover:border-violet-500/50 transition-colors"
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="flex-shrink-0 w-6 h-6 bg-violet-600/20 rounded-full flex items-center justify-center">
+                            <span className="text-violet-400 text-xs font-bold">{challenge.order || index + 1}</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <Badge
+                                variant="outline"
+                                className={`text-xs ${
+                                  challenge.type === 'SELECT' ? 'text-blue-400 border-blue-400/30' :
+                                  challenge.type === 'FILL_BLANK' ? 'text-yellow-400 border-yellow-400/30' :
+                                  challenge.type === 'TRANSLATION' ? 'text-green-400 border-green-400/30' :
+                                  challenge.type === 'LISTENING' ? 'text-purple-400 border-purple-400/30' :
+                                  challenge.type === 'SPEAKING' ? 'text-pink-400 border-pink-400/30' :
+                                  challenge.type === 'MATCH_PAIRS' ? 'text-orange-400 border-orange-400/30' :
+                                  challenge.type === 'SENTENCE_ORDER' ? 'text-cyan-400 border-cyan-400/30' :
+                                  challenge.type === 'TRUE_FALSE' ? 'text-red-400 border-red-400/30' :
+                                  'text-gray-400 border-gray-400/30'
+                                }`}
+                              >
+                                {challenge.type === 'SELECT' ? 'Múltipla Escolha' :
+                                 challenge.type === 'FILL_BLANK' ? 'Completar' :
+                                 challenge.type === 'TRANSLATION' ? 'Tradução' :
+                                 challenge.type === 'LISTENING' ? 'Auditivo' :
+                                 challenge.type === 'SPEAKING' ? 'Pronúncia' :
+                                 challenge.type === 'MATCH_PAIRS' ? 'Pares' :
+                                 challenge.type === 'SENTENCE_ORDER' ? 'Ordenar' :
+                                 challenge.type === 'TRUE_FALSE' ? 'V/F' :
+                                 challenge.type}
+                              </Badge>
+                            </div>
+                            <p className="text-white text-sm truncate" title={challenge.question}>
+                              {challenge.question.length > 50
+                                ? `${challenge.question.substring(0, 50)}...`
+                                : challenge.question}
+                            </p>
+                            {challenge.instruction && (
+                              <p className="text-customgreys-dirtyGrey text-xs mt-1 truncate" title={challenge.instruction}>
+                                📋 {challenge.instruction.length > 40
+                                  ? `${challenge.instruction.substring(0, 40)}...`
+                                  : challenge.instruction}
+                              </p>
+                            )}
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => loadChallengeForEdit(challenge)}
+                            className="flex-shrink-0 h-8 w-8 p-0 text-blue-400 hover:text-blue-300 hover:bg-blue-500/20"
+                            title="Editar desafio"
+                          >
+                            <Edit3 className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => openDeleteModal({ id: challenge.id, question: challenge.question })}
+                            className="flex-shrink-0 h-8 w-8 p-0 text-red-400 hover:text-red-300 hover:bg-red-500/20"
+                            title="Eliminar desafio"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-6">
+                    <CheckCircle className="w-10 h-10 text-customgreys-dirtyGrey mx-auto mb-2" />
+                    <p className="text-customgreys-dirtyGrey text-sm">
+                      Nenhum desafio criado ainda
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
+        <DialogContent className="bg-customgreys-secondarybg border-customgreys-darkerGrey max-w-md">
+          <DialogHeader>
+            <div className="flex items-center justify-center mb-4">
+              <div className="p-3 bg-red-500/20 rounded-full">
+                <Trash2 className="w-8 h-8 text-red-400" />
+              </div>
+            </div>
+            <DialogTitle className="text-center text-white text-xl">
+              Eliminar Desafio
+            </DialogTitle>
+            <DialogDescription className="text-center text-customgreys-dirtyGrey">
+              Tem certeza que deseja eliminar este desafio? Esta ação não pode ser desfeita.
+            </DialogDescription>
+          </DialogHeader>
+
+          {challengeToDelete && (
+            <div className="p-3 bg-customgreys-primarybg rounded-lg border border-customgreys-darkerGrey my-2">
+              <p className="text-white text-sm truncate">
+                {challengeToDelete.question.length > 80
+                  ? `${challengeToDelete.question.substring(0, 80)}...`
+                  : challengeToDelete.question}
+              </p>
+            </div>
+          )}
+
+          <DialogFooter className="flex flex-col gap-2 sm:flex-row sm:justify-center mt-4">
+            <Button
+              variant="outline"
+              onClick={() => setDeleteModalOpen(false)}
+              disabled={isDeleting}
+              className="w-full sm:w-auto bg-customgreys-primarybg border-customgreys-darkerGrey text-white hover:bg-customgreys-darkerGrey"
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteChallenge}
+              disabled={isDeleting}
+              className="w-full sm:w-auto bg-red-600 hover:bg-red-700"
+            >
+              {isDeleting ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Eliminando...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Eliminar
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

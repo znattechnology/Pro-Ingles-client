@@ -10,7 +10,11 @@ import AITutorDemo from "@/components/AITutorDemo";
 
 const Hero = () => {
   const handlePlayDemo = () => {
-    console.log("Demo button clicked");
+    // Scroll to practice lab section for demo
+    const element = document.getElementById('practice-lab');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   const stats = [
@@ -69,8 +73,8 @@ const Hero = () => {
               transition={{ delay: 0.4 }}
             >
               <p className="text-xl lg:text-2xl text-gray-300 leading-relaxed max-w-2xl">
-              A única plataforma que combina <strong className="text-white">IA Personal Tutor</strong> com 
-              <strong className="text-violet-300"> Practice Lab exclusivo</strong> para setores como petróleo, bancos e TI. 
+              A única plataforma que combina <strong className="text-white">IA Personal Tutor</strong> com
+              <strong className="text-violet-300"> English Practice Lab exclusivo</strong> para setores como petróleo, bancos e TI.
               Preços em AOA, conteúdo adaptado para Angola.
               </p>
             </motion.div>

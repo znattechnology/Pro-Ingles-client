@@ -119,10 +119,10 @@ const MyCoursesPage = () => {
             const apiUrl = `${process.env.NEXT_PUBLIC_DJANGO_API_URL}/courses/users/${user.id}/progress/${course.id}/`;
             console.log(`Fetching progress from: ${apiUrl}`);
             
-            // Buscar progresso real da API Django
+            // Buscar progresso real da API Django (using HttpOnly cookies)
             const response = await fetch(apiUrl, {
+              credentials: 'include',
               headers: {
-                'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
                 'Content-Type': 'application/json',
               },
             });

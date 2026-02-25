@@ -354,11 +354,11 @@ export const uploadCourseImage = async (
   imageFile: File
 ): Promise<string> => {
   try {
-    console.log('🖼️ Starting course image upload...', { 
-      courseId, 
+    console.log('🖼️ Starting course image upload...', {
+      courseId,
       fileName: imageFile.name,
       fileType: imageFile.type,
-      size: imageFile.size 
+      size: imageFile.size
     });
 
     // Step 1: Get presigned URL from Django backend
@@ -367,9 +367,9 @@ export const uploadCourseImage = async (
       {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // Sends HttpOnly cookies automatically
         body: JSON.stringify({
           fileName: imageFile.name,
           fileType: imageFile.type,
@@ -410,9 +410,9 @@ export const uploadCourseImage = async (
       {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // Sends HttpOnly cookies automatically
         body: JSON.stringify({
           imageUrl: imageUrl,
         }),
@@ -431,6 +431,60 @@ export const uploadCourseImage = async (
   } catch (error: any) {
     console.error('❌ Course image upload failed:', error);
     toast.error(error.message || 'Erro ao fazer upload da imagem');
+    throw error;
+  }
+};
+
+// Upload user avatar to S3 using presigned URL (same pattern as course image)
+export const uploadAvatarToS3 = async (
+  imageFile: File
+): Promise<string> => {
+  try {
+    // Step 1: Get presigned URL from Django backend
+    const uploadUrlResponse = await fetch(
+      `${process.env.NEXT_PUBLIC_DJANGO_API_URL}/users/get-avatar-upload-url/`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // Sends HttpOnly cookies automatically
+        body: JSON.stringify({
+          fileName: imageFile.name,
+          fileType: imageFile.type,
+          timestamp: Date.now(), // Prevent caching
+        }),
+      }
+    );
+
+    if (!uploadUrlResponse.ok) {
+      const errorData = await uploadUrlResponse.json();
+      throw new Error(errorData.message || 'Erro ao obter URL de upload');
+    }
+
+    const { data } = await uploadUrlResponse.json();
+    const { uploadUrl, avatarUrl } = data;
+
+    // Step 2: Upload file directly to S3 using presigned URL
+    const uploadToS3Response = await fetch(uploadUrl, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': imageFile.type,
+      },
+      body: imageFile,
+    });
+
+    if (!uploadToS3Response.ok) {
+      throw new Error(`Upload failed with status: ${uploadToS3Response.status}`);
+    }
+
+    toast.success('Avatar atualizado com sucesso');
+
+    // Return the avatar URL to be saved in the database by the caller
+    return avatarUrl;
+  } catch (error: any) {
+    console.error('Erro ao fazer upload do avatar:', error);
+    toast.error(error.message || 'Erro ao fazer upload do avatar');
     throw error;
   }
 };

@@ -62,16 +62,18 @@ export const ERROR_MESSAGES = {
 // BASE SCHEMAS - Reutilizáveis
 // =============================================
 
+// ✅ CATEGORIA 2: Título com limite generoso sincronizado (500 chars)
 export const titleSchema = z
   .string({ required_error: ERROR_MESSAGES.REQUIRED })
   .min(3, ERROR_MESSAGES.MIN_LENGTH(3))
-  .max(200, ERROR_MESSAGES.MAX_LENGTH(200))
+  .max(500, ERROR_MESSAGES.MAX_LENGTH(500))  // Aumentado de 200 → 500
   .trim();
 
+// ✅ CATEGORIA 1: Descrição sem limite (conteúdo longo)
 export const descriptionSchema = z
   .string({ required_error: ERROR_MESSAGES.REQUIRED })
   .min(10, ERROR_MESSAGES.MIN_LENGTH(10))
-  .max(1000, ERROR_MESSAGES.MAX_LENGTH(1000))
+  .max(1_000_000, ERROR_MESSAGES.MAX_LENGTH(1_000_000))  // Anti-spam (era 1000)
   .trim();
 
 export const emailSchema = z
@@ -107,21 +109,24 @@ export const templateSchema = z
 // COURSE SCHEMAS - Específicos para cursos
 // =============================================
 
+// ✅ CATEGORIA 1: Learning objectives - conteúdo longo sem limite
 export const learningObjectiveSchema = z
   .string()
   .min(5, ERROR_MESSAGES.MIN_LENGTH(5))
-  .max(200, ERROR_MESSAGES.MAX_LENGTH(200))
+  .max(1_000_000, ERROR_MESSAGES.MAX_LENGTH(1_000_000))  // Anti-spam (era 200)
   .trim();
 
+// ✅ CATEGORIA 4: Array aumentado para 15 itens (era 10)
 export const learningObjectivesSchema = z
   .array(learningObjectiveSchema)
   .min(1, ERROR_MESSAGES.ARRAY_MIN(1))
-  .max(10, ERROR_MESSAGES.ARRAY_MAX(10));
+  .max(15, ERROR_MESSAGES.ARRAY_MAX(15));
 
+// ✅ CATEGORIA 1: Target audience - conteúdo longo sem limite
 export const targetAudienceSchema = z
   .string({ required_error: ERROR_MESSAGES.REQUIRED })
   .min(10, ERROR_MESSAGES.MIN_LENGTH(10))
-  .max(500, ERROR_MESSAGES.MAX_LENGTH(500))
+  .max(1_000_000, ERROR_MESSAGES.MAX_LENGTH(1_000_000))  // Anti-spam (era 500)
   .trim();
 
 export const heartsSchema = z
@@ -155,16 +160,18 @@ export const passingScoreSchema = z
 // UNIT SCHEMAS - Para unidades de curso
 // =============================================
 
+// ✅ CATEGORIA 2: Unit title com limite generoso sincronizado
 export const unitTitleSchema = z
   .string({ required_error: ERROR_MESSAGES.REQUIRED })
   .min(3, ERROR_MESSAGES.MIN_LENGTH(3))
-  .max(100, ERROR_MESSAGES.MAX_LENGTH(100))
+  .max(500, ERROR_MESSAGES.MAX_LENGTH(500))  // Aumentado de 100 → 500
   .trim();
 
+// ✅ CATEGORIA 1: Unit description - conteúdo longo sem limite
 export const unitDescriptionSchema = z
   .string({ required_error: ERROR_MESSAGES.REQUIRED })
   .min(10, ERROR_MESSAGES.MIN_LENGTH(10))
-  .max(500, ERROR_MESSAGES.MAX_LENGTH(500))
+  .max(1_000_000, ERROR_MESSAGES.MAX_LENGTH(1_000_000))  // Anti-spam (era 500)
   .trim();
 
 export const unitOrderSchema = z
@@ -180,18 +187,21 @@ export const unitOrderSchema = z
 // LESSON SCHEMAS - Para lições
 // =============================================
 
+// ✅ CATEGORIA 2: Lesson title com limite generoso sincronizado
 export const lessonTitleSchema = z
   .string({ required_error: ERROR_MESSAGES.REQUIRED })
   .min(3, ERROR_MESSAGES.MIN_LENGTH(3))
-  .max(150, ERROR_MESSAGES.MAX_LENGTH(150))
+  .max(500, ERROR_MESSAGES.MAX_LENGTH(500))  // Aumentado de 150 → 500
   .trim();
 
+// ✅ CATEGORIA 1: Lesson objectives - conteúdo longo sem limite
 export const lessonObjectiveSchema = z
   .string()
   .min(5, ERROR_MESSAGES.MIN_LENGTH(5))
-  .max(200, ERROR_MESSAGES.MAX_LENGTH(200))
+  .max(1_000_000, ERROR_MESSAGES.MAX_LENGTH(1_000_000))  // Anti-spam (era 200)
   .trim();
 
+// ✅ CATEGORIA 4: Array aumentado para 5 itens (mantido)
 export const lessonObjectivesSchema = z
   .array(lessonObjectiveSchema)
   .min(1, ERROR_MESSAGES.ARRAY_MIN(1))
@@ -233,14 +243,15 @@ export const challengeTypeSchema = z
     invalid_type_error: ERROR_MESSAGES.INVALID_OPTION(VALID_CHALLENGE_TYPES as any)
   });
 
+// ✅ CATEGORIA 1: Challenge question - conteúdo longo sem limite
 export const challengeQuestionSchema = z
   .string({ required_error: ERROR_MESSAGES.REQUIRED })
   .min(5, ERROR_MESSAGES.MIN_LENGTH(5))
-  .max(500, ERROR_MESSAGES.MAX_LENGTH(500))
+  .max(1_000_000, ERROR_MESSAGES.MAX_LENGTH(1_000_000))  // Anti-spam (era 500)
   .trim();
 
 export const challengeOrderSchema = z
-  .number({ 
+  .number({
     required_error: ERROR_MESSAGES.REQUIRED,
     invalid_type_error: 'Deve ser um número'
   })
@@ -248,27 +259,30 @@ export const challengeOrderSchema = z
   .min(1, ERROR_MESSAGES.MIN_VALUE(1))
   .max(50, ERROR_MESSAGES.MAX_VALUE(50));
 
+// ✅ CATEGORIA 3: Hint aumentado para 300 chars (era 200)
 export const challengeHintSchema = z
   .string()
   .min(3, ERROR_MESSAGES.MIN_LENGTH(3))
-  .max(200, ERROR_MESSAGES.MAX_LENGTH(200))
+  .max(300, ERROR_MESSAGES.MAX_LENGTH(300))
   .trim();
 
+// ✅ CATEGORIA 4: Array aumentado para 5 hints (era 3)
 export const challengeHintsSchema = z
   .array(challengeHintSchema)
-  .max(3, ERROR_MESSAGES.ARRAY_MAX(3));
+  .max(5, ERROR_MESSAGES.ARRAY_MAX(5));
 
+// ✅ CATEGORIA 1: Challenge explanation - conteúdo longo sem limite
 export const challengeExplanationSchema = z
   .string()
-  .max(300, ERROR_MESSAGES.MAX_LENGTH(300))
+  .max(1_000_000, ERROR_MESSAGES.MAX_LENGTH(1_000_000))  // Anti-spam (era 300)
   .trim()
   .optional();
 
-// Challenge Option Schemas
+// ✅ CATEGORIA 3: Challenge option text aumentado para 300 chars (era 200)
 export const challengeOptionTextSchema = z
   .string({ required_error: ERROR_MESSAGES.REQUIRED })
   .min(1, ERROR_MESSAGES.MIN_LENGTH(1))
-  .max(200, ERROR_MESSAGES.MAX_LENGTH(200))
+  .max(300, ERROR_MESSAGES.MAX_LENGTH(300))
   .trim();
 
 export const challengeOptionSchema = z.object({

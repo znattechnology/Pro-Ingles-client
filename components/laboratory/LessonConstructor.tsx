@@ -152,13 +152,19 @@ const LESSON_TEMPLATES: LessonTemplate[] = [
 export default function LessonConstructor({ course, onBack }: LessonConstructorProps) {
   // Redux hooks
   const [createPracticeUnit] = useCreateTeacherUnitMutation();
-  const { data: unitsData, isLoading: unitsLoading, refetch: refetchUnits } = useGetCourseUnitsQuery(course.id);
+  // Skip query if course.id is not defined to prevent "undefined" in URL
+  const courseId = course?.id;
+  const { data: unitsData, isLoading: unitsLoading, refetch: refetchUnits } = useGetCourseUnitsQuery(courseId!, {
+    skip: !courseId
+  });
   const [createLesson] = useCreateTeacherLessonMutation();
   
   // State management
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
+  const [isCreatingUnit, setIsCreatingUnit] = useState(false);
+  const [isCreatingLesson, setIsCreatingLesson] = useState(false);
   
   // Get units from Redux - handle the CourseUnitsResponse structure
   const units = unitsData?.units || [];
@@ -188,9 +194,9 @@ export default function LessonConstructor({ course, onBack }: LessonConstructorP
   // Units are loaded automatically by Redux hook
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') {
-      console.log('🔄 LessonConstructor: Units loaded for course:', course.id, '- Count:', units.length);
+      console.log('🔄 LessonConstructor: Units loaded for course:', courseId, '- Count:', units.length);
     }
-  }, [units.length, course.id]);
+  }, [units.length, courseId]);
 
   // =============================================
   // VALIDATION FUNCTIONS
@@ -268,7 +274,7 @@ export default function LessonConstructor({ course, onBack }: LessonConstructorP
       title: newUnitData.title,
       description: newUnitData.description,
       order: newUnitData.order,
-      course: course.id
+      course: courseId
     });
 
     if (!result.success) {
@@ -313,11 +319,20 @@ export default function LessonConstructor({ course, onBack }: LessonConstructorP
 
   // Create new unit
   const handleCreateUnit = async () => {
+    // Validate course ID exists
+    if (!courseId) {
+      laboratoryNotifications.validationError('Erro: ID do curso não encontrado. Por favor, volte e selecione o curso novamente.');
+      console.error('❌ Course ID is undefined or null:', course);
+      return;
+    }
+
     // Validate before creating
     if (!validateFullUnit()) {
       laboratoryNotifications.validationError('Preencha todos os campos obrigatórios da unidade');
       return;
     }
+
+    setIsCreatingUnit(true);
 
     // Use toast.promise for better UX
     const unitCreationPromise = (async () => {
@@ -327,7 +342,7 @@ export default function LessonConstructor({ course, onBack }: LessonConstructorP
       const nextOrder = existingOrders.length > 0 ? Math.max(...existingOrders) + 1 : 1;
       
       const unitData = {
-        course: course.id,
+        course: courseId,
         title: newUnitData.title,
         description: newUnitData.description,
         order: nextOrder
@@ -385,20 +400,26 @@ export default function LessonConstructor({ course, onBack }: LessonConstructorP
       
       // Refetch units from Redux after creating new unit
       await refetchUnits();
-      
+
       setNewUnitData({ title: '', description: '', order: 1 });
       setUnitValidationErrors({});
       setUnitFieldTouched({});
-      setCurrentStep(2);
-      
+      // Stay on step 1 to show the new unit in the list
+      // User can then click on the unit to proceed to step 2
+
       return newUnit;
     })();
 
-    await laboratoryNotifications.asyncOperation(
-      unitCreationPromise,
-      'Criando unidade',
-      newUnitData.title
-    );
+    try {
+      const createdUnit = await unitCreationPromise;
+      // Show success toast with the unit name
+      laboratoryNotifications.unitCreated(createdUnit.title || newUnitData.title);
+    } catch (error: any) {
+      // Show error toast
+      laboratoryNotifications.creationError('unidade', error?.data?.detail || error?.message);
+    } finally {
+      setIsCreatingUnit(false);
+    }
   };
 
   // Create new lesson
@@ -414,7 +435,8 @@ export default function LessonConstructor({ course, onBack }: LessonConstructorP
       return;
     }
 
-    // Use toast.promise for better UX
+    setIsCreatingLesson(true);
+
     const lessonCreationPromise = (async () => {
       console.log('🔄 Creating new lesson...');
       console.log('📝 Selected unit:', selectedUnit);
@@ -469,15 +491,20 @@ export default function LessonConstructor({ course, onBack }: LessonConstructorP
       
       setCurrentStep(4); // Move to preview step
       console.log('✅ Local state updated, selectedUnit updated, moved to step 4');
-      
+
       return newLesson;
     })();
 
-    await laboratoryNotifications.asyncOperation(
-      lessonCreationPromise,
-      'Criando lição',
-      newLessonData.title
-    );
+    try {
+      const createdLesson = await lessonCreationPromise;
+      // Show success toast with the lesson name
+      laboratoryNotifications.lessonCreated(createdLesson.title || newLessonData.title);
+    } catch (error: any) {
+      // Show error toast
+      laboratoryNotifications.creationError('lição', error?.data?.detail || error?.message);
+    } finally {
+      setIsCreatingLesson(false);
+    }
   };
 
   const addObjective = () => {
@@ -655,11 +682,20 @@ export default function LessonConstructor({ course, onBack }: LessonConstructorP
                     )}
                     <Button
                       onClick={handleCreateUnit}
-                      disabled={!newUnitData.title.trim() || loading}
+                      disabled={!newUnitData.title.trim() || loading || isCreatingUnit}
                       className="w-full bg-violet-600 hover:bg-violet-700"
                     >
-                      <Plus className="w-4 h-4 mr-2" />
-                      Criar Unidade
+                      {isCreatingUnit ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          Criando Unidade...
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="w-4 h-4 mr-2" />
+                          Criar Unidade
+                        </>
+                      )}
                     </Button>
                   </div>
                 </div>
@@ -856,10 +892,10 @@ export default function LessonConstructor({ course, onBack }: LessonConstructorP
 
                 <Button
                   onClick={handleCreateLesson}
-                  disabled={!newLessonData.selectedTemplate || loading}
+                  disabled={!newLessonData.selectedTemplate || isCreatingLesson}
                   className="w-full bg-violet-600 hover:bg-violet-700"
                 >
-                  {loading ? (
+                  {isCreatingLesson ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                       Criando Lição...

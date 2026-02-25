@@ -2,6 +2,11 @@
 
 import { useDjangoAuth } from "@/hooks/useDjangoAuth";
 import { useUpdateProfileMutation } from "@/src/domains/auth";
+import { teacherProfileSchema } from "@/lib/schemas/profile.schema";
+import { getInitials, formatJoinDate } from "@/lib/profile.utils";
+import { useAvatarUpload } from "@/hooks/useAvatarUpload";
+import { useProfileForm } from "@/hooks/useProfileForm";
+import { useProfileUpdate } from "@/hooks/useProfileUpdate";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -53,64 +58,41 @@ const TeacherProfilePage = () => {
   const [updateProfile, { isLoading: isUpdating }] = useUpdateProfileMutation();
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
-  
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    bio: '',
-    location: '',
-    specialization: '',
-    experience: '',
+
+  // Custom hooks for form handling
+  const {
+    register,
+    handleSubmit: handleFormSubmit,
+    formState: { errors },
+    reset,
+    formValues,
+  } = useProfileForm({
+    schema: teacherProfileSchema,
+    user,
   });
 
-  useEffect(() => {
-    if (user) {
-      setFormData({
-        name: user.name || '',
-        email: user.email || '',
-        phone: (user as any).phone || '',
-        bio: (user as any).bio || '',
-        location: (user as any).location || '',
-        specialization: (user as any).specialization || '',
-        experience: (user as any).experience || '',
-      });
-    }
-  }, [user]);
+  // Custom hook for avatar upload
+  const {
+    avatarFile,
+    avatarPreview,
+    isUploading,
+    handleAvatarChange,
+    clearAvatarState,
+    setIsUploading,
+  } = useAvatarUpload(() => setIsEditing(true));
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    try {
-      await updateProfile(formData).unwrap();
-      toast.success('Perfil atualizado com sucesso!');
-      setIsEditing(false);
-    } catch (error: any) {
-      toast.error(error?.data?.message || 'Erro ao atualizar perfil');
-    }
-  };
-
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(n => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
-  const joinDate = new Date().toLocaleDateString('pt-BR', {
-    year: 'numeric',
-    month: 'long'
+  // Custom hook for profile update/form submission
+  const { onSubmit, loadingStep, loadingMessage } = useProfileUpdate({
+    updateProfileMutation: updateProfile,
+    isUploading,
+    setIsUploading,
+    avatarFile,
+    setIsEditing,
+    clearAvatarState,
   });
+
+  // Format join date
+  const joinDate = formatJoinDate();
 
   // Mock data for statistics
   const teacherStats = {
@@ -241,24 +223,42 @@ const TeacherProfilePage = () => {
               <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
                 {/* Avatar Section */}
                 <div className="relative group/avatar">
+                  {/* Hidden file input */}
+                  <input
+                    id="avatar-upload-input"
+                    type="file"
+                    accept="image/jpeg,image/png,image/jpg,image/webp"
+                    className="hidden"
+                    onChange={handleAvatarChange}
+                  />
+
                   <motion.div
                     whileHover={{ scale: 1.05, rotate: 5 }}
                     transition={{ duration: 0.3 }}
                   >
                     <Avatar className="w-32 h-32 md:w-40 md:h-40 border-4 border-emerald-500/50 shadow-2xl shadow-emerald-500/25">
-                      <AvatarImage src={user?.avatar} alt={user?.name} />
+                      <AvatarImage src={avatarPreview || user?.avatar} alt={user?.name} />
                       <AvatarFallback className="bg-gradient-to-br from-emerald-600 to-teal-600 text-white text-3xl font-bold">
                         {getInitials(user?.name || 'P')}
                       </AvatarFallback>
                     </Avatar>
                   </motion.div>
-                  <motion.button 
+                  <motion.button
+                    type="button"
+                    onClick={() => document.getElementById('avatar-upload-input')?.click()}
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.95 }}
-                    className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-200 flex items-center justify-center"
+                    className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-200 flex items-center justify-center cursor-pointer"
                   >
                     <Camera className="w-8 h-8 text-white" />
                   </motion.button>
+
+                  {/* Upload indicator */}
+                  {isUploading && (
+                    <div className="absolute inset-0 bg-black/70 rounded-full flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-emerald-400 border-r-2"></div>
+                    </div>
+                  )}
                 </div>
                 
                 {/* User Info */}
@@ -281,7 +281,14 @@ const TeacherProfilePage = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setIsEditing(!isEditing)}
+                        onClick={() => {
+                          if (isEditing) {
+                            // When canceling, clear avatar selection and reset form
+                            clearAvatarState();
+                            reset();
+                          }
+                          setIsEditing(!isEditing);
+                        }}
                         className="bg-emerald-500/10 border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/20 hover:border-emerald-500/50 transition-all duration-300"
                       >
                         <Edit3 className="w-4 h-4 mr-2" />
@@ -304,6 +311,22 @@ const TeacherProfilePage = () => {
                       <span className="text-sm">Membro desde {joinDate}</span>
                     </motion.div>
                   </div>
+
+                  {/* File selected indicator */}
+                  {avatarFile && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mb-4 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-center"
+                    >
+                      <p className="text-sm text-emerald-300 flex items-center justify-center gap-2">
+                        <Camera className="w-4 h-4" />
+                        <span className="font-medium">{avatarFile.name}</span>
+                        <span className="text-gray-400">({(avatarFile.size / 1024).toFixed(0)} KB)</span>
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">Clique em "Salvar Alterações" para confirmar</p>
+                    </motion.div>
+                  )}
 
                   {/* Quick Stats */}
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -382,91 +405,110 @@ const TeacherProfilePage = () => {
                     </CardHeader>
                     <CardContent className="space-y-4">
                       {isEditing ? (
-                        <form onSubmit={handleSubmit} className="space-y-4">
+                        <form
+                          onSubmit={handleFormSubmit(onSubmit)}
+                          className="space-y-4"
+                        >
                           <div className="space-y-2">
                             <Label htmlFor="name" className="text-white">Nome Completo</Label>
                             <Input
                               id="name"
-                              name="name"
-                              value={formData.name}
-                              onChange={handleInputChange}
+                              {...register('name')}
                               className="bg-customgreys-primarybg/50 border-emerald-500/30 text-white focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 transition-all duration-300"
-                              required
                             />
+                            {errors.name && (
+                              <p className="text-sm text-red-400 mt-1">{errors.name.message}</p>
+                            )}
                           </div>
                           
                           <div className="space-y-2">
                             <Label htmlFor="phone" className="text-white">Telefone</Label>
                             <Input
                               id="phone"
-                              name="phone"
-                              value={formData.phone}
-                              onChange={handleInputChange}
+                              {...register('phone')}
                               className="bg-customgreys-primarybg/50 border-emerald-500/30 text-white focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 transition-all duration-300"
-                              placeholder="(11) 99999-9999"
+                              placeholder="+244912345678"
                             />
+                            {errors.phone && (
+                              <p className="text-sm text-red-400 mt-1">{errors.phone.message}</p>
+                            )}
                           </div>
-                          
+
                           <div className="space-y-2">
                             <Label htmlFor="location" className="text-white">Localização</Label>
                             <Input
                               id="location"
-                              name="location"
-                              value={formData.location}
-                              onChange={handleInputChange}
+                              {...register('location')}
                               className="bg-customgreys-primarybg/50 border-emerald-500/30 text-white focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 transition-all duration-300"
                               placeholder="Cidade, Estado"
                             />
+                            {errors.location && (
+                              <p className="text-sm text-red-400 mt-1">{errors.location.message}</p>
+                            )}
                           </div>
-                          
+
                           <div className="space-y-2">
                             <Label htmlFor="specialization" className="text-white">Especialização</Label>
                             <Input
                               id="specialization"
-                              name="specialization"
-                              value={formData.specialization}
-                              onChange={handleInputChange}
+                              {...register('specialization')}
                               className="bg-customgreys-primarybg/50 border-emerald-500/30 text-white focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 transition-all duration-300"
                               placeholder="Ex: Inglês Avançado, Business English"
                             />
+                            {errors.specialization && (
+                              <p className="text-sm text-red-400 mt-1">{errors.specialization.message}</p>
+                            )}
                           </div>
-                          
+
                           <div className="space-y-2">
                             <Label htmlFor="experience" className="text-white">Experiência</Label>
                             <Input
                               id="experience"
-                              name="experience"
-                              value={formData.experience}
-                              onChange={handleInputChange}
+                              {...register('experience')}
                               className="bg-customgreys-primarybg/50 border-emerald-500/30 text-white focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 transition-all duration-300"
                               placeholder="Ex: 5 anos ensinando inglês"
                             />
+                            {errors.experience && (
+                              <p className="text-sm text-red-400 mt-1">{errors.experience.message}</p>
+                            )}
                           </div>
-                          
+
                           <div className="space-y-2">
                             <Label htmlFor="bio" className="text-white">Biografia</Label>
                             <textarea
                               id="bio"
-                              name="bio"
-                              value={formData.bio}
-                              onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
+                              {...register('bio')}
                               className="w-full min-h-[100px] p-3 bg-customgreys-primarybg/50 border border-emerald-500/30 rounded-md text-white placeholder:text-gray-400 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 transition-all duration-300"
                               placeholder="Conte sobre sua experiência como professor..."
                             />
+                            {errors.bio && (
+                              <p className="text-sm text-red-400 mt-1">{errors.bio.message}</p>
+                            )}
                           </div>
                           
                           <div className="flex gap-2">
                             <Button
                               type="submit"
-                              disabled={isUpdating}
-                              className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg transition-all duration-300"
+                              disabled={isUploading}
+                              className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                              {isUpdating ? 'Salvando...' : 'Salvar Alterações'}
+                              {isUploading ? (
+                                <span className="flex items-center gap-2">
+                                  <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-white border-r-2"></div>
+                                  {loadingMessage || 'Processando...'}
+                                </span>
+                              ) : (
+                                'Salvar Alterações'
+                              )}
                             </Button>
                             <Button
                               type="button"
                               variant="outline"
-                              onClick={() => setIsEditing(false)}
+                              onClick={() => {
+                                setIsEditing(false);
+                                clearAvatarState();
+                                reset();
+                              }}
                               className="border-gray-600 text-gray-400 hover:bg-gray-800"
                             >
                               Cancelar
@@ -476,11 +518,11 @@ const TeacherProfilePage = () => {
                       ) : (
                         <div className="space-y-4">
                           {[
-                            { icon: User, label: 'Nome', value: formData.name },
-                            { icon: Phone, label: 'Telefone', value: formData.phone },
-                            { icon: MapPin, label: 'Localização', value: formData.location },
-                            { icon: Briefcase, label: 'Especialização', value: formData.specialization },
-                            { icon: Award, label: 'Experiência', value: formData.experience }
+                            { icon: User, label: 'Nome', value: formValues.name },
+                            { icon: Phone, label: 'Telefone', value: formValues.phone },
+                            { icon: MapPin, label: 'Localização', value: formValues.location },
+                            { icon: Briefcase, label: 'Especialização', value: formValues.specialization },
+                            { icon: Award, label: 'Experiência', value: formValues.experience }
                           ].map((item, index) => (
                             <motion.div
                               key={item.label}
@@ -496,7 +538,7 @@ const TeacherProfilePage = () => {
                               </div>
                             </motion.div>
                           ))}
-                          {formData.bio && (
+                          {formValues.bio && (
                             <motion.div
                               initial={{ opacity: 0, y: 10 }}
                               animate={{ opacity: 1, y: 0 }}
@@ -505,7 +547,7 @@ const TeacherProfilePage = () => {
                             >
                               <Label className="text-emerald-400 text-sm font-medium">Biografia</Label>
                               <p className="text-gray-300 text-sm leading-relaxed">
-                                {formData.bio}
+                                {formValues.bio}
                               </p>
                             </motion.div>
                           )}
@@ -640,7 +682,7 @@ const TeacherProfilePage = () => {
                       { label: 'Taxa de Conclusão', value: `${teacherStats.completionRate}%`, color: 'text-green-400' },
                       { label: 'Engajamento', value: `${teacherStats.engagement}%`, color: 'text-blue-400' },
                       { label: 'Horas Totais', value: `${teacherStats.totalHours}h`, color: 'text-purple-400' }
-                    ].map((metric, index) => (
+                    ].map((metric) => (
                       <div key={metric.label} className="flex justify-between items-center">
                         <span className="text-gray-300">{metric.label}</span>
                         <span className={`font-bold ${metric.color}`}>{metric.value}</span>

@@ -3,6 +3,11 @@
 import Header from "@/components/course/Header";
 import { useDjangoAuth } from "@/hooks/useDjangoAuth";
 import { useUpdateProfileMutation } from "@/src/domains/auth";
+import { studentProfileSchema } from "@/lib/schemas/profile.schema";
+import { getInitials, formatJoinDate } from "@/lib/profile.utils";
+import { useAvatarUpload } from "@/hooks/useAvatarUpload";
+import { useProfileForm } from "@/hooks/useProfileForm";
+import { useProfileUpdate } from "@/hooks/useProfileUpdate";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,11 +18,6 @@ import { Separator } from "@/components/ui/separator";
 import React, { useState, useEffect } from "react";
 import Loading from "@/components/course/Loading";
 import { toast } from "react-hot-toast";
-// Progress APIs
-import { useGetStudentProgressQuery } from "@/src/domains/student/practice-courses/api/studentPracticeApiSlice";
-import { useGetMyVideoEnrollmentsQuery } from "@/src/domains/student/video-courses/api/studentVideoCourseApiSlice";
-import { useGetUserAchievementsQuery, useGetAchievementStatsQuery } from "@/src/domains/student/achievements/api/studentAchievementsApiSlice";
-import { Progress } from "@/components/ui/progress";
 import { 
   User, 
   Mail, 
@@ -31,8 +31,7 @@ import {
   BookOpen, 
   Target,
   Trophy,
-  Activity,
-  Star
+  Activity
 } from "lucide-react";
 
 const UserProfilePage = () => {
@@ -40,127 +39,41 @@ const UserProfilePage = () => {
   const [updateProfile, { isLoading: isUpdating }] = useUpdateProfileMutation();
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
-  
-  // Progress data from APIs
-  const { data: studentProgress, isLoading: progressLoading } = useGetStudentProgressQuery();
-  const { data: videoCoursesResponse, isLoading: coursesLoading } = useGetMyVideoEnrollmentsQuery(
-    user?.id || '', { skip: !user?.id }
-  );
-  
-  // Achievements data from APIs
-  const { data: achievements, isLoading: achievementsLoading } = useGetUserAchievementsQuery();
-  const { data: achievementStats, isLoading: achievementStatsLoading } = useGetAchievementStatsQuery();
-  
-  // Extract enrolled courses from response
-  const enrolledCourses = videoCoursesResponse?.data || [];
-  
-  // Debug logging for development
-  if (process.env.NODE_ENV === 'development') {
-    console.log('🔍 Profile Debug:', {
-      user: user?.id,
-      videoCoursesResponse,
-      enrolledCourses,
-      coursesLoading,
-      studentProgress,
-      achievements,
-      achievementStats,
-      achievementsLoading
-    });
-    
-    // Log detailed enrollment structure
-    if (enrolledCourses?.length > 0) {
-      console.log('📊 First enrollment structure:', enrolledCourses[0]);
-      console.log('📊 Available date fields:', {
-        enrolled_at: enrolledCourses[0]?.enrolled_at,
-        created_at: enrolledCourses[0]?.created_at,
-        enrollment_date: enrolledCourses[0]?.enrollment_date,
-        updated_at: enrolledCourses[0]?.updated_at
-      });
-    }
-    
-    // Log achievements structure
-    if (achievements && achievements.length > 0) {
-      console.log('🏆 Achievements structure:', achievements[0]);
-      console.log('🏆 Achievement stats:', achievementStats);
-    }
-  }
-  
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    bio: '',
-    location: '',
+
+  // Custom hooks for form handling
+  const {
+    register,
+    handleSubmit: handleFormSubmit,
+    formState: { errors },
+    reset,
+    formValues,
+  } = useProfileForm({
+    schema: studentProfileSchema,
+    user,
   });
 
-  useEffect(() => {
-    if (user) {
-      setFormData({
-        name: user.name || '',
-        email: user.email || '',
-        phone: (user as any).phone || '',
-        bio: (user as any).bio || '',
-        location: (user as any).location || '',
-      });
-    }
-  }, [user]);
+  // Custom hook for avatar upload
+  const {
+    avatarFile,
+    avatarPreview,
+    isUploading,
+    handleAvatarChange,
+    clearAvatarState,
+    setIsUploading,
+  } = useAvatarUpload(() => setIsEditing(true));
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    try {
-      await updateProfile(formData).unwrap();
-      toast.success('Perfil atualizado com sucesso!');
-      setIsEditing(false);
-    } catch (error: any) {
-      toast.error(error?.data?.message || 'Erro ao atualizar perfil');
-    }
-  };
-
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(n => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
-  const formatEnrollmentDate = (enrollment: any) => {
-    const dateFields = ['enrolled_at', 'created_at', 'enrollment_date', 'date_joined'];
-    
-    for (const field of dateFields) {
-      if (enrollment[field]) {
-        try {
-          const date = new Date(enrollment[field]);
-          if (!isNaN(date.getTime())) {
-            return date.toLocaleDateString('pt-BR', {
-              day: '2-digit',
-              month: '2-digit', 
-              year: 'numeric'
-            });
-          }
-        } catch (error) {
-          console.warn(`Erro ao formatar data ${field}:`, enrollment[field]);
-        }
-      }
-    }
-    
-    return 'Data não disponível';
-  };
-
-  const joinDate = new Date().toLocaleDateString('pt-BR', {
-    year: 'numeric',
-    month: 'long'
+  // Custom hook for profile update/form submission
+  const { onSubmit, loadingStep, loadingMessage } = useProfileUpdate({
+    updateProfileMutation: updateProfile,
+    isUploading,
+    setIsUploading,
+    avatarFile,
+    setIsEditing,
+    clearAvatarState,
   });
+
+  // Format join date
+  const joinDate = formatJoinDate();
 
   if (isLoading) return <Loading />;
   if (!isAuthenticated || !user) return <div>Faça login para visualizar o seu perfil.</div>;
@@ -169,6 +82,15 @@ const UserProfilePage = () => {
     <>
       <Header title="Perfil do Estudante" subtitle="Gerencie suas informações pessoais e configurações" />
       <div className="max-w-6xl mx-auto p-4 md:p-6 space-y-8">
+        {/* Hidden file input for avatar upload */}
+        <input
+          id="avatar-upload-input"
+          type="file"
+          accept="image/jpeg,image/png,image/jpg,image/webp"
+          className="hidden"
+          onChange={handleAvatarChange}
+        />
+
         {/* Profile Header Card */}
         <Card className="bg-gradient-to-r from-violet-900/20 via-purple-900/20 to-violet-900/20 border-violet-900/30 backdrop-blur-sm">
           <CardContent className="p-6">
@@ -176,14 +98,26 @@ const UserProfilePage = () => {
               {/* Avatar Section */}
               <div className="relative group">
                 <Avatar className="w-24 h-24 md:w-32 md:h-32 border-4 border-violet-500/50 shadow-xl">
-                  <AvatarImage src={user?.avatar} alt={user?.name} />
+                  <AvatarImage src={avatarPreview || user?.avatar} alt={user?.name} />
                   <AvatarFallback className="bg-gradient-to-br from-violet-600 to-purple-600 text-white text-2xl font-bold">
                     {getInitials(user?.name || 'U')}
                   </AvatarFallback>
                 </Avatar>
-                <button className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+                <button
+                  type="button"
+                  onClick={() => document.getElementById('avatar-upload-input')?.click()}
+                  className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center cursor-pointer"
+                  disabled={isUploading}
+                >
                   <Camera className="w-6 h-6 text-white" />
                 </button>
+
+                {/* Upload indicator */}
+                {isUploading && (
+                  <div className="absolute inset-0 bg-black/70 rounded-full flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-violet-400 border-r-2"></div>
+                  </div>
+                )}
               </div>
               
               {/* User Info */}
@@ -193,7 +127,14 @@ const UserProfilePage = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setIsEditing(!isEditing)}
+                    onClick={() => {
+                      setIsEditing(!isEditing);
+                      if (isEditing) {
+                        // Clear avatar states and reset form on cancel
+                        clearAvatarState();
+                        reset();
+                      }
+                    }}
                     className="border-violet-500 text-violet-400 hover:bg-violet-500 hover:text-white transition-colors"
                   >
                     <Edit3 className="w-4 h-4 mr-2" />
@@ -217,6 +158,18 @@ const UserProfilePage = () => {
                     <span className="text-sm">Membro desde {joinDate}</span>
                   </div>
                 </div>
+
+                {/* Avatar file selected indicator */}
+                {avatarFile && !isUploading && (
+                  <div className="mt-4 p-3 bg-violet-900/30 border border-violet-500/30 rounded-lg">
+                    <p className="text-sm text-violet-300 flex items-center justify-center md:justify-start gap-2">
+                      <Camera className="w-4 h-4" />
+                      <span className="font-medium">{avatarFile.name}</span>
+                      <span className="text-gray-400">({(avatarFile.size / 1024).toFixed(0)} KB)</span>
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1 text-center md:text-left">Clique em "Salvar Alterações" para confirmar</p>
+                  </div>
+                )}
               </div>
             </div>
           </CardContent>
@@ -256,67 +209,81 @@ const UserProfilePage = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {isEditing ? (
-                    <form onSubmit={handleSubmit} className="space-y-4">
+                    <form onSubmit={handleFormSubmit(onSubmit)} className="space-y-4">
                       <div className="space-y-2">
                         <Label htmlFor="name" className="text-white">Nome Completo</Label>
                         <Input
                           id="name"
-                          name="name"
-                          value={formData.name}
-                          onChange={handleInputChange}
+                          {...register('name')}
                           className="bg-customgreys-primarybg border-violet-900/30 text-white"
-                          required
                         />
+                        {errors.name && (
+                          <p className="text-sm text-red-400 mt-1">{errors.name.message}</p>
+                        )}
                       </div>
                       
                       <div className="space-y-2">
                         <Label htmlFor="phone" className="text-white">Telefone</Label>
                         <Input
                           id="phone"
-                          name="phone"
-                          value={formData.phone}
-                          onChange={handleInputChange}
+                          {...register('phone')}
                           className="bg-customgreys-primarybg border-violet-900/30 text-white"
-                          placeholder="(11) 99999-9999"
+                          placeholder="+244912345678"
                         />
+                        {errors.phone && (
+                          <p className="text-sm text-red-400 mt-1">{errors.phone.message}</p>
+                        )}
                       </div>
                       
                       <div className="space-y-2">
                         <Label htmlFor="location" className="text-white">Localização</Label>
                         <Input
                           id="location"
-                          name="location"
-                          value={formData.location}
-                          onChange={handleInputChange}
+                          {...register('location')}
                           className="bg-customgreys-primarybg border-violet-900/30 text-white"
                           placeholder="Cidade, Estado"
                         />
+                        {errors.location && (
+                          <p className="text-sm text-red-400 mt-1">{errors.location.message}</p>
+                        )}
                       </div>
                       
                       <div className="space-y-2">
                         <Label htmlFor="bio" className="text-white">Biografia</Label>
                         <textarea
                           id="bio"
-                          name="bio"
-                          value={formData.bio}
-                          onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
+                          {...register('bio')}
                           className="w-full min-h-[100px] p-3 bg-customgreys-primarybg border border-violet-900/30 rounded-md text-white placeholder:text-gray-400 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20"
                           placeholder="Conte um pouco sobre você..."
                         />
+                        {errors.bio && (
+                          <p className="text-sm text-red-400 mt-1">{errors.bio.message}</p>
+                        )}
                       </div>
                       
                       <div className="flex gap-2">
                         <Button
                           type="submit"
-                          disabled={isUpdating}
-                          className="flex-1 bg-violet-800 hover:bg-violet-900 text-white"
+                          disabled={isUploading}
+                          className="flex-1 bg-violet-800 hover:bg-violet-900 text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          {isUpdating ? 'Salvando...' : 'Salvar Alterações'}
+                          {isUploading ? (
+                            <span className="flex items-center gap-2">
+                              <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-white border-r-2"></div>
+                              {loadingMessage || 'Processando...'}
+                            </span>
+                          ) : (
+                            'Salvar Alterações'
+                          )}
                         </Button>
                         <Button
                           type="button"
                           variant="outline"
-                          onClick={() => setIsEditing(false)}
+                          onClick={() => {
+                            setIsEditing(false);
+                            clearAvatarState();
+                            reset();
+                          }}
                           className="border-gray-600 text-gray-400 hover:bg-gray-800"
                         >
                           Cancelar
@@ -327,21 +294,21 @@ const UserProfilePage = () => {
                     <div className="space-y-4">
                       <div className="flex items-center gap-3 text-gray-300">
                         <User className="w-4 h-4 text-violet-400" />
-                        <span>{formData.name || 'Não informado'}</span>
+                        <span>{formValues.name || 'Não informado'}</span>
                       </div>
                       <div className="flex items-center gap-3 text-gray-300">
                         <Phone className="w-4 h-4 text-violet-400" />
-                        <span>{formData.phone || 'Não informado'}</span>
+                        <span>{formValues.phone || 'Não informado'}</span>
                       </div>
                       <div className="flex items-center gap-3 text-gray-300">
                         <MapPin className="w-4 h-4 text-violet-400" />
-                        <span>{formData.location || 'Não informado'}</span>
+                        <span>{formValues.location || 'Não informado'}</span>
                       </div>
-                      {formData.bio && (
+                      {formValues.bio && (
                         <div className="space-y-2">
                           <Label className="text-white">Biografia</Label>
                           <p className="text-gray-300 text-sm leading-relaxed">
-                            {formData.bio}
+                            {formValues.bio}
                           </p>
                         </div>
                       )}
@@ -405,254 +372,42 @@ const UserProfilePage = () => {
 
           {/* Progress Tab */}
           <TabsContent value="progress" className="space-y-6">
-            {progressLoading || coursesLoading ? (
-              <div className="text-center py-12">
-                <Loading />
-                <p className="text-gray-400 mt-4">Carregando dados de progresso...</p>
-              </div>
-            ) : (
-              <>
-                {/* Statistics Overview */}
-                <div className="grid md:grid-cols-4 gap-6">
-                  <Card className="bg-customgreys-darkGrey border-violet-900/30">
-                    <CardContent className="p-6 text-center">
-                      <BookOpen className="w-12 h-12 text-violet-400 mx-auto mb-4" />
-                      <h3 className="text-xl font-bold text-white mb-2">
-                        {enrolledCourses?.length || 0}
-                      </h3>
-                      <p className="text-gray-400 text-sm">Cursos em Vídeo</p>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card className="bg-customgreys-darkGrey border-violet-900/30">
-                    <CardContent className="p-6 text-center">
-                      <Target className="w-12 h-12 text-green-400 mx-auto mb-4" />
-                      <h3 className="text-xl font-bold text-white mb-2">
-                        {studentProgress?.active_course ? '1' : '0'}
-                      </h3>
-                      <p className="text-gray-400 text-sm">Cursos Práticos</p>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card className="bg-customgreys-darkGrey border-violet-900/30">
-                    <CardContent className="p-6 text-center">
-                      <Activity className="w-12 h-12 text-orange-400 mx-auto mb-4" />
-                      <h3 className="text-xl font-bold text-white mb-2">{studentProgress?.points || 0}</h3>
-                      <p className="text-gray-400 text-sm">Pontos Ganhos</p>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card className="bg-customgreys-darkGrey border-violet-900/30">
-                    <CardContent className="p-6 text-center">
-                      <Trophy className="w-12 h-12 text-yellow-400 mx-auto mb-4" />
-                      <h3 className="text-xl font-bold text-white mb-2">{studentProgress?.streak || 0}</h3>
-                      <p className="text-gray-400 text-sm">Sequência de Dias</p>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Detailed Progress Sections */}
-                <div className="grid md:grid-cols-2 gap-6">
-                  {/* Video Courses Progress */}
-                  <Card className="bg-customgreys-darkGrey border-violet-900/30">
-                    <CardHeader>
-                      <CardTitle className="text-white flex items-center gap-2">
-                        <BookOpen className="w-5 h-5 text-violet-400" />
-                        Cursos em Vídeo
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {enrolledCourses && enrolledCourses.length > 0 ? (
-                        enrolledCourses
-                          .map((enrollment: any) => (
-                            <div key={enrollment.course?.id || enrollment.id} className="space-y-2">
-                              <div className="flex justify-between items-center">
-                                <h4 className="text-white font-medium">{enrollment.course?.title || enrollment.title}</h4>
-                                <span className="text-violet-400 text-sm">{enrollment.progress_percentage || 0}%</span>
-                              </div>
-                              <Progress value={enrollment.progress_percentage || 0} className="w-full" />
-                              <p className="text-gray-400 text-xs">
-                                {enrollment.completed_chapters || 0} de {enrollment.total_chapters || enrollment.course?.totalSections || 0} capítulos completados
-                              </p>
-                              <div className="text-xs text-gray-500">
-                                Inscrito em: {formatEnrollmentDate(enrollment)}
-                              </div>
-                            </div>
-                          ))
-                      ) : (
-                        <div className="text-center py-6">
-                          <BookOpen className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-                          <p className="text-gray-400">Nenhum curso em vídeo inscrito</p>
-                          <p className="text-gray-500 text-sm">Explore nossos cursos em vídeo!</p>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-
-                  {/* Practice Course Progress */}
-                  <Card className="bg-customgreys-darkGrey border-violet-900/30">
-                    <CardHeader>
-                      <CardTitle className="text-white flex items-center gap-2">
-                        <Target className="w-5 h-5 text-green-400" />
-                        Curso Prático (Laboratório)
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {studentProgress?.active_course ? (
-                        <div className="space-y-4">
-                          <div className="space-y-2">
-                            <div className="flex justify-between items-center">
-                              <h4 className="text-white font-medium">{studentProgress.active_course.title}</h4>
-                              <span className="text-green-400 text-sm">Ativo</span>
-                            </div>
-                            <p className="text-gray-400 text-sm">{studentProgress.active_course.description}</p>
-                          </div>
-                          
-                          <div className="grid grid-cols-2 gap-4 pt-4">
-                            <div className="text-center">
-                              <div className="text-2xl font-bold text-white">{studentProgress.hearts || 5}</div>
-                              <div className="text-gray-400 text-xs">❤️ Vidas</div>
-                            </div>
-                            <div className="text-center">
-                              <div className="text-2xl font-bold text-white">{studentProgress.points || 0}</div>
-                              <div className="text-gray-400 text-xs">⭐ Pontos</div>
-                            </div>
-                          </div>
-                          
-                          <div className="text-center">
-                            <div className="text-lg font-bold text-white">🔥 {studentProgress.streak || 0}</div>
-                            <div className="text-gray-400 text-xs">Dias consecutivos</div>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="text-center py-6">
-                          <Target className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-                          <p className="text-gray-400">Nenhum curso prático ativo</p>
-                          <p className="text-gray-500 text-sm">Vá ao Laboratório para começar!</p>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                </div>
-              </>
-            )}
+            <div className="grid md:grid-cols-3 gap-6">
+              <Card className="bg-customgreys-darkGrey border-violet-900/30">
+                <CardContent className="p-6 text-center">
+                  <BookOpen className="w-12 h-12 text-violet-400 mx-auto mb-4" />
+                  <h3 className="text-xl font-bold text-white mb-2">0</h3>
+                  <p className="text-gray-400 text-sm">Cursos Concluídos</p>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-customgreys-darkGrey border-violet-900/30">
+                <CardContent className="p-6 text-center">
+                  <Target className="w-12 h-12 text-green-400 mx-auto mb-4" />
+                  <h3 className="text-xl font-bold text-white mb-2">0</h3>
+                  <p className="text-gray-400 text-sm">Lições Completadas</p>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-customgreys-darkGrey border-violet-900/30">
+                <CardContent className="p-6 text-center">
+                  <Activity className="w-12 h-12 text-orange-400 mx-auto mb-4" />
+                  <h3 className="text-xl font-bold text-white mb-2">0h</h3>
+                  <p className="text-gray-400 text-sm">Tempo de Estudo</p>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
           {/* Achievements Tab */}
           <TabsContent value="achievements" className="space-y-6">
-            {achievementsLoading ? (
-              <div className="text-center py-12">
-                <Loading />
-                <p className="text-gray-400 mt-4">Carregando conquistas...</p>
-              </div>
-            ) : (
-              <>
-                {/* Achievement Stats Overview */}
-                {achievementStats && (
-                  <div className="grid md:grid-cols-4 gap-4">
-                    <Card className="bg-customgreys-darkGrey border-yellow-500/30">
-                      <CardContent className="p-4 text-center">
-                        <Trophy className="w-8 h-8 text-yellow-400 mx-auto mb-2" />
-                        <h3 className="text-lg font-bold text-white">{achievementStats.totalUnlocked}</h3>
-                        <p className="text-gray-400 text-xs">Conquistas Desbloqueadas</p>
-                      </CardContent>
-                    </Card>
-                    
-                    <Card className="bg-customgreys-darkGrey border-blue-500/30">
-                      <CardContent className="p-4 text-center">
-                        <Target className="w-8 h-8 text-blue-400 mx-auto mb-2" />
-                        <h3 className="text-lg font-bold text-white">{achievementStats.totalAvailable}</h3>
-                        <p className="text-gray-400 text-xs">Total Disponíveis</p>
-                      </CardContent>
-                    </Card>
-                    
-                    <Card className="bg-customgreys-darkGrey border-purple-500/30">
-                      <CardContent className="p-4 text-center">
-                        <Activity className="w-8 h-8 text-purple-400 mx-auto mb-2" />
-                        <h3 className="text-lg font-bold text-white">{achievementStats.totalPoints}</h3>
-                        <p className="text-gray-400 text-xs">Pontos de Conquistas</p>
-                      </CardContent>
-                    </Card>
-                    
-                    <Card className="bg-customgreys-darkGrey border-orange-500/30">
-                      <CardContent className="p-4 text-center">
-                        <Star className="w-8 h-8 text-orange-400 mx-auto mb-2" />
-                        <h3 className="text-lg font-bold text-white">{achievementStats.rareAchievements}</h3>
-                        <p className="text-gray-400 text-xs">Conquistas Raras</p>
-                      </CardContent>
-                    </Card>
-                  </div>
-                )}
-
-                {/* Unlocked Achievements List */}
-                {achievements && achievements.filter(a => a.isUnlocked).length > 0 ? (
-                  <div>
-                    <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                      <Trophy className="w-5 h-5 text-yellow-400" />
-                      Suas Conquistas ({achievements.filter(a => a.isUnlocked).length})
-                    </h3>
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {achievements.filter(achievement => achievement.isUnlocked).map((achievement) => (
-                        <Card key={achievement.id} className="bg-customgreys-darkGrey border-yellow-500/50 bg-gradient-to-br from-yellow-900/20 to-orange-900/20 transition-all duration-200">
-                          <CardContent className="p-4">
-                            <div className="flex items-start gap-3">
-                              <div className="text-2xl grayscale-0">
-                                {achievement.icon || '🏆'}
-                              </div>
-                              <div className="flex-1">
-                                <h4 className="font-semibold text-yellow-400">
-                                  {achievement.title}
-                                </h4>
-                                <p className="text-gray-400 text-sm mt-1">
-                                  {achievement.description}
-                                </p>
-                                
-                                <div className="mt-2 flex items-center justify-between">
-                                  <span className="text-yellow-400 text-xs font-medium">
-                                    ✨ {achievement.points} pontos
-                                  </span>
-                                  {achievement.unlockedAt && (
-                                    <span className="text-gray-500 text-xs">
-                                      {new Date(achievement.unlockedAt).toLocaleDateString('pt-BR')}
-                                    </span>
-                                  )}
-                                </div>
-                                
-                                {/* Rarity badge */}
-                                <div className="mt-2">
-                                  <span className={`
-                                    inline-block px-2 py-1 rounded-full text-xs font-medium
-                                    ${achievement.rarity === 'common' ? 'bg-gray-700 text-gray-300' : ''}
-                                    ${achievement.rarity === 'rare' ? 'bg-blue-700 text-blue-300' : ''}
-                                    ${achievement.rarity === 'epic' ? 'bg-purple-700 text-purple-300' : ''}
-                                    ${achievement.rarity === 'legendary' ? 'bg-yellow-700 text-yellow-300' : ''}
-                                  `}>
-                                    {achievement.rarity === 'common' && '⚪'}
-                                    {achievement.rarity === 'rare' && '🔵'}
-                                    {achievement.rarity === 'epic' && '🟣'}
-                                    {achievement.rarity === 'legendary' && '🟡'}
-                                    {' '}
-                                    {achievement.rarity.charAt(0).toUpperCase() + achievement.rarity.slice(1)}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <Card className="bg-customgreys-darkGrey border-violet-900/30">
-                    <CardContent className="p-6 text-center">
-                      <Trophy className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                      <h3 className="text-xl font-bold text-white mb-2">Nenhuma conquista ainda</h3>
-                      <p className="text-gray-400">Complete cursos e lições para desbloquear conquistas!</p>
-                    </CardContent>
-                  </Card>
-                )}
-              </>
-            )}
+            <Card className="bg-customgreys-darkGrey border-violet-900/30">
+              <CardContent className="p-6 text-center">
+                <Trophy className="w-16 h-16 text-yellow-400 mx-auto mb-4" />
+                <h3 className="text-xl font-bold text-white mb-2">Nenhuma conquista ainda</h3>
+                <p className="text-gray-400">Complete cursos e lições para desbloquear conquistas!</p>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Settings Tab */}

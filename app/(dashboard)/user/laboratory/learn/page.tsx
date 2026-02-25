@@ -1,24 +1,28 @@
 "use client";
 
 /**
- * Modern Learning Interface - Clean Implementation
+ * Modern Learning Interface - Redesigned Student Experience
  * 
- * This component now uses the new hook system from src/domains
- * completely replacing the Redux dependency. Provides a premium 
- * Duolingo-style experience with dark theme consistency.
+ * This is the modernized learning interface that follows the same design
+ * principles as the teacher laboratory system. Provides a premium Duolingo-style
+ * experience with dark theme consistency.
+ * 
+ * 🔄 REDUX MIGRATION: This component now supports Redux with feature flags
  */
 
 import { FeedWrapper } from "@/components/learn/FeedWrapper";
 import { LearnHeader } from "./header";
 import { UserProgressRedux } from "@/components/learn/UserProgressRedux";
 import { UnitRedux } from "./unit-redux";
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import Loading from "@/components/course/Loading";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
-  useFullMainLearnPage
-} from '@/src/domains/student/practice-courses/hooks';
+  useFullMainLearnPage,
+  useLearnPageNavigation 
+} from '@/redux/features/laboratory/hooks/useMainLearnPage';
 import { 
   BookOpen, 
   Star,
@@ -33,35 +37,45 @@ import {
 } from "lucide-react";
 
 const LearnPage = () => {
-  // Use the new clean hook - single source of truth
+  const router = useRouter();
+  
+  // Redux hooks
   const {
     data,
     isLoading,
     error,
+    stats,
     actions,
-    shouldRedirectToSelection,
-    userProgress,
-    course: activeCourse,
-    units,
-    stats: userStats,
+    refetch,
   } = useFullMainLearnPage();
 
-  // Debug logs
-  console.log('🔍 LEARN PAGE MODERN HOOK - isLoading:', isLoading);
-  console.log('🔍 LEARN PAGE MODERN HOOK - error:', error);
-  console.log('🔍 LEARN PAGE MODERN HOOK - data:', data);
-  console.log('🔍 LEARN PAGE MODERN HOOK - userProgress:', userProgress);
-  console.log('🔍 LEARN PAGE MODERN HOOK - units length:', units.length);
+  // Extract data from Redux
+  const userProgress = data?.userProgress;
+  const units = data?.units || [];
+  const courseProgress = data?.courseProgress;
+  const lessonPercentage = data?.lessonPercentage || 0;
 
-  // Handle navigation - redirect to courses selection if no active course
+  // Refetch data when page is mounted to ensure fresh progress data
   useEffect(() => {
-    if (shouldRedirectToSelection()) {
-      console.log('🔍 LEARN PAGE - No active course, redirecting to courses selection');
-      actions.navigateToCourseSelection();
+    if (refetch) {
+      console.log('🔄 Learn page mounted - refetching progress data');
+      refetch();
     }
-  }, [shouldRedirectToSelection, actions]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only on mount - refetch intentionally excluded
 
-  // Loading state
+  // Handle Redux navigation and redirects
+  const pageNavigation = useLearnPageNavigation();
+  
+  useEffect(() => {
+    if (data?.userProgress && !isLoading) {
+      const shouldContinue = pageNavigation.navigateToActiveCourse(router, data.userProgress);
+      if (!shouldContinue) {
+        return;
+      }
+    }
+  }, [data, isLoading, router, pageNavigation]);
+
   if (isLoading) {
     return (
       <Loading 
@@ -74,7 +88,7 @@ const LearnPage = () => {
     );
   }
 
-  // Error state
+  // Show error state
   if (error) {
     return (
       <div className="min-h-screen bg-customgreys-primarybg flex items-center justify-center">
@@ -85,9 +99,7 @@ const LearnPage = () => {
             </div>
             <h2 className="text-xl font-bold text-white mb-3">Oops! Algo deu errado</h2>
             <p className="text-customgreys-dirtyGrey mb-6 leading-relaxed">
-              {error && typeof error === 'object' && 'message' in error 
-                ? (error as any).message 
-                : 'Erro ao carregar dados do curso'}
+              {error}
             </p>
             <div className="flex flex-col gap-3">
               <Button
@@ -98,11 +110,10 @@ const LearnPage = () => {
               </Button>
               <Button
                 variant="outline"
-                onClick={() => actions.navigateToDashboard()}
+                onClick={() => router.push('/auth/signin')}
                 className="bg-customgreys-primarybg border-customgreys-darkerGrey text-white hover:bg-customgreys-darkerGrey"
               >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Voltar ao Dashboard
+                Fazer Login
               </Button>
             </div>
           </CardContent>
@@ -111,13 +122,37 @@ const LearnPage = () => {
     );
   }
 
-  // If no data yet, wait for loading
-  if (!data) {
-    return null;
+  if (!userProgress || !userProgress.active_course) {
+    return null; // Will redirect via useEffect
   }
 
-  // Use progress percentage from stats
-  const courseProgressPercentage = userStats?.courseProgressPercentage || 0;
+  const activeCourse = data?.activeCourse || (userProgress as any)?.active_course;
+  
+  // Get stats from Redux or calculate fallback stats
+  const userStats = stats || {
+    hearts: (userProgress as any)?.hearts || 5,
+    points: (userProgress as any)?.points || 0,
+    streak: 7, // Mock data - replace with real API
+    completedLessons: (() => {
+      const safeUnits = Array.isArray(units) ? units : [];
+      return safeUnits.reduce((acc: number, unit: any) => {
+        if (!unit?.lessons || !Array.isArray(unit.lessons)) return acc;
+        return acc + unit.lessons.filter((lesson: any) => lesson?.completed === true).length;
+      }, 0);
+    })(),
+    totalLessons: (() => {
+      const safeUnits = Array.isArray(units) ? units : [];
+      return safeUnits.reduce((acc: number, unit: any) => {
+        if (!unit?.lessons || !Array.isArray(unit.lessons)) return acc;
+        return acc + unit.lessons.length;
+      }, 0);
+    })(),
+    courseProgressPercentage: 0,
+  };
+  
+  // Calculate progress percentage
+  const courseProgressPercentage = userStats.courseProgressPercentage || 
+    (userStats.totalLessons > 0 ? Math.round((userStats.completedLessons / userStats.totalLessons) * 100) : 0);
   
   // Safe units array
   const safeUnits = Array.isArray(units) ? units : [];
@@ -132,7 +167,7 @@ const LearnPage = () => {
           <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
             <Button
               variant="ghost"
-              onClick={actions.navigateToDashboard}
+              onClick={() => router.push('/user/dashboard')}
               className="text-customgreys-dirtyGrey hover:text-white hover:bg-customgreys-primarybg/50 transition-all duration-200 px-2 sm:px-4"
             >
               <ArrowLeft className="w-4 h-4 mr-1 sm:mr-2" />
@@ -182,8 +217,8 @@ const LearnPage = () => {
                   <div className="flex-1 text-center sm:text-left">
                     <p className="text-customgreys-dirtyGrey text-xs sm:text-sm font-medium">Lições</p>
                     <div className="flex items-baseline justify-center sm:justify-start gap-1">
-                      <span className="text-white text-lg sm:text-xl font-bold">{userStats?.completedLessons || 0}</span>
-                      <span className="text-customgreys-dirtyGrey text-xs sm:text-sm">/{userStats?.totalLessons || 0}</span>
+                      <span className="text-white text-lg sm:text-xl font-bold">{userStats.completedLessons}</span>
+                      <span className="text-customgreys-dirtyGrey text-xs sm:text-sm">/{userStats.totalLessons}</span>
                     </div>
                   </div>
                 </div>
@@ -200,7 +235,7 @@ const LearnPage = () => {
                   <div className="flex-1 text-center sm:text-left">
                     <p className="text-customgreys-dirtyGrey text-xs sm:text-sm font-medium">Sequência</p>
                     <div className="flex items-baseline justify-center sm:justify-start gap-1">
-                      <span className="text-white text-lg sm:text-xl font-bold">{userStats?.streak || 0}</span>
+                      <span className="text-white text-lg sm:text-xl font-bold">{userStats.streak}</span>
                       <span className="text-customgreys-dirtyGrey text-xs sm:text-sm">dias</span>
                     </div>
                   </div>
@@ -218,7 +253,7 @@ const LearnPage = () => {
                   <div className="flex-1 text-center sm:text-left">
                     <p className="text-customgreys-dirtyGrey text-xs sm:text-sm font-medium">Corações</p>
                     <div className="flex items-baseline justify-center sm:justify-start gap-1">
-                      <span className="text-white text-lg sm:text-xl font-bold">{userStats?.hearts || 5}</span>
+                      <span className="text-white text-lg sm:text-xl font-bold">{userStats.hearts}</span>
                       <span className="text-customgreys-dirtyGrey text-xs sm:text-sm">/5</span>
                     </div>
                   </div>
@@ -235,7 +270,7 @@ const LearnPage = () => {
                   </div>
                   <div className="flex-1 text-center sm:text-left">
                     <p className="text-customgreys-dirtyGrey text-xs sm:text-sm font-medium">Pontos</p>
-                    <span className="text-white text-lg sm:text-xl font-bold">{(userStats?.points || 0).toLocaleString()}</span>
+                    <span className="text-white text-lg sm:text-xl font-bold">{userStats.points.toLocaleString()}</span>
                   </div>
                 </div>
               </CardContent>
@@ -250,7 +285,10 @@ const LearnPage = () => {
         {/* Right Sidebar - User Progress */}
         <div className="w-full lg:w-80 flex-shrink-0">
           <div className="lg:sticky lg:top-8 space-y-4 sm:space-y-6">
-            <UserProgressRedux />
+            <UserProgressRedux
+              useRedux={true}
+              hasActiveSubscription={false}
+            />
 
             {/* Enhanced Daily Tips Card */}
             <Card className="relative bg-gradient-to-br from-violet-500/20 via-purple-500/15 to-violet-500/10 border-violet-500/30 hover:border-violet-400/50 transition-all duration-300 overflow-hidden group">
@@ -288,7 +326,12 @@ const LearnPage = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={actions.navigateToShop}
+                    onClick={() => {
+                      if (actions) {
+                        actions.buyHearts();
+                      }
+                      router.push('/user/subscription');
+                    }}
                     className="w-full justify-start text-customgreys-dirtyGrey hover:text-white hover:bg-red-500/10 hover:border-red-500/20 border border-transparent transition-all duration-200 group min-h-[36px]"
                   >
                     <div className="bg-red-500/20 rounded-lg p-1 mr-2 sm:mr-3 group-hover:bg-red-500/30 transition-colors duration-200">
@@ -299,7 +342,12 @@ const LearnPage = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={actions.navigateToAchievements}
+                    onClick={() => {
+                      if (actions) {
+                        actions.viewAchievements();
+                      }
+                      router.push('/user/laboratory/achievements');
+                    }}
                     className="w-full justify-start text-customgreys-dirtyGrey hover:text-white hover:bg-yellow-500/10 hover:border-yellow-500/20 border border-transparent transition-all duration-200 group min-h-[36px]"
                   >
                     <div className="bg-yellow-500/20 rounded-lg p-1 mr-2 sm:mr-3 group-hover:bg-yellow-500/30 transition-colors duration-200">
@@ -310,7 +358,12 @@ const LearnPage = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={actions.navigateToLeaderboard}
+                    onClick={() => {
+                      if (actions) {
+                        actions.viewLeaderboard();
+                      }
+                      router.push('/user/laboratory/leaderboard');
+                    }}
                     className="w-full justify-start text-customgreys-dirtyGrey hover:text-white hover:bg-purple-500/10 hover:border-purple-500/20 border border-transparent transition-all duration-200 group min-h-[36px]"
                   >
                     <div className="bg-purple-500/20 rounded-lg p-1 mr-2 sm:mr-3 group-hover:bg-purple-500/30 transition-colors duration-200">
@@ -332,7 +385,7 @@ const LearnPage = () => {
               <LearnHeader title={activeCourse?.title || 'Carregando...'} />
               
               {/* Enhanced Progress Summary */}
-              {(userStats?.totalLessons || 0) > 0 && (
+              {userStats.totalLessons > 0 && (
                 <Card className="mt-3 sm:mt-4 bg-gradient-to-r from-customgreys-secondarybg to-customgreys-primarybg border-customgreys-darkerGrey hover:border-green-500/20 transition-all duration-300">
                   <CardContent className="p-4 sm:p-5">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 mb-3">
@@ -347,7 +400,7 @@ const LearnPage = () => {
                           {courseProgressPercentage}%
                         </div>
                         <div className="text-xs text-customgreys-dirtyGrey">
-                          {userStats?.completedLessons || 0} de {userStats?.totalLessons || 0} lições
+                          {userStats.completedLessons} de {userStats.totalLessons} lições
                         </div>
                       </div>
                     </div>
@@ -374,8 +427,8 @@ const LearnPage = () => {
                     description={unit.description}
                     title={unit.title}
                     lessons={unit.lessons || []}
-                    activeLesson={undefined}
-                    activeLessonPercentage={0}
+                    activeLesson={(courseProgress as any)?.activeLesson}
+                    activeLessonPercentage={lessonPercentage || 0}
                     courseId={activeCourse?.id}
                     useRedux={true}
                   />
@@ -412,7 +465,7 @@ const LearnPage = () => {
                   
                   <div className="flex flex-col sm:flex-row gap-3">
                     <Button
-                      onClick={actions.navigateToCourseSelection}
+                      onClick={() => router.push('/user/laboratory/learn/courses')}
                       className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
                     >
                       <BookOpen className="w-4 h-4 mr-2" />
@@ -420,7 +473,7 @@ const LearnPage = () => {
                     </Button>
                     <Button
                       variant="outline"
-                      onClick={actions.navigateToDashboard}
+                      onClick={() => router.push('/user/dashboard')}
                       className="bg-customgreys-primarybg border-customgreys-darkerGrey text-white hover:bg-customgreys-darkerGrey hover:border-customgreys-dirtyGrey transition-all duration-200"
                     >
                       <ArrowLeft className="w-4 h-4 mr-2" />

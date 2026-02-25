@@ -125,7 +125,7 @@ const LearnCourse = () => {
   if (isLoading) {
     return (
       <Loading 
-        title="Practice Laboratory"
+        title="English Practice Laboratory"
         subtitle="Cursos Interativos"
         description="Carregando cursos disponíveis..."
         icon={Target}
@@ -174,7 +174,7 @@ const LearnCourse = () => {
               </div>
               <div className="text-center sm:text-left">
                 <h1 className="text-2xl sm:text-3xl md:text-4xl font-black bg-gradient-to-r from-white via-violet-200 to-purple-200 bg-clip-text text-transparent">
-                  Practice Laboratory
+                  English Practice Laboratory
                 </h1>
                 <p className="text-violet-300 text-sm sm:text-base lg:text-lg font-medium">Cursos Interativos de Inglês</p>
               </div>

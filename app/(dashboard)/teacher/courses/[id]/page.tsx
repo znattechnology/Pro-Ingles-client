@@ -13,6 +13,7 @@ import {
   useGetTeacherCourseByIdQuery,
   useUpdateTeacherVideoCourseMutation,
   useGetVideoUploadUrlMutation,
+  useGetAvailablePracticeCoursesQuery,
   teacherVideoCourseApiSlice,
 } from "@/src/domains/teacher/video-courses/api";
 import { getResourceUploadUrl } from "@/src/domains/teacher/video-courses/services";
@@ -32,7 +33,7 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, Plus, Check, BookOpen, Image, Layers, Play, Eye, Sparkles, ChevronRight, Settings, Upload, X, Video } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { notifications } from "@/lib/toast";
 import { useForm } from "react-hook-form";
 import { motion } from "framer-motion";
@@ -67,6 +68,12 @@ const CourseEditor = () => {
   const [getVideoUploadUrl] = useGetVideoUploadUrlMutation();
   const [updateCourse] = useUpdateTeacherVideoCourseMutation();
 
+  // Fetch available practice courses for association
+  const { data: practiceCourses, isLoading: loadingPracticeCourses } = useGetAvailablePracticeCoursesQuery();
+
+  // State for practice course association
+  const [selectedPracticeCourse, setSelectedPracticeCourse] = useState<string | null>(null);
+
   const dispatch = useAppDispatch();
   const { sections, loading, ui } = useAppSelector((state) => state.courseEditor);
   
@@ -82,6 +89,10 @@ const CourseEditor = () => {
   // State for steps navigation
   const [currentStep, setCurrentStep] = useState(1);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+
+  // Ref to track if form has been initially loaded (to prevent overwriting user changes on refetch)
+  const hasInitiallyLoaded = useRef(false);
+  const initialCourseId = useRef<string | null>(null);
   
   // State for inline section creation
   // Note: isCreatingSection now comes from Redux ui.isCreatingSection
@@ -180,36 +191,67 @@ const CourseEditor = () => {
       courseStatus: false,
       courseImage: "",
     },
+    mode: "onChange", // Enable real-time validation and dirty tracking
   });
+
+  // Track if sections have been modified (separate from form fields)
+  const [sectionsModified, setSectionsModified] = useState(false);
+  const originalSectionsRef = useRef<string>("");
+
+  // Check if form has unsaved changes (form fields OR sections)
+  const { isDirty: isFormDirty } = methods.formState;
+  const hasUnsavedChanges = isFormDirty || sectionsModified;
 
   useEffect(() => {
     if (course) {
+      const currentCourseId = course.courseId || course.id;
+
+      // Check if this is a different course (user navigated to another course)
+      const isNewCourse = initialCourseId.current !== currentCourseId;
+
       console.log('Course loaded:', course);
       console.log('Course image:', course.image);
       console.log('Course ID:', course.id);
       console.log('Course courseId:', course.courseId);
-      
-      console.log('Resetting form with course data:', {
-        courseTitle: course.title,
-        courseDescription: course.description,
-        courseCategory: course.category,
-        courseStatus: course.status === "Published",
-        courseImage: course.image || "",
-      });
-      
-      methods.reset({
-        courseTitle: course.title,
-        courseDescription: course.description,
-        courseCategory: course.category,
-        courseStatus: course.status === "Published",
-        courseImage: course.image || "",
-      });
-      
-      // Verify the form was reset correctly
-      setTimeout(() => {
-        const formValues = methods.getValues();
-        console.log('Form values after reset:', formValues);
-      }, 100);
+      console.log('hasInitiallyLoaded:', hasInitiallyLoaded.current);
+      console.log('isNewCourse:', isNewCourse);
+
+      // Only reset form on INITIAL load or when navigating to a NEW course
+      // This prevents losing user's unsaved changes when refetch() is called
+      if (!hasInitiallyLoaded.current || isNewCourse) {
+        console.log('🔄 Resetting form with course data (initial load or new course):', {
+          courseTitle: course.title,
+          courseDescription: course.description,
+          courseCategory: course.category,
+          courseStatus: course.status === "Published",
+          courseImage: course.image || "",
+        });
+
+        methods.reset({
+          courseTitle: course.title,
+          courseDescription: course.description,
+          courseCategory: course.category,
+          courseStatus: course.status === "Published",
+          courseImage: course.image || "",
+        });
+
+        // Initialize practice course association
+        console.log('🔗 Practice course from API:', course.practice_course, 'title:', course.practice_course_title);
+        setSelectedPracticeCourse(course.practice_course || null);
+
+        // Mark as initially loaded
+        hasInitiallyLoaded.current = true;
+        initialCourseId.current = currentCourseId;
+
+        // Verify the form was reset correctly
+        setTimeout(() => {
+          const formValues = methods.getValues();
+          console.log('Form values after reset:', formValues);
+        }, 100);
+      } else {
+        console.log('⏭️ Skipping form reset (preserving user changes) - data came from refetch');
+      }
+
       console.log('Raw course.sections:', course.sections);
       
       // Debug: log chapter video information
@@ -233,9 +275,15 @@ const CourseEditor = () => {
       // Use API data directly since auto-save ensures it's up-to-date
       // Auto-save happens immediately after video upload, so API data is the source of truth
       const apiSections = course.sections || [];
-      
+
       console.log('✅ Using API sections as source of truth (auto-save ensures accuracy):', apiSections);
       dispatch(setSections(apiSections));
+
+      // Store original sections for comparison (only on initial load)
+      if (!hasInitiallyLoaded.current || isNewCourse) {
+        originalSectionsRef.current = JSON.stringify(apiSections);
+        setSectionsModified(false);
+      }
       
       // Set current image from course data
       const courseImage = course.image || "";
@@ -257,6 +305,17 @@ const CourseEditor = () => {
       setCompletedSteps(completed);
     }
   }, [course, methods, dispatch]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Track sections changes
+  useEffect(() => {
+    if (originalSectionsRef.current && sections) {
+      const currentSectionsStr = JSON.stringify(sections);
+      const hasChanged = currentSectionsStr !== originalSectionsRef.current;
+      if (hasChanged !== sectionsModified) {
+        setSectionsModified(hasChanged);
+      }
+    }
+  }, [sections, sectionsModified]);
 
   const handleStepClick = (stepId: number) => {
     setCurrentStep(stepId);
@@ -914,10 +973,12 @@ const CourseEditor = () => {
         category: data.courseCategory,
         status: data.courseStatus ? "Published" as const : "Draft" as const,
         course_type: "video", // Important: specify course type
+        practice_course: selectedPracticeCourse, // Associated practice lab course
         sections: sectionsWithVideoUrls
       };
       
       console.log('💾 Step 4 completed: Course data object created');
+      console.log('🔗 Practice course being saved:', selectedPracticeCourse);
       console.log('💾 Sending courseData to Django:', JSON.stringify(courseData, null, 2));
 
       console.log('💾 Step 5: Starting API call to updateCourse');
@@ -934,7 +995,17 @@ const CourseEditor = () => {
       console.log('💾 Step 7: Invalidating cache and refetching data');
       // Force invalidate the teacher courses list cache
       dispatch(teacherVideoCourseApiSlice.util.invalidateTags(['TeacherVideoCourse']));
-      
+
+      // Reset the initial load flag so the form can be updated with saved data
+      hasInitiallyLoaded.current = false;
+
+      // Reset dirty tracking - update original sections to current state
+      originalSectionsRef.current = JSON.stringify(sectionsWithVideoUrls);
+      setSectionsModified(false);
+
+      // Reset form dirty state by re-resetting with current values
+      methods.reset(data, { keepValues: true });
+
       refetch();
       console.log('💾 All steps completed successfully!');
     } catch (error) {
@@ -989,7 +1060,7 @@ const CourseEditor = () => {
               <CustomFormField
                 name="courseDescription"
                 label=""
-                type="textarea"
+                type="rich-text"
                 placeholder="Descreva o que os alunos vão aprender neste curso incrível..."
                 className="bg-customgreys-darkGrey/50 border-violet-900/30 text-white placeholder:text-gray-400 focus:border-violet-500 focus:ring-1 focus:ring-violet-500/20 transition-all duration-200 rounded-md min-h-[120px] resize-none"
                 initialValue={course?.description}
@@ -1008,6 +1079,7 @@ const CourseEditor = () => {
                 className="bg-customgreys-darkGrey/50 border-violet-900/30 text-white focus:border-violet-500 focus:ring-1 focus:ring-violet-500/20 transition-all duration-200 rounded-md"
                 placeholder="🎯 Selecione a categoria"
                 options={[
+                  { value: "Inglês Geral", label: "📚 Inglês Geral" },
                   { value: "petroleo-gas", label: "🛢️ Inglês para Petróleo & Gás" },
                   { value: "bancario", label: "🏦 Inglês Bancário" },
                   { value: "ti-telecomunicacoes", label: "💻 Inglês para TI & Telecomunicações" },
@@ -1016,6 +1088,35 @@ const CourseEditor = () => {
                 ]}
                 initialValue={course?.category}
               />
+            </div>
+
+            {/* Practice Lab Course Association */}
+            <div className="space-y-3">
+              <label className="text-white text-base font-semibold flex items-center gap-2">
+                <span className="w-2 h-2 bg-cyan-400 rounded-full"></span>
+                Curso de Laboratório Associado
+                <span className="text-gray-400 text-sm font-normal">(opcional)</span>
+              </label>
+              {console.log('🔬 Practice courses loaded:', practiceCourses, 'Loading:', loadingPracticeCourses, 'Selected:', selectedPracticeCourse)}
+              <select
+                value={selectedPracticeCourse || ''}
+                onChange={(e) => {
+                  console.log('🔬 Practice course selected:', e.target.value);
+                  setSelectedPracticeCourse(e.target.value || null);
+                }}
+                disabled={loadingPracticeCourses}
+                className="w-full bg-customgreys-darkGrey/50 border border-violet-900/30 text-white focus:border-violet-500 focus:ring-1 focus:ring-violet-500/20 transition-all duration-200 rounded-md px-3 py-2"
+              >
+                <option value="">🔬 Nenhum curso de laboratório</option>
+                {practiceCourses?.map((pc) => (
+                  <option key={pc.id} value={pc.id}>
+                    {pc.title} ({pc.category}) {pc.status === 'Draft' ? '- Rascunho' : ''}
+                  </option>
+                ))}
+              </select>
+              <p className="text-gray-400 text-sm">
+                Associe um curso de Laboratório de Prática para que os alunos possam praticar exercícios complementares.
+              </p>
             </div>
 
             <div className="flex justify-end pt-6">
@@ -2064,15 +2165,25 @@ const CourseEditor = () => {
                 type="button"
                 onClick={() => {
                   console.log('🎯 Save button clicked explicitly by user');
+                  console.log('📝 Form isDirty:', isFormDirty, 'Sections modified:', sectionsModified);
                   methods.handleSubmit(onSubmit)();
                 }}
-                disabled={loading.isSavingCourse}
-                className="px-8 py-3 bg-gradient-to-r from-purple-600 via-violet-600 to-purple-700 hover:from-purple-500 hover:via-violet-500 hover:to-purple-600 text-white font-semibold rounded-xl shadow-lg disabled:opacity-50 transition-all duration-200"
+                disabled={loading.isSavingCourse || !hasUnsavedChanges}
+                className={`px-8 py-3 text-white font-semibold rounded-xl shadow-lg transition-all duration-200 ${
+                  hasUnsavedChanges
+                    ? "bg-gradient-to-r from-purple-600 via-violet-600 to-purple-700 hover:from-purple-500 hover:via-violet-500 hover:to-purple-600"
+                    : "bg-gray-500 cursor-not-allowed"
+                } disabled:opacity-50`}
               >
                 {loading.isSavingCourse ? (
                   <>
                     <div className="w-4 h-4 mr-2 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                     Salvando...
+                  </>
+                ) : !hasUnsavedChanges ? (
+                  <>
+                    <Check className="w-4 h-4 mr-2" />
+                    Tudo Salvo
                   </>
                 ) : (
                   <>

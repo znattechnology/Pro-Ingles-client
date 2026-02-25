@@ -31,6 +31,7 @@ import FilePondPluginImagePreview from "filepond-plugin-image-preview";
 import FilePondPluginImageExifOrientation from "filepond-plugin-image-exif-orientation";
 import "filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css";
 import clsx from "clsx";
+import { RichTextEditor } from "./RichTextEditor";
 
 registerPlugin(FilePondPluginImageExifOrientation, FilePondPluginImagePreview);
 
@@ -41,6 +42,7 @@ interface FormFieldProps {
     | "text"
     | "email"
     | "textarea"
+    | "rich-text"  // ✅ NOVO: Editor WYSIWYG
     | "number"
     | "select"
     | "switch"
@@ -88,6 +90,16 @@ export const CustomFormField: React.FC<FormFieldProps> = ({
             {...field}
             rows={3}
             className={`border-none bg-customgreys-darkGrey text-white placeholder:text-white/70 p-4 ${inputClassName}`}
+          />
+        );
+      case "rich-text":  // ✅ NOVO: Editor WYSIWYG
+        return (
+          <RichTextEditor
+            value={field.value || ''}
+            onChange={field.onChange}
+            placeholder={placeholder}
+            className={inputClassName}
+            disabled={disabled}
           />
         );
       case "select":

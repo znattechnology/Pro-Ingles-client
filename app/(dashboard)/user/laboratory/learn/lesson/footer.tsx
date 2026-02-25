@@ -71,9 +71,9 @@ export const Footer = ({onCheck,status,disabled,lessonId,pending}:Props) => {
 
                 {/* Completed State - Practice Again Button */}
                 {status === "completed" && (
-                    <Button 
-                        variant="outline" 
-                        size={isMobile ? "sm":"lg"} 
+                    <Button
+                        variant="outline"
+                        size={isMobile ? "sm":"lg"}
                         onClick={() => window.location.href=`/user/laboratory/learn/lesson/${lessonId}`}
                         className="group bg-violet-500/10 border-violet-500/30 text-violet-300 hover:bg-violet-500/20 hover:border-violet-400/50 transition-all duration-300 w-full sm:w-auto min-h-[44px] order-last sm:order-first"
                     >

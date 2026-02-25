@@ -27,11 +27,24 @@ import {
 } from "lucide-react";
 import Loading from "@/components/course/Loading";
 import { useDjangoAuth } from "@/hooks/useDjangoAuth";
-// TODO: Import actual API hooks when implemented
-// import {
-//   useGetCourseAnalyticsQuery,
-//   useGetStudentProgressListQuery
-// } from "@/src/domains/teacher/practice-courses/api";
+import {
+  useGetTeacherDashboardQuery,
+  useGetTeacherCoursesQuery
+} from "@/src/domains/teacher/practice-courses/api";
+
+// Type definition for student data from API
+interface StudentData {
+  id: string;
+  name: string;
+  email: string;
+  total_points: number;
+  hearts: number;
+  completed_lessons: number;
+  total_lessons: number;
+  last_activity: string;
+  average_accuracy: number;
+  active_course: string;
+}
 
 const LaboratoryAnalytics = () => {
   const { isAuthenticated } = useDjangoAuth();
@@ -40,18 +53,23 @@ const LaboratoryAnalytics = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [studentsPerPage] = useState(6);
 
-  // Temporary mock data until API is implemented
-  const analyticsLoading = false;
+  // Real API hooks for analytics data
+  const {
+    data: analyticsData,
+    isLoading: analyticsLoading,
+    error: analyticsError
+  } = useGetTeacherDashboardQuery();
+
+  // Get courses for total count
+  const {
+    data: coursesData,
+    isLoading: coursesLoading
+  } = useGetTeacherCoursesQuery({ includeDrafts: true });
+
+  // Fallback mock students data - will be replaced when student progress API is ready
+  // TODO: Replace with useGetStudentProgressListQuery when backend endpoint is implemented
   const studentsLoading = false;
-  
-  const analytics = {
-    total_students: 156,
-    total_courses: 12,
-    total_challenges: 489,
-    avg_completion_rate: 78
-  };
-  
-  const students = [
+  const students: StudentData[] = analyticsData ? [] : [
     {
       id: '1',
       name: 'Maria Silva',
@@ -78,7 +96,15 @@ const LaboratoryAnalytics = () => {
     }
   ];
 
-  const isLoading = analyticsLoading || studentsLoading;
+  // Use real API data or fallback
+  const analytics = analyticsData || {
+    total_students: 0,
+    total_courses: coursesData?.length || 0,
+    total_challenges: 0,
+    avg_completion_rate: 0
+  };
+
+  const isLoading = analyticsLoading || studentsLoading || coursesLoading;
 
   const filteredStudents = students.filter(student =>
     student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -111,14 +137,21 @@ const LaboratoryAnalytics = () => {
     return <Loading />;
   }
 
-  // Use analytics data from Django
-  const totalStudents = analytics?.total_students || 0;
-  const totalCourses = analytics?.total_courses || 0;
-  const totalChallenges = analytics?.total_challenges || 0;
-  const avgCompletionRate = analytics?.avg_completion_rate || 0;
-  
+  // Use analytics data from Django API - with fallback calculations
+  const totalStudents = analytics?.total_students || students.length || 0;
+  const totalCourses = coursesData?.length || analytics?.total_courses || 0;
+  const totalChallenges = analytics?.total_challenges ||
+    coursesData?.reduce((acc, c) => acc + (c.challenges_count || 0), 0) || 0;
+  const avgCompletionRate = analytics?.avg_completion_rate ||
+    (analytics as any)?.completion_rate || 0;
+
   const activeStudents = students.filter(s => getActivityStatus(s.last_activity) !== 'inactive').length;
   const totalPoints = students.reduce((acc, s) => acc + (s.total_points || 0), 0);
+
+  // Show error state if API failed
+  if (analyticsError) {
+    console.error('Analytics API error:', analyticsError);
+  }
 
   return (
     <div className="min-h-screen bg-customgreys-primarybg text-white">

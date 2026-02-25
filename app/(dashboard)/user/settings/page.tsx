@@ -32,6 +32,12 @@ import {
 import { useDjangoAuth } from '@/hooks/useDjangoAuth';
 import Loading from '@/components/course/Loading';
 import { toast } from 'react-hot-toast';
+import {
+  useUpdateProfileMutation,
+  useGetNotificationSettingsQuery,
+  useUpdateNotificationSettingsMutation,
+  useChangePasswordMutation,
+} from '@/src/domains/auth/services/authApi';
 
 interface UserSettings {
   // Profile
@@ -70,6 +76,13 @@ interface UserSettings {
 
 export default function UserSettingsPage() {
   const { user, isAuthenticated, isLoading } = useDjangoAuth();
+
+  // API mutations
+  const [updateProfile, { isLoading: isUpdatingProfile }] = useUpdateProfileMutation();
+  const { data: notificationSettings } = useGetNotificationSettingsQuery();
+  const [updateNotificationSettings, { isLoading: isUpdatingNotifications }] = useUpdateNotificationSettingsMutation();
+  const [changePassword, { isLoading: isChangingPassword }] = useChangePasswordMutation();
+
   const [settings, setSettings] = useState<UserSettings>({
     firstName: '',
     lastName: '',
@@ -95,11 +108,18 @@ export default function UserSettingsPage() {
     language: 'pt-ao',
     timezone: 'Africa/Luanda'
   });
-  
+
+  // Password state
+  const [passwordData, setPasswordData] = useState({
+    oldPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+
   const [activeTab, setActiveTab] = useState('profile');
   const [showPassword, setShowPassword] = useState(false);
-  const [saving, setSaving] = useState(false);
 
+  // Load user data into form
   useEffect(() => {
     if (user) {
       setSettings(prev => ({
@@ -107,20 +127,76 @@ export default function UserSettingsPage() {
         firstName: user.name?.split(' ')[0] || '',
         lastName: user.name?.split(' ').slice(1).join(' ') || '',
         email: user.email || '',
+        avatar: user.avatar || '',
       }));
     }
   }, [user]);
 
-  const handleSave = async (section: string) => {
-    setSaving(true);
+  // Load notification settings from API
+  useEffect(() => {
+    if (notificationSettings) {
+      setSettings(prev => ({
+        ...prev,
+        emailNotifications: notificationSettings.email_marketing,
+        pushNotifications: notificationSettings.push_messages,
+        lessonReminders: notificationSettings.push_bookings,
+        weeklyProgress: notificationSettings.email_bookings,
+        achievementAlerts: notificationSettings.email_ratings,
+        timezone: notificationSettings.timezone,
+      }));
+    }
+  }, [notificationSettings]);
+
+  const handleSaveProfile = async () => {
     try {
-      // TODO: Implement API call to save settings
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-      toast.success(`Definições de ${section} guardadas com sucesso!`);
-    } catch (error) {
-      toast.error('Erro ao guardar definições');
-    } finally {
-      setSaving(false);
+      const fullName = `${settings.firstName} ${settings.lastName}`.trim();
+      await updateProfile({
+        name: fullName,
+        email: settings.email,
+        avatar: settings.avatar,
+      }).unwrap();
+      toast.success('Perfil atualizado com sucesso!');
+    } catch (error: any) {
+      toast.error(error?.data?.error || 'Erro ao atualizar perfil');
+    }
+  };
+
+  const handleSaveNotifications = async () => {
+    try {
+      await updateNotificationSettings({
+        email_marketing: settings.emailNotifications,
+        push_messages: settings.pushNotifications,
+        push_bookings: settings.lessonReminders,
+        email_bookings: settings.weeklyProgress,
+        email_ratings: settings.achievementAlerts,
+        timezone: settings.timezone,
+      }).unwrap();
+      toast.success('Notificações atualizadas com sucesso!');
+    } catch (error: any) {
+      toast.error(error?.data?.error || 'Erro ao atualizar notificações');
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast.error('As palavras-passe não coincidem');
+      return;
+    }
+
+    if (passwordData.newPassword.length < 8) {
+      toast.error('A palavra-passe deve ter pelo menos 8 caracteres');
+      return;
+    }
+
+    try {
+      await changePassword({
+        old_password: passwordData.oldPassword,
+        new_password: passwordData.newPassword,
+      }).unwrap();
+      toast.success('Palavra-passe alterada com sucesso!');
+      setPasswordData({ oldPassword: '', newPassword: '', confirmPassword: '' });
+    } catch (error: any) {
+      toast.error(error?.data?.error || 'Erro ao alterar palavra-passe');
     }
   };
 
@@ -353,19 +429,19 @@ export default function UserSettingsPage() {
                         onChange={(e) => setSettings(prev => ({ ...prev, bio: e.target.value }))}
                         className="w-full h-16 sm:h-20 px-3 py-2 bg-customgreys-darkGrey border border-gray-600 rounded-md text-white text-sm sm:text-base placeholder:text-gray-400 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 resize-none"
                         placeholder="Fale-nos um pouco sobre si..."
-                        maxLength={150}
+                        // ✅ CATEGORIA 1: Removido maxLength - bio sem limite
                       />
-                      <p className="text-xs text-gray-400">{settings.bio.length}/150 caracteres</p>
+                      <p className="text-xs text-gray-400">{settings.bio.length} caracteres</p>
                     </div>
                   </div>
 
                   <div className="flex justify-end">
                     <Button
-                      onClick={() => handleSave('perfil')}
-                      disabled={saving}
+                      onClick={handleSaveProfile}
+                      disabled={isUpdatingProfile}
                       className="bg-violet-600 hover:bg-violet-700 text-sm sm:text-base"
                     >
-                      {saving ? (
+                      {isUpdatingProfile ? (
                         <div className="flex items-center gap-2">
                           <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-b-2 border-white"></div>
                           <span className="hidden sm:inline">A guardar...</span>
@@ -526,11 +602,11 @@ export default function UserSettingsPage() {
 
             <div className="flex justify-end">
               <Button
-                onClick={() => handleSave('aprendizagem')}
-                disabled={saving}
+                onClick={handleSaveProfile}
+                disabled={isUpdatingProfile}
                 className="bg-green-600 hover:bg-green-700 text-sm sm:text-base"
               >
-                {saving ? (
+                {isUpdatingProfile ? (
                   <div className="flex items-center gap-2">
                     <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-b-2 border-white"></div>
                     <span className="hidden sm:inline">A guardar...</span>
@@ -647,11 +723,11 @@ export default function UserSettingsPage() {
 
             <div className="flex justify-end">
               <Button
-                onClick={() => handleSave('notificações')}
-                disabled={saving}
+                onClick={handleSaveNotifications}
+                disabled={isUpdatingNotifications}
                 className="bg-yellow-600 hover:bg-yellow-700 text-sm sm:text-base"
               >
-                {saving ? (
+                {isUpdatingNotifications ? (
                   <div className="flex items-center gap-2">
                     <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-b-2 border-white"></div>
                     <span className="hidden sm:inline">A guardar...</span>
@@ -733,10 +809,23 @@ export default function UserSettingsPage() {
                 </CardHeader>
                 <CardContent className="p-4 sm:p-6 space-y-4 sm:space-y-6">
                   <div className="space-y-2">
+                    <Label className="text-gray-300 text-sm sm:text-base">Palavra-passe Atual</Label>
+                    <Input
+                      type="password"
+                      value={passwordData.oldPassword}
+                      onChange={(e) => setPasswordData(prev => ({ ...prev, oldPassword: e.target.value }))}
+                      placeholder="Digite a palavra-passe atual"
+                      className="bg-customgreys-darkGrey border-gray-600 text-white text-sm sm:text-base"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
                     <Label className="text-gray-300 text-sm sm:text-base">Nova Palavra-passe</Label>
                     <div className="relative">
                       <Input
                         type={showPassword ? "text" : "password"}
+                        value={passwordData.newPassword}
+                        onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
                         placeholder="Digite a nova palavra-passe"
                         className="bg-customgreys-darkGrey border-gray-600 text-white pr-10 text-sm sm:text-base"
                       />
@@ -760,18 +849,30 @@ export default function UserSettingsPage() {
                     <Label className="text-gray-300 text-sm sm:text-base">Confirmar Palavra-passe</Label>
                     <Input
                       type="password"
+                      value={passwordData.confirmPassword}
+                      onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
                       placeholder="Confirme a nova palavra-passe"
                       className="bg-customgreys-darkGrey border-gray-600 text-white text-sm sm:text-base"
                     />
                   </div>
 
-                  <Button 
+                  <Button
                     className="w-full bg-orange-600 hover:bg-orange-700 text-sm sm:text-base"
-                    onClick={() => handleSave('palavra-passe')}
+                    onClick={handleChangePassword}
+                    disabled={isChangingPassword || !passwordData.oldPassword || !passwordData.newPassword}
                   >
-                    <Lock className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
-                    <span className="hidden sm:inline">Alterar Palavra-passe</span>
-                    <span className="sm:hidden">Alterar</span>
+                    {isChangingPassword ? (
+                      <div className="flex items-center gap-2">
+                        <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-b-2 border-white"></div>
+                        <span>A alterar...</span>
+                      </div>
+                    ) : (
+                      <>
+                        <Lock className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
+                        <span className="hidden sm:inline">Alterar Palavra-passe</span>
+                        <span className="sm:hidden">Alterar</span>
+                      </>
+                    )}
                   </Button>
 
                   <Separator className="bg-gray-600" />
@@ -790,11 +891,11 @@ export default function UserSettingsPage() {
 
             <div className="flex justify-end">
               <Button
-                onClick={() => handleSave('privacidade')}
-                disabled={saving}
+                onClick={handleSaveProfile}
+                disabled={isUpdatingProfile}
                 className="bg-red-600 hover:bg-red-700 text-sm sm:text-base"
               >
-                {saving ? (
+                {isUpdatingProfile ? (
                   <div className="flex items-center gap-2">
                     <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-b-2 border-white"></div>
                     <span className="hidden sm:inline">A guardar...</span>

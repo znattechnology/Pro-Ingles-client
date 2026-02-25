@@ -257,6 +257,39 @@ export const teacherVideoCourseApiSlice = createApi({
       ],
     }),
 
+    // ===== PRACTICE COURSE ASSOCIATION =====
+
+    getAvailablePracticeCourses: builder.query<{ id: string; title: string; category: string; status: string }[], void>({
+      query: () => ({
+        url: '/',
+        params: {
+          course_type: 'practice',
+          include_drafts: true,
+          page_size: 100,
+        },
+      }),
+      transformResponse: (response: any) => {
+        let courses: any[] = [];
+
+        if (response?.data) {
+          if (Array.isArray(response.data)) {
+            courses = response.data;
+          } else if (response.data.results) {
+            courses = response.data.results;
+          }
+        }
+
+        // Return simplified list for dropdown
+        return courses.map((course: any) => ({
+          id: course.id || course.courseId,
+          title: course.title,
+          category: course.category,
+          status: course.status,
+        }));
+      },
+      providesTags: ['TeacherVideoCourse'],
+    }),
+
   }),
 });
 
@@ -291,5 +324,8 @@ export const {
   
   // Publishing
   usePublishVideoCourseMutation,
-  
+
+  // Practice Course Association
+  useGetAvailablePracticeCoursesQuery,
+
 } = teacherVideoCourseApiSlice;

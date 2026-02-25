@@ -9,19 +9,11 @@ import { Badge } from "@/components/ui/badge";
 import { useDjangoAuth } from "@/hooks/useDjangoAuth";
 import Loading from "@/components/course/Loading";
 import { motion } from "framer-motion";
-import { useFeatureFlag } from '@/lib/featureFlags';
-import { 
-  useTeacherCourses, 
-  useTeacherCourseFilters, 
-  useTeacherDashboardStats,
-  useTeacherMigrationDebug 
-} from '@/redux/features/laboratory/hooks/useTeacherCourses';
-import { 
+import {
   Plus,
   Search,
   Edit,
   Eye,
-  Settings,
   ChevronLeft,
   Users,
   Target,
@@ -43,119 +35,79 @@ import { useGetTeacherCoursesQuery } from "@/src/domains/teacher/practice-course
 const ManageCoursesPage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { isAuthenticated, user } = useDjangoAuth();
-  
-  // Feature flags
-  const useReduxTeacher = useFeatureFlag('REDUX_TEACHER_MANAGEMENT');
-  
-  // Practice API Redux hooks - use teacher endpoint to include drafts
-  const { data: practiceCoursesData, isLoading: practiceLoading, error: practiceError, refetch: refetchPractice } = useGetTeacherCoursesQuery({ includeDrafts: true });
-  
-  // Redux hooks
-  const { courses: reduxCourses, isLoading: reduxLoading, error: reduxError, refetch } = useTeacherCourses();
-  const { stats } = useTeacherDashboardStats();
-  const { filterCourses } = useTeacherCourseFilters();
-  
-  // Migration debug
-  useTeacherMigrationDebug();
-  
-  // Legacy state (for fallback)
-  const [legacyCourses, setLegacyCourses] = useState<any[]>([]);
-  const [legacyLoading, setLegacyLoading] = useState(true);
-  const [legacyError, setLegacyError] = useState<string | null>(null);
-  
+  const { isAuthenticated } = useDjangoAuth();
+
+  // Practice API Redux hooks - single source of truth for courses
+  const {
+    data: practiceCoursesData,
+    isLoading: practiceLoading,
+    error: practiceError,
+    refetch: refetchPractice
+  } = useGetTeacherCoursesQuery({ includeDrafts: true });
+
   // UI state
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState("all"); // all, draft, published, archived
 
-  // Determine which data source to use - prioritize practiceApiSlice
-  const courses = (practiceCoursesData && Array.isArray(practiceCoursesData)) ? practiceCoursesData.map(course => ({
-    ...course,
-    status: course.status?.toLowerCase() || 'draft',
-    units: course.units_count || course.units || 0,
-    lessons: course.lessons_count || course.lessons || 0,
-    challenges: course.challenges_count || course.challenges || 0,
-    students: 0, // TODO: Add student count to API
-    completionRate: course.total_progress || 0,
-    lastUpdated: course.updated_at || new Date().toISOString(),
-    createdAt: course.created_at || new Date().toISOString()
-  })) : (useReduxTeacher ? reduxCourses : legacyCourses);
-  
-  const isLoading = practiceLoading || (useReduxTeacher ? reduxLoading : legacyLoading);
-  
+  // SIMPLIFIED: Use only practiceApiSlice as the single source of truth
+  // Legacy and Redux fallbacks removed for cleaner architecture
+  const courses = (practiceCoursesData && Array.isArray(practiceCoursesData))
+    ? practiceCoursesData.map(course => ({
+        ...course,
+        status: course.status?.toLowerCase() || 'draft',
+        units: course.units_count || course.units || 0,
+        lessons: course.lessons_count || course.lessons || 0,
+        challenges: course.challenges_count || course.challenges || 0,
+        students: 0, // TODO: Add student count to API
+        completionRate: course.total_progress || 0,
+        lastUpdated: course.updated_at || new Date().toISOString(),
+        createdAt: course.created_at || new Date().toISOString()
+      }))
+    : [];
+
+  const isLoading = practiceLoading;
+
   // Handle error from practiceApiSlice properly
-  const practiceErrorMessage = practiceError ? 
-    ('data' in practiceError && practiceError.data && typeof practiceError.data === 'object' && 'message' in practiceError.data) 
-      ? String((practiceError.data as any).message)
-      : 'status' in practiceError 
-        ? `API Error ${practiceError.status}`
-        : 'Error loading practice courses'
+  const error = practiceError
+    ? ('data' in practiceError && practiceError.data && typeof practiceError.data === 'object' && 'message' in practiceError.data)
+        ? String((practiceError.data as any).message)
+        : 'status' in practiceError
+          ? `API Error ${practiceError.status}`
+          : 'Error loading practice courses'
     : null;
-    
-  const error = practiceErrorMessage || (useReduxTeacher ? reduxError : legacyError);
 
-
-  // Legacy data loading (fallback when Redux is disabled)
-  useEffect(() => {
-    if (!useReduxTeacher) {
-      loadCoursesLegacy();
-    }
-  }, [useReduxTeacher]);
 
   // Check for refresh parameter and force reload
   useEffect(() => {
     const shouldRefresh = searchParams.get('refresh') === 'true';
     if (shouldRefresh) {
-      refetchPractice(); // Always refetch practice data first
-      if (useReduxTeacher) {
-        refetch();
-      } else {
-        loadCoursesLegacy();
-      }
-      
+      refetchPractice();
       // Remove the refresh parameter from URL
       const newUrl = window.location.pathname;
       window.history.replaceState({}, '', newUrl);
     }
-  }, [searchParams, useReduxTeacher, refetch, refetchPractice]);
+  }, [searchParams, refetchPractice]);
 
   // Reload courses when component is focused (useful when returning from create course page)
   useEffect(() => {
     const handleFocus = () => {
-      refetchPractice(); // Always refetch practice data first
-      if (useReduxTeacher) {
-        refetch();
-      } else {
-        loadCoursesLegacy();
-      }
+      refetchPractice();
     };
 
     const handleVisibilityChange = () => {
       if (!document.hidden) {
-        refetchPractice(); // Always refetch practice data first
-        if (useReduxTeacher) {
-          refetch();
-        } else {
-          loadCoursesLegacy();
-        }
+        refetchPractice();
       }
     };
 
     window.addEventListener('focus', handleFocus);
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    
+
     return () => {
       window.removeEventListener('focus', handleFocus);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [useReduxTeacher, refetch, refetchPractice]);
-
-  const loadCoursesLegacy = async () => {
-    // Legacy function removed - now using practiceApiSlice
-    console.log('🔄 Legacy course loading disabled - using practiceApiSlice');
-  };
-
-
+  }, [refetchPractice]);
 
   const getCategoryIcon = (category: string) => {
     switch (category.toLowerCase()) {
@@ -190,15 +142,14 @@ const ManageCoursesPage = () => {
     }
   };
 
-  const filteredCourses = useReduxTeacher 
-    ? filterCourses(courses, searchTerm, filter)
-    : courses.filter(course => {
-        const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                             course.category.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesFilter = filter === 'all' || course.status.toLowerCase() === filter.toLowerCase();
-        
-        return matchesSearch && matchesFilter;
-      });
+  // Filter courses based on search and status
+  const filteredCourses = courses.filter(course => {
+    const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (course.category || '').toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesFilter = filter === 'all' || course.status.toLowerCase() === filter.toLowerCase();
+
+    return matchesSearch && matchesFilter;
+  });
 
   if (!isAuthenticated || isLoading) {
     return <Loading />;
@@ -215,14 +166,7 @@ const ManageCoursesPage = () => {
             <h3 className="text-2xl font-bold text-white mb-3">Erro ao Carregar</h3>
             <p className="text-gray-400 text-center mb-6">{error}</p>
             <Button
-              onClick={() => {
-                refetchPractice(); // Always refetch practice data first
-                if (useReduxTeacher) {
-                  refetch();
-                } else {
-                  loadCoursesLegacy();
-                }
-              }}
+              onClick={() => refetchPractice()}
               className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white"
             >
               Tentar Novamente
@@ -370,7 +314,7 @@ const ManageCoursesPage = () => {
                 <BookOpen className="w-6 h-6 text-violet-400" />
               </div>
               <div className="text-3xl font-bold text-white mb-1">
-                {useReduxTeacher ? stats.totalCourses : courses.length}
+                {courses.length}
               </div>
               <div className="text-sm text-gray-400">Total de Cursos</div>
             </motion.div>
@@ -383,10 +327,7 @@ const ManageCoursesPage = () => {
                 <Users className="w-6 h-6 text-blue-400" />
               </div>
               <div className="text-3xl font-bold text-white mb-1">
-                {useReduxTeacher 
-                  ? stats.totalStudents 
-                  : courses.reduce((sum, course) => sum + (course.students || 0), 0)
-                }
+                {courses.reduce((sum, course) => sum + (course.students || 0), 0)}
               </div>
               <div className="text-sm text-gray-400">Estudantes Ativos</div>
             </motion.div>
@@ -399,10 +340,7 @@ const ManageCoursesPage = () => {
                 <Target className="w-6 h-6 text-green-400" />
               </div>
               <div className="text-3xl font-bold text-white mb-1">
-                {useReduxTeacher 
-                  ? stats.totalChallenges 
-                  : courses.reduce((sum, course) => sum + (course.challenges || 0), 0)
-                }
+                {courses.reduce((sum, course) => sum + (course.challenges || 0), 0)}
               </div>
               <div className="text-sm text-gray-400">Total Desafios</div>
             </motion.div>
@@ -415,10 +353,7 @@ const ManageCoursesPage = () => {
                 <TrendingUp className="w-6 h-6 text-orange-400" />
               </div>
               <div className="text-3xl font-bold text-white mb-1">
-                {useReduxTeacher 
-                  ? stats.averageCompletionRate 
-                  : Math.round(courses.length > 0 ? courses.reduce((sum, course) => sum + (course.completionRate || 0), 0) / courses.length : 0)
-                }%
+                {Math.round(courses.length > 0 ? courses.reduce((sum, course) => sum + (course.completionRate || 0), 0) / courses.length : 0)}%
               </div>
               <div className="text-sm text-gray-400">Taxa Média</div>
             </motion.div>

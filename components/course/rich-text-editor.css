@@ -1,0 +1,197 @@
+/* ═══════════════════════════════════════════════════════════════════
+   RICH TEXT EDITOR - CUSTOM DARK THEME
+   Customização do Quill editor para match com o tema dark do sistema
+   ═══════════════════════════════════════════════════════════════════ */
+
+.rich-text-editor-wrapper {
+  @apply w-full;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   CONTAINER & BORDERS
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+.rich-text-editor-wrapper .quill {
+  @apply rounded-md border border-gray-600 overflow-hidden;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   TOOLBAR - Dark Theme
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+.rich-text-editor-wrapper .ql-toolbar {
+  @apply bg-customgreys-primarybg border-b border-gray-600;
+}
+
+/* Toolbar buttons */
+.rich-text-editor-wrapper .ql-toolbar button {
+  @apply text-gray-300 hover:text-white transition-colors;
+}
+
+.rich-text-editor-wrapper .ql-toolbar button:hover {
+  @apply bg-gray-700;
+}
+
+.rich-text-editor-wrapper .ql-toolbar button.ql-active {
+  @apply text-violet-400 bg-gray-700;
+}
+
+/* Toolbar dropdowns */
+.rich-text-editor-wrapper .ql-toolbar .ql-stroke {
+  @apply stroke-gray-300;
+}
+
+.rich-text-editor-wrapper .ql-toolbar .ql-fill {
+  @apply fill-gray-300;
+}
+
+.rich-text-editor-wrapper .ql-toolbar button:hover .ql-stroke,
+.rich-text-editor-wrapper .ql-toolbar button.ql-active .ql-stroke {
+  @apply stroke-violet-400;
+}
+
+.rich-text-editor-wrapper .ql-toolbar button:hover .ql-fill,
+.rich-text-editor-wrapper .ql-toolbar button.ql-active .ql-fill {
+  @apply fill-violet-400;
+}
+
+/* Dropdown pickers */
+.rich-text-editor-wrapper .ql-toolbar .ql-picker {
+  @apply text-gray-300;
+}
+
+.rich-text-editor-wrapper .ql-toolbar .ql-picker-label {
+  @apply border-gray-600;
+}
+
+.rich-text-editor-wrapper .ql-toolbar .ql-picker-label:hover {
+  @apply text-white;
+}
+
+.rich-text-editor-wrapper .ql-toolbar .ql-picker-options {
+  @apply bg-customgreys-primarybg border border-gray-600;
+}
+
+.rich-text-editor-wrapper .ql-toolbar .ql-picker-item {
+  @apply text-gray-300 hover:bg-gray-700 hover:text-white;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   EDITOR CONTAINER - Dark Theme
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+.rich-text-editor-wrapper .ql-container {
+  @apply bg-customgreys-darkGrey text-white;
+}
+
+.rich-text-editor-wrapper .ql-editor {
+  @apply min-h-[200px] p-4 text-white;
+}
+
+/* Placeholder text */
+.rich-text-editor-wrapper .ql-editor.ql-blank::before {
+  @apply text-gray-400 italic;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   CONTENT STYLES - Typography
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+/* Headings */
+.rich-text-editor-wrapper .ql-editor h1 {
+  @apply text-3xl font-bold text-white mb-4;
+}
+
+.rich-text-editor-wrapper .ql-editor h2 {
+  @apply text-2xl font-bold text-white mb-3;
+}
+
+.rich-text-editor-wrapper .ql-editor h3 {
+  @apply text-xl font-semibold text-white mb-2;
+}
+
+.rich-text-editor-wrapper .ql-editor h4,
+.rich-text-editor-wrapper .ql-editor h5,
+.rich-text-editor-wrapper .ql-editor h6 {
+  @apply text-lg font-medium text-white mb-2;
+}
+
+/* Paragraphs */
+.rich-text-editor-wrapper .ql-editor p {
+  @apply text-gray-200 mb-3 leading-relaxed;
+}
+
+/* Links */
+.rich-text-editor-wrapper .ql-editor a {
+  @apply text-violet-400 underline hover:text-violet-300 transition-colors;
+}
+
+/* Lists */
+.rich-text-editor-wrapper .ql-editor ul,
+.rich-text-editor-wrapper .ql-editor ol {
+  @apply mb-3 pl-6 text-gray-200;
+}
+
+.rich-text-editor-wrapper .ql-editor li {
+  @apply mb-1;
+}
+
+/* Blockquotes */
+.rich-text-editor-wrapper .ql-editor blockquote {
+  @apply border-l-4 border-violet-400 pl-4 py-2 my-3 bg-gray-800/50 text-gray-300 italic;
+}
+
+/* Code blocks */
+.rich-text-editor-wrapper .ql-editor pre.ql-syntax {
+  @apply bg-gray-900 text-green-400 p-4 rounded-md mb-3 overflow-x-auto;
+}
+
+/* Inline code */
+.rich-text-editor-wrapper .ql-editor code {
+  @apply bg-gray-800 text-green-400 px-1.5 py-0.5 rounded text-sm;
+}
+
+/* Images */
+.rich-text-editor-wrapper .ql-editor img {
+  @apply max-w-full h-auto rounded-md my-3;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   FOCUS STATES
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+.rich-text-editor-wrapper .ql-container.ql-snow {
+  @apply border-none;
+}
+
+.rich-text-editor-wrapper .quill:focus-within {
+  @apply ring-2 ring-violet-500/20 border-violet-500;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   DISABLED STATE
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+.rich-text-editor-wrapper .ql-container.ql-disabled {
+  @apply bg-gray-800 cursor-not-allowed opacity-60;
+}
+
+.rich-text-editor-wrapper .ql-toolbar.ql-disabled {
+  @apply opacity-50 pointer-events-none;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   SCROLLBAR - Custom Dark
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+.rich-text-editor-wrapper .ql-editor::-webkit-scrollbar {
+  @apply w-2;
+}
+
+.rich-text-editor-wrapper .ql-editor::-webkit-scrollbar-track {
+  @apply bg-gray-800;
+}
+
+.rich-text-editor-wrapper .ql-editor::-webkit-scrollbar-thumb {
+  @apply bg-gray-600 rounded hover:bg-gray-500;
+}

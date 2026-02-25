@@ -97,13 +97,12 @@ export const useCourseProgressData = () => {
         completed
       });
 
-      const token = localStorage.getItem('access_token');
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_DJANGO_API_URL}/student/video-courses/users/${user.id}/progress/${courseId}/update/`,
         {
           method: 'PUT',
+          credentials: 'include',
           headers: {
-            'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({

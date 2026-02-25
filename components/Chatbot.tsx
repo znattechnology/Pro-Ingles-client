@@ -75,7 +75,7 @@ const Chatbot = () => {
     
     "cursos": "🎯 **Cursos Especializados:**\n\n🛢️ **Inglês para Petróleo & Gás**\n• Sonangol, Total Angola, Chevron\n• Terminologia técnica\n\n🏦 **Inglês Bancário**\n• BAI, BFA, Standard Bank\n• Transações internacionais\n\n💻 **Inglês para TI**\n• Unitel, MS Telecom\n• Vocabulário de programação\n\n👔 **Inglês Executivo**\n• Para C-Level e gestores\n• Negociações estratégicas",
     
-    "demo": "🎬 **Ver Demonstração:**\n\nPode ver nossa demo do IA Personal Tutor diretamente na página principal! \n\n✨ **O que vai ver:**\n• Correção de pronunciação em tempo real\n• Feedback personalizado para Angola\n• Interface adaptativa\n\n🎯 **Também temos:**\n• Practice Lab com 4 tipos de exercícios\n• Cenários reais de empresas angolanas\n\n➡️ Clique em \"Ver Demo do IA Tutor\" na página!",
+    "demo": "🎬 **Ver Demonstração:**\n\nPode ver nossa demo do IA Personal Tutor diretamente na página principal! \n\n✨ **O que vai ver:**\n• Correção de pronunciação em tempo real\n• Feedback personalizado para Angola\n• Interface adaptativa\n\n🎯 **Também temos:**\n• English Practice Lab com 4 tipos de exercícios\n• Cenários reais de empresas angolanas\n\n➡️ Clique em \"Ver Demo do IA Tutor\" na página!",
     
     "suporte": "🛠️ **Suporte ProEnglish:**\n\n📧 **Email:** contato@proenglish.ao\n📱 **WhatsApp:** +244 923 456 789\n\n⏰ **Horário de Atendimento:**\n• Segunda a Sexta: 8h às 18h\n• Sábado: 9h às 13h\n\n🚀 **Suporte Premium:**\nPlanos Professional e Enterprise têm suporte prioritário 24/7!\n\n💬 **Dúvidas Frequentes:**\nVisite nossa seção de FAQ para respostas rápidas."
   };

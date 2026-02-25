@@ -127,7 +127,7 @@ const IntegrationTest: React.FC = () => {
             🧪 Teste de Integração Course ↔ Laboratory
           </h1>
           <p className="text-gray-400">
-            Testa a integração Redux entre cursos em vídeo e Practice Lab
+            Testa a integração Redux entre cursos em vídeo e English Practice Lab
           </p>
         </div>
 

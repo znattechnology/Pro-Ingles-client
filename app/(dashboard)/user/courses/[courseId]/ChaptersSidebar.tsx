@@ -43,7 +43,7 @@ const getChapterStatusBadge = (chapter: any) => {
     case 'Quiz':
       return <span className="text-xs text-purple-300 bg-purple-500/20 px-2 py-0.5 rounded">Quiz</span>;
     case 'Exercise':
-      return <span className="text-xs text-emerald-300 bg-emerald-500/20 px-2 py-0.5 rounded">Practice Lab</span>;
+      return <span className="text-xs text-emerald-300 bg-emerald-500/20 px-2 py-0.5 rounded">English Practice Lab</span>;
     case 'Text':
     default:
       return <span className="text-xs text-gray-300 bg-gray-500/20 px-2 py-0.5 rounded">Leitura</span>;
@@ -93,10 +93,22 @@ const ChaptersSidebar = () => {
     <div ref={sidebarRef} className="bg-customgreys-secondarybg text-white/70 border-x border-gray-700 transition-all duration-500 ease-in-out animate-in fade-in slide-in-from-left flex-shrink-0 h-screen flex flex-col">
       {/* Fixed Header */}
       <div className="text-white flex-shrink-0">
-        <h2 className="text-lg font-bold pt-9 pb-6 px-8">{course.title}</h2>
+        <h2 className="text-lg font-bold pt-9 pb-4 px-8">{course.title}</h2>
+
+        {/* Quick Actions */}
+        <div className="px-8 pb-4">
+          <button
+            onClick={() => router.push(`/user/courses/${courseId}/grades`)}
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm bg-violet-600/20 hover:bg-violet-600/30 border border-violet-500/30 rounded-lg transition-colors"
+          >
+            <Trophy className="w-4 h-4 text-violet-400" />
+            <span className="text-violet-200">Ver Minhas Notas</span>
+          </button>
+        </div>
+
         <hr className="border-gray-700" />
       </div>
-      
+
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin">
         {course.sections?.map((section, index) => (

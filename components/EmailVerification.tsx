@@ -80,9 +80,13 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({
         // Redirect based on user role and context
         const isCheckoutPage = searchParams.get("showSignUp") !== null;
         const courseId = searchParams.get("id");
-        
+        const selectedPlan = searchParams.get("plan"); // From landing page pricing
+
         if (isCheckoutPage && courseId) {
           router.push(`/checkout?step=2&id=${courseId}`);
+        } else if (selectedPlan && result.user.role === 'student') {
+          // User came from pricing page with a plan selected - redirect to upgrade
+          router.push(`/user/upgrade?plan=${selectedPlan}`);
         } else {
           switch (result.user.role) {
             case 'teacher':

@@ -91,8 +91,8 @@ const Header = () => {
               <SheetContent side="right" className="w-[300px] sm:w-[400px] bg-black">
               <div className="gradient-03  z-0" />
                 <nav className="flex flex-col gap-6 mt-6 text-white/70">
-                  <button onClick={() => handleScrollToSection('about')} className="hover:text-white transition-colors text-left">Sobre Nós</button>
-                  <button onClick={() => handleScrollToSection('features')} className="hover:text-white transition-colors text-left">Serviços</button>
+                  <Link href="/about" className="hover:text-white transition-colors">Sobre Nós</Link>
+                  <button onClick={() => handleScrollToSection('practice-lab')} className="hover:text-white transition-colors text-left">Serviços</button>
                   <Link href="/search" className="hover:text-white transition-colors">Cursos</Link>
                   <button onClick={() => handleScrollToSection('pricing')} className="hover:text-white transition-colors text-left">Planos</button>
                   <button onClick={() => handleScrollToSection('testimonials')} className="hover:text-white transition-colors text-left">Testemunhos</button>
@@ -120,8 +120,8 @@ const Header = () => {
               </SheetContent>
             </Sheet>
             <nav className="hidden md:flex gap-6 items-center text-white/70">
-              <button onClick={() => handleScrollToSection('about')} className="hover:text-white transition-colors">Sobre Nós</button>
-              <button onClick={() => handleScrollToSection('features')} className="hover:text-white transition-colors">Serviços</button>
+              <Link href="/about" className="hover:text-white transition-colors">Sobre Nós</Link>
+              <button onClick={() => handleScrollToSection('practice-lab')} className="hover:text-white transition-colors">Serviços</button>
               <Link href="/search" className="hover:text-white transition-colors">Cursos</Link>
               <button onClick={() => handleScrollToSection('pricing')} className="hover:text-white transition-colors">Planos</button>
               <button onClick={() => handleScrollToSection('testimonials')} className="hover:text-white transition-colors">Testemunhos</button>
@@ -187,49 +187,7 @@ const Header = () => {
         </div>
       </div>
     </header>
-    {/* {route === "Login" && (
-        <>
-          {open && (
-            <CustomModal
-              open={open}
-              setOpen={setOpen}
-              setRoute={setRoute}
-              activeItem={activeItem}
-              component={Login}
-            />
-          )}
-        </>
-      )}
-      {route === "SignUp" && (
-        <>
-          {open && (
-            <CustomModal
-              open={open}
-              setOpen={setOpen}
-              setRoute={setRoute}
-              activeItem={activeItem}
-              component={SignUp}
-            />
-          )}
-        </>
-      )}
-
-      {route === "verification" && (
-        <>
-          {open && (
-            <CustomModal
-              open={open}
-              setOpen={setOpen}
-              setRoute={setRoute}
-              activeItem={activeItem}
-              component={Verification}
-            />
-          )}
-        </>
-      )} */}
 </>
- 
-
   );
 };
 

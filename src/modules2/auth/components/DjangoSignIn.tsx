@@ -108,18 +108,24 @@ const DjangoSignIn = () => {
       }, 100);
     } catch (error: any) {
       console.error('Login error:', error);
-      
+
+      // Extract error message safely (could be string, object, or array)
+      const errorData = error?.data?.error;
+      const errorString = typeof errorData === 'string'
+        ? errorData
+        : (Array.isArray(errorData) ? errorData[0] : null);
+
       // Handle specific errors
-      if (error?.data?.error?.includes('Email não verificado')) {
+      if (errorString?.includes('Email não verificado')) {
         // User needs to verify email - Redux will handle the redirection
         toast.error('Por favor, verifique seu email antes de fazer login.');
         return;
       }
-      
+
       // Handle field-specific errors
       if (error?.data && typeof error.data === 'object') {
         const apiErrors: Record<string, string> = {};
-        
+
         Object.entries(error.data).forEach(([field, messages]) => {
           if (Array.isArray(messages)) {
             apiErrors[field] = messages[0];
@@ -127,15 +133,15 @@ const DjangoSignIn = () => {
             apiErrors[field] = messages;
           }
         });
-        
+
         if (Object.keys(apiErrors).length > 0) {
           setErrors(apiErrors);
           return;
         }
       }
-      
+
       // Generic error handling
-      const errorMessage = error?.data?.error || error?.message || 'Credenciais inválidas. Tente novamente.';
+      const errorMessage = errorString || error?.data?.detail || error?.message || 'Credenciais inválidas. Tente novamente.';
       toast.error(errorMessage);
       setErrors({ email: 'Verifique seu email e senha' });
     }

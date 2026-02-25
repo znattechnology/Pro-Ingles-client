@@ -31,7 +31,7 @@ export const studentAchievementsApiSlice = createApi({
      * Returns all achievements with user's progress and unlock status
      */
     getUserAchievements: builder.query<Achievement[], void>({
-      query: () => "/practice/achievements/",
+      query: () => "/student/practice-courses/achievements/",
       transformResponse: (response: any[]) => {
         // Check if data is already transformed (has isUnlocked property)
         if (response.length > 0 && 'isUnlocked' in response[0]) {
@@ -67,7 +67,7 @@ export const studentAchievementsApiSlice = createApi({
      * Returns summary stats for user's achievement progress
      */
     getAchievementStats: builder.query<AchievementStats, void>({
-      query: () => "/practice/achievements/stats/",
+      query: () => "/student/practice-courses/achievements/stats/",
       providesTags: ['AchievementStats'],
     }),
 
@@ -76,7 +76,7 @@ export const studentAchievementsApiSlice = createApi({
      * Returns category information with counts
      */
     getAchievementCategories: builder.query<AchievementCategory[], void>({
-      query: () => "/practice/achievements/categories/",
+      query: () => "/student/practice-courses/achievements/categories/",
       providesTags: ['AchievementCategories'],
     }),
 
@@ -85,7 +85,7 @@ export const studentAchievementsApiSlice = createApi({
      * Returns unread achievement notifications
      */
     getAchievementNotifications: builder.query<AchievementNotification[], void>({
-      query: () => "/practice/achievements/notifications/",
+      query: () => "/student/practice-courses/achievements/notifications/",
       providesTags: ['AchievementNotifications'],
     }),
 
@@ -98,7 +98,7 @@ export const studentAchievementsApiSlice = createApi({
       { notification_id: string }
     >({
       query: ({ notification_id }) => ({
-        url: `/practice/achievements/notifications/${notification_id}/read/`,
+        url: `/student/practice-courses/achievements/notifications/${notification_id}/read/`,
         method: "POST",
       }),
       invalidatesTags: ['AchievementNotifications'],
@@ -113,7 +113,7 @@ export const studentAchievementsApiSlice = createApi({
       { achievement_id: string }
     >({
       query: ({ achievement_id }) => ({
-        url: `/practice/achievements/${achievement_id}/celebrate/`,
+        url: `/student/practice-courses/achievements/${achievement_id}/celebrate/`,
         method: "POST",
       }),
       invalidatesTags: ['AchievementNotifications'],

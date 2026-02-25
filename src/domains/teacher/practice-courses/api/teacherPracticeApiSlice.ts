@@ -47,7 +47,7 @@ export interface PracticeLesson {
   unit: string;
   title: string;
   order: number;
-  challenges?: PracticeCourse[];
+  challenges?: PracticeChallenge[];
 }
 
 export interface PracticeChallenge {
@@ -55,6 +55,7 @@ export interface PracticeChallenge {
   lesson: string;
   type: string;
   question: string;
+  instruction?: string;
   order: number;
   options?: CourseOption[];
 }
@@ -106,7 +107,9 @@ export interface CreatePracticeChallengeData {
   lesson: string;
   type: string;
   question: string;
+  instruction?: string;
   order: number;
+  reference_audio_url?: string;  // Audio URL for TRANSLATION/SPEAKING challenges
   options: Array<{
     text: string;
     is_correct: boolean;
@@ -161,6 +164,24 @@ export const teacherPracticeApiSlice = createApi({
         method: 'GET',
         credentials: 'include' as const,
       }),
+      transformResponse: (response: any[]) => {
+        // Normalizar campos da resposta da API
+        // Backend pode retornar courseId ou id, e diferentes nomes para contagens
+        return response.map((course: any) => ({
+          ...course,
+          // Normalizar ID (backend pode retornar courseId em vez de id)
+          id: course.id || course.courseId,
+          courseId: course.courseId || course.id,
+          // Normalizar contagens (backend pode usar nomes diferentes)
+          units_count: course.units_count ?? course.units ?? course.unitsCount ?? 0,
+          lessons_count: course.lessons_count ?? course.lessons ?? course.lessonsCount ?? 0,
+          challenges_count: course.challenges_count ?? course.challenges ?? course.challengesCount ?? 0,
+          // Manter compatibilidade com ambos os nomes
+          units: course.units ?? course.units_count ?? course.unitsCount ?? 0,
+          lessons: course.lessons ?? course.lessons_count ?? course.lessonsCount ?? 0,
+          challenges: course.challenges ?? course.challenges_count ?? course.challengesCount ?? 0,
+        }));
+      },
       providesTags: ['Course'],
     }),
 
@@ -387,7 +408,7 @@ export const teacherPracticeApiSlice = createApi({
     }),
 
     createTeacherChallenge: builder.mutation<PracticeChallenge, CreatePracticeChallengeData>({
-      query: ({ options: _options, ...challengeData }) => ({
+      query: (challengeData) => ({
         url: '/practice/challenges/',
         method: 'POST',
         credentials: 'include' as const,
@@ -409,9 +430,8 @@ export const teacherPracticeApiSlice = createApi({
         credentials: 'include' as const,
         body: data,
       }),
-      invalidatesTags: (result, error, { challengeId }) => [
-        { type: 'Course', id: challengeId },
-      ],
+      // Invalidate LessonDetail (challenges are nested in lessons) and Course for stats
+      invalidatesTags: ['LessonDetail', 'Course'],
     }),
 
     deleteTeacherChallenge: builder.mutation<void, string>({

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -68,6 +69,9 @@ interface CurrentSubscription {
 }
 
 export default function UpgradePage() {
+  const searchParams = useSearchParams();
+  const preselectedPlanType = searchParams.get("plan"); // PREMIUM or PREMIUM_PLUS from landing page
+
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [currentSubscription, setCurrentSubscription] = useState<CurrentSubscription | null>(null);
   const [loading, setLoading] = useState(true);
@@ -85,14 +89,18 @@ export default function UpgradePage() {
       setLoading(true);
 
       // Fetch available plans
-      const plansResponse = await fetch('/api/v1/subscriptions?endpoint=plans');
+      const plansResponse = await fetch('/api/v1/subscriptions?endpoint=plans', {
+        credentials: 'include',
+      });
       if (plansResponse.ok) {
         const plansData = await plansResponse.json();
         setPlans(plansData);
       }
 
       // Fetch current subscription (requires auth)
-      const subscriptionResponse = await fetch('/api/v1/subscriptions?endpoint=my-subscription');
+      const subscriptionResponse = await fetch('/api/v1/subscriptions?endpoint=my-subscription', {
+        credentials: 'include',
+      });
       if (subscriptionResponse.ok) {
         const subscriptionData = await subscriptionResponse.json();
         setCurrentSubscription(subscriptionData);
@@ -108,6 +116,32 @@ export default function UpgradePage() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  // Helper function to get plan order (defined early for useEffect)
+  const getPlanOrder = (planType: string) => {
+    switch (planType) {
+      case 'FREE': return 0;
+      case 'PREMIUM': return 1;
+      case 'PREMIUM_PLUS': return 2;
+      default: return 0;
+    }
+  };
+
+  // Pre-select plan from URL parameter (e.g., from landing page pricing cards)
+  useEffect(() => {
+    if (preselectedPlanType && plans.length > 0 && !selectedPlan && !loading) {
+      const planToSelect = plans.find(p => p.plan_type === preselectedPlanType);
+      if (planToSelect) {
+        // Check if user can upgrade to this plan
+        const canUpgradeToThis = !currentSubscription ||
+          getPlanOrder(preselectedPlanType) > getPlanOrder(currentSubscription.plan.plan_type);
+
+        if (canUpgradeToThis) {
+          setSelectedPlan(planToSelect.id);
+        }
+      }
+    }
+  }, [plans, preselectedPlanType, selectedPlan, currentSubscription, loading]);
 
   const formatCurrency = (value: string) => {
     const num = parseFloat(value);
@@ -136,6 +170,7 @@ export default function UpgradePage() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
           promo_code: promoCode,
           plan_id: selectedPlan
@@ -168,6 +203,7 @@ export default function UpgradePage() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
           plan_id: selectedPlan,
           billing_cycle: billingCycle,
@@ -217,20 +253,11 @@ export default function UpgradePage() {
 
   const canUpgrade = (planType: string) => {
     if (!currentSubscription) return true;
-    
-    const currentPlanOrder = getplanOrder(currentSubscription.plan.plan_type);
-    const targetPlanOrder = getplanOrder(planType);
-    
-    return targetPlanOrder > currentPlanOrder;
-  };
 
-  const getplanOrder = (planType: string) => {
-    switch (planType) {
-      case 'FREE': return 0;
-      case 'PREMIUM': return 1;
-      case 'PREMIUM_PLUS': return 2;
-      default: return 0;
-    }
+    const currentPlanOrder = getPlanOrder(currentSubscription.plan.plan_type);
+    const targetPlanOrder = getPlanOrder(planType);
+
+    return targetPlanOrder > currentPlanOrder;
   };
 
   if (loading) {
