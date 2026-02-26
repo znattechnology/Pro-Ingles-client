@@ -309,18 +309,19 @@ const navLinks = {
         },
       ],
     },
-    {
-      title: "Definições",
-      url: "/teacher/settings",
-      icon:  Settings,
-      isActive: true,
-      items: [
-        {
-          title: "Definições",
-          url: "/teacher/settings",
-        },
-      ],
-    },
+    // TODO: Implementar conexão com backend antes de habilitar
+    // {
+    //   title: "Definições",
+    //   url: "/teacher/settings",
+    //   icon:  Settings,
+    //   isActive: true,
+    //   items: [
+    //     {
+    //       title: "Definições",
+    //       url: "/teacher/settings",
+    //     },
+    //   ],
+    // },
   ],
   admin: [
     {
