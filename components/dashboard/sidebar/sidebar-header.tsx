@@ -94,9 +94,17 @@ function SidebarHeader({ isCoursePage }: { isCoursePage: boolean }) {
             className="flex items-center gap-3 text-white hover:bg-violet-800/20 border border-violet-900/30 transition-all duration-200 rounded-lg p-3 h-12"
           >
             <div className="relative">
-              <div className="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-violet-600 to-purple-600 rounded-full shadow-lg">
-                <User className="w-4 h-4 text-white" />
-              </div>
+              {user?.avatar ? (
+                <img
+                  src={user.avatar}
+                  alt={user.name || "Avatar"}
+                  className="w-8 h-8 rounded-full object-cover shadow-lg"
+                />
+              ) : (
+                <div className="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-violet-600 to-purple-600 rounded-full shadow-lg">
+                  <User className="w-4 h-4 text-white" />
+                </div>
+              )}
               <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 border-2 border-customgreys-primarybg rounded-full"></div>
             </div>
             <div className="hidden md:block text-left">
