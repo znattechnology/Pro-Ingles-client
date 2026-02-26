@@ -5,26 +5,26 @@
  * sem quebrar funcionalidade existente.
  */
 
-// Environment-based feature flags
+// Feature flags - hardcoded for production stability
 export const FEATURE_FLAGS = {
-  // Redux Migration Flags
-  REDUX_COURSE_SELECTION: process.env.NEXT_PUBLIC_REDUX_COURSE_SELECTION === 'true',
-  REDUX_PRACTICE_SESSION: process.env.NEXT_PUBLIC_REDUX_PRACTICE_SESSION === 'true',
-  REDUX_TEACHER_MANAGEMENT: process.env.NEXT_PUBLIC_REDUX_TEACHER_MANAGEMENT === 'true',
-  REDUX_USER_PROGRESS: process.env.NEXT_PUBLIC_REDUX_USER_PROGRESS === 'true',
-  REDUX_MAIN_LEARN_PAGE: process.env.NEXT_PUBLIC_REDUX_MAIN_LEARN_PAGE === 'true',
-  REDUX_TEACHER_DASHBOARD: process.env.NEXT_PUBLIC_REDUX_TEACHER_DASHBOARD === 'true',
-  REDUX_UNIT_MANAGEMENT: process.env.NEXT_PUBLIC_REDUX_UNIT_MANAGEMENT === 'true',
-  
+  // Redux Migration Flags - All enabled
+  REDUX_COURSE_SELECTION: true,
+  REDUX_PRACTICE_SESSION: true,
+  REDUX_TEACHER_MANAGEMENT: true,
+  REDUX_USER_PROGRESS: true,
+  REDUX_MAIN_LEARN_PAGE: true,
+  REDUX_TEACHER_DASHBOARD: true,
+  REDUX_UNIT_MANAGEMENT: true,
+
   // Advanced Features
-  REAL_TIME_UPDATES: process.env.NEXT_PUBLIC_REAL_TIME_UPDATES === 'true',
-  OFFLINE_PRACTICE: process.env.NEXT_PUBLIC_OFFLINE_PRACTICE === 'true',
-  OPTIMISTIC_UPDATES: process.env.NEXT_PUBLIC_OPTIMISTIC_UPDATES === 'true',
-  
+  REAL_TIME_UPDATES: false,
+  OFFLINE_PRACTICE: false,
+  OPTIMISTIC_UPDATES: true,
+
   // Development & Testing
-  DEBUG_REDUX: process.env.NEXT_PUBLIC_DEBUG_REDUX === 'true',
-  MOCK_API_RESPONSES: process.env.NEXT_PUBLIC_MOCK_API_RESPONSES === 'true',
-  PERFORMANCE_MONITORING: process.env.NEXT_PUBLIC_PERFORMANCE_MONITORING === 'true',
+  DEBUG_REDUX: process.env.NODE_ENV === 'development',
+  MOCK_API_RESPONSES: false,
+  PERFORMANCE_MONITORING: false,
 } as const;
 
 // Type for feature flag keys
