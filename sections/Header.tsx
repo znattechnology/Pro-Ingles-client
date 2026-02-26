@@ -4,7 +4,7 @@ import React from "react";
 import Logo from "@/public/logo/logo.png";
 import Image from "next/image";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Menu, MoveRight, User, LogOut } from 'lucide-react';
+import { Menu, MoveRight, User, LogOut, LayoutDashboard } from 'lucide-react';
 import { useDjangoAuth } from "@/hooks/useDjangoAuth";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -51,7 +51,14 @@ const Header = () => {
 
   const getProfileUrl = () => {
     if (!user) return '/signin';
-    return user.role === 'teacher' ? '/teacher/profile' : '/user/profile';
+    return user.role === 'teacher' ? '/teacher/profile' :
+           user.role === 'admin' ? '/admin/profile' : '/user/profile';
+  };
+
+  const getDashboardUrl = () => {
+    if (!user) return '/signin';
+    return user.role === 'teacher' ? '/teacher/courses' :
+           user.role === 'admin' ? '/admin/dashboard' : '/user/courses/explore';
   };
 
   return (
@@ -100,6 +107,7 @@ const Header = () => {
                     {isAuthenticated && user ? (
                       <div className="flex flex-col gap-2">
                         <span className="text-white text-sm">Olá, {user.name}</span>
+                        <Link href={getDashboardUrl()} className="text-violet-400 hover:text-violet-300">Dashboard</Link>
                         <Link href={getProfileUrl()} className="text-violet-400 hover:text-violet-300">Perfil</Link>
                         <button onClick={handleLogout} className="bg-red-600 text-white px-4 py-2 rounded-lg font-medium inline-flex justify-center hover:bg-red-700">
                           Sair
@@ -149,12 +157,19 @@ const Header = () => {
                       </DropdownMenuLabel>
                       <DropdownMenuSeparator className="bg-gray-700" />
                       <DropdownMenuItem asChild className="text-white hover:bg-violet-900">
+                        <Link href={getDashboardUrl()}>
+                          <LayoutDashboard className="mr-2 h-4 w-4" />
+                          <span>Dashboard</span>
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild className="text-white hover:bg-violet-900">
                         <Link href={getProfileUrl()}>
                           <User className="mr-2 h-4 w-4" />
                           <span>Perfil</span>
                         </Link>
                       </DropdownMenuItem>
-                      <DropdownMenuItem 
+                      <DropdownMenuSeparator className="bg-gray-700" />
+                      <DropdownMenuItem
                         onClick={handleLogout}
                         className="text-white hover:bg-violet-900 cursor-pointer"
                       >
