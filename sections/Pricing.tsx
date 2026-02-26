@@ -54,7 +54,7 @@ const pricingTiers = [
       "Todos os cursos disponíveis"
     ],
     angolaBenefit: "Criado especificamente para profissionais angolanos",
-    testimonial: "Consegui promoção na Sonangol!"
+    testimonial: "Excelente para minha carreira!"
   },
   {
     title: "Premium Plus",
@@ -100,9 +100,9 @@ const Pricing = () => {
 
   const angolaBenefits = [
     "💰 Preços em AOA - sem conversões",
-    "🇦🇴 Conteúdo adaptado para Angola", 
-    "🏢 Usado por empresas angolanas",
-    "⚡ Resultados em 30 dias"
+    "🇦🇴 Conteúdo adaptado para Angola",
+    "🏢 Foco em setores profissionais",
+    "⚡ Metodologia com IA"
   ];
 
   return (

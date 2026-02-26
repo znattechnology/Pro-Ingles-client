@@ -18,6 +18,7 @@ import { studentLeaderboardApiSlice } from "@/src/domains/student/leaderboard/ap
 import { studentAchievementsApiSlice } from "@/src/domains/student/achievements/api";
 import { studentSpeakingApiSlice } from "@/src/domains/student/speaking-practice/api";
 import { adminApiSlice } from "@/src/domains/admin/api";
+import { feedbackApi } from "@/src/domains/shared/feedback/api/feedbackApiSlice";
 import courseEditorSlice from "@/redux/features/courseEditor/courseEditorSlice";
 
 /* REDUX STORE */
@@ -38,6 +39,7 @@ const rootReducer = combineReducers({
   [studentAchievementsApiSlice.reducerPath]: studentAchievementsApiSlice.reducer,
   [studentSpeakingApiSlice.reducerPath]: studentSpeakingApiSlice.reducer,
   [adminApiSlice.reducerPath]: adminApiSlice.reducer,
+  [feedbackApi.reducerPath]: feedbackApi.reducer,
 });
 
 export const makeStore = () => {
@@ -79,7 +81,8 @@ export const makeStore = () => {
       .concat(studentLeaderboardApiSlice.middleware)
       .concat(studentAchievementsApiSlice.middleware)
       .concat(studentSpeakingApiSlice.middleware)
-      .concat(adminApiSlice.middleware),
+      .concat(adminApiSlice.middleware)
+      .concat(feedbackApi.middleware),
   });
 };
 

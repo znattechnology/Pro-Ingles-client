@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { MapPin, Building2, Users, Zap, Target, Trophy, ArrowLeft } from 'lucide-react';
+import { MapPin, Building2, Zap, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import Header from '@/sections/Header';
 import Footer from '@/sections/Footer';
@@ -12,22 +12,16 @@ const AboutPage = () => {
   ];
 
   const sectors = [
-    { icon: "🛢️", name: "Petróleo & Gás", companies: "Sonangol, Total, Chevron" },
-    { icon: "🏦", name: "Setor Bancário", companies: "BAI, BFA, Standard Bank" },
-    { icon: "💻", name: "Tecnologia", companies: "Unitel, MS Telecom" },
-    { icon: "🏛️", name: "Setor Público", companies: "Ministérios, Empresas Públicas" }
+    { icon: "🛢️", name: "Petróleo & Gás", description: "Inglês técnico para profissionais do setor energético" },
+    { icon: "🏦", name: "Setor Bancário", description: "Comunicação profissional para serviços financeiros" },
+    { icon: "💻", name: "Tecnologia", description: "Vocabulário técnico para TI e telecomunicações" },
+    { icon: "🏛️", name: "Setor Público", description: "Inglês para relações internacionais e administração" }
   ];
 
   const timeline = [
     { year: "2024", title: "Fundação", description: "Nascemos da necessidade real do mercado angolano" },
     { year: "2024", title: "Lançamento", description: "Primeira versão da plataforma com IA Personal Tutor" },
-    { year: "2025", title: "Expansão", description: "Parcerias com empresas angolanas e crescimento" },
-  ];
-
-  const team = [
-    { name: "Equipa de Desenvolvimento", role: "Tecnologia", description: "Engenheiros focados em IA e experiência do utilizador" },
-    { name: "Equipa Pedagógica", role: "Conteúdo", description: "Professores nativos e especialistas em linguística" },
-    { name: "Equipa de Suporte", role: "Atendimento", description: "Profissionais angolanos prontos para ajudar" },
+    { year: "2025", title: "Expansão", description: "Crescimento contínuo e novas funcionalidades" },
   ];
 
   return (
@@ -128,12 +122,12 @@ const AboutPage = () => {
                 <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-white">94%</div>
-                      <div className="text-xs text-gray-300">Taxa de Sucesso</div>
+                      <div className="text-2xl font-bold text-white">IA</div>
+                      <div className="text-xs text-gray-300">Tutor Personalizado</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-white">50+</div>
-                      <div className="text-xs text-gray-300">Cursos Especializados</div>
+                      <div className="text-2xl font-bold text-white">24/7</div>
+                      <div className="text-xs text-gray-300">Sempre Disponível</div>
                     </div>
                   </div>
                 </div>
@@ -200,7 +194,7 @@ const AboutPage = () => {
               >
                 <div className="text-4xl mb-4">{sector.icon}</div>
                 <h3 className="text-lg font-bold text-white mb-2">{sector.name}</h3>
-                <p className="text-sm text-gray-400">{sector.companies}</p>
+                <p className="text-sm text-gray-400">{sector.description}</p>
               </motion.div>
             ))}
           </div>

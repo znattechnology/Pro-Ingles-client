@@ -9,39 +9,39 @@ import { motion } from "framer-motion";
 import React from "react";
 import Link from "next/link";
 
-// Selected best testimonials - one from each major sector
+// Testemunhos genéricos - setores sem nomes de empresas específicas
 const testimonials = [
   {
-    text: "O IA Personal Tutor mudou tudo! Em 3 meses consegui a promoção na Sonangol que queria há anos. O inglês técnico para petróleo é exatamente o que precisava.",
+    text: "O IA Personal Tutor mudou a forma como aprendo inglês! O conteúdo técnico para o setor petrolífero é exactamente o que precisava para me comunicar melhor no trabalho.",
     imageSrc: avatar1.src,
-    name: "Carlos Mendes",
-    username: "🛢️ Engenheiro - Sonangol",
+    name: "João M.",
+    username: "🛢️ Engenheiro - Setor Petrolífero",
     location: "Luanda",
-    result: "Promoção em 3 meses"
+    result: "Comunicação melhorada"
   },
   {
-    text: "Finalmente uma plataforma feita para Angola! Os preços em AOA e conteúdo bancário específico fizeram toda diferença. Agora atendo clientes internacionais com confiança.",
+    text: "Finalmente uma plataforma feita para Angola! Os preços em AOA e conteúdo bancário específico fizeram toda diferença. Sinto-me mais confiante nas reuniões.",
     imageSrc: avatar2.src,
-    name: "Ana Silva",
-    username: "🏦 Gestora - BAI",
+    name: "Maria S.",
+    username: "🏦 Profissional - Setor Bancário",
     location: "Luanda",
-    result: "Aumento de 40% no salário"
+    result: "Maior confiança profissional"
   },
   {
-    text: "A IA corrige minha pronunciação em tempo real! Em 4 meses já estava liderando calls com a Microsoft e Google. Revolucionário para nós angolanos.",
+    text: "A IA corrige minha pronunciação em tempo real! A plataforma é muito prática e consigo estudar no meu próprio ritmo. Recomendo a todos.",
     imageSrc: avatar3.src,
-    name: "Miguel Santos",
-    username: "💻 Diretor TI - Unitel",
+    name: "Pedro A.",
+    username: "💻 Profissional - Setor de TI",
     location: "Benguela",
-    result: "Liderança internacional"
+    result: "Fluência melhorada"
   },
   {
-    text: "O melhor investimento da minha carreira! Consegui oportunidade na embaixada dos EUA após completar o curso Business English.",
+    text: "Uma excelente ferramenta para quem quer melhorar o inglês profissional. O conteúdo é relevante e a metodologia funciona muito bem.",
     imageSrc: avatar8.src,
-    name: "Lucia Tavares",
-    username: "🏛️ Diplomata - Min. Relações Ext.",
+    name: "Ana T.",
+    username: "🏛️ Profissional - Setor Público",
     location: "Luanda",
-    result: "Nova carreira diplomática"
+    result: "Inglês profissional aprimorado"
   },
 ];
 
@@ -142,17 +142,17 @@ const TenstimonialColumn = (props: {
             transition={{ delay: 0.2 }}
             className="inline-flex items-center gap-2 bg-gradient-to-r from-violet-600/20 to-purple-600/20 backdrop-blur-sm border border-violet-500/30 rounded-full px-6 py-3 mb-6"
           >
-            <span className="text-violet-300 font-semibold">🇦🇴 Casos de sucesso reais</span>
+            <span className="text-violet-300 font-semibold">🇦🇴 O que dizem os nossos alunos</span>
           </motion.div>
 
           <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
-            Histórias de Sucesso
-            <span className="bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent"> em Angola</span>
+            Experiências dos
+            <span className="bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent"> Nossos Alunos</span>
           </h2>
-          
+
           <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
-            Mais de <strong className="text-white">10.000 profissionais angolanos</strong> já transformaram suas carreiras 
-            com nossa metodologia exclusiva. Veja alguns resultados reais.
+            Profissionais angolanos que estão a melhorar o seu inglês
+            com a nossa metodologia e conteúdo especializado.
           </p>
         </motion.div>
         <div className="flex justify-center gap-6 [mask-image:linear-gradient(to_bottom,transparent,black_50%,black_75%, white_25%,white_75%,transparent)] max-h-[600px] overflow-hidden mt-10 ">

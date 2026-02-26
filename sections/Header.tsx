@@ -1,12 +1,13 @@
 'use client';
 
-import React from "react";
+import React, { useEffect } from "react";
 import Logo from "@/public/logo/logo.png";
 import Image from "next/image";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Menu, MoveRight, User, LogOut, LayoutDashboard } from 'lucide-react';
 import { useDjangoAuth } from "@/hooks/useDjangoAuth";
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -24,15 +25,44 @@ import ClientOnly from "@/components/ClientOnly";
 
 const Header = () => {
   const { isAuthenticated, user, logout } = useDjangoAuth();
+  const pathname = usePathname();
+  const router = useRouter();
+
+  // Scroll para seção quando a página carrega com hash
+  useEffect(() => {
+    if (pathname === '/' && typeof window !== 'undefined') {
+      const hash = window.location.hash;
+      if (hash) {
+        const sectionId = hash.replace('#', '');
+        // Pequeno delay para garantir que as seções carregaram
+        setTimeout(() => {
+          const element = document.getElementById(sectionId);
+          if (element) {
+            element.scrollIntoView({
+              behavior: 'smooth',
+              block: 'start',
+              inline: 'nearest'
+            });
+          }
+        }, 500);
+      }
+    }
+  }, [pathname]);
 
   const handleLogout = async () => {
     await logout();
   };
 
   const handleScrollToSection = (sectionId: string) => {
+    // Se não estiver na landing page, redireciona para a home com o hash
+    if (pathname !== '/') {
+      router.push(`/#${sectionId}`);
+      return;
+    }
+
     const element = document.getElementById(sectionId);
     if (element) {
-      element.scrollIntoView({ 
+      element.scrollIntoView({
         behavior: 'smooth',
         block: 'start',
         inline: 'nearest'
@@ -100,7 +130,6 @@ const Header = () => {
                 <nav className="flex flex-col gap-6 mt-6 text-white/70">
                   <Link href="/about" className="hover:text-white transition-colors">Sobre Nós</Link>
                   <button onClick={() => handleScrollToSection('practice-lab')} className="hover:text-white transition-colors text-left">Serviços</button>
-                  <Link href="/search" className="hover:text-white transition-colors">Cursos</Link>
                   <button onClick={() => handleScrollToSection('pricing')} className="hover:text-white transition-colors text-left">Planos</button>
                   <button onClick={() => handleScrollToSection('testimonials')} className="hover:text-white transition-colors text-left">Testemunhos</button>
                   <ClientOnly>
@@ -130,7 +159,6 @@ const Header = () => {
             <nav className="hidden md:flex gap-6 items-center text-white/70">
               <Link href="/about" className="hover:text-white transition-colors">Sobre Nós</Link>
               <button onClick={() => handleScrollToSection('practice-lab')} className="hover:text-white transition-colors">Serviços</button>
-              <Link href="/search" className="hover:text-white transition-colors">Cursos</Link>
               <button onClick={() => handleScrollToSection('pricing')} className="hover:text-white transition-colors">Planos</button>
               <button onClick={() => handleScrollToSection('testimonials')} className="hover:text-white transition-colors">Testemunhos</button>
               

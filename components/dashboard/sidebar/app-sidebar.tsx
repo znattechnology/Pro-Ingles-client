@@ -36,9 +36,11 @@ import {
   CreditCard,
   LayoutDashboard,
   MessageCircle,
+  MessageSquare,
   Crown,
   ArrowUp,
-  Receipt
+  Receipt,
+  Star
 } from "lucide-react";
 
 import {
@@ -390,6 +392,24 @@ const navLinks = {
           title: "Códigos Promocionais",
           url: "/admin/subscriptions/promo-codes",
           icon: Receipt,
+        },
+      ],
+    },
+    {
+      title: "Feedback",
+      url: "/admin/feedback",
+      icon: MessageSquare,
+      isActive: true,
+      items: [
+        {
+          title: "Todos os Feedbacks",
+          url: "/admin/feedback",
+          icon: MessageSquare,
+        },
+        {
+          title: "Testemunhos",
+          url: "/admin/feedback/testimonials",
+          icon: Star,
         },
       ],
     },

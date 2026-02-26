@@ -2,7 +2,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Play, Star, Sparkles } from 'lucide-react';
+import { Play, Sparkles } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -18,9 +18,9 @@ const Hero = () => {
   };
 
   const stats = [
-    { value: "10K+", label: "Angolanos aprendendo" },
-    { value: "94%", label: "Taxa de sucesso" },
-    { value: "50+", label: "Cursos especializados" }
+    { value: "24/7", label: "Disponível sempre" },
+    { value: "IA", label: "Tutor personalizado" },
+    { value: "AOA", label: "Preços locais" }
   ];
 
   return (
@@ -123,21 +123,11 @@ const Hero = () => {
                     A{i}
                   </div>
                 ))}
-                <div className="w-12 h-12 rounded-full bg-violet-900 border-2 border-white flex items-center justify-center text-white font-bold text-sm">
-                  +10K
-                </div>
               </div>
-              
+
               <div>
-                <p className="text-white font-semibold">Mais de 10.000 angolanos</p>
-                <div className="flex items-center gap-1">
-                  <div className="flex">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <Star key={star} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    ))}
-                  </div>
-                  <span className="text-sm text-gray-400 ml-2">4.9/5 (2.1k reviews)</span>
-                </div>
+                <p className="text-white font-semibold">Junte-se aos nossos alunos</p>
+                <p className="text-sm text-gray-400">Aprenda inglês especializado para sua carreira</p>
               </div>
             </motion.div>
 
@@ -166,21 +156,21 @@ const Hero = () => {
           >
             <AITutorDemo />
 
-            {/* Companies using ProEnglish */}
+            {/* Setores atendidos */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.8 }}
               className="mt-8 text-center"
             >
-              <p className="text-gray-400 text-sm mb-4">Usado por profissionais da:</p>
+              <p className="text-gray-400 text-sm mb-4">Inglês especializado para:</p>
               <div className="grid grid-cols-2 gap-4">
-                {["Sonangol", "BAI", "Unitel", "BFA"].map((company, index) => (
-                  <div 
+                {["🛢️ Petróleo & Gás", "🏦 Setor Bancário", "💻 Tecnologia", "🏛️ Setor Público"].map((sector, index) => (
+                  <div
                     key={index}
                     className="bg-violet-900/20 rounded-lg p-3 border border-violet-700/30 text-white text-sm font-semibold"
                   >
-                    {company}
+                    {sector}
                   </div>
                 ))}
               </div>

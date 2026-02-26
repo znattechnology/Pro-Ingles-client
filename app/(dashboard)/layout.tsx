@@ -10,6 +10,7 @@ import ChaptersSidebar from "./user/courses/[courseId]/ChaptersSidebar";
 import SidebarHeader from "@/components/dashboard/sidebar/sidebar-header";
 import AppSidebar from "@/components/dashboard/sidebar/app-sidebar";
 import Breadcrumbs from "@/components/dashboard/Breadcrumbs";
+import FeedbackProvider from "@/components/providers/feedback-provider";
 
 // Componente interno para usar o hook useSidebar
 function DashboardContent({
@@ -197,7 +198,9 @@ export default function DashboardLayout({
 }) {
   return (
     <SidebarProvider>
-      <DashboardContent>{children}</DashboardContent>
+      <FeedbackProvider>
+        <DashboardContent>{children}</DashboardContent>
+      </FeedbackProvider>
     </SidebarProvider>
   );
 }

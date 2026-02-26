@@ -57,14 +57,13 @@ const PracticeLab = () => {
       title: "Speaking Challenge",
       subtitle: "Pronunciação & Fluência",
       icon: <Mic className="w-8 h-8" />,
-      description: "Pratique conversação com IA em cenários reais de trabalho angolanos",
+      description: "Pratique conversação com IA em cenários reais de trabalho",
       features: [
         "Correção de pronunciação em tempo real",
-        "Simulação de reuniões com Sonangol",
-        "Feedback personalizado para sotaque angolano",
+        "Simulação de reuniões profissionais",
+        "Feedback personalizado com IA",
         "Exercícios de apresentação executiva"
       ],
-      stats: "15K+ sessões/mês",
       difficulty: "Todos os níveis",
       duration: "5-30 min",
       bgColor: "from-red-900/40 to-pink-900/40",
@@ -75,14 +74,13 @@ const PracticeLab = () => {
       title: "Listening Lab",
       subtitle: "Compreensão & Contexto",
       icon: <Headphones className="w-8 h-8" />,
-      description: "Áudios reais de empresas angolanas e contextos profissionais",
+      description: "Áudios de contextos profissionais e empresariais",
       features: [
-        "Áudios de reuniões BAI/BFA",
-        "Conversas técnicas da Unitel",
+        "Áudios de reuniões corporativas",
+        "Conversas técnicas profissionais",
         "Sotaques internacionais diversos",
         "Exercícios de compreensão contextual"
       ],
-      stats: "8K+ horas ouvidas",
       difficulty: "Iniciante a Avançado",
       duration: "10-45 min",
       bgColor: "from-blue-900/40 to-indigo-900/40",
@@ -95,12 +93,11 @@ const PracticeLab = () => {
       icon: <BookOpen className="w-8 h-8" />,
       description: "Redação de emails, relatórios e documentos corporativos",
       features: [
-        "Templates para setor petrolífero",
+        "Templates para diversos setores",
         "Emails corporativos em inglês",
         "Relatórios técnicos",
         "Correção automática com IA"
       ],
-      stats: "12K+ textos corrigidos",
       difficulty: "Intermediário+",
       duration: "15-60 min",
       bgColor: "from-green-900/40 to-emerald-900/40",
@@ -113,12 +110,11 @@ const PracticeLab = () => {
       icon: <Users className="w-8 h-8" />,
       description: "Cenários interativos baseados em situações reais de trabalho",
       features: [
-        "Negociações com empresas estrangeiras",
+        "Negociações profissionais",
         "Entrevistas de emprego",
-        "Apresentações para investidores",
+        "Apresentações corporativas",
         "Atendimento ao cliente internacional"
       ],
-      stats: "5K+ cenários completados",
       difficulty: "Intermediário a Avançado",
       duration: "20-90 min",
       bgColor: "from-purple-900/40 to-violet-900/40",
@@ -128,18 +124,18 @@ const PracticeLab = () => {
 
   const labStats = [
     {
-      value: "25K+",
-      label: "Exercícios Completados",
+      value: "8",
+      label: "Tipos de Exercícios",
       icon: <Target className="w-5 h-5" />
     },
     {
-      value: "92%",
-      label: "Taxa de Melhoria",
+      value: "IA",
+      label: "Feedback Inteligente",
       icon: <TrendingUp className="w-5 h-5" />
     },
     {
-      value: "4.8★",
-      label: "Avaliação Média",
+      value: "Pro",
+      label: "Conteúdo Especializado",
       icon: <Award className="w-5 h-5" />
     },
     {
@@ -306,10 +302,6 @@ const PracticeLab = () => {
                     
                     {/* Exercise Meta */}
                     <div className="flex flex-wrap gap-4 text-sm text-gray-400 mb-6">
-                      <span className="flex items-center gap-1">
-                        <Users className="w-4 h-4" />
-                        {exerciseTypes[activeExercise].stats}
-                      </span>
                       <span className="flex items-center gap-1">
                         <Target className="w-4 h-4" />
                         {exerciseTypes[activeExercise].difficulty}
