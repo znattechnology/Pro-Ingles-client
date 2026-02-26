@@ -10,7 +10,7 @@ const CourseCardSearch = ({
   return (
     <div
       onClick={onClick}
-      className={`bg-slate-900/30 overflow-hidden rounded-lg hover:bg-white-100/10 transition duration-200 flex flex-col cursor-pointer border h-full group ${
+      className={`bg-slate-900/30 overflow-hidden rounded-lg hover:bg-white-100/10 transition duration-200 flex flex-col cursor-pointer border h-full group w-full max-w-sm mx-auto ${
         isSelected
           ? "border-violet-800"
           : "border-transparent"
@@ -26,20 +26,20 @@ const CourseCardSearch = ({
           priority
         />
       </div>
-      <div className="p-4 flex flex-col justify-between flex-grow">
+      <div className="p-3 sm:p-4 flex flex-col justify-between flex-grow">
         <div>
-          <h2 className="font-semibold line-clamp-1 text-white">{course.title}</h2>
-          <p className="text-sm mt-1 line-clamp-2 text-white/70">
+          <h2 className="font-semibold text-sm sm:text-base line-clamp-1 text-white">{course.title}</h2>
+          <p className="text-xs sm:text-sm mt-1 line-clamp-2 text-white/70">
             {course.description}
           </p>
         </div>
-        <div className="mt-2">
-          <p className="text-customgreys-dirtyGrey text-smr text-white/70">Por {course.teacherName}</p>
+        <div className="mt-2 sm:mt-3">
+          <p className="text-xs sm:text-sm text-white/70">Por {course.teacherName}</p>
           <div className="flex justify-between items-center mt-1">
-            <span className="text-white font-semibold">
+            <span className="text-white font-semibold text-sm sm:text-base">
               {formatPrice(course.price)}
             </span>
-            <span className="text-white/70 text-sm">
+            <span className="text-white/70 text-xs sm:text-sm">
               {course.enrollments?.length} Inscrito
             </span>
           </div>

@@ -48,6 +48,7 @@ export function useDjangoAuth(): AuthHookReturn {
   
   const [clientIsAuthenticated, setClientIsAuthenticated] = useState(false);
   const [clientUser, setClientUser] = useState<User | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Initialize auth state from HttpOnly cookies
   // Note: We can't read HttpOnly cookies directly, so we:
@@ -108,6 +109,7 @@ export function useDjangoAuth(): AuthHookReturn {
         setClientIsAuthenticated(false);
         setClientUser(null);
       }
+      setIsInitialized(true);
     }
   }, [dispatch]);
 
@@ -201,7 +203,7 @@ export function useDjangoAuth(): AuthHookReturn {
   return {
     isAuthenticated: clientIsAuthenticated,
     user: clientUser,
-    isLoading: authState?.isLoading || false,
+    isLoading: authState?.isLoading || !isInitialized,
     pendingVerification: authState?.pendingVerification || null,
     logout,
     checkAuth,

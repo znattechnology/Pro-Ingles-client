@@ -114,19 +114,43 @@ const DjangoSignUp = () => {
       
       // Handle specific field errors from Django
       if (error?.data && typeof error.data === 'object') {
-        const apiErrors: Record<string, string> = {};
-        
-        Object.entries(error.data).forEach(([field, messages]) => {
-          if (Array.isArray(messages)) {
-            apiErrors[field] = messages[0];
-          } else if (typeof messages === 'string') {
-            apiErrors[field] = messages;
+        // Handle new structured error format
+        if (error.data.details && typeof error.data.details === 'object') {
+          const apiErrors: Record<string, string> = {};
+          
+          Object.entries(error.data.details).forEach(([field, messages]) => {
+            if (Array.isArray(messages)) {
+              apiErrors[field] = messages[0];
+            } else if (typeof messages === 'string') {
+              apiErrors[field] = messages;
+            }
+          });
+          
+          setErrors(apiErrors);
+          
+          // Show a user-friendly toast for email already exists
+          if (apiErrors.email && apiErrors.email.includes('already exists')) {
+            toast.error('Este email já está cadastrado. Tente fazer login ou use outro email.');
+          } else if (Object.keys(apiErrors).length > 0) {
+            toast.error('Por favor, corrija os erros nos campos destacados.');
           }
-        });
-        
-        setErrors(apiErrors);
+        } 
+        // Handle legacy error format
+        else {
+          const apiErrors: Record<string, string> = {};
+          
+          Object.entries(error.data).forEach(([field, messages]) => {
+            if (Array.isArray(messages)) {
+              apiErrors[field] = messages[0];
+            } else if (typeof messages === 'string') {
+              apiErrors[field] = messages;
+            }
+          });
+          
+          setErrors(apiErrors);
+        }
       } else {
-        const errorMessage = error?.data?.error || error?.message || 'Erro ao registrar. Tente novamente.';
+        const errorMessage = error?.data?.message || error?.data?.error || error?.message || 'Erro ao registrar. Tente novamente.';
         toast.error(errorMessage);
       }
     }

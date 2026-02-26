@@ -1,6 +1,6 @@
 /**
  * Feature Flags para Migração Redux
- * 
+ *
  * Sistema de feature flags para permitir migração gradual
  * sem quebrar funcionalidade existente.
  */
@@ -51,17 +51,17 @@ export const MIGRATION_STATUS = {
   LABORATORY_SLICE: '✅ Completed',
   API_SLICE_ENHANCED: '✅ Completed',
   FEATURE_FLAGS: '✅ Completed',
-  
+
   // Phase 2: Student Dashboard
   COURSE_SELECTION: '🔄 In Progress',
   PRACTICE_INTERFACE: '📝 Planned',
   USER_PROGRESS: '📝 Planned',
-  
-  // Phase 3: Teacher Dashboard  
+
+  // Phase 3: Teacher Dashboard
   COURSE_MANAGEMENT: '📝 Planned',
   CONTENT_CREATION: '📝 Planned',
   ANALYTICS: '📝 Planned',
-  
+
   // Phase 4: Advanced Features
   REAL_TIME: '📝 Planned',
   OFFLINE: '📝 Planned',
@@ -79,12 +79,12 @@ if (process.env.NODE_ENV === 'development') {
   // Global debug object
   (globalThis as any).__FEATURE_FLAGS__ = FEATURE_FLAGS;
   (globalThis as any).__MIGRATION_STATUS__ = MIGRATION_STATUS;
-  
+
   // Console logging for active flags
   const activeFlags = Object.entries(FEATURE_FLAGS)
     .filter(([_, enabled]) => enabled)
     .map(([flag, _]) => flag);
-    
+
   if (activeFlags.length > 0) {
     console.log('🚩 Active Feature Flags:', activeFlags);
   }

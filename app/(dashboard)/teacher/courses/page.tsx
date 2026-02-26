@@ -141,7 +141,7 @@ const TeacherVideoCoursesPage = () => {
 
   const handleCreateCourse = async () => {
     if (!user) {
-      notifications.error('Usuário não encontrado. Por favor, faça login novamente.');
+      notifications.error('Utilizador não encontrado. Por favor, faça login novamente.');
       return;
     }
 
@@ -353,7 +353,7 @@ const TeacherVideoCoursesPage = () => {
               <div className="text-xl sm:text-3xl font-bold text-white mb-1">
                 {courses.filter(course => course.teacherId === user?.id).reduce((sum, course) => sum + (course.total_enrollments || 0), 0)}
               </div>
-              <div className="text-xs sm:text-sm text-gray-400">Estudantes Ativos</div>
+              <div className="text-xs sm:text-sm text-gray-400">Estudantes Activos</div>
             </motion.div>
             
             <motion.div

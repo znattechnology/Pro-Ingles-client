@@ -273,7 +273,7 @@ const LaboratoryAnalytics = () => {
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {[
-              { title: "Total de Estudantes", value: totalStudents, subtitle: `${activeStudents} ativos hoje`, icon: Users, color: "blue" },
+              { title: "Total de Estudantes", value: totalStudents, subtitle: `${activeStudents} activos hoje`, icon: Users, color: "blue" },
               { title: "Taxa de Conclusão", value: `${avgCompletionRate}%`, subtitle: "", icon: TrendingUp, color: "indigo", showProgress: true },
               { title: "Pontos Totais", value: totalPoints.toLocaleString(), subtitle: `Média: ${totalStudents > 0 ? Math.round(totalPoints / totalStudents) : 0} por aluno`, icon: Trophy, color: "cyan" },
               { title: "Total de Desafios", value: totalChallenges, subtitle: `Em ${totalCourses} cursos`, icon: Target, color: "blue" }

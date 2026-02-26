@@ -53,10 +53,7 @@ const ShopPage = () => {
     return (
         <div className="flex flex-row-reverse gap-[48px] px-6">
             <StickWrapper>
-                <UserProgressRedux
-                    useRedux={true}
-                    hasActiveSubscription={false}
-                />
+                <UserProgressRedux />
             </StickWrapper>
             <FeedWrapper>
                 <div className="w-full flex flex-col items-center">

@@ -17,6 +17,9 @@ import {
   type Unit as UnitType,
   type ActiveLesson
 } from '@/redux/features/laboratory/hooks/useUnitManagement';
+import { 
+  useUnitProgression
+} from '@/src/domains/student/practice-courses/hooks/useUnitManagement';
 
 type Props = {
   id: string;
@@ -47,19 +50,29 @@ export const UnitRedux = ({
   
   // Redux hooks (only if enabled)
   const { 
-    getUnitProgress, 
-    getLessonProgress, 
-    navigateToLesson 
-  } = useUnitManagement(courseId);
+    getUnitProgress: reduxGetUnitProgress, 
+    getLessonProgress: reduxGetLessonProgress, 
+    navigateToLesson: reduxNavigateToLesson 
+  } = useUnitManagement(courseId ?? null);
   
   const { unlockNextUnit, markUnitComplete } = useUnitActions();
   
   // Debug information
-  useUnitManagementDebug(courseId);
+  useUnitManagementDebug(courseId ?? null);
   
-  // Determine data source
-  const lessons = useReduxUnits ? legacyLessons : legacyLessons; // Redux lessons would come from useUnitManagement
-  const activeLesson = useReduxUnits ? legacyActiveLesson : legacyActiveLesson; // Redux active lesson logic
+  // Domains-based hooks (fallback)
+  const { getUnitProgress: domainsGetUnitProgress, getLessonProgress: domainsGetLessonProgress, navigateToLesson: domainsNavigateToLesson } = useUnitProgression(courseId ?? null);
+  
+  // Choose which implementation to use
+  const getUnitProgress = useReduxUnits ? reduxGetUnitProgress : domainsGetUnitProgress;
+  const getLessonProgress = useReduxUnits ? reduxGetLessonProgress : domainsGetLessonProgress;
+  const navigateToLesson = useReduxUnits ? reduxNavigateToLesson : domainsNavigateToLesson;
+  
+  // Ensure lessons is always an array to prevent errors
+  const safeLessons = Array.isArray(legacyLessons) ? legacyLessons : [];
+  
+  // Get unit progress using exact Redux logic
+  const unitProgress = getUnitProgress(id);
   
   // Debug migration
   if (process.env.NODE_ENV === 'development') {
@@ -68,99 +81,93 @@ export const UnitRedux = ({
       useRedux,
       unitId: id,
       title,
-      lessonsCount: lessons?.length || 0,
-      activeLesson: activeLesson?.title,
+      lessonsCount: safeLessons?.length || 0,
+      implementation: useReduxUnits ? 'Redux' : 'Domains',
+      unitProgress: unitProgress ? {
+        isUnlocked: unitProgress.isUnlocked,
+        isCompleted: unitProgress.isCompleted,
+        progressPercentage: unitProgress.progressPercentage
+      } : null,
       timestamp: new Date().toISOString()
     });
   }
   
-  // Ensure lessons is always an array to prevent errors
-  const safeLessons = Array.isArray(lessons) ? lessons : [];
-  
-  // Calculate unit progress for Redux
-  const unitProgress = useReduxUnits ? getUnitProgress(id) : null;
-  
-  // Enhanced lesson button props for Redux
+  // Enhanced lesson button props - EXACT COPY of Redux logic
   const getLessonButtonProps = (lesson: Lesson, index: number) => {
-    if (useReduxUnits) {
-      const lessonProgress = getLessonProgress(lesson.id, id);
-      // Actual first unit (lowest order) is NEVER locked
-      const lessonUnitLocked = !isFirstUnit && unitProgress ? !unitProgress.isUnlocked : false;
-      
-      return {
-        id: lesson.id,
-        index,
-        totalCount: safeLessons.length - 1,
-        current: lessonProgress.isCurrent && !lessonUnitLocked,
-        locked: lessonProgress.isLocked || lessonUnitLocked,
-        percentage: lessonProgress.progressPercentage,
-        // Redux-specific props
-        isCompleted: lessonProgress.isCompleted,
-        onClick: () => {
-          if (!lessonProgress.isLocked && !lessonUnitLocked) {
-            navigateToLesson(lesson.id);
-          }
-        },
-      };
+    const lessonProgress = getLessonProgress(lesson.id, id);
+    // Actual first unit (lowest order) is NEVER locked
+    const lessonUnitLocked = !isFirstUnit && unitProgress ? !unitProgress.isUnlocked : false;
+    
+    // **EXACT REDUX LOGIC**: Proper unit and lesson unlock logic
+    let isLessonLocked = lessonProgress.isLocked || lessonUnitLocked;
+    if (index === 0 && isFirstUnit) {
+      // First lesson of first unit is ALWAYS unlocked
+      isLessonLocked = false;
+    } else if (index === 0) {
+      // First lesson of any unit is LOCKED if unit is LOCKED (i.e., previous unit not completed)
+      isLessonLocked = lessonUnitLocked;
     } else {
-      // Legacy props
-      const isCurrent = lesson.id === activeLesson?.id;
-      const isLocked = !lesson.completed && !isCurrent;
-      
-      return {
-        id: lesson.id,
-        index,
-        totalCount: safeLessons.length - 1,
-        current: isCurrent,
-        locked: isLocked,
-        percentage: activeLessonPercentage,
-        isCompleted: lesson.completed,
-      };
+      // Subsequent lessons: check if previous lesson is completed AND unit is unlocked
+      const previousLesson = safeLessons[index - 1];
+      const prevLessonProgress = getLessonProgress(previousLesson.id, id);
+      isLessonLocked = !prevLessonProgress.isCompleted || lessonUnitLocked;
     }
+    
+    return {
+      id: lesson.id,
+      index,
+      totalCount: safeLessons.length - 1,
+      current: (lessonProgress.isCurrent || (index === 0 && isFirstUnit && !lessonProgress.isCompleted)) && !isLessonLocked,
+      locked: isLessonLocked,
+      percentage: lessonProgress.progressPercentage,
+      // Redux-specific props
+      isCompleted: lessonProgress.isCompleted,
+      onClick: () => {
+        if (!isLessonLocked) {
+          navigateToLesson(lesson.id);
+        }
+      },
+    };
   };
 
-  // Check if unit is locked (but first unit is NEVER locked)
+  // Check if unit is locked using exact Redux logic
   const numericOrder = Number(order);
   const isFirstUnit = numericOrder === 0;
-  const isUnitLocked = !isFirstUnit && useReduxUnits && unitProgress ? !unitProgress.isUnlocked : false;
+  const isUnitLocked = !isFirstUnit && unitProgress ? !unitProgress.isUnlocked : false;
   
   // Debug logging
-  if (process.env.NODE_ENV === 'development' && useReduxUnits) {
-    console.log(`🎯 Unit "${title}" Debug:`, {
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`🎯 Unit "${title}" Debug (${useReduxUnits ? 'Redux' : 'Domains'}):`, {
       id,
       order,
-      orderType: typeof order,
       numericOrder,
       isFirstUnit,
-      useReduxUnits,
-      unitProgress,
       isUnitLocked,
-      isUnlocked: unitProgress?.isUnlocked,
-      unitProgressRaw: JSON.stringify(unitProgress, null, 2),
-      propsReceived: {
-        id,
-        order,
-        title,
-        description,
-        courseId,
-        useRedux
-      }
+      useReduxUnits,
+      implementation: useReduxUnits ? 'Redux' : 'Domains',
+      unitProgress: unitProgress ? {
+        isUnlocked: unitProgress.isUnlocked,
+        isCompleted: unitProgress.isCompleted,
+        progressPercentage: unitProgress.progressPercentage,
+        completedLessons: unitProgress.completedLessons,
+        totalLessons: unitProgress.totalLessons
+      } : null
     });
   }
 
   return (
     <>
       <UnitBanner 
-        title={`${title} ${useReduxUnits ? '🔄' : ''} ${(isUnitLocked && !isFirstUnit) ? '🔒' : ''}`} 
+        title={`${title} ${useReduxUnits ? '🔄' : '🎯'} ${(isUnitLocked && !isFirstUnit) ? '🔒' : ''}`} 
         description={description}
       />
       
       <div className='flex items-center flex-col relative'>
-        {/* Unit Progress Indicator (Redux only) */}
-        {useReduxUnits && unitProgress && (
+        {/* Unit Progress Indicator */}
+        {unitProgress && (
           <div className="w-full max-w-md mb-4 p-3 sm:p-4 bg-violet-500/10 rounded-lg border border-violet-500/20">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-violet-400 text-xs sm:text-sm font-medium">Progresso da Unidade 🔄</span>
+              <span className="text-violet-400 text-xs sm:text-sm font-medium">Progresso da Unidade {useReduxUnits ? '🔄' : '🎯'}</span>
               <span className="text-white text-xs sm:text-sm font-bold">
                 {unitProgress.completedLessons}/{unitProgress.totalLessons}
               </span>
@@ -206,19 +213,16 @@ export const UnitRedux = ({
           );
         })}
         
-        {/* Unit Actions (Redux only) */}
-        {useReduxUnits && unitProgress?.isCompleted && (
+        {/* Unit Actions */}
+        {unitProgress?.isCompleted && (
           <div className="mt-4 p-3 sm:p-4 bg-green-500/10 rounded-lg border border-green-500/20">
             <div className="text-center">
               <div className="text-green-400 text-xs sm:text-sm font-medium mb-2">
-                🎉 Unidade Concluída! 🔄
+                🎉 Unidade Concluída! {useReduxUnits ? '🔄' : '🎯'}
               </div>
-              <button
-                onClick={() => unlockNextUnit(id)}
-                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white text-xs sm:text-sm px-3 sm:px-4 py-2 rounded-lg transition-all duration-200 min-h-[36px]"
-              >
-                Desbloquear Próxima Unidade
-              </button>
+              <div className="text-green-300 text-xs">
+                Próxima unidade será desbloqueada automaticamente
+              </div>
             </div>
           </div>
         )}
@@ -227,7 +231,7 @@ export const UnitRedux = ({
         {safeLessons.length === 0 && (
           <div className="text-center py-6 sm:py-8 px-4">
             <div className="text-customgreys-dirtyGrey text-xs sm:text-sm mb-2">
-              {useReduxUnits ? '🔄 Esta unidade ainda não possui lições' : 'Esta unidade ainda não possui lições'}
+              {useReduxUnits ? '🔄' : '🎯'} Esta unidade ainda não possui lições
             </div>
             <div className="text-customgreys-darkGrey text-xs leading-relaxed">
               Aguarde enquanto o conteúdo é preparado

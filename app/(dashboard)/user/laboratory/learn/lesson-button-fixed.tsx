@@ -4,6 +4,7 @@ import { Crown, Star, CheckIcon } from "lucide-react";
 import { CircularProgressbarWithChildren } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 import { cn } from "@/lib/utils";
+
 type Props = {
   id: string;
   index: number;
@@ -11,6 +12,8 @@ type Props = {
   locked?: boolean;
   current?: boolean;
   percentage: number;
+  isCompleted?: boolean;
+  onClick?: () => void;
 };
 
 export const LessonButton = ({
@@ -20,6 +23,8 @@ export const LessonButton = ({
   locked,
   current,
   percentage,
+  isCompleted,
+  onClick,
 }: Props) => {
   const cycleLength = 8;
   const cycleIndex = index % cycleLength;
@@ -38,11 +43,12 @@ export const LessonButton = ({
 
   const isFirst = index === 0;
   const isLast = index === totalCount;
-  const isCompleted = false; // TODO: This should come from lesson props
+  // Use prop for isCompleted if provided, otherwise use old logic as fallback
+  const completedState = isCompleted !== undefined ? isCompleted : (!current && !locked);
 
-  const Icon = isCompleted ? CheckIcon : isLast ? Crown : Star;
+  const Icon = completedState ? CheckIcon : isLast ? Crown : Star;
 
-  const href = isCompleted ? `/user/laboratory/learn/lesson/${id}` : `/user/laboratory/learn/lesson/${id}`;
+  const href = `/user/laboratory/lesson/${id}`;
 
   const handleClick = (e: React.MouseEvent) => {
     if (locked) {
@@ -50,13 +56,18 @@ export const LessonButton = ({
       e.stopPropagation();
       return false;
     }
+    // Call custom onClick if provided (for Redux mode)
+    if (onClick) {
+      e.preventDefault();
+      onClick();
+    }
   };
 
   return (
     <Link href={href} aria-disabled={locked} style={{pointerEvents:locked ? "none" : "auto"}} onClick={handleClick}>
         <div className="relative" style={ {
             right:`${rigthPosition}px`,
-            marginTop: isFirst && !isCompleted ? 60 : 24,
+            marginTop: isFirst && !completedState ? 60 : 24,
         }}>
 
             {current ? (
@@ -86,14 +97,14 @@ export const LessonButton = ({
                     <div 
                       className="h-[50px] w-[50px] border-b-8 rounded-full flex items-center justify-center cursor-pointer"
                       style={{
-                        background: locked ? '#64748b' : isCompleted ? '#10b981' : '#8b5cf6',
-                        borderColor: locked ? '#475569' : isCompleted ? '#059669' : '#7c3aed'
+                        background: locked ? '#64748b' : completedState ? '#10b981' : '#8b5cf6',
+                        borderColor: locked ? '#475569' : completedState ? '#059669' : '#7c3aed'
                       }}
                     >
                         <Icon className={cn(
                             "h-6 w-6", locked ? 
                             "fill-neutral-400 text-neutral-400 stroke-neutral-400" : "fill-white text-white",
-                            isCompleted && "fill-white stroke-[4] text-white"
+                            completedState && "fill-white stroke-[4] text-white"
                         )}/>
                     </div>
 
@@ -104,14 +115,14 @@ export const LessonButton = ({
               <div 
                 className="h-[50px] w-[50px] border-b-8 rounded-full flex items-center justify-center cursor-pointer transition-all duration-200 hover:scale-110"
                 style={{
-                  background: locked ? '#64748b' : isCompleted ? '#10b981' : '#8b5cf6',
-                  borderColor: locked ? '#475569' : isCompleted ? '#059669' : '#7c3aed'
+                  background: locked ? '#64748b' : completedState ? '#10b981' : '#8b5cf6',
+                  borderColor: locked ? '#475569' : completedState ? '#059669' : '#7c3aed'
                 }}
               >
               <Icon className={cn(
                   "h-6 w-6", locked ? 
                   "fill-neutral-400 text-neutral-400 stroke-neutral-400" : "fill-white text-white",
-                  isCompleted && "fill-white stroke-[4] text-white"
+                  completedState && "fill-white stroke-[4] text-white"
               )}/>
               </div>
             )}
