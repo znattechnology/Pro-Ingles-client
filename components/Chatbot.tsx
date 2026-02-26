@@ -10,14 +10,16 @@ import {
   User,
   Minimize2,
   Maximize2,
-  HelpCircle,
   Zap,
-  Clock,
-  CheckCircle,
-  ArrowDown
+  BookOpen,
+  Play,
+  Headphones,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-// import { Input } from "@/components/ui/input";
+import {
+  sendChatMessage,
+  ChatMessage as APIChatMessage,
+} from "@/src/domains/shared/chatbot/api/chatbotApi";
 
 interface Message {
   id: string;
@@ -40,6 +42,8 @@ const Chatbot = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [sessionId, setSessionId] = useState<string | undefined>();
+  const [conversationHistory, setConversationHistory] = useState<APIChatMessage[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -48,43 +52,34 @@ const Chatbot = () => {
       id: "pricing",
       label: "Preços",
       icon: <Zap className="w-4 h-4" />,
-      message: "Quais são os preços dos planos?"
+      message: "Quais são os preços dos planos?",
     },
     {
       id: "courses",
       label: "Cursos",
-      icon: <HelpCircle className="w-4 h-4" />,
-      message: "Que cursos vocês oferecem?"
+      icon: <BookOpen className="w-4 h-4" />,
+      message: "Que cursos especializados vocês oferecem?",
     },
     {
       id: "demo",
       label: "Demo",
-      icon: <Clock className="w-4 h-4" />,
-      message: "Como posso ver uma demonstração?"
+      icon: <Play className="w-4 h-4" />,
+      message: "Como posso experimentar a plataforma?",
     },
     {
       id: "support",
       label: "Suporte",
-      icon: <CheckCircle className="w-4 h-4" />,
-      message: "Preciso de ajuda com minha conta"
-    }
+      icon: <Headphones className="w-4 h-4" />,
+      message: "Como posso contactar o suporte?",
+    },
   ];
-
-  const faqData: Record<string, string> = {
-    "preços": "📋 **Nossos Planos:**\n\n🚀 **Básico** - Gratuito\n• 3 lições por dia\n• 5 min de Speaking com IA\n• 1 curso: Inglês Geral\n\n👑 **Professional** - 14.950 AOA/mês\n• Lições ILIMITADAS\n• 15+ cursos especializados\n• Certificados oficiais\n\n⚡ **Enterprise** - 24.950 AOA/mês\n• TUDO do Professional\n• IA Personal Tutor exclusivo\n• 2 sessões com nativos/mês",
-    
-    "cursos": "🎯 **Cursos Especializados:**\n\n🛢️ **Inglês para Petróleo & Gás**\n• Sonangol, Total Angola, Chevron\n• Terminologia técnica\n\n🏦 **Inglês Bancário**\n• BAI, BFA, Standard Bank\n• Transações internacionais\n\n💻 **Inglês para TI**\n• Unitel, MS Telecom\n• Vocabulário de programação\n\n👔 **Inglês Executivo**\n• Para C-Level e gestores\n• Negociações estratégicas",
-    
-    "demo": "🎬 **Ver Demonstração:**\n\nPode ver nossa demo do IA Personal Tutor diretamente na página principal! \n\n✨ **O que vai ver:**\n• Correção de pronunciação em tempo real\n• Feedback personalizado para Angola\n• Interface adaptativa\n\n🎯 **Também temos:**\n• English Practice Lab com 4 tipos de exercícios\n• Cenários reais de empresas angolanas\n\n➡️ Clique em \"Ver Demo do IA Tutor\" na página!",
-    
-    "suporte": "🛠️ **Suporte ProEnglish:**\n\n📧 **Email:** contato@proenglish.ao\n📱 **WhatsApp:** +244 923 456 789\n\n⏰ **Horário de Atendimento:**\n• Segunda a Sexta: 8h às 18h\n• Sábado: 9h às 13h\n\n🚀 **Suporte Premium:**\nPlanos Professional e Enterprise têm suporte prioritário 24/7!\n\n💬 **Dúvidas Frequentes:**\nVisite nossa seção de FAQ para respostas rápidas."
-  };
 
   const welcomeMessage: Message = {
     id: "welcome",
-    content: "Olá! 👋 Sou o assistente virtual da ProEnglish Angola!\n\nEm que posso ajudá-lo hoje? Pode perguntar sobre nossos cursos, preços, ou qualquer dúvida sobre inglês especializado para Angola! 🇦🇴",
+    content:
+      "Olá! 👋 Sou o assistente virtual da ProEnglish Angola!\n\nPosso ajudá-lo com informações sobre nossos cursos, planos, funcionalidades ou qualquer dúvida sobre inglês especializado. Em que posso ajudar?",
     isBot: true,
-    timestamp: new Date()
+    timestamp: new Date(),
   };
 
   useEffect(() => {
@@ -101,97 +96,148 @@ const Chatbot = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const findAnswer = (question: string): string => {
-    const normalizedQuestion = question.toLowerCase();
-    
-    // Check for exact matches first
-    for (const [key, answer] of Object.entries(faqData)) {
-      if (normalizedQuestion.includes(key)) {
-        return answer;
-      }
-    }
-
-    // Check for related terms
-    if (normalizedQuestion.includes("quanto") || normalizedQuestion.includes("custo") || normalizedQuestion.includes("valor")) {
-      return faqData["preços"];
-    }
-    
-    if (normalizedQuestion.includes("curso") || normalizedQuestion.includes("especializado") || normalizedQuestion.includes("setor")) {
-      return faqData["cursos"];
-    }
-    
-    if (normalizedQuestion.includes("demonstra") || normalizedQuestion.includes("ver") || normalizedQuestion.includes("teste")) {
-      return faqData["demo"];
-    }
-    
-    if (normalizedQuestion.includes("ajuda") || normalizedQuestion.includes("problema") || normalizedQuestion.includes("contato")) {
-      return faqData["suporte"];
-    }
-
-    // Default response
-    return "🤔 Desculpe, não encontrei uma resposta específica para isso.\n\n💡 **Posso ajudar com:**\n• Informações sobre preços e planos\n• Detalhes dos nossos cursos especializados\n• Como ver demonstrações\n• Suporte e contato\n\n📞 **Contato Direto:**\n• WhatsApp: +244 923 456 789\n• Email: contato@proenglish.ao\n\nQue tipo de informação está procurando?";
-  };
-
-  const simulateTyping = async (message: string): Promise<void> => {
-    setIsTyping(true);
-    
-    // Add typing indicator
+  const addTypingIndicator = () => {
     const typingMessage: Message = {
       id: `typing-${Date.now()}`,
       content: "",
       isBot: true,
       timestamp: new Date(),
-      isTyping: true
+      isTyping: true,
     };
-    
-    setMessages(prev => [...prev, typingMessage]);
-    
-    // Simulate typing delay
-    await new Promise(resolve => setTimeout(resolve, 1500 + message.length * 20));
-    
-    // Remove typing indicator and add real message
-    setMessages(prev => {
-      const filtered = prev.filter(msg => !msg.isTyping);
-      return [...filtered, {
-        id: `bot-${Date.now()}`,
-        content: message,
-        isBot: true,
-        timestamp: new Date()
-      }];
-    });
-    
-    setIsTyping(false);
+    setMessages((prev) => [...prev, typingMessage]);
+  };
+
+  const removeTypingIndicator = () => {
+    setMessages((prev) => prev.filter((msg) => !msg.isTyping));
   };
 
   const handleSendMessage = async () => {
-    if (!inputValue.trim()) return;
+    if (!inputValue.trim() || isTyping) return;
 
     const userMessage: Message = {
       id: `user-${Date.now()}`,
       content: inputValue,
       isBot: false,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    // Add user message to UI
+    setMessages((prev) => [...prev, userMessage]);
+
+    // Update conversation history for API
+    const newHistory: APIChatMessage[] = [
+      ...conversationHistory,
+      { role: "user", content: inputValue },
+    ];
+    setConversationHistory(newHistory);
+
     const question = inputValue;
     setInputValue("");
+    setIsTyping(true);
 
-    const answer = findAnswer(question);
-    await simulateTyping(answer);
+    // Show typing indicator
+    addTypingIndicator();
+
+    try {
+      // Call API
+      const response = await sendChatMessage(question, newHistory, sessionId);
+
+      // Update session ID if received
+      if (response.session_id) {
+        setSessionId(response.session_id);
+      }
+
+      // Remove typing indicator
+      removeTypingIndicator();
+
+      // Add bot response
+      const botMessage: Message = {
+        id: `bot-${Date.now()}`,
+        content: response.response,
+        isBot: true,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, botMessage]);
+
+      // Update conversation history with bot response
+      setConversationHistory((prev) => [
+        ...prev,
+        { role: "assistant", content: response.response },
+      ]);
+    } catch (error) {
+      console.error("Chat error:", error);
+      removeTypingIndicator();
+
+      // Add error message
+      const errorMessage: Message = {
+        id: `error-${Date.now()}`,
+        content:
+          "Desculpe, ocorreu um erro. Por favor, tente novamente ou contacte-nos em suporte@proenglish.ao",
+        isBot: true,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      setIsTyping(false);
+    }
   };
 
   const handleQuickAction = async (action: QuickAction) => {
+    if (isTyping) return;
+
     const userMessage: Message = {
       id: `user-${Date.now()}`,
       content: action.message,
       isBot: false,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
-    setMessages(prev => [...prev, userMessage]);
-    const answer = findAnswer(action.message);
-    await simulateTyping(answer);
+    setMessages((prev) => [...prev, userMessage]);
+
+    const newHistory: APIChatMessage[] = [
+      ...conversationHistory,
+      { role: "user", content: action.message },
+    ];
+    setConversationHistory(newHistory);
+
+    setIsTyping(true);
+    addTypingIndicator();
+
+    try {
+      const response = await sendChatMessage(action.message, newHistory, sessionId);
+
+      if (response.session_id) {
+        setSessionId(response.session_id);
+      }
+
+      removeTypingIndicator();
+
+      const botMessage: Message = {
+        id: `bot-${Date.now()}`,
+        content: response.response,
+        isBot: true,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, botMessage]);
+
+      setConversationHistory((prev) => [
+        ...prev,
+        { role: "assistant", content: response.response },
+      ]);
+    } catch (error) {
+      console.error("Chat error:", error);
+      removeTypingIndicator();
+
+      const errorMessage: Message = {
+        id: `error-${Date.now()}`,
+        content: "Desculpe, ocorreu um erro. Por favor, tente novamente.",
+        isBot: true,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      setIsTyping(false);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -248,31 +294,37 @@ const Chatbot = () => {
         animate={{ opacity: 1, y: 0 }}
         className={`flex gap-3 ${message.isBot ? "" : "flex-row-reverse"}`}
       >
-        <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-          message.isBot 
-            ? "bg-gradient-to-r from-violet-600 to-purple-600" 
-            : "bg-gray-600"
-        }`}>
+        <div
+          className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+            message.isBot
+              ? "bg-gradient-to-r from-violet-600 to-purple-600"
+              : "bg-gray-600"
+          }`}
+        >
           {message.isBot ? (
             <Bot className="w-4 h-4 text-white" />
           ) : (
             <User className="w-4 h-4 text-white" />
           )}
         </div>
-        <div className={`rounded-2xl px-4 py-3 max-w-xs lg:max-w-sm ${
-          message.isBot
-            ? "bg-gray-800 rounded-tl-sm text-gray-100"
-            : "bg-gradient-to-r from-violet-600 to-purple-600 rounded-tr-sm text-white"
-        }`}>
+        <div
+          className={`rounded-2xl px-4 py-3 max-w-xs lg:max-w-sm ${
+            message.isBot
+              ? "bg-gray-800 rounded-tl-sm text-gray-100"
+              : "bg-gradient-to-r from-violet-600 to-purple-600 rounded-tr-sm text-white"
+          }`}
+        >
           <div className="whitespace-pre-line text-sm leading-relaxed">
             {message.content}
           </div>
-          <div className={`text-xs mt-2 ${
-            message.isBot ? "text-gray-500" : "text-violet-200"
-          }`}>
-            {message.timestamp.toLocaleTimeString("pt-AO", { 
-              hour: "2-digit", 
-              minute: "2-digit" 
+          <div
+            className={`text-xs mt-2 ${
+              message.isBot ? "text-gray-500" : "text-violet-200"
+            }`}
+          >
+            {message.timestamp.toLocaleTimeString("pt-AO", {
+              hour: "2-digit",
+              minute: "2-digit",
             })}
           </div>
         </div>
@@ -295,7 +347,7 @@ const Chatbot = () => {
             className="fixed bottom-6 right-6 z-50 w-16 h-16 bg-gradient-to-r from-violet-600 to-purple-600 rounded-full shadow-2xl flex items-center justify-center hover:shadow-violet-500/25 transition-all duration-300"
           >
             <MessageCircle className="w-7 h-7 text-white" />
-            <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
+            <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
               <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
             </div>
           </motion.button>
@@ -307,11 +359,11 @@ const Chatbot = () => {
         {isOpen && (
           <motion.div
             initial={{ opacity: 0, scale: 0.8, y: 20 }}
-            animate={{ 
-              opacity: 1, 
-              scale: isMinimized ? 0.95 : 1, 
+            animate={{
+              opacity: 1,
+              scale: isMinimized ? 0.95 : 1,
               y: 0,
-              height: isMinimized ? "60px" : "600px"
+              height: isMinimized ? "60px" : "600px",
             }}
             exit={{ opacity: 0, scale: 0.8, y: 20 }}
             className={`fixed bottom-6 right-6 z-50 w-96 bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-2xl shadow-2xl flex flex-col overflow-hidden`}
@@ -323,9 +375,11 @@ const Chatbot = () => {
                   <Bot className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-white text-sm">ProEnglish Assistant</h3>
+                  <h3 className="font-semibold text-white text-sm">
+                    ProEnglish Assistant
+                  </h3>
                   <p className="text-violet-200 text-xs">
-                    {isTyping ? "Digitando..." : "Online agora"}
+                    {isTyping ? "A escrever..." : "Online - IA Inteligente"}
                   </p>
                 </div>
               </div>
@@ -358,9 +412,7 @@ const Chatbot = () => {
                 {/* Messages */}
                 <div className="flex-1 p-4 overflow-y-auto space-y-4 min-h-0">
                   {messages.map((message) => (
-                    <div key={message.id}>
-                      {renderMessage(message)}
-                    </div>
+                    <div key={message.id}>{renderMessage(message)}</div>
                   ))}
                   <div ref={messagesEndRef} />
                 </div>
@@ -368,7 +420,9 @@ const Chatbot = () => {
                 {/* Quick Actions */}
                 {messages.length <= 1 && (
                   <div className="px-4 pb-2">
-                    <div className="text-xs text-gray-400 mb-2">Perguntas frequentes:</div>
+                    <div className="text-xs text-gray-400 mb-2">
+                      Perguntas frequentes:
+                    </div>
                     <div className="flex flex-wrap gap-2">
                       {quickActions.map((action) => (
                         <motion.button
@@ -376,7 +430,8 @@ const Chatbot = () => {
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                           onClick={() => handleQuickAction(action)}
-                          className="flex items-center gap-2 bg-gray-800/50 hover:bg-violet-600/20 border border-gray-700 hover:border-violet-500/50 rounded-full px-3 py-2 text-xs text-gray-300 hover:text-white transition-all duration-200"
+                          disabled={isTyping}
+                          className="flex items-center gap-2 bg-gray-800/50 hover:bg-violet-600/20 border border-gray-700 hover:border-violet-500/50 rounded-full px-3 py-2 text-xs text-gray-300 hover:text-white transition-all duration-200 disabled:opacity-50"
                         >
                           {action.icon}
                           {action.label}
@@ -394,7 +449,7 @@ const Chatbot = () => {
                       value={inputValue}
                       onChange={(e) => setInputValue(e.target.value)}
                       onKeyDown={handleKeyDown}
-                      placeholder="Introduza a sua pergunta..."
+                      placeholder="Escreva a sua pergunta..."
                       className="flex-1 bg-gray-800/50 border border-gray-600 text-white placeholder:text-gray-400 focus:border-violet-500 focus:ring-violet-500/20 rounded-lg px-3 py-2 text-sm"
                       disabled={isTyping}
                     />
