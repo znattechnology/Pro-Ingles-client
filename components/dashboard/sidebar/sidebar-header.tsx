@@ -4,7 +4,8 @@ import React from "react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { User, ChevronDown, LogOut, Search, Settings, HelpCircle } from "lucide-react";
+import { User, ChevronDown, LogOut, Search, HelpCircle } from "lucide-react";
+// import { Settings } from "lucide-react"; // TODO: Descomentar quando implementar configurações
 import { useDjangoAuth } from "@/hooks/useDjangoAuth";
 import {
   DropdownMenu,
@@ -12,7 +13,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import NotificationButton from "@/components/notification-button";
+// import NotificationButton from "@/components/notification-button"; // TODO: Descomentar quando implementar notificações
 import { useRouter } from "next/navigation";
 
 
@@ -71,16 +72,18 @@ function SidebarHeader({ isCoursePage }: { isCoursePage: boolean }) {
           <span className="sr-only">Ajuda</span>
         </Button>
         
-        <NotificationButton/>
-        
-        <Button 
-          variant="ghost" 
+        {/* TODO: Implementar notificações com backend */}
+        {/* <NotificationButton/> */}
+
+        {/* TODO: Implementar página de configurações */}
+        {/* <Button
+          variant="ghost"
           size="icon"
           className="hidden md:flex text-gray-400 hover:text-white hover:bg-violet-800/20 transition-all duration-200 rounded-lg"
         >
           <Settings className="w-5 h-5" />
           <span className="sr-only">Configurações</span>
-        </Button>
+        </Button> */}
       </div>
 
       {/* User dropdown */}
@@ -112,21 +115,22 @@ function SidebarHeader({ isCoursePage }: { isCoursePage: boolean }) {
             <p className="text-sm text-gray-400">{user?.email}</p>
           </div>
           
-          <DropdownMenuItem 
+          <DropdownMenuItem
             onClick={handleProfileClick}
             className="cursor-pointer hover:bg-violet-800/20 transition-colors duration-200 rounded-md flex items-center gap-2 p-3"
           >
             <User className="w-4 h-4" />
             <span>Meu Perfil</span>
           </DropdownMenuItem>
-          
-          <DropdownMenuItem 
+
+          {/* TODO: Implementar página de configurações */}
+          {/* <DropdownMenuItem
             className="cursor-pointer hover:bg-violet-800/20 transition-colors duration-200 rounded-md flex items-center gap-2 p-3"
           >
             <Settings className="w-4 h-4" />
             <span>Configurações</span>
-          </DropdownMenuItem>
-          
+          </DropdownMenuItem> */}
+
           <div className="h-px bg-violet-900/20 my-2" />
           
           <DropdownMenuItem 
