@@ -33,7 +33,7 @@ export async function sendChatMessage(
   sessionId?: string
 ): Promise<ChatResponse> {
   try {
-    const response = await fetch(`${API_URL}/api/chatbot/chat/`, {
+    const response = await fetch(`${API_URL}/chatbot/chat/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -66,7 +66,7 @@ export async function sendChatMessage(
  */
 export async function getQuickActions(): Promise<QuickAction[]> {
   try {
-    const response = await fetch(`${API_URL}/api/chatbot/quick-actions/`);
+    const response = await fetch(`${API_URL}/chatbot/quick-actions/`);
 
     if (!response.ok) {
       throw new Error('Failed to get quick actions');
@@ -91,7 +91,7 @@ export async function getQuickActions(): Promise<QuickAction[]> {
  */
 export async function checkChatbotHealth(): Promise<boolean> {
   try {
-    const response = await fetch(`${API_URL}/api/chatbot/health/`);
+    const response = await fetch(`${API_URL}/chatbot/health/`);
     return response.ok;
   } catch {
     return false;
