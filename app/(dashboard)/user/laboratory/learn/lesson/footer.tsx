@@ -64,7 +64,7 @@ export const Footer = ({onCheck,status,disabled,lessonId,pending}:Props) => {
                             <div className="text-rose-400 font-bold text-sm sm:text-base lg:text-2xl">
                                 Tente novamente!
                             </div>
-                            <p className="text-rose-300/70 text-xs lg:text-sm">Não desista, você consegue!</p>
+                            <p className="text-rose-300/70 text-xs lg:text-sm">Não desistas, tu consegues!</p>
                         </div>
                     </div>
                 )}

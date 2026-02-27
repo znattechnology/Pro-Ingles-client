@@ -621,7 +621,7 @@ export default function AchievementsPage() {
                     className="flex-1 bg-violet-500/10 border-violet-500/30 text-violet-400 hover:bg-violet-500/20"
                   >
                     <Share className="w-4 h-4 mr-2" />
-                    Compartilhar
+                    Partilhar
                   </Button>
                   <Button
                     variant="outline"

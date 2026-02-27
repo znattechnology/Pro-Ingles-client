@@ -104,7 +104,7 @@ const DjangoSignUp = () => {
     try {
       const result = await register(formData).unwrap();
       
-      toast.success(result.message || 'Registro realizado com sucesso!');
+      toast.success(result.message || 'Registo realizado com sucesso!');
 
       // Redirect to email verification (pass plan param if coming from pricing page)
       const verifyUrl = `/verify-email?email=${encodeURIComponent(result.email)}&registration=true${selectedPlan ? `&plan=${selectedPlan}` : ''}`;
@@ -130,7 +130,7 @@ const DjangoSignUp = () => {
           
           // Show a user-friendly toast for email already exists
           if (apiErrors.email && apiErrors.email.includes('already exists')) {
-            toast.error('Este email já está cadastrado. Tente fazer login ou use outro email.');
+            toast.error('Este email já está registado. Tente fazer login ou use outro email.');
           } else if (Object.keys(apiErrors).length > 0) {
             toast.error('Por favor, corrija os erros nos campos destacados.');
           }
@@ -150,7 +150,7 @@ const DjangoSignUp = () => {
           setErrors(apiErrors);
         }
       } else {
-        const errorMessage = error?.data?.message || error?.data?.error || error?.message || 'Erro ao registrar. Tente novamente.';
+        const errorMessage = error?.data?.message || error?.data?.error || error?.message || 'Erro ao registar. Tente novamente.';
         toast.error(errorMessage);
       }
     }
@@ -196,7 +196,7 @@ const DjangoSignUp = () => {
               Começar jornada
             </CardTitle>
             <p className="text-gray-400 text-sm">
-              Crie sua conta gratuita e comece a aprender inglês hoje
+              Cria a tua conta gratuita e começa a aprender inglês hoje
             </p>
           </div>
         </CardHeader>
@@ -215,7 +215,7 @@ const DjangoSignUp = () => {
                   type="text"
                   value={formData.name}
                   onChange={handleInputChange}
-                  placeholder="Seu nome completo"
+                  placeholder="O teu nome completo"
                   className="bg-gray-800/50 border-gray-700/50 text-white placeholder-gray-400 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 transition-all duration-200 h-12 pl-4"
                   disabled={isRegistering}
                 />
@@ -316,7 +316,7 @@ const DjangoSignUp = () => {
                   type={showConfirmPassword ? "text" : "password"}
                   value={formData.password_confirm}
                   onChange={handleInputChange}
-                  placeholder="Confirme sua senha"
+                  placeholder="Confirma a tua palavra-passe"
                   className="bg-gray-800/50 border-gray-700/50 text-white placeholder-gray-400 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 transition-all duration-200 h-12 pl-4 pr-12"
                   disabled={isRegistering}
                 />
@@ -362,7 +362,7 @@ const DjangoSignUp = () => {
                 <span className="w-full border-t border-gray-700/50" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-gray-900/80 px-4 py-1 text-gray-400 rounded-full backdrop-blur">ou registrar com</span>
+                <span className="bg-gray-900/80 px-4 py-1 text-gray-400 rounded-full backdrop-blur">ou registar com</span>
               </div>
             </div>
 
@@ -392,7 +392,7 @@ const DjangoSignUp = () => {
           {/* Terms and Sign In Link */}
           <div className="mt-6 space-y-4">
             <p className="text-xs text-gray-500 text-center">
-              Ao criar uma conta, você concorda com nossos{" "}
+              Ao criar uma conta, concordas com os nossos{" "}
               <a href="#" className="text-violet-400 hover:text-violet-300 underline">
                 Termos de Uso
               </a>{" "}

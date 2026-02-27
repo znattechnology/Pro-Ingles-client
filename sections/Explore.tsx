@@ -112,10 +112,10 @@ const Explore: React.FC = () => {
             <div className="grid md:grid-cols-2 gap-8 items-center">
               <div className="text-left">
                 <h3 className="text-2xl font-bold text-white mb-4">
-                  Não tem certeza qual curso é ideal para você?
+                  Não tens a certeza de qual curso é ideal para ti?
                 </h3>
                 <p className="text-gray-300 mb-6">
-                  Nossos consultores especializados ajudam você a escolher o curso perfeito 
+                  Os nossos consultores especializados ajudam-te a escolher o curso perfeito 
                   baseado na sua carreira e objetivos profissionais em Angola.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4">

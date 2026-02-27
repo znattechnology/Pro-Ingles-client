@@ -98,7 +98,7 @@ const VerifyCertificatePage = () => {
           {/* Info Section */}
           <div className="mt-8 text-center space-y-2">
             <p className="text-sm text-gray-500">
-              Ao verificar um certificado, você confirma que o documento foi emitido pela plataforma ProEnglish.
+              Ao verificar um certificado, confirmas que o documento foi emitido pela plataforma ProEnglish.
             </p>
           </div>
         </div>

@@ -171,8 +171,8 @@ const VideoCoursePage = () => {
       setIsDeleting(false);
       
     } catch (error) {
-      console.error('❌ Erro ao deletar curso:', error);
-      notifications.error('❌ Erro ao deletar curso. Tente novamente.');
+      console.error('❌ Erro ao eliminar curso:', error);
+      notifications.error('❌ Erro ao eliminar curso. Tente novamente.');
       setIsDeleting(false);
     }
   };
@@ -315,7 +315,7 @@ const VideoCoursePage = () => {
                 className="bg-red-600 hover:bg-red-700"
               >
                 <Trash2 className="w-4 h-4 mr-2" />
-                Deletar
+                Eliminar
               </Button>
             </div>
           </div>
@@ -581,7 +581,7 @@ const VideoCoursePage = () => {
                   className="w-full bg-red-600 hover:bg-red-700 text-white"
                 >
                   <Trash2 className="w-4 h-4 mr-2" />
-                  Deletar Curso
+                  Eliminar Curso
                 </Button>
               </CardContent>
             </Card>
@@ -597,7 +597,7 @@ const VideoCoursePage = () => {
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
                 <AlertTriangle className={`w-5 h-5 ${deleteModalType === 'blocked' ? 'text-orange-400' : 'text-red-500'}`} />
-                {deleteModalType === 'blocked' ? 'Deleção Bloqueada - Proteger Estudantes' : 'Confirmar Exclusão'}
+                {deleteModalType === 'blocked' ? 'Eliminação Bloqueada - Proteger Estudantes' : 'Confirmar Eliminação'}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -620,7 +620,7 @@ const VideoCoursePage = () => {
                       <strong className="text-orange-300">🛡️ Proteção Ética:</strong>
                     </div>
                     <p className="text-sm text-gray-300">
-                      Por razões éticas, não é possível deletar cursos com estudantes matriculados. 
+                      Por razões éticas, não é possível eliminar cursos com estudantes matriculados. 
                       Isso protege o investimento e progresso dos alunos.
                     </p>
                     
@@ -631,7 +631,7 @@ const VideoCoursePage = () => {
                       <ul className="text-sm text-gray-300 mt-2 ml-4 space-y-1">
                         <li>• Despublicar o curso (fechar para novos alunos)</li>
                         <li>• Aguardar que todos os alunos concluam</li>
-                        <li>• Editar o conteúdo em vez de deletar</li>
+                        <li>• Editar o conteúdo em vez de eliminar</li>
                       </ul>
                     </div>
                   </div>
@@ -639,10 +639,10 @@ const VideoCoursePage = () => {
               ) : (
                 <div className="text-gray-300">
                   <p className="mb-2">
-                    Tem certeza que deseja deletar o curso <strong>"{course?.title}"</strong>?
+                    Tens a certeza que desejas eliminar o curso <strong>"{course?.title}"</strong>?
                   </p>
                   <p className="text-red-400 text-sm">
-                    ⚠️ Esta ação é <strong>irreversível</strong> e irá deletar:
+                    ⚠️ Esta ação é <strong>irreversível</strong> e irá eliminar:
                   </p>
                   <ul className="text-red-400 text-sm mt-2 ml-4 space-y-1">
                     <li>• Todas as seções e capítulos</li>
@@ -670,7 +670,7 @@ const VideoCoursePage = () => {
                     {isDeleting ? (
                       <>
                         <div className="w-4 h-4 mr-2 animate-spin border-2 border-white border-t-transparent rounded-full" />
-                        Deletando...
+                        A eliminar...
                       </>
                     ) : (
                       <>

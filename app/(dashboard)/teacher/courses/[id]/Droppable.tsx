@@ -171,7 +171,7 @@ const SectionHeader = ({
               size="sm"
               className="w-8 h-8 bg-customgreys-darkGrey/50 hover:bg-red-600 border border-violet-900/30 hover:border-red-500 text-gray-300 hover:text-white rounded-lg transition-all duration-200 flex items-center justify-center"
               onClick={() => dispatch(deleteSection(sectionIndex))}
-              title="Deletar seção"
+              title="Eliminar secção"
             >
               <Trash2 className="h-4 w-4" />
             </Button>
@@ -246,7 +246,7 @@ const ChapterItem = ({
               })
             )
           }
-          title="Deletar capítulo"
+          title="Eliminar capítulo"
         >
           <Trash2 className="h-3 w-3" />
         </Button>

@@ -132,12 +132,12 @@ const CertificatesPage = () => {
           toast.success('Certificado aberto para download');
         }
       } else {
-        toast.error('Erro ao baixar certificado');
+        toast.error('Erro ao descarregar certificado');
       }
     } catch (error) {
       toast.dismiss();
       console.error('Error downloading certificate:', error);
-      toast.error('Erro ao baixar certificado');
+      toast.error('Erro ao descarregar certificado');
     }
   };
 
@@ -381,7 +381,7 @@ const CertificatesPage = () => {
                         size="sm"
                       >
                         <Download className="h-4 w-4 mr-2" />
-                        Baixar PDF
+                        Descarregar PDF
                       </Button>
 
                       <Dialog>
@@ -398,10 +398,10 @@ const CertificatesPage = () => {
                           <DialogHeader>
                             <DialogTitle className="text-white flex items-center gap-2">
                               <Shield className="h-5 w-5 text-emerald-400" />
-                              Compartilhar Certificado
+                              Partilhar Certificado
                             </DialogTitle>
                             <DialogDescription className="text-gray-400">
-                              Compartilhe seu certificado com o código de verificação.
+                              Partilha o teu certificado com o código de verificação.
                             </DialogDescription>
                           </DialogHeader>
                           <div className="space-y-4 pt-4">

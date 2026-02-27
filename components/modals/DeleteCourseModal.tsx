@@ -51,12 +51,12 @@ export const DeleteCourseModal: React.FC<DeleteCourseModalProps> = ({
               <AlertTriangle className="w-5 h-5 text-red-400" />
             </div>
             <DialogTitle className="text-xl font-semibold text-white">
-              Deletar Curso
+              Eliminar Curso
             </DialogTitle>
           </div>
           
           <DialogDescription className="text-gray-300 text-left">
-            Tem certeza que deseja deletar este curso? Esta ação é irreversível.
+            Tens a certeza que desejas eliminar este curso? Esta ação é irreversível.
           </DialogDescription>
         </DialogHeader>
 
@@ -137,12 +137,12 @@ export const DeleteCourseModal: React.FC<DeleteCourseModalProps> = ({
             {isDeleting ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Deletando...
+                A eliminar...
               </>
             ) : (
               <>
                 <Trash2 className="w-4 h-4 mr-2" />
-                Deletar Curso
+                Eliminar Curso
               </>
             )}
           </Button>

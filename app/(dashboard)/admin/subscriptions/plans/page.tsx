@@ -199,7 +199,7 @@ export default function AdminSubscriptionPlansPage() {
   };
 
   const handleDeletePlan = async (planId: string) => {
-    if (!confirm('Tem certeza que deseja deletar este plano?')) return;
+    if (!confirm('Tens a certeza que desejas eliminar este plano?')) return;
 
     try {
       const response = await fetch(`/api/v1/subscriptions/admin/plans/${planId}/`, {
@@ -210,10 +210,10 @@ export default function AdminSubscriptionPlansPage() {
         await fetchPlans(); // Refresh plans
         setError(null);
       } else {
-        setError('Falha ao deletar plano');
+        setError('Falha ao eliminar plano');
       }
     } catch {
-      setError('Erro ao deletar plano');
+      setError('Erro ao eliminar plano');
     }
   };
 

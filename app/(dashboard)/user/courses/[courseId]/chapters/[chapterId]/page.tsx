@@ -1035,7 +1035,7 @@ const Course = () => {
                                       onClick={() => window.open(resource.file_url, '_blank')}
                                     >
                                       <Download className="w-4 h-4 mr-1" />
-                                      Baixar
+                                      Descarregar
                                     </Button>
                                   )}
                                 </div>

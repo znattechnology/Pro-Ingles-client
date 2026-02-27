@@ -73,7 +73,10 @@ const CourseWizard = ({ onComplete }: { onComplete: (courseData: any) => void })
     learningObjectives: [''],
     hearts: 5,
     pointsPerChallenge: 10,
-    passingScore: 70
+    passingScore: 70,
+    // Access level - defines minimum subscription plan required
+    accessLevel: 'free' as 'free' | 'premium' | 'premium_plus',
+    isFeatured: false
   });
 
   // ✨ VALIDAÇÃO EM TEMPO REAL COM ZOD - Estado de validação
@@ -392,7 +395,7 @@ const CourseWizard = ({ onComplete }: { onComplete: (courseData: any) => void })
                 Escolha um Template para Seu Curso
               </h3>
               <p className="text-gray-300">
-                Selecione o template que melhor se adequa ao conteúdo que você deseja ensinar
+                Seleciona o template que melhor se adequa ao conteúdo que desejas ensinar
               </p>
             </div>
 
@@ -934,6 +937,47 @@ const CourseWizard = ({ onComplete }: { onComplete: (courseData: any) => void })
                     </div>
                   </CardContent>
                 </Card>
+
+                {/* Access Level Configuration */}
+                <Card className="bg-customgreys-darkGrey border-customgreys-darkerGrey">
+                  <CardHeader className="pb-2 sm:pb-4">
+                    <CardTitle className="text-white flex items-center gap-2 text-sm sm:text-base">
+                      <Crown className="h-4 w-4 sm:h-5 sm:w-5 text-amber-400" />
+                      Nível de Acesso
+                    </CardTitle>
+                    <CardDescription className="text-gray-300 text-xs sm:text-sm">
+                      Define qual plano de subscrição é necessário
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3 sm:space-y-4">
+                    <div>
+                      <Label className="text-gray-300 text-sm sm:text-base">Tipo de Acesso</Label>
+                      <select
+                        value={courseData.accessLevel}
+                        onChange={(e) => setCourseData(prev => ({ ...prev, accessLevel: e.target.value as 'free' | 'premium' | 'premium_plus' }))}
+                        className="w-full mt-1 bg-customgreys-primarybg border border-customgreys-darkerGrey text-white rounded-md px-3 py-2 focus:border-violet-500 text-sm sm:text-base"
+                      >
+                        <option value="free">🆓 Gratuito - Disponível para todos</option>
+                        <option value="premium">⭐ Premium - Requer plano Premium</option>
+                        <option value="premium_plus">💎 Premium Plus - Exclusivo</option>
+                      </select>
+                    </div>
+
+                    <div className="flex items-center gap-3 p-3 bg-customgreys-primarybg border border-customgreys-darkerGrey rounded-md">
+                      <input
+                        type="checkbox"
+                        id="isFeatured"
+                        checked={courseData.isFeatured}
+                        onChange={(e) => setCourseData(prev => ({ ...prev, isFeatured: e.target.checked }))}
+                        className="w-5 h-5 rounded border-customgreys-darkerGrey bg-customgreys-primarybg text-violet-600 focus:ring-violet-500"
+                      />
+                      <label htmlFor="isFeatured" className="text-white cursor-pointer text-sm sm:text-base">
+                        Destacar este curso na plataforma
+                      </label>
+                      <Sparkles className="w-4 h-4 text-amber-400 ml-auto" />
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             </div>
           </div>
@@ -1052,6 +1096,41 @@ const CourseWizard = ({ onComplete }: { onComplete: (courseData: any) => void })
                       <div>
                         <p className="text-xl sm:text-2xl font-bold text-violet-400">{courseData.passingScore}%</p>
                         <p className="text-xs sm:text-sm text-gray-400">Mín. Aprovação</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-customgreys-darkGrey border-customgreys-darkerGrey">
+                  <CardHeader>
+                    <CardTitle className="text-white text-sm sm:text-base flex items-center gap-2">
+                      <Crown className="h-4 w-4 text-amber-400" />
+                      Nível de Acesso
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <Badge
+                          variant="outline"
+                          className={`text-xs ${
+                            courseData.accessLevel === 'free'
+                              ? 'border-green-400 text-green-400'
+                              : courseData.accessLevel === 'premium'
+                              ? 'border-amber-400 text-amber-400'
+                              : 'border-purple-400 text-purple-400'
+                          }`}
+                        >
+                          {courseData.accessLevel === 'free' && '🆓 Gratuito'}
+                          {courseData.accessLevel === 'premium' && '⭐ Premium'}
+                          {courseData.accessLevel === 'premium_plus' && '💎 Premium Plus'}
+                        </Badge>
+                        {courseData.isFeatured && (
+                          <Badge variant="outline" className="border-amber-400 text-amber-400 text-xs">
+                            <Sparkles className="h-3 w-3 mr-1" />
+                            Em Destaque
+                          </Badge>
+                        )}
                       </div>
                     </div>
                   </CardContent>

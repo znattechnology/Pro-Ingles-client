@@ -254,7 +254,7 @@ const UserProfilePage = () => {
                           id="bio"
                           {...register('bio')}
                           className="w-full min-h-[100px] p-3 bg-customgreys-primarybg border border-violet-900/30 rounded-md text-white placeholder:text-gray-400 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20"
-                          placeholder="Conte um pouco sobre você..."
+                          placeholder="Conta um pouco sobre ti..."
                         />
                         {errors.bio && (
                           <p className="text-sm text-red-400 mt-1">{errors.bio.message}</p>

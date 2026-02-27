@@ -463,7 +463,7 @@ const ManageCourseDetailPage = () => {
                   className="w-full justify-start bg-indigo-600 hover:bg-indigo-700 border border-indigo-500 text-white transition-all duration-200 shadow-lg"
                 >
                   <Share2 className="h-4 w-4 mr-3" />
-                  Compartilhar Curso
+                  Partilhar Curso
                 </Button>
 
                 {/* Delete Button */}
@@ -631,7 +631,7 @@ const ManageCourseDetailPage = () => {
                       <strong className="text-orange-300">🛡️ Proteção Ética:</strong>
                     </div>
                     <p className="text-sm text-gray-300">
-                      Por razões éticas, não é possível deletar cursos com estudantes matriculados. 
+                      Por razões éticas, não é possível eliminar cursos com estudantes matriculados. 
                       Isso protege o investimento e progresso dos alunos.
                     </p>
                     
@@ -642,7 +642,7 @@ const ManageCourseDetailPage = () => {
                       <ul className="text-sm text-gray-300 mt-2 ml-4 space-y-1">
                         <li>• Despublicar o curso (fechar para novos alunos)</li>
                         <li>• Aguardar que todos os alunos concluam</li>
-                        <li>• Editar o conteúdo em vez de deletar</li>
+                        <li>• Editar o conteúdo em vez de eliminar</li>
                       </ul>
                     </div>
                   </div>
@@ -651,7 +651,7 @@ const ManageCourseDetailPage = () => {
                 <>
                   Tem certeza que deseja excluir o curso <strong>"{course?.title}"</strong>?
                   <br />
-                  <span className="text-red-400 text-sm">Esta ação não pode ser desfeita e você será redirecionado para a lista de cursos.</span>
+                  <span className="text-red-400 text-sm">Esta ação não pode ser desfeita e serás redirecionado para a lista de cursos.</span>
                 </>
               )}
             </DialogDescription>

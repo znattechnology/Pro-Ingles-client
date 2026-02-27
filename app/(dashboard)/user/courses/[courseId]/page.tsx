@@ -546,7 +546,7 @@ const CourseDetailsPage = () => {
             {/* Course Features */}
             <Card className="bg-customgreys-secondarybg border-violet-900/30 mb-4 sm:mb-6">
               <CardContent className="p-4 sm:p-6">
-                <h3 className="text-base sm:text-lg font-bold text-white mb-3 sm:mb-4">O que você aprenderá</h3>
+                <h3 className="text-base sm:text-lg font-bold text-white mb-3 sm:mb-4">O que vais aprender</h3>
                 <div className="space-y-2 sm:space-y-3">
                   <div className="flex items-start gap-2 sm:gap-3">
                     <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-400 mt-0.5 flex-shrink-0" />

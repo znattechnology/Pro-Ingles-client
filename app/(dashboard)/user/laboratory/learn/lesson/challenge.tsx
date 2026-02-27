@@ -486,7 +486,7 @@ export const Challenge =({options,onSelect,status,selectedOption,disabled,type,i
                         <div className="bg-customgreys-primarybg border border-blue-700/50 rounded-lg p-4">
                             <div className="flex flex-col items-center gap-3">
                                 <span className="text-sm text-gray-400">
-                                    🎧 Ouça o áudio e escreva o que você ouvir:
+                                    🎧 Ouve o áudio e escreve o que ouvires:
                                 </span>
                                 <Button
                                     onClick={handlePlayTranslationAudio}
@@ -859,7 +859,7 @@ export const Challenge =({options,onSelect,status,selectedOption,disabled,type,i
 
                     <div className="text-center text-sm text-gray-400">
                         {mainAudioSrc
-                            ? "Ouça com atenção e selecione o que você ouviu:"
+                            ? "Ouve com atenção e seleciona o que ouviste:"
                             : "Selecione a opção correta:"
                         }
                     </div>

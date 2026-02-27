@@ -36,6 +36,11 @@ interface QuickAction {
   message: string;
 }
 
+// Constantes
+const SESSION_STORAGE_KEY = 'proenglish_chatbot_session';
+const MAX_MESSAGES_DISPLAY = 50;
+const MAX_HISTORY_API = 20;
+
 const Chatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
@@ -46,6 +51,29 @@ const Chatbot = () => {
   const [conversationHistory, setConversationHistory] = useState<APIChatMessage[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Carregar session ID do sessionStorage ao iniciar
+  useEffect(() => {
+    try {
+      const savedSession = sessionStorage.getItem(SESSION_STORAGE_KEY);
+      if (savedSession) {
+        setSessionId(savedSession);
+      }
+    } catch {
+      // sessionStorage não disponível (ex: modo privado em alguns browsers)
+    }
+  }, []);
+
+  // Salvar session ID quando mudar
+  useEffect(() => {
+    if (sessionId) {
+      try {
+        sessionStorage.setItem(SESSION_STORAGE_KEY, sessionId);
+      } catch {
+        // Ignorar erros de storage
+      }
+    }
+  }, [sessionId]);
 
   const quickActions: QuickAction[] = [
     {
@@ -58,7 +86,7 @@ const Chatbot = () => {
       id: "courses",
       label: "Cursos",
       icon: <BookOpen className="w-4 h-4" />,
-      message: "Que cursos especializados vocês oferecem?",
+      message: "Que cursos especializados oferecem?",
     },
     {
       id: "demo",
@@ -77,7 +105,7 @@ const Chatbot = () => {
   const welcomeMessage: Message = {
     id: "welcome",
     content:
-      "Olá! 👋 Sou o assistente virtual da ProEnglish Angola!\n\nPosso ajudá-lo com informações sobre nossos cursos, planos, funcionalidades ou qualquer dúvida sobre inglês especializado. Em que posso ajudar?",
+      "Olá! 👋 Sou o assistente virtual da ProEnglish Angola!\n\nPosso ajudar-te com informações sobre os nossos cursos, planos, funcionalidades ou qualquer dúvida sobre inglês especializado. Em que posso ajudar?",
     isBot: true,
     timestamp: new Date(),
   };
@@ -124,9 +152,9 @@ const Chatbot = () => {
     // Add user message to UI
     setMessages((prev) => [...prev, userMessage]);
 
-    // Update conversation history for API
+    // Update conversation history for API (limitado)
     const newHistory: APIChatMessage[] = [
-      ...conversationHistory,
+      ...conversationHistory.slice(-MAX_HISTORY_API + 1),
       { role: "user", content: inputValue },
     ];
     setConversationHistory(newHistory);
@@ -150,18 +178,18 @@ const Chatbot = () => {
       // Remove typing indicator
       removeTypingIndicator();
 
-      // Add bot response
+      // Add bot response (limitando total de mensagens exibidas)
       const botMessage: Message = {
         id: `bot-${Date.now()}`,
         content: response.response,
         isBot: true,
         timestamp: new Date(),
       };
-      setMessages((prev) => [...prev, botMessage]);
+      setMessages((prev) => [...prev.slice(-MAX_MESSAGES_DISPLAY + 1), botMessage]);
 
-      // Update conversation history with bot response
+      // Update conversation history with bot response (limitado)
       setConversationHistory((prev) => [
-        ...prev,
+        ...prev.slice(-MAX_HISTORY_API + 1),
         { role: "assistant", content: response.response },
       ]);
     } catch (error) {
@@ -195,7 +223,7 @@ const Chatbot = () => {
     setMessages((prev) => [...prev, userMessage]);
 
     const newHistory: APIChatMessage[] = [
-      ...conversationHistory,
+      ...conversationHistory.slice(-MAX_HISTORY_API + 1),
       { role: "user", content: action.message },
     ];
     setConversationHistory(newHistory);
@@ -218,10 +246,10 @@ const Chatbot = () => {
         isBot: true,
         timestamp: new Date(),
       };
-      setMessages((prev) => [...prev, botMessage]);
+      setMessages((prev) => [...prev.slice(-MAX_MESSAGES_DISPLAY + 1), botMessage]);
 
       setConversationHistory((prev) => [
-        ...prev,
+        ...prev.slice(-MAX_HISTORY_API + 1),
         { role: "assistant", content: response.response },
       ]);
     } catch (error) {
@@ -234,7 +262,7 @@ const Chatbot = () => {
         isBot: true,
         timestamp: new Date(),
       };
-      setMessages((prev) => [...prev, errorMessage]);
+      setMessages((prev) => [...prev.slice(-MAX_MESSAGES_DISPLAY + 1), errorMessage]);
     } finally {
       setIsTyping(false);
     }

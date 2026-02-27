@@ -253,7 +253,7 @@ export default function AdminPromoCodesPage() {
   };
 
   const handleDeleteCode = async (codeId: string) => {
-    if (!confirm('Tem certeza que deseja deletar este código promocional?')) return;
+    if (!confirm('Tens a certeza que desejas eliminar este código promocional?')) return;
     
     try {
       const response = await fetch(`/api/v1/subscriptions/admin/promo-codes/${codeId}/`, {
@@ -263,10 +263,10 @@ export default function AdminPromoCodesPage() {
       if (response.ok) {
         await fetchData();
       } else {
-        setError('Falha ao deletar código');
+        setError('Falha ao eliminar código');
       }
     } catch {
-      setError('Erro ao deletar código');
+      setError('Erro ao eliminar código');
     }
   };
 
@@ -842,7 +842,7 @@ export default function AdminPromoCodesPage() {
                               onClick={() => handleDeleteCode(code.id)}
                             >
                               <Trash2 className="w-4 h-4 mr-2" />
-                              Deletar
+                              Eliminar
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
