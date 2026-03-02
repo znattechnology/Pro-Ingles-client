@@ -3,18 +3,30 @@
 import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSelector } from "react-redux";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import { RootState } from "@/state/redux";
-import { 
-  useVerifyEmailMutation, 
-  useResendVerificationCodeMutation 
+import {
+  useVerifyEmailMutation,
+  useResendVerificationCodeMutation
 } from "@/src/domains/auth/services/authApi";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, Mail, RefreshCw } from "lucide-react";
+import { Loader2, Mail, RefreshCw, AlertCircle } from "lucide-react";
 import { toast } from "react-hot-toast";
 import Logo from "@/components/ui/Logo";
+
+// Schema for verification code
+const verificationCodeSchema = z.object({
+  code: z.string()
+    .min(6, "Código deve ter 6 dígitos")
+    .max(6, "Código deve ter 6 dígitos")
+    .regex(/^\d{6}$/, "Código deve conter apenas números"),
+});
+
+type VerificationCodeFormData = z.infer<typeof verificationCodeSchema>;
 
 interface EmailVerificationProps {
   email?: string;
@@ -30,18 +42,34 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({
   const router = useRouter();
   const searchParams = useSearchParams();
   const { pendingVerification } = useSelector((state: RootState) => state.auth);
-  
+
   // Get email from props, Redux state, or URL params
   const email = propEmail || pendingVerification?.email || searchParams.get('email') || '';
-  
-  const [code, setCode] = useState('');
+
   const [countdown, setCountdown] = useState(0);
-  const [error, setError] = useState('');
+  const [apiError, setApiError] = useState<string | null>(null);
+
+  // Form with Zod validation
+  const {
+    watch,
+    setValue,
+    handleSubmit,
+    formState: { errors },
+    setError,
+    clearErrors,
+  } = useForm<VerificationCodeFormData>({
+    resolver: zodResolver(verificationCodeSchema),
+    mode: "onChange",
+    defaultValues: {
+      code: "",
+    },
+  });
+
+  const code = watch('code');
 
   const [verifyEmail, { isLoading: isVerifying }] = useVerifyEmailMutation();
   const [resendCode, { isLoading: isResending }] = useResendVerificationCodeMutation();
 
-  
   // Countdown timer for resend button
   useEffect(() => {
     if (countdown > 0) {
@@ -52,28 +80,24 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({
 
   const handleCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/\D/g, '').slice(0, 6);
-    setCode(value);
-    setError('');
+    setValue('code', value, { shouldValidate: true });
+    setApiError(null);
   };
 
-  const handleVerify = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!email) {
-      setError('Email não encontrado. Por favor, tente novamente.');
-      return;
-    }
+  const onSubmit = async (data: VerificationCodeFormData) => {
+    setApiError(null);
+    clearErrors();
 
-    if (code.length !== 6) {
-      setError('Por favor, insira o código de 6 dígitos.');
+    if (!email) {
+      setApiError('Email não encontrado. Por favor, tente novamente.');
       return;
     }
 
     try {
-      const result = await verifyEmail({ email, code }).unwrap();
-      
+      const result = await verifyEmail({ email, code: data.code }).unwrap();
+
       toast.success(result.message || 'Email verificado com sucesso!');
-      
+
       if (onSuccess) {
         onSuccess(result.user);
       } else {
@@ -102,11 +126,30 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({
       }
     } catch (error: any) {
       console.error('Email verification error:', error);
-      const errorMessage = error?.data?.error || error?.message || 'Erro ao verificar email. Tente novamente.';
-      setError(errorMessage);
+
+      const errorData = error?.data;
+      let errorMessage = 'Erro ao verificar email. Tente novamente.';
+
+      if (errorData) {
+        if (typeof errorData.error === 'string') {
+          errorMessage = errorData.error;
+        } else if (Array.isArray(errorData.error)) {
+          errorMessage = errorData.error[0];
+        } else if (errorData.detail) {
+          errorMessage = errorData.detail;
+        } else if (errorData.message) {
+          errorMessage = errorData.message;
+        } else if (errorData.code) {
+          const codeError = Array.isArray(errorData.code) ? errorData.code[0] : errorData.code;
+          setError('code', { type: 'server', message: codeError });
+          errorMessage = codeError;
+        }
+      }
+
+      setApiError(errorMessage);
       toast.error(errorMessage);
     }
-  }; 
+  };
 
   const handleResendCode = async () => {
     if (!email) {
@@ -114,15 +157,32 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({
       return;
     }
 
+    setApiError(null);
+
     try {
       const result = await resendCode({ email }).unwrap();
       toast.success(result.message || 'Novo código enviado!');
       setCountdown(60); // 60 seconds countdown
-      setCode(''); // Clear the current code
-      setError('');
+      setValue('code', '', { shouldValidate: false }); // Clear the current code
     } catch (error: any) {
       console.error('Resend code error:', error);
-      const errorMessage = error?.data?.error || error?.message || 'Erro ao reenviar código.';
+
+      const errorData = error?.data;
+      let errorMessage = 'Erro ao reenviar código.';
+
+      if (errorData) {
+        if (typeof errorData.error === 'string') {
+          errorMessage = errorData.error;
+        } else if (Array.isArray(errorData.error)) {
+          errorMessage = errorData.error[0];
+        } else if (errorData.detail) {
+          errorMessage = errorData.detail;
+        } else if (errorData.message) {
+          errorMessage = errorData.message;
+        }
+      }
+
+      setApiError(errorMessage);
       toast.error(errorMessage);
     }
   };
@@ -133,26 +193,26 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({
     <Card className="w-full bg-gray-900/80 backdrop-blur-xl border border-gray-800/50 shadow-2xl relative animate-in fade-in-0 zoom-in-95 duration-300">
         <CardHeader className="text-center space-y-4">
           <div className="mb-2">
-            <Logo 
+            <Logo
               size="lg"
               variant="white"
               linkToHome={true}
               className="mx-auto"
             />
           </div>
-          
+
           <div className="mx-auto w-12 h-12 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl flex items-center justify-center">
             <Mail className="w-6 h-6 text-white" />
           </div>
-          
+
           <div>
             <CardTitle className="text-3xl font-bold text-white mb-2">
               Verificar Email
             </CardTitle>
-            
+
             <CardDescription className="text-gray-400 space-y-2">
               <p>
-                {isRegistration 
+                {isRegistration
                   ? 'Enviamos um código de verificação para:'
                   : 'Digite o código de verificação enviado para:'
                 }
@@ -165,16 +225,15 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({
         </CardHeader>
 
         <CardContent className="space-y-6">
-          {error && (
-            <Alert className="bg-red-900/30 border-red-500/30 backdrop-blur">
-              <AlertDescription className="text-red-300 flex items-center gap-2">
-                <span className="w-2 h-2 bg-red-400 rounded-full flex-shrink-0" />
-                {error}
-              </AlertDescription>
-            </Alert>
+          {/* API Error Banner */}
+          {apiError && (
+            <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg flex items-center gap-2">
+              <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
+              <p className="text-red-400 text-sm">{apiError}</p>
+            </div>
           )}
 
-          <form onSubmit={handleVerify} className="space-y-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-3">
               <div className="relative">
                 <Input
@@ -182,15 +241,23 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({
                   placeholder="000000"
                   value={code}
                   onChange={handleCodeChange}
-                  className="text-center text-3xl tracking-widest bg-gray-800/50 border-gray-700/50 text-white placeholder-gray-400 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 transition-all duration-200 h-16 font-mono"
+                  className={`text-center text-3xl tracking-widest bg-gray-800/50 border-gray-700/50 text-white placeholder-gray-400 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 transition-all duration-200 h-16 font-mono ${
+                    errors.code ? 'border-red-500 focus:border-red-500' : ''
+                  }`}
                   maxLength={6}
                   disabled={isVerifying}
                 />
-                <div className="absolute inset-0 rounded-md bg-gradient-to-r from-violet-500/0 via-violet-500/0 to-violet-500/0 focus-within:from-violet-500/10 focus-within:via-transparent focus-within:to-violet-500/10 pointer-events-none transition-all duration-300" />
               </div>
-              <p className="text-xs text-gray-400 text-center font-medium">
-                Digite o código de 6 dígitos
-              </p>
+              {errors.code ? (
+                <p className="text-red-400 text-xs text-center flex items-center justify-center gap-1">
+                  <span className="w-1 h-1 bg-red-400 rounded-full" />
+                  {errors.code.message}
+                </p>
+              ) : (
+                <p className="text-xs text-gray-400 text-center font-medium">
+                  Digite o código de 6 dígitos
+                </p>
+              )}
             </div>
 
             <Button
@@ -213,7 +280,7 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({
             <p className="text-gray-400 text-sm">
               Não recebeu o código?
             </p>
-            
+
             <Button
               variant="outline"
               onClick={handleResendCode}
