@@ -75,11 +75,19 @@ const PasswordReset = () => {
       newErrors.code = 'Digite o código de 6 dígitos';
     }
 
-    // Validate new password
+    // Validate new password with strength check
     if (!formData.newPassword) {
       newErrors.newPassword = 'Nova senha é obrigatória';
     } else if (formData.newPassword.length < 8) {
       newErrors.newPassword = 'Senha deve ter pelo menos 8 caracteres';
+    } else {
+      const hasUppercase = /[A-Z]/.test(formData.newPassword);
+      const hasLowercase = /[a-z]/.test(formData.newPassword);
+      const hasNumber = /[0-9]/.test(formData.newPassword);
+
+      if (!hasUppercase || !hasLowercase || !hasNumber) {
+        newErrors.newPassword = 'Senha deve conter letras maiúsculas, minúsculas e números';
+      }
     }
 
     // Validate confirm password
@@ -358,7 +366,7 @@ const PasswordReset = () => {
                 href="/signin"
                 className="text-violet-400 hover:text-violet-300 font-semibold transition-colors duration-200 underline decoration-violet-400/30 hover:decoration-violet-400"
               >
-                ← Voltar ao login
+                ← Voltar ao início de sessão
               </Link>
             </div>
           </div>

@@ -116,7 +116,7 @@ const DjangoSignIn = () => {
       // Handle specific errors
       if (errorString?.includes('Email não verificado')) {
         // User needs to verify email - Redux will handle the redirection
-        toast.error('Por favor, verifique seu email antes de fazer login.');
+        toast.error('Por favor, verifique o seu email antes de iniciar sessão.');
         return;
       }
 
@@ -134,6 +134,13 @@ const DjangoSignIn = () => {
 
         if (Object.keys(apiErrors).length > 0) {
           setErrors(apiErrors);
+          // Show toast with the first error message found
+          const firstError = Object.values(apiErrors)[0];
+          if (firstError) {
+            toast.error(firstError);
+          } else {
+            toast.error('Credenciais inválidas. Verifique os campos destacados.');
+          }
           return;
         }
       }
@@ -141,7 +148,7 @@ const DjangoSignIn = () => {
       // Generic error handling
       const errorMessage = errorString || error?.data?.detail || error?.message || 'Credenciais inválidas. Tente novamente.';
       toast.error(errorMessage);
-      setErrors({ email: 'Verifique seu email e senha' });
+      setErrors({ email: 'Verifique o seu email e senha' });
     }
   };
 
@@ -179,7 +186,7 @@ const DjangoSignIn = () => {
     } catch (error: any) {
       setIsGoogleLoading(false);
       console.error('Google OAuth error:', error);
-      toast.error('Erro ao iniciar login com Google. Tente novamente.');
+      toast.error('Erro ao iniciar sessão com Google. Tente novamente.');
     }
   };
 

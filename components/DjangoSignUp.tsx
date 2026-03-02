@@ -64,11 +64,20 @@ const DjangoSignUp = () => {
       newErrors.email = 'Email inválido';
     }
 
-    // Password validation
+    // Password validation with strength check
     if (!formData.password) {
       newErrors.password = 'Senha é obrigatória';
     } else if (formData.password.length < 8) {
       newErrors.password = 'Senha deve ter pelo menos 8 caracteres';
+    } else {
+      // Check password strength
+      const hasUppercase = /[A-Z]/.test(formData.password);
+      const hasLowercase = /[a-z]/.test(formData.password);
+      const hasNumber = /[0-9]/.test(formData.password);
+
+      if (!hasUppercase || !hasLowercase || !hasNumber) {
+        newErrors.password = 'Senha deve conter letras maiúsculas, minúsculas e números';
+      }
     }
 
     // Password confirmation validation
@@ -130,7 +139,7 @@ const DjangoSignUp = () => {
           
           // Show a user-friendly toast for email already exists
           if (apiErrors.email && apiErrors.email.includes('already exists')) {
-            toast.error('Este email já está registado. Tente fazer login ou use outro email.');
+            toast.error('Este email já está registado. Tente iniciar sessão ou use outro email.');
           } else if (Object.keys(apiErrors).length > 0) {
             toast.error('Por favor, corrija os erros nos campos destacados.');
           }
@@ -138,7 +147,7 @@ const DjangoSignUp = () => {
         // Handle legacy error format
         else {
           const apiErrors: Record<string, string> = {};
-          
+
           Object.entries(error.data).forEach(([field, messages]) => {
             if (Array.isArray(messages)) {
               apiErrors[field] = messages[0];
@@ -146,8 +155,22 @@ const DjangoSignUp = () => {
               apiErrors[field] = messages;
             }
           });
-          
+
           setErrors(apiErrors);
+
+          // Show toast with the first error message found
+          if (Object.keys(apiErrors).length > 0) {
+            const firstError = Object.values(apiErrors)[0];
+            if (apiErrors.email && (apiErrors.email.includes('already') || apiErrors.email.includes('já existe'))) {
+              toast.error('Este email já está registado. Tente iniciar sessão ou use outro email.');
+            } else if (apiErrors.password) {
+              toast.error(apiErrors.password);
+            } else if (firstError) {
+              toast.error(firstError);
+            } else {
+              toast.error('Por favor, corrija os erros nos campos destacados.');
+            }
+          }
         }
       } else {
         const errorMessage = error?.data?.message || error?.data?.error || error?.message || 'Erro ao registar. Tente novamente.';
@@ -409,7 +432,7 @@ const DjangoSignUp = () => {
                   href={signInUrl}
                   className="text-violet-400 hover:text-violet-300 font-semibold transition-colors duration-200 underline decoration-violet-400/30 hover:decoration-violet-400"
                 >
-                  Fazer login
+                  Iniciar sessão
                 </Link>
               </p>
             </div>
