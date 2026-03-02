@@ -196,9 +196,9 @@ export default function ListeningExercisesManagementPage() {
               </div>
               <div className="text-left">
                 <h1 className="text-4xl font-black bg-gradient-to-r from-white via-orange-200 to-red-200 bg-clip-text text-transparent">
-                  Gerenciar Exercícios de Listening
+                  Gerir Exercícios de Listening
                 </h1>
-                <p className="text-orange-300 text-lg font-medium">Crie e gerencie exercícios de compreensão auditiva</p>
+                <p className="text-orange-300 text-lg font-medium">Crie e gere exercícios de compreensão auditiva</p>
               </div>
             </div>
             

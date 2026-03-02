@@ -214,7 +214,7 @@ const LessonManagement = () => {
           </div>
           <Button>
             <Save className="h-4 w-4 mr-2" />
-            Salvar Alterações
+            Guardar Alterações
           </Button>
         </CardContent>
       </Card>

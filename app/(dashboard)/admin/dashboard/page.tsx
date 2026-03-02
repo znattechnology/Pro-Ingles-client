@@ -110,7 +110,7 @@ export default function AdminDashboard() {
         <div className="text-center">
           <Crown className="w-16 h-16 text-yellow-400 mx-auto mb-4" />
           <h2 className="text-xl font-semibold mb-2">Acesso Restrito</h2>
-          <p className="text-gray-400">Faça login para aceder ao painel administrativo.</p>
+          <p className="text-gray-400">Inicie sessão para aceder ao painel administrativo.</p>
         </div>
       </div>
     );

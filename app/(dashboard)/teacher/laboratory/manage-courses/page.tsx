@@ -241,7 +241,7 @@ const ManageCoursesPage = () => {
               transition={{ delay: 0.3, duration: 0.6 }}
               className="text-2xl md:text-3xl font-bold mb-3"
             >
-              Gerenciar <span className="bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent">Cursos</span>
+              Gerir <span className="bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent">Cursos</span>
             </motion.h1>
             
             <motion.p 
@@ -515,7 +515,7 @@ const ManageCoursesPage = () => {
                               onClick={() => router.push(`/teacher/laboratory/manage-courses/${course.id}`)}
                             >
                               <Eye className="w-4 h-4 mr-2" />
-                              Gerenciar
+                              Gerir
                             </Button>
                             <Button 
                               className="bg-white/20 hover:bg-white/30 text-white backdrop-blur-sm border border-white/30"

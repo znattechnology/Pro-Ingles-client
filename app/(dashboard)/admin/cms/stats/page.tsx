@@ -561,7 +561,7 @@ export default function CMSStatsPage() {
               disabled={saving || !editingStat?.value || !editingStat?.label}
             >
               <Save className="h-4 w-4 mr-2" />
-              {saving ? 'Salvando...' : 'Salvar'}
+              {saving ? 'A guardar...' : 'Guardar'}
             </Button>
           </DialogFooter>
         </DialogContent>

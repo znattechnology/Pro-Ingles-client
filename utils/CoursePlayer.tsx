@@ -1,6 +1,9 @@
 import React, { FC, useEffect, useState } from "react";
 import axios from "axios";
 
+// API Base URL - uses environment variable with fallback
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 type Props = {
   videoUrl: string;
   title: string;
@@ -10,7 +13,7 @@ const CoursePlayer: FC<Props> = ({videoUrl}) => {
   const [videoData, setVideoData] = useState({ otp: "", playbackInfo: "" });
 
   useEffect(() => {
-    axios.post("http://localhost:8000/api/v1/getVdoCipherOTP", {
+    axios.post(`${API_BASE_URL}/api/v1/getVdoCipherOTP`, {
         videoId: videoUrl,
       })
       .then((res) => {

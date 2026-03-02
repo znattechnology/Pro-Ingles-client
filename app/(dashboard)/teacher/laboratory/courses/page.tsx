@@ -194,7 +194,7 @@ const PracticeCoursesManagement = () => {
                   onClick={() => router.push(`/teacher/laboratory/courses/${course.id}`)}
                 >
                   <Eye className="h-4 w-4 mr-2" />
-                  Gerenciar
+                  Gerir
                 </Button>
                 <Button 
                   variant="outline" 

@@ -76,11 +76,11 @@ const UserProfilePage = () => {
   const joinDate = formatJoinDate();
 
   if (isLoading) return <Loading />;
-  if (!isAuthenticated || !user) return <div>Faça login para visualizar o seu perfil.</div>;
+  if (!isAuthenticated || !user) return <div>Inicie sessão para visualizar o seu perfil.</div>;
 
   return (
     <>
-      <Header title="Perfil do Estudante" subtitle="Gerencie suas informações pessoais e configurações" />
+      <Header title="Perfil do Estudante" subtitle="Gira as tuas informações pessoais e configurações" />
       <div className="max-w-6xl mx-auto p-4 md:p-6 space-y-8">
         {/* Hidden file input for avatar upload */}
         <input
@@ -167,7 +167,7 @@ const UserProfilePage = () => {
                       <span className="font-medium">{avatarFile.name}</span>
                       <span className="text-gray-400">({(avatarFile.size / 1024).toFixed(0)} KB)</span>
                     </p>
-                    <p className="text-xs text-gray-400 mt-1 text-center md:text-left">Clique em "Salvar Alterações" para confirmar</p>
+                    <p className="text-xs text-gray-400 mt-1 text-center md:text-left">Clique em "Guardar Alterações" para confirmar</p>
                   </div>
                 )}
               </div>
@@ -273,7 +273,7 @@ const UserProfilePage = () => {
                               {loadingMessage || 'Processando...'}
                             </span>
                           ) : (
-                            'Salvar Alterações'
+                            'Guardar Alterações'
                           )}
                         </Button>
                         <Button
@@ -436,10 +436,10 @@ const UserProfilePage = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-white font-medium">Privacidade</p>
-                      <p className="text-gray-400 text-sm">Controle quem pode ver seu perfil</p>
+                      <p className="text-gray-400 text-sm">Controla quem pode ver o teu perfil</p>
                     </div>
                     <Button variant="outline" size="sm" className="border-violet-500 text-violet-400">
-                      Gerenciar
+                      Gerir
                     </Button>
                   </div>
                   
@@ -448,7 +448,7 @@ const UserProfilePage = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-white font-medium">Excluir Conta</p>
-                      <p className="text-gray-400 text-sm">Remover permanentemente sua conta</p>
+                      <p className="text-gray-400 text-sm">Remover permanentemente a tua conta</p>
                     </div>
                     <Button variant="destructive" size="sm">
                       Excluir

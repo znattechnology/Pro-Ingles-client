@@ -18,6 +18,9 @@ import {
 import Link from 'next/link';
 import Logo from '@/components/ui/Logo';
 
+// API Base URL - uses environment variable with fallback
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 interface CertificateVerification {
   valid: boolean;
   message: string;
@@ -50,7 +53,7 @@ const VerifyCertificatePage = () => {
         setIsLoading(true);
 
         const response = await fetch(
-          `http://localhost:8000/api/v1/certificates/verify/${verificationCode}/`
+          `${API_BASE_URL}/api/v1/certificates/verify/${verificationCode}/`
         );
 
         const data = await response.json();
@@ -72,7 +75,7 @@ const VerifyCertificatePage = () => {
 
   // Format date
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR', {
+    return new Date(dateString).toLocaleDateString('pt-PT', {
       day: '2-digit',
       month: 'long',
       year: 'numeric'

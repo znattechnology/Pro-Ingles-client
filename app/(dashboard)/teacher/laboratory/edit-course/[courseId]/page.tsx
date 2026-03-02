@@ -195,12 +195,12 @@ const EditCoursePage = () => {
                 {isSaving ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Salvando...
+                    A guardar...
                   </>
                 ) : (
                   <>
                     <Save className="h-4 w-4 mr-2" />
-                    Salvar Alterações
+                    Guardar Alterações
                   </>
                 )}
               </Button>

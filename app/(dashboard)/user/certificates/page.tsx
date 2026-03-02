@@ -20,6 +20,9 @@ import {
 import { useDjangoAuth } from '@/hooks/useDjangoAuth';
 import Loading from '@/components/course/Loading';
 import { toast } from 'sonner';
+
+// API Base URL - uses environment variable with fallback
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 import { Input } from "@/components/ui/input";
 import {
   Dialog,
@@ -84,7 +87,7 @@ const CertificatesPage = () => {
         setIsLoading(true);
 
         const response = await fetch(
-          `http://localhost:8000/api/v1/student/video-courses/certificates/`,
+          `${API_BASE_URL}/api/v1/student/video-courses/certificates/`,
           {
             headers: {
               'Content-Type': 'application/json'
@@ -118,7 +121,7 @@ const CertificatesPage = () => {
     try {
       toast.loading('Preparando download...');
       const response = await fetch(
-        `http://localhost:8000/api/v1/student/video-courses/certificates/${certificateId}/download/`,
+        `${API_BASE_URL}/api/v1/student/video-courses/certificates/${certificateId}/download/`,
         {
           credentials: 'include'
         }

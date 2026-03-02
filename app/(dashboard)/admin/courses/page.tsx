@@ -109,11 +109,11 @@ export default function CoursesManagement() {
 
   if (isLoading) return <Loading />;
   if (!isAuthenticated || !user) {
-    return <div>Faça login para acessar esta página.</div>;
+    return <div>Inicie sessão para aceder a esta página.</div>;
   }
 
   if (user.role !== 'admin') {
-    return <div>Acesso negado. Apenas administradores podem acessar esta página.</div>;
+    return <div>Acesso negado. Apenas administradores podem aceder a esta página.</div>;
   }
 
   // Filter courses by search term

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Star, X, MessageSquare, ThumbsUp, Send, Sparkles } from "lucide-react";
+import { Star, X, ThumbsUp, Send, Sparkles } from "lucide-react";
 import { useFeedbackModal } from "@/store/use-feedback-modal";
 import {
   useSubmitFeedbackMutation,
@@ -39,13 +39,13 @@ const triggerMessages: Record<string, { title: string; subtitle: string }> = {
     subtitle: "Ajude-nos a melhorar a plataforma.",
   },
   prompt: {
-    title: "Queremos ouvir você!",
-    subtitle: "A sua opinião faz a diferença.",
+    title: "Queremos ouvir a sua opinião!",
+    subtitle: "O seu feedback faz a diferença.",
   },
 };
 
 export function FeedbackModal() {
-  const { isOpen, trigger, contextData, close, reset } = useFeedbackModal();
+  const { isOpen, trigger, contextData, reset } = useFeedbackModal();
   const [submitFeedback, { isLoading: isSubmitting }] = useSubmitFeedbackMutation();
   const [dismissPrompt] = useDismissFeedbackPromptMutation();
 
@@ -53,10 +53,26 @@ export function FeedbackModal() {
   const [rating, setRating] = useState<number>(0);
   const [hoverRating, setHoverRating] = useState<number>(0);
   const [comment, setComment] = useState("");
-  const [feedbackType, setFeedbackType] = useState<FeedbackType>("general");
   const [allowPublic, setAllowPublic] = useState(false);
 
   const messages = triggerMessages[trigger || "manual"];
+
+  // Determine feedback type based on trigger context
+  const getFeedbackType = (): FeedbackType => {
+    switch (trigger) {
+      case "first_lesson":
+      case "milestone_lessons":
+        return "lesson";
+      case "course_complete":
+        return "content";
+      case "ai_sessions":
+        return "ai_tutor";
+      case "days_active":
+        return "general";
+      default:
+        return "general";
+    }
+  };
 
   const handleClose = async () => {
     if (step === "rating" && trigger !== "manual") {
@@ -84,7 +100,7 @@ export function FeedbackModal() {
       await submitFeedback({
         rating,
         comment,
-        feedback_type: feedbackType,
+        feedback_type: getFeedbackType(),
         trigger: trigger || "manual",
         context_data: contextData,
         allow_public: allowPublic,

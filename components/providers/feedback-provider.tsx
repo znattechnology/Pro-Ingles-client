@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback, useRef } from "react";
+import { useEffect, useCallback, useRef, useState } from "react";
 import { useFeedbackModal } from "@/store/use-feedback-modal";
 import { useGetFeedbackStatusQuery } from "@/src/domains/shared/feedback/api/feedbackApiSlice";
 import { useDjangoAuth } from "@/hooks/useDjangoAuth";
@@ -18,18 +18,32 @@ interface FeedbackProviderProps {
  * - Shows prompt at appropriate times (not during active learning)
  * - Respects user's dismissal preferences
  * - Integrates with the feedback modal
+ * - Only polls when page is visible (saves resources)
  */
 export function FeedbackProvider({ children }: FeedbackProviderProps) {
-  const { isAuthenticated, user } = useDjangoAuth();
+  const { isAuthenticated } = useDjangoAuth();
   const { open, isOpen } = useFeedbackModal();
   const hasCheckedRef = useRef(false);
   const lastCheckRef = useRef<number>(0);
+  const [isPageVisible, setIsPageVisible] = useState(true);
 
-  // Only fetch feedback status for authenticated users
+  // Track page visibility to pause polling when tab is hidden
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsPageVisible(document.visibilityState === "visible");
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
+
+  // Only fetch feedback status for authenticated users when page is visible
   const { data: feedbackStatus, refetch } = useGetFeedbackStatusQuery(undefined, {
-    skip: !isAuthenticated,
-    // Poll every 5 minutes while user is active
-    pollingInterval: 5 * 60 * 1000,
+    skip: !isAuthenticated || !isPageVisible,
+    // Poll every 10 minutes while user is active (increased from 5)
+    pollingInterval: isPageVisible ? 10 * 60 * 1000 : 0,
   });
 
   // Check and show feedback prompt

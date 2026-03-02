@@ -29,6 +29,9 @@ import {
 import { useDjangoAuth } from '@/hooks/useDjangoAuth';
 import Loading from '@/components/course/Loading';
 import { toast } from 'sonner';
+
+// API Base URL - uses environment variable with fallback
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 import {
   Select,
   SelectContent,
@@ -145,7 +148,7 @@ const AllGradesPage = () => {
         setIsLoading(true);
 
         const response = await fetch(
-          `http://localhost:8000/api/v1/student/video-courses/grades/all/?include_details=true&sort_by=${sortBy}`,
+          `${API_BASE_URL}/api/v1/student/video-courses/grades/all/?include_details=true&sort_by=${sortBy}`,
           {
             headers: {
               'Content-Type': 'application/json'

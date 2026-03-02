@@ -411,7 +411,7 @@ const LaboratoryDashboard = () => {
                   </div>
                   
                   <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-2 sm:mb-3 md:mb-4 group-hover:text-blue-100 transition-colors">
-                    Gerenciar Cursos
+                    Gerir Cursos
                   </h3>
                   
                   <p className="text-sm sm:text-base text-gray-300 leading-relaxed mb-4 sm:mb-5 md:mb-6">
@@ -576,7 +576,7 @@ const LaboratoryDashboard = () => {
                   </p>
                   
                   <div className="flex items-center text-pink-400 font-medium group-hover:text-pink-300 transition-colors">
-                    <span>Gerenciar práticas</span>
+                    <span>Gerir práticas</span>
                     <Sparkles className="w-4 h-4 ml-2 group-hover:scale-110 transition-transform" />
                   </div>
                 </div>
@@ -614,7 +614,7 @@ const LaboratoryDashboard = () => {
                   </p>
 
                   <div className="flex items-center text-yellow-400 font-medium group-hover:text-yellow-300 transition-colors">
-                    <span>Gerenciar conquistas</span>
+                    <span>Gerir conquistas</span>
                     <Award className="w-4 h-4 ml-2 group-hover:scale-110 transition-transform" />
                   </div>
                 </div>

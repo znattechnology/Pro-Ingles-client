@@ -225,7 +225,7 @@ const MyCoursesPage = () => {
       <div className="min-h-screen flex items-center justify-center bg-customgreys-primarybg text-white">
         <div className="text-center">
           <h2 className="text-xl font-semibold mb-2">Acesso Restrito</h2>
-          <p className="text-gray-400">Faça login para acessar seus cursos.</p>
+          <p className="text-gray-400">Inicie sessão para aceder aos seus cursos.</p>
         </div>
       </div>
     );

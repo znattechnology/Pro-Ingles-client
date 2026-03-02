@@ -72,7 +72,7 @@ const ChaptersSidebar = () => {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (isLoading) return <Loading />;
-  if (!user) return <div>Faça login para ver o progresso do curso.</div>;
+  if (!user) return <div>Inicie sessão para ver o progresso do curso.</div>;
   if (!course || !userProgress) return <div>Erro ao carregar o conteúdo do curso</div>;
 
   const toggleSection = (sectionTitle: string) => {

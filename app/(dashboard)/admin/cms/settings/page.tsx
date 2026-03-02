@@ -188,13 +188,13 @@ export default function CMSSettingsPage() {
           <div>
             <h2 className="text-3xl font-bold tracking-tight">Configurações da Landing Page</h2>
             <p className="text-muted-foreground">
-              Gerencie informações básicas, contatos e redes sociais
+              Gira informações básicas, contactos e redes sociais
             </p>
           </div>
         </div>
         <Button onClick={handleSave} disabled={saving}>
           <Save className="h-4 w-4 mr-2" />
-          {saving ? 'Salvando...' : 'Salvar Alterações'}
+          {saving ? 'A guardar...' : 'Guardar Alterações'}
         </Button>
       </div>
 
@@ -252,12 +252,12 @@ export default function CMSSettingsPage() {
           </CardContent>
         </Card>
 
-        {/* Contatos */}
+        {/* Contactos */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Phone className="h-5 w-5" />
-              Informações de Contato
+              Informações de Contacto
             </CardTitle>
             <CardDescription>
               Email, telefone e WhatsApp para contato
@@ -268,14 +268,14 @@ export default function CMSSettingsPage() {
               <div className="space-y-2">
                 <Label htmlFor="contact_email" className="flex items-center gap-2">
                   <Mail className="h-4 w-4" />
-                  Email de Contato
+                  Email de Contacto
                 </Label>
                 <Input
                   id="contact_email"
                   type="email"
                   value={settings.contact_email}
                   onChange={handleInputChange('contact_email')}
-                  placeholder="contato@proenglish.ao"
+                  placeholder="contacto@proenglish.ao"
                 />
               </div>
               <div className="space-y-2">
@@ -467,11 +467,11 @@ export default function CMSSettingsPage() {
 
       </div>
 
-      {/* Botão de Salvar Fixo */}
+      {/* Botão de Guardar Fixo */}
       <div className="sticky bottom-4 flex justify-end">
         <Button onClick={handleSave} disabled={saving} size="lg" className="shadow-lg">
           <Save className="h-4 w-4 mr-2" />
-          {saving ? 'Salvando...' : 'Salvar Alterações'}
+          {saving ? 'A guardar...' : 'Guardar Alterações'}
         </Button>
       </div>
     </div>

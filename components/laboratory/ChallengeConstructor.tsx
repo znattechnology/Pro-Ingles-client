@@ -1344,7 +1344,7 @@ export default function ChallengeConstructor({ course, onBack }: ChallengeConstr
             { step: 2, title: "Selecionar Lição", icon: Edit3, canNavigate: !!selectedUnit },
             { step: 3, title: "Tipo de Desafio", icon: Brain, canNavigate: !!selectedLesson },
             { step: 4, title: "Criar Exercício", icon: Plus, canNavigate: !!selectedTemplate },
-            { step: 5, title: "Preview & Salvar", icon: Eye, canNavigate: false }
+            { step: 5, title: "Preview & Guardar", icon: Eye, canNavigate: false }
           ].map(({ step, title, icon: Icon, canNavigate }) => {
             const isCompleted = currentStep > step;
             const isCurrent = currentStep === step;
@@ -3009,11 +3009,11 @@ export default function ChallengeConstructor({ course, onBack }: ChallengeConstr
                   {loading ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      {editingChallengeId ? 'Atualizando...' : 'Salvando...'}
+                      {editingChallengeId ? 'A atualizar...' : 'A guardar...'}
                     </>
                   ) : (
                     <>
-                      {editingChallengeId ? 'Salvar Alterações' : 'Salvar Desafio'}
+                      {editingChallengeId ? 'Guardar Alterações' : 'Guardar Desafio'}
                       <Check className="w-4 h-4 ml-2" />
                     </>
                   )}

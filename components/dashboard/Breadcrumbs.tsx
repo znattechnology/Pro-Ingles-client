@@ -92,7 +92,7 @@ const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ className }) => {
       
       // Course management
       'create-course': 'Criar Curso',
-      'manage-courses': 'Gerenciar Cursos',
+      'manage-courses': 'Gerir Cursos',
       'lesson-constructor': 'Construtor de Lições',
       'challenge-constructor': 'Construtor de Desafios',
       'chapters': 'Capítulos',
@@ -100,7 +100,7 @@ const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ className }) => {
       
       // Special handling for nested paths
       'cms': 'CMS',
-      'users': 'Usuários'
+      'users': 'Utilizadores'
     };
 
     // Handle specific context-dependent translations

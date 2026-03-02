@@ -78,7 +78,7 @@ export const useAvatarUpload = (
       onFileSelected();
     }
 
-    toast.success('Imagem selecionada! Clique em "Salvar Alterações" para fazer upload.');
+    toast.success('Imagem selecionada! Clique em "Guardar Alterações" para fazer upload.');
   };
 
   /**

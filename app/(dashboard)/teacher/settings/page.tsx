@@ -158,7 +158,7 @@ export default function TeacherSettingsPage() {
       <div className="min-h-screen flex items-center justify-center bg-customgreys-primarybg text-white">
         <div className="text-center">
           <h2 className="text-xl font-semibold mb-2">Acesso Restrito</h2>
-          <p className="text-gray-400">Faça login para aceder às suas definições.</p>
+          <p className="text-gray-400">Inicie sessão para aceder às suas definições.</p>
         </div>
       </div>
     );

@@ -130,12 +130,12 @@ export default function TeacherDashboard() {
         <div className="text-center">
           <GraduationCap className="w-16 h-16 text-violet-400 mx-auto mb-4" />
           <h2 className="text-xl font-semibold mb-2">Acesso Restrito</h2>
-          <p className="text-gray-400 mb-4">Faça login para acessar seu dashboard.</p>
+          <p className="text-gray-400 mb-4">Inicie sessão para aceder ao seu dashboard.</p>
           <Button
             onClick={() => router.push('/signin')}
             className="bg-violet-600 hover:bg-violet-700"
           >
-            Fazer Login
+            Iniciar Sessão
           </Button>
         </div>
       </div>

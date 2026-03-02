@@ -141,7 +141,7 @@ const TeacherVideoCoursesPage = () => {
 
   const handleCreateCourse = async () => {
     if (!user) {
-      notifications.error('Utilizador não encontrado. Por favor, faça login novamente.');
+      notifications.error('Utilizador não encontrado. Por favor, inicie sessão novamente.');
       return;
     }
 
@@ -201,12 +201,12 @@ const TeacherVideoCoursesPage = () => {
       <div className="min-h-screen flex items-center justify-center bg-customgreys-primarybg text-white">
         <div className="text-center">
           <h2 className="text-xl font-semibold mb-2">Acesso Restrito</h2>
-          <p className="text-gray-400">Faça login para acessar seus cursos.</p>
+          <p className="text-gray-400">Inicie sessão para aceder aos seus cursos.</p>
           <Button
             onClick={() => router.push('/signin')}
             className="mt-4 bg-violet-600 hover:bg-violet-700"
           >
-            Fazer Login
+            Iniciar Sessão
           </Button>
         </div>
       </div>
@@ -272,7 +272,7 @@ const TeacherVideoCoursesPage = () => {
               transition={{ delay: 0.4, duration: 0.6 }}
               className="text-sm sm:text-base text-gray-300 max-w-xl mx-auto leading-relaxed px-4"
             >
-              Crie, gerencie e monitore o desempenho dos seus cursos em vídeo
+              Cria, gere e monitoriza o desempenho dos teus cursos em vídeo
             </motion.p>
           </div>
         </div>

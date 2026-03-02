@@ -28,7 +28,7 @@ const CreateCoursePage = () => {
       // CRITICAL CHECK: Ensure user data is available  
       if (!user?.id) {
         console.error('❌ USER DATA NOT AVAILABLE:', user);
-        courseToasts.error("criar curso", "Informações do professor não encontradas. Faça login novamente.");
+        courseToasts.error("criar curso", "Informações do professor não encontradas. Inicie sessão novamente.");
         setIsCreating(false);
         return;
       }
@@ -51,6 +51,9 @@ const CreateCoursePage = () => {
         hearts: courseData.hearts,
         pointsPerChallenge: courseData.pointsPerChallenge,
         passingScore: courseData.passingScore,
+        // ACCESS LEVEL CONFIG FROM WIZARD
+        access_level: courseData.accessLevel || 'free',
+        is_featured: courseData.isFeatured || false,
         // TEACHER INFORMATION - CRITICAL!
         teacher_id: user.id,
         teacher_email: user.email,

@@ -27,5 +27,5 @@ export default function Page() {
 
 export const metadata = {
   title: "Entrar | ProEnglish",
-  description: "Faça login em sua conta ProEnglish",
+  description: "Inicie sessão na sua conta ProEnglish",
 };

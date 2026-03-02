@@ -175,11 +175,11 @@ export default function UsersManagement() {
     );
   }
   if (!isAuthenticated || !currentUser) {
-    return <div>Faça login para acessar esta página.</div>;
+    return <div>Inicie sessão para aceder a esta página.</div>;
   }
 
   if (currentUser.role !== 'admin') {
-    return <div>Acesso negado. Apenas administradores podem acessar esta página.</div>;
+    return <div>Acesso negado. Apenas administradores podem aceder a esta página.</div>;
   }
 
   if (usersLoading && !usersData) {

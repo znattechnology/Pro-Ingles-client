@@ -6,6 +6,9 @@ import { useTransition } from "react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 
+// API Base URL - uses environment variable with fallback
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 // Define types for enrolled courses
 interface EnrolledCourse {
     id: string;
@@ -43,7 +46,7 @@ export const EnrolledList = ({courses, activeCourseId, viewMode = 'grid'}: Props
         startTransition(async () => {
             try {
                 // First, try to get the course data to find the first chapter
-                const response = await fetch(`http://localhost:8000/api/v1/courses/${id}/`, {
+                const response = await fetch(`${API_BASE_URL}/api/v1/courses/${id}/`, {
                     credentials: 'include',
                     headers: {
                         'Content-Type': 'application/json',

@@ -72,7 +72,7 @@ export interface DismissFeedbackRequest {
 }
 
 export interface Testimonial {
-  id: string;
+  id: number;  // Sequential ID (not UUID for privacy)
   name: string;
   rating: number;
   comment: string;

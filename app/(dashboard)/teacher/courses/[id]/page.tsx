@@ -57,6 +57,8 @@ interface CourseFormData {
   coursePrice?: number;
   courseStatus: boolean;
   courseImage?: string;
+  accessLevel: "free" | "premium" | "premium_plus";
+  isFeatured: boolean;
 }
 
 const CourseEditor = () => {
@@ -190,6 +192,8 @@ const CourseEditor = () => {
       courseCategory: "",
       courseStatus: false,
       courseImage: "",
+      accessLevel: "free",
+      isFeatured: false,
     },
     mode: "onChange", // Enable real-time validation and dirty tracking
   });
@@ -225,6 +229,8 @@ const CourseEditor = () => {
           courseCategory: course.category,
           courseStatus: course.status === "Published",
           courseImage: course.image || "",
+          accessLevel: course.access_level || "free",
+          isFeatured: course.is_featured || false,
         });
 
         methods.reset({
@@ -233,6 +239,8 @@ const CourseEditor = () => {
           courseCategory: course.category,
           courseStatus: course.status === "Published",
           courseImage: course.image || "",
+          accessLevel: course.access_level || "free",
+          isFeatured: course.is_featured || false,
         });
 
         // Initialize practice course association
@@ -974,6 +982,8 @@ const CourseEditor = () => {
         status: data.courseStatus ? "Published" as const : "Draft" as const,
         course_type: "video", // Important: specify course type
         practice_course: selectedPracticeCourse, // Associated practice lab course
+        access_level: data.accessLevel, // Subscription access level
+        is_featured: data.isFeatured, // Featured course flag
         sections: sectionsWithVideoUrls
       };
       
@@ -1097,11 +1107,9 @@ const CourseEditor = () => {
                 Curso de Laboratório Associado
                 <span className="text-gray-400 text-sm font-normal">(opcional)</span>
               </label>
-              {console.log('🔬 Practice courses loaded:', practiceCourses, 'Loading:', loadingPracticeCourses, 'Selected:', selectedPracticeCourse)}
               <select
                 value={selectedPracticeCourse || ''}
                 onChange={(e) => {
-                  console.log('🔬 Practice course selected:', e.target.value);
                   setSelectedPracticeCourse(e.target.value || null);
                 }}
                 disabled={loadingPracticeCourses}
@@ -1116,6 +1124,53 @@ const CourseEditor = () => {
               </select>
               <p className="text-gray-400 text-sm">
                 Associe um curso de Laboratório de Prática para que os alunos possam praticar exercícios complementares.
+              </p>
+            </div>
+
+            {/* Access Level - Subscription Requirement */}
+            <div className="space-y-3">
+              <label className="text-white text-base font-semibold flex items-center gap-2">
+                <span className="w-2 h-2 bg-amber-400 rounded-full"></span>
+                Nível de Acesso
+              </label>
+              <CustomFormField
+                name="accessLevel"
+                label=""
+                type="select"
+                className="bg-customgreys-darkGrey/50 border-violet-900/30 text-white focus:border-violet-500 focus:ring-1 focus:ring-violet-500/20 transition-all duration-200 rounded-md"
+                placeholder="Selecione o nível de acesso"
+                options={[
+                  { value: "free", label: "🆓 Gratuito - Disponível para todos" },
+                  { value: "premium", label: "⭐ Premium - Requer plano Premium ou superior" },
+                  { value: "premium_plus", label: "💎 Premium Plus - Exclusivo para Premium Plus" },
+                ]}
+                initialValue={course?.access_level || "free"}
+              />
+              <p className="text-gray-400 text-sm">
+                Define qual plano de subscrição é necessário para aceder a este curso.
+              </p>
+            </div>
+
+            {/* Featured Course Toggle */}
+            <div className="space-y-3">
+              <label className="text-white text-base font-semibold flex items-center gap-2">
+                <span className="w-2 h-2 bg-pink-400 rounded-full"></span>
+                Curso em Destaque
+              </label>
+              <div className="flex items-center gap-3 p-4 bg-customgreys-darkGrey/50 border border-violet-900/30 rounded-md">
+                <input
+                  type="checkbox"
+                  id="isFeatured"
+                  {...methods.register("isFeatured")}
+                  className="w-5 h-5 rounded border-violet-900/30 bg-customgreys-darkGrey text-violet-600 focus:ring-violet-500 focus:ring-offset-0"
+                />
+                <label htmlFor="isFeatured" className="text-white cursor-pointer">
+                  Destacar este curso na plataforma
+                </label>
+                <Sparkles className="w-4 h-4 text-amber-400 ml-auto" />
+              </div>
+              <p className="text-gray-400 text-sm">
+                Cursos em destaque aparecem na secção principal da página de cursos.
               </p>
             </div>
 
@@ -1638,7 +1693,7 @@ const CourseEditor = () => {
                                     className="bg-violet-600 hover:bg-violet-700 text-white px-4 py-2"
                                   >
                                     <Check className="w-4 h-4 mr-2" />
-                                    Salvar
+                                    Guardar
                                   </Button>
                                   <Button
                                     type="button"

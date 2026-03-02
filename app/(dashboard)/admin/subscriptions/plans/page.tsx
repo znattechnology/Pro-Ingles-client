@@ -669,7 +669,7 @@ export default function AdminSubscriptionPlansPage() {
                   className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg shadow-green-500/25 transition-all duration-300 hover:shadow-green-500/40"
                 >
                   <Save className="w-4 h-4 mr-2" />
-                  {saving ? 'Salvando...' : 'Salvar'}
+                  {saving ? 'A guardar...' : 'Guardar'}
                 </Button>
               </div>
             </CardContent>

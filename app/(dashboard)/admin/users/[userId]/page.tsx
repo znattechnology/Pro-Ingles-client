@@ -117,7 +117,7 @@ export default function UserDetailsPage() {
           <CardContent className="p-6 text-center">
             <Shield className="h-12 w-12 text-red-400 mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-white mb-2">Acesso Restrito</h2>
-            <p className="text-red-300">Faça login para acessar esta página</p>
+            <p className="text-red-300">Inicie sessão para aceder a esta página</p>
           </CardContent>
         </Card>
       </motion.div>

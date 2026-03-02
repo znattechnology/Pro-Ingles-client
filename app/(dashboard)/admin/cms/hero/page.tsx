@@ -202,7 +202,7 @@ export default function CMSHeroPage() {
         </div>
         <Button onClick={handleSave} disabled={saving}>
           <Save className="h-4 w-4 mr-2" />
-          {saving ? 'Salvando...' : 'Salvar Alterações'}
+          {saving ? 'A guardar...' : 'Guardar Alterações'}
         </Button>
       </div>
 
@@ -534,11 +534,11 @@ export default function CMSHeroPage() {
 
       </div>
 
-      {/* Botão de Salvar Fixo */}
+      {/* Botão de Guardar Fixo */}
       <div className="sticky bottom-4 flex justify-end">
         <Button onClick={handleSave} disabled={saving} size="lg" className="shadow-lg">
           <Save className="h-4 w-4 mr-2" />
-          {saving ? 'Salvando...' : 'Salvar Alterações'}
+          {saving ? 'A guardar...' : 'Guardar Alterações'}
         </Button>
       </div>
     </div>

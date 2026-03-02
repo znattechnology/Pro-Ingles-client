@@ -59,7 +59,7 @@ export default function UserSettingsPage() {
   if (!isAuthenticated || !currentUser) {
     return (
       <div className="flex-1 space-y-4 p-4">
-        <div className="text-white">Faça login para acessar esta página.</div>
+        <div className="text-white">Inicie sessão para aceder a esta página.</div>
       </div>
     );
   }
@@ -67,7 +67,7 @@ export default function UserSettingsPage() {
   if (currentUser.role !== 'admin') {
     return (
       <div className="flex-1 space-y-4 p-4">
-        <div className="text-white">Acesso negado. Apenas administradores podem acessar esta página.</div>
+        <div className="text-white">Acesso negado. Apenas administradores podem aceder a esta página.</div>
       </div>
     );
   }

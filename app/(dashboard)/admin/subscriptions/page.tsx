@@ -110,7 +110,7 @@ export default function AdminSubscriptionsPage() {
             <Link href="/admin/subscriptions/plans">
               <Button className="bg-gradient-to-r from-purple-600 to-blue-600">
                 <Settings className="w-4 h-4 mr-2" />
-                Gerenciar Planos
+                Gerir Planos
               </Button>
             </Link>
           </div>
@@ -256,7 +256,7 @@ export default function AdminSubscriptionsPage() {
             <Card className="bg-gradient-to-br from-blue-900/50 to-purple-900/50 border-blue-800 hover:border-blue-600 transition-all cursor-pointer">
               <CardContent className="p-6 text-center">
                 <Crown className="w-12 h-12 mx-auto mb-4 text-yellow-400" />
-                <h3 className="text-xl font-bold text-white mb-2">Gerenciar Planos</h3>
+                <h3 className="text-xl font-bold text-white mb-2">Gerir Planos</h3>
                 <p className="text-gray-300">Editar preços, recursos e limitações dos planos</p>
               </CardContent>
             </Card>
@@ -277,7 +277,7 @@ export default function AdminSubscriptionsPage() {
               <CardContent className="p-6 text-center">
                 <Receipt className="w-12 h-12 mx-auto mb-4 text-orange-400" />
                 <h3 className="text-xl font-bold text-white mb-2">Códigos Promo</h3>
-                <p className="text-gray-300">Criar e gerenciar códigos promocionais</p>
+                <p className="text-gray-300">Criar e gerir códigos promocionais</p>
               </CardContent>
             </Card>
           </Link>

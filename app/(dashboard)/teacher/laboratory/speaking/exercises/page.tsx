@@ -181,9 +181,9 @@ export default function SpeakingExercisesManagementPage() {
               </div>
               <div className="text-left">
                 <h1 className="text-4xl font-black bg-gradient-to-r from-white via-blue-200 to-indigo-200 bg-clip-text text-transparent">
-                  Gerenciar Exercícios de Speaking
+                  Gerir Exercícios de Speaking
                 </h1>
-                <p className="text-blue-300 text-lg font-medium">Crie e gerencie exercícios de conversação e pronúncia</p>
+                <p className="text-blue-300 text-lg font-medium">Crie e gere exercícios de conversação e pronúncia</p>
               </div>
             </div>
             

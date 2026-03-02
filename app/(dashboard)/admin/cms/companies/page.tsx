@@ -586,7 +586,7 @@ export default function CMSCompaniesPage() {
               disabled={saving || !editingCompany?.name}
             >
               <Save className="h-4 w-4 mr-2" />
-              {saving ? 'Salvando...' : 'Salvar'}
+              {saving ? 'A guardar...' : 'Guardar'}
             </Button>
           </DialogFooter>
         </DialogContent>

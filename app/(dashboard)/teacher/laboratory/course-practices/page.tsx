@@ -363,7 +363,7 @@ export default function CoursePracticesPage() {
                         size="sm"
                       >
                         <Settings className="w-4 h-4 mr-2" />
-                        Gerenciar Práticas
+                        Gerir Práticas
                         <ChevronRight className="w-4 h-4 ml-auto" />
                       </Button>
                     </div>

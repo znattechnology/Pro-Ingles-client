@@ -106,7 +106,7 @@ const TeacherProfilePage = () => {
   };
 
   if (isLoading) return <Loading />;
-  if (!isAuthenticated || !user) return <div>Faça login para visualizar o seu perfil.</div>;
+  if (!isAuthenticated || !user) return <div>Inicie sessão para visualizar o seu perfil.</div>;
 
   return (
     <div className="min-h-screen bg-customgreys-primarybg text-white">
@@ -201,7 +201,7 @@ const TeacherProfilePage = () => {
               transition={{ delay: 0.4, duration: 0.6 }}
               className="text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed mb-12 font-light"
             >
-              Gerencie suas <motion.span className="text-emerald-400 font-medium" whileHover={{ scale: 1.05 }}>informações pessoais</motion.span> e{' '}
+              Gira as tuas <motion.span className="text-emerald-400 font-medium" whileHover={{ scale: 1.05 }}>informações pessoais</motion.span> e{' '}
               <motion.span className="text-teal-400 font-medium" whileHover={{ scale: 1.05 }}>configurações profissionais</motion.span>
             </motion.p>
           </div>
@@ -324,7 +324,7 @@ const TeacherProfilePage = () => {
                         <span className="font-medium">{avatarFile.name}</span>
                         <span className="text-gray-400">({(avatarFile.size / 1024).toFixed(0)} KB)</span>
                       </p>
-                      <p className="text-xs text-gray-400 mt-1">Clique em "Salvar Alterações" para confirmar</p>
+                      <p className="text-xs text-gray-400 mt-1">Clique em "Guardar Alterações" para confirmar</p>
                     </motion.div>
                   )}
 
@@ -498,7 +498,7 @@ const TeacherProfilePage = () => {
                                   {loadingMessage || 'Processando...'}
                                 </span>
                               ) : (
-                                'Salvar Alterações'
+                                'Guardar Alterações'
                               )}
                             </Button>
                             <Button
@@ -775,7 +775,7 @@ const TeacherProfilePage = () => {
                         icon: Globe,
                         title: 'Perfil Público',
                         description: 'Permitir que estudantes vejam seu perfil',
-                        action: 'Gerenciar',
+                        action: 'Gerir',
                         color: 'blue'
                       },
                       {

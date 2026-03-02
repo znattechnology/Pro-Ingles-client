@@ -38,9 +38,9 @@ export default function CMSFeaturesPage() {
         <CardContent>
           <div className="text-center py-8">
             <Star className="h-16 w-16 mx-auto mb-4 opacity-50" />
-            <h3 className="text-lg font-semibold mb-2">Gerenciar Features</h3>
+            <h3 className="text-lg font-semibold mb-2">Gerir Features</h3>
             <p className="text-muted-foreground mb-6">
-              A interface para gerenciar features da plataforma será implementada em breve. 
+              A interface para gerir features da plataforma será implementada em breve. 
               Por enquanto, utilize o admin Django.
             </p>
             <Button asChild>

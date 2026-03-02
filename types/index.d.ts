@@ -54,6 +54,13 @@ declare global {
     enrollments?: Array<{
       userId: string;
     }>;
+    // Access level - defines minimum subscription plan required
+    access_level: "free" | "premium" | "premium_plus";
+    access_level_display?: string; // Human-readable label
+    is_free?: boolean;
+    is_premium?: boolean;
+    is_featured?: boolean;
+    user_has_access?: boolean; // Whether current user has access
   }
 
   interface Transaction {

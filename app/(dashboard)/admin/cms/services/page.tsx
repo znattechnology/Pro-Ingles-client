@@ -699,7 +699,7 @@ export default function CMSServicesPage() {
               disabled={saving || !editingService?.title || !editingService?.description}
             >
               <Save className="h-4 w-4 mr-2" />
-              {saving ? 'Salvando...' : 'Salvar'}
+              {saving ? 'A guardar...' : 'Guardar'}
             </Button>
           </DialogFooter>
         </DialogContent>

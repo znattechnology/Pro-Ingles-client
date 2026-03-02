@@ -26,6 +26,7 @@ export interface TeacherVideoCourse extends BaseCourse {
   status: 'Draft' | 'Published';
   template: 'general' | 'business' | 'technology' | 'medical' | 'legal';
   course_type?: string;
+  image?: string; // Course thumbnail image URL
   total_sections?: number;
   total_chapters?: number;
   total_enrollments?: number;
@@ -34,6 +35,13 @@ export interface TeacherVideoCourse extends BaseCourse {
   // Practice Lab course association
   practice_course?: string | null;
   practice_course_title?: string | null;
+  // Access level - defines minimum subscription plan required
+  access_level: 'free' | 'premium' | 'premium_plus';
+  access_level_display?: string;
+  is_free?: boolean;
+  is_premium?: boolean;
+  is_featured?: boolean;
+  user_has_access?: boolean;
 }
 
 export interface CourseSection {
@@ -80,6 +88,9 @@ export interface CreateVideoCourseData {
   teacherId?: string;
   // Practice Lab course association
   practice_course?: string | null;
+  // Access level - defines minimum subscription plan required
+  access_level?: 'free' | 'premium' | 'premium_plus';
+  is_featured?: boolean;
 }
 
 export interface UpdateVideoCourseData extends Partial<CreateVideoCourseData> {

@@ -280,7 +280,7 @@ const navLinks = {
           icon: PlusCircle,
         },
         {
-          title: "Gerenciar Cursos",
+          title: "Gerir Cursos",
           url: "/teacher/laboratory/manage-courses",
           icon: FolderOpen,
         },
@@ -357,7 +357,7 @@ const navLinks = {
       isActive: true,
       items: [
         {
-          title: "Gerenciar Cursos",
+          title: "Gerir Cursos",
           url: "/admin/courses",
         },
         {

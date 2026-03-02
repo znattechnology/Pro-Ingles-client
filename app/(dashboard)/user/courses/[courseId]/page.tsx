@@ -33,6 +33,9 @@ import { useDjangoAuth } from '@/hooks/useDjangoAuth';
 import Loading from '@/components/course/Loading';
 import { toast } from 'sonner';
 
+// API Base URL - uses environment variable with fallback
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 const CourseDetailsPage = () => {
   const params = useParams();
   const router = useRouter();
@@ -78,7 +81,7 @@ const CourseDetailsPage = () => {
       setCheckingEnrollment(true);
 
       // Use the enrollment status endpoint directly (HttpOnly cookies)
-      const response = await fetch(`http://localhost:8000/api/v1/student/video-courses/${courseId}/enrollment-status/`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/student/video-courses/${courseId}/enrollment-status/`, {
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json'
@@ -121,7 +124,7 @@ const CourseDetailsPage = () => {
 
       try {
         setIsLoading(true);
-        const response = await fetch(`http://localhost:8000/api/v1/courses/${courseId}/`);
+        const response = await fetch(`${API_BASE_URL}/api/v1/courses/${courseId}/`);
         
         if (!response.ok) {
           throw new Error('Curso não encontrado');
@@ -149,13 +152,13 @@ const CourseDetailsPage = () => {
 
   const handleEnrollment = async () => {
     if (!isAuthenticated || !user) {
-      toast.error('Faça login para se inscrever no curso');
+      toast.error('Inicie sessão para se inscrever no curso');
       return;
     }
 
     try {
       setIsEnrolling(true);
-      const response = await fetch('http://localhost:8000/api/v1/courses/transactions/create/', {
+      const response = await fetch(`${API_BASE_URL}/api/v1/courses/transactions/create/`, {
         method: 'POST',
         credentials: 'include',
         headers: {

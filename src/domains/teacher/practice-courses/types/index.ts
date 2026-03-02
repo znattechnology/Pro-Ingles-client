@@ -30,6 +30,13 @@ export interface PracticeCourse {
   challenges?: number;
   students?: number;
   completionRate?: number;
+  // Access level - defines minimum subscription plan required
+  access_level?: 'free' | 'premium' | 'premium_plus';
+  access_level_display?: string;
+  is_free?: boolean;
+  is_premium?: boolean;
+  is_featured?: boolean;
+  user_has_access?: boolean;
 }
 
 export interface PracticeUnit {
@@ -91,6 +98,9 @@ export interface CreatePracticeCourseData {
   hearts?: number;
   pointsPerCourse?: number;
   passingScore?: number;
+  // Access level - defines minimum subscription plan required
+  access_level?: 'free' | 'premium' | 'premium_plus';
+  is_featured?: boolean;
 }
 
 export interface CreatePracticeUnitData {

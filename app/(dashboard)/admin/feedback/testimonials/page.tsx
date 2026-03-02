@@ -87,11 +87,11 @@ export default function AdminTestimonialsPage() {
   }
 
   if (!isAuthenticated || !currentUser) {
-    return <div className="p-8 text-white">Faça login para acessar esta página.</div>;
+    return <div className="p-8 text-white">Inicie sessão para aceder a esta página.</div>;
   }
 
   if (currentUser.role !== "admin") {
-    return <div className="p-8 text-white">Acesso negado. Apenas administradores podem acessar esta página.</div>;
+    return <div className="p-8 text-white">Acesso negado. Apenas administradores podem aceder a esta página.</div>;
   }
 
   return (

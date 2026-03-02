@@ -3,9 +3,8 @@ import { NextRequest, NextResponse } from 'next/server';
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic';
 
-const DJANGO_BASE_URL = process.env.NODE_ENV === 'development' 
-  ? 'http://localhost:8000/api/v1' 
-  : 'http://34.245.99.169:8000/api/v1';
+// Use environment variable for Django API URL with fallback
+const DJANGO_BASE_URL = process.env.NEXT_PUBLIC_DJANGO_API_URL || 'http://localhost:8000/api/v1';
 
 async function proxyToDjango(request: NextRequest, method: string) {
   try {

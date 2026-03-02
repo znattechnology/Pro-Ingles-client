@@ -276,7 +276,7 @@ const TeacherCourseCard = ({
                   }}
                 >
                   <Settings className="w-4 h-4 mr-1" />
-                  Gerenciar
+                  Gerir
                 </Button>
               )}
             </div>

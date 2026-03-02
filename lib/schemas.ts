@@ -13,6 +13,10 @@ export const courseSchema = z.object({
   courseCategory: z.string().min(1, "A categoria é obrigatória"),
   courseStatus: z.boolean(),
   courseImage: z.union([z.string(), z.instanceof(File)]).optional(),
+  // Access level - defines minimum subscription plan required
+  accessLevel: z.enum(["free", "premium", "premium_plus"]).default("free"),
+  // Featured flag - highlights course on platform
+  isFeatured: z.boolean().default(false),
 });
 
 export type CourseFormData = z.infer<typeof courseSchema>;

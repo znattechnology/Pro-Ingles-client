@@ -38,9 +38,9 @@ export default function CMSFAQsPage() {
         <CardContent>
           <div className="text-center py-8">
             <MessageSquare className="h-16 w-16 mx-auto mb-4 opacity-50" />
-            <h3 className="text-lg font-semibold mb-2">Gerenciar FAQs</h3>
+            <h3 className="text-lg font-semibold mb-2">Gerir FAQs</h3>
             <p className="text-muted-foreground mb-6">
-              A interface para gerenciar perguntas frequentes será implementada em breve. 
+              A interface para gerir perguntas frequentes será implementada em breve. 
               Por enquanto, utilize o admin Django.
             </p>
             <Button asChild>

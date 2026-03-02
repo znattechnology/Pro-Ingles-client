@@ -92,7 +92,7 @@ export default function MySubscriptionPage() {
         const data = await response.json();
         setAnalytics(data);
       } else if (response.status === 401) {
-        setError('Sessão expirada. Por favor, faça login novamente.');
+        setError('Sessão expirada. Por favor, inicie sessão novamente.');
       } else {
         setError('Falha ao carregar dados da subscrição');
       }

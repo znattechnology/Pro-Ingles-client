@@ -71,11 +71,11 @@ export const useProfileUpdate = ({
   const getLoadingMessage = (step: LoadingStep): string => {
     switch (step) {
       case 'uploading-avatar':
-        return 'Fazendo upload da foto...';
+        return 'A carregar foto...';
       case 'saving-profile':
-        return 'Salvando dados do perfil...';
+        return 'A guardar dados do perfil...';
       case 'fetching-data':
-        return 'Atualizando perfil...';
+        return 'A atualizar perfil...';
       default:
         return '';
     }

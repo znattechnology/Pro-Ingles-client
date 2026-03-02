@@ -32,6 +32,9 @@ import {
 import { useDjangoAuth } from '@/hooks/useDjangoAuth';
 import Loading from '@/components/course/Loading';
 import { toast } from 'sonner';
+
+// API Base URL - uses environment variable with fallback
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 import type {
   CourseGrade,
   CertificateEligibility,
@@ -62,13 +65,13 @@ const GradesPage = () => {
         setIsLoading(true);
 
         const [gradesRes, eligibilityRes] = await Promise.all([
-          fetch(`http://localhost:8000/api/v1/student/video-courses/${courseId}/grade/`, {
+          fetch(`${API_BASE_URL}/api/v1/student/video-courses/${courseId}/grade/`, {
             credentials: 'include',
             headers: {
               'Content-Type': 'application/json'
             }
           }),
-          fetch(`http://localhost:8000/api/v1/student/video-courses/${courseId}/certificate-eligibility/`, {
+          fetch(`${API_BASE_URL}/api/v1/student/video-courses/${courseId}/certificate-eligibility/`, {
             credentials: 'include',
             headers: {
               'Content-Type': 'application/json'
@@ -104,7 +107,7 @@ const GradesPage = () => {
 
       try {
         const response = await fetch(
-          `http://localhost:8000/api/v1/student/video-courses/${courseId}/grade-history/`,
+          `${API_BASE_URL}/api/v1/student/video-courses/${courseId}/grade-history/`,
           {
             credentials: 'include',
             headers: {
@@ -135,7 +138,7 @@ const GradesPage = () => {
       setIsGeneratingCertificate(true);
 
       const response = await fetch(
-        `http://localhost:8000/api/v1/student/video-courses/${courseId}/generate-certificate/`,
+        `${API_BASE_URL}/api/v1/student/video-courses/${courseId}/generate-certificate/`,
         {
           method: 'POST',
           credentials: 'include',

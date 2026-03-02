@@ -235,10 +235,10 @@ const VideoCoursePage = () => {
             <Lock className="w-16 h-16 text-violet-500 mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-white mb-2">Acesso Restrito</h2>
             <p className="text-gray-400 mb-4">
-              Faça login para visualizar este curso.
+              Inicie sessão para visualizar este curso.
             </p>
             <Button onClick={() => router.push('/signin')} className="bg-violet-600 hover:bg-violet-700">
-              Fazer Login
+              Iniciar Sessão
             </Button>
           </CardContent>
         </Card>

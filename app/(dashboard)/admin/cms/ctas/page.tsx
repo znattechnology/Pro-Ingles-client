@@ -38,9 +38,9 @@ export default function CMSCTAsPage() {
         <CardContent>
           <div className="text-center py-8">
             <Megaphone className="h-16 w-16 mx-auto mb-4 opacity-50" />
-            <h3 className="text-lg font-semibold mb-2">Gerenciar CTAs</h3>
+            <h3 className="text-lg font-semibold mb-2">Gerir CTAs</h3>
             <p className="text-muted-foreground mb-6">
-              A interface para gerenciar chamadas para ação será implementada em breve. 
+              A interface para gerir chamadas para ação será implementada em breve. 
               Por enquanto, utilize o admin Django.
             </p>
             <Button asChild>

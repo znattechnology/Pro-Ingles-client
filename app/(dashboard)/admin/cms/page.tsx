@@ -167,7 +167,7 @@ export default async function CMSAdminPage() {
               Configurações Gerais
             </CardTitle>
             <CardDescription>
-              Informações básicas, contatos e redes sociais
+              Informações básicas, contactos e redes sociais
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -213,7 +213,7 @@ export default async function CMSAdminPage() {
             <Button asChild className="w-full">
               <Link href="/admin/cms/hero">
                 <Edit className="h-4 w-4 mr-2" />
-                Gerenciar Hero
+                Gerir Hero
               </Link>
             </Button>
           </CardContent>
@@ -250,7 +250,7 @@ export default async function CMSAdminPage() {
             <Button asChild className="w-full">
               <Link href="/admin/cms/stats">
                 <Edit className="h-4 w-4 mr-2" />
-                Gerenciar Stats
+                Gerir Stats
               </Link>
             </Button>
           </CardContent>
@@ -285,7 +285,7 @@ export default async function CMSAdminPage() {
             <Button asChild className="w-full">
               <Link href="/admin/cms/companies">
                 <Edit className="h-4 w-4 mr-2" />
-                Gerenciar Empresas
+                Gerir Empresas
               </Link>
             </Button>
           </CardContent>
@@ -322,7 +322,7 @@ export default async function CMSAdminPage() {
             <Button asChild className="w-full">
               <Link href="/admin/cms/services">
                 <Edit className="h-4 w-4 mr-2" />
-                Gerenciar Serviços
+                Gerir Serviços
               </Link>
             </Button>
           </CardContent>
@@ -359,7 +359,7 @@ export default async function CMSAdminPage() {
             <Button asChild className="w-full">
               <Link href="/admin/cms/pricing">
                 <Edit className="h-4 w-4 mr-2" />
-                Gerenciar Preços
+                Gerir Preços
               </Link>
             </Button>
           </CardContent>
@@ -393,7 +393,7 @@ export default async function CMSAdminPage() {
             <Button asChild className="w-full">
               <Link href="/admin/cms/features">
                 <Edit className="h-4 w-4 mr-2" />
-                Gerenciar Features
+                Gerir Features
               </Link>
             </Button>
           </CardContent>
@@ -430,7 +430,7 @@ export default async function CMSAdminPage() {
             <Button asChild className="w-full">
               <Link href="/admin/cms/testimonials">
                 <Edit className="h-4 w-4 mr-2" />
-                Gerenciar Depoimentos
+                Gerir Depoimentos
               </Link>
             </Button>
           </CardContent>
@@ -466,7 +466,7 @@ export default async function CMSAdminPage() {
             <Button asChild className="w-full">
               <Link href="/admin/cms/faqs">
                 <Edit className="h-4 w-4 mr-2" />
-                Gerenciar FAQs
+                Gerir FAQs
               </Link>
             </Button>
           </CardContent>
@@ -502,7 +502,7 @@ export default async function CMSAdminPage() {
             <Button asChild className="w-full">
               <Link href="/admin/cms/ctas">
                 <Edit className="h-4 w-4 mr-2" />
-                Gerenciar CTAs
+                Gerir CTAs
               </Link>
             </Button>
           </CardContent>
@@ -533,7 +533,7 @@ export default async function CMSAdminPage() {
             <Button asChild className="w-full">
               <Link href="/admin/cms/seo">
                 <Edit className="h-4 w-4 mr-2" />
-                Gerenciar SEO
+                Gerir SEO
               </Link>
             </Button>
           </CardContent>
