@@ -33,6 +33,9 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import Loading from "@/components/course/Loading";
 
+// API Base URL - call Django directly to ensure cookies are sent correctly
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 interface SubscriptionPlan {
   id: string;
   name: string;
@@ -88,8 +91,11 @@ export default function UpgradePage() {
     try {
       setLoading(true);
 
-      // Fetch available plans (public endpoint)
-      const plansResponse = await fetch('/api/v1/subscriptions?endpoint=plans', {
+      // Fetch available plans (public endpoint) - call Django directly
+      const plansResponse = await fetch(`${API_BASE_URL}/api/v1/subscriptions/plans/`, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
         credentials: 'include',
       });
       if (plansResponse.ok) {
@@ -97,9 +103,12 @@ export default function UpgradePage() {
         setPlans(plansData);
       }
 
-      // Fetch current subscription (requires auth)
+      // Fetch current subscription (requires auth) - call Django directly
       // If 401, user is not logged in - that's OK, they can still view plans
-      const subscriptionResponse = await fetch('/api/v1/subscriptions?endpoint=my-subscription', {
+      const subscriptionResponse = await fetch(`${API_BASE_URL}/api/v1/subscriptions/my-subscription/`, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
         credentials: 'include',
       });
       if (subscriptionResponse.ok) {
@@ -170,7 +179,8 @@ export default function UpgradePage() {
     if (!promoCode.trim() || !selectedPlan) return;
 
     try {
-      const response = await fetch('/api/v1/subscriptions?endpoint=apply-promo-code', {
+      // Call Django directly to ensure cookies are sent correctly
+      const response = await fetch(`${API_BASE_URL}/api/v1/subscriptions/apply-promo-code/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -203,7 +213,8 @@ export default function UpgradePage() {
       setProcessing(true);
       setError(null);
 
-      const response = await fetch('/api/v1/subscriptions?endpoint=upgrade', {
+      // Call Django directly to ensure cookies are sent correctly
+      const response = await fetch(`${API_BASE_URL}/api/v1/subscriptions/upgrade/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

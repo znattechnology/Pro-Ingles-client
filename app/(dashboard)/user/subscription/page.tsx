@@ -25,6 +25,9 @@ import {
 import Link from "next/link";
 import Loading from "@/components/course/Loading";
 
+// API Base URL - call Django directly to ensure cookies are sent correctly
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 interface SubscriptionAnalytics {
   subscription: {
     plan_name: string;
@@ -88,7 +91,11 @@ export default function MySubscriptionPage() {
   const fetchAnalytics = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/v1/subscriptions?endpoint=analytics', {
+      // Call Django directly to ensure cookies are sent correctly in production
+      const response = await fetch(`${API_BASE_URL}/api/v1/subscriptions/analytics/`, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
         credentials: 'include', // Ensure HttpOnly cookies are sent
       });
       if (response.ok) {
