@@ -210,7 +210,7 @@ export default function VapiConversationPracticeRefactored() {
 
   // Render Setup Step
   const renderSetupStep = () => (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6">
       {/* Recovery Dialog */}
       <RecoveryDialog
         show={sessionRecovery.showDialog}
@@ -220,16 +220,16 @@ export default function VapiConversationPracticeRefactored() {
       />
 
       {/* Header */}
-      <div className="text-center space-y-4">
-        <h1 className="text-4xl font-bold text-white">
+      <div className="text-center space-y-2 sm:space-y-4">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white px-2">
           Pratica de Conversacao com Tutor de IA
         </h1>
-        <p className="text-xl text-gray-300">
+        <p className="text-base sm:text-lg md:text-xl text-gray-300 px-4">
           Configure sua sessao personalizada de pratica conversacional
         </p>
         {!isVapiLoaded && (
-          <div className="bg-yellow-900/30 border border-yellow-700 rounded-lg p-4">
-            <p className="text-yellow-400">Preparando Tutor de IA...</p>
+          <div className="bg-yellow-900/30 border border-yellow-700 rounded-lg p-3 sm:p-4 mx-2">
+            <p className="text-yellow-400 text-sm sm:text-base">Preparando Tutor de IA...</p>
           </div>
         )}
       </div>
@@ -286,7 +286,7 @@ export default function VapiConversationPracticeRefactored() {
       )}
 
       {/* Start Button */}
-      <div className="text-center">
+      <div className="text-center px-2 sm:px-0">
         <Button
           onClick={handleStartCall}
           disabled={
@@ -299,32 +299,32 @@ export default function VapiConversationPracticeRefactored() {
             vapiCall.isCallActive ||
             micPermission === 'denied'
           }
-          className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white px-8 py-4 text-lg font-semibold rounded-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 mx-auto"
+          className="w-full sm:w-auto bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-semibold rounded-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mx-auto"
         >
           {vapiCall.status === 'connecting' ? (
             <>
-              <Activity className="w-5 h-5 animate-spin" />
+              <Activity className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
               Conectando...
             </>
           ) : micPermission === 'denied' ? (
             <>
-              <MicOff className="w-5 h-5" />
+              <MicOff className="w-4 h-4 sm:w-5 sm:h-5" />
               Microfone Bloqueado
             </>
           ) : (
             <>
-              <Mic className="w-5 h-5" />
+              <Mic className="w-4 h-4 sm:w-5 sm:h-5" />
               Iniciar Conversa
             </>
           )}
         </Button>
 
-        <p className="text-sm text-gray-400 mt-2">
+        <p className="text-xs sm:text-sm text-gray-400 mt-2 px-4">
           {micPermission === 'granted' ? (
             <>A conversa sera gravada e analisada para fornecer feedback detalhado</>
           ) : micPermission === 'denied' ? (
             <span className="text-red-400 flex items-center justify-center gap-1">
-              <AlertTriangle className="w-4 h-4" />
+              <AlertTriangle className="w-3 h-3 sm:w-4 sm:h-4" />
               Habilite o microfone para iniciar a conversa
             </span>
           ) : (
@@ -382,7 +382,7 @@ export default function VapiConversationPracticeRefactored() {
     }
 
     return (
-      <div className="flex flex-col h-[calc(100vh-120px)]">
+      <div className="flex flex-col h-[calc(100vh-140px)] sm:h-[calc(100vh-130px)] lg:h-[calc(100vh-120px)] pb-14 lg:pb-0">
         {/* Header */}
         <ConversationHeader
           formattedTime={timer.formattedTime}
@@ -396,9 +396,9 @@ export default function VapiConversationPracticeRefactored() {
           onEndCall={handleEndCall}
         />
 
-        <div className="flex-1 flex gap-6">
+        <div className="flex-1 flex flex-col lg:flex-row gap-4 lg:gap-6 min-h-0">
           {/* Main conversation area */}
-          <div className="flex-1 flex flex-col bg-gray-800/30 rounded-lg border border-gray-700">
+          <div className="flex-1 flex flex-col bg-gray-800/30 rounded-lg border border-gray-700 min-h-0 overflow-hidden">
             {/* Speaking indicator */}
             <SpeakingIndicator
               isUserSpeaking={vapiCall.isUserSpeaking}
@@ -416,7 +416,7 @@ export default function VapiConversationPracticeRefactored() {
             />
           </div>
 
-          {/* Sidebar */}
+          {/* Sidebar - renders as fixed bottom panel on mobile */}
           <SessionSidebar
             objective={config.objective}
             messagesCount={vapiCall.messages.length}
@@ -456,42 +456,51 @@ export default function VapiConversationPracticeRefactored() {
   return (
     <div className="min-h-screen bg-customgreys-primarybg">
       {/* Header */}
-      <div className="flex items-center justify-between p-6 border-b border-gray-700">
+      <div className="flex items-center justify-between p-3 sm:p-4 md:p-6 border-b border-gray-700">
         <Button
           variant="ghost"
           onClick={() => router.back()}
-          className="text-white hover:bg-white/10"
+          className="text-white hover:bg-white/10 px-2 sm:px-4"
         >
-          <ArrowLeft className="w-5 h-5 mr-2" />
-          Voltar
+          <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2" />
+          <span className="hidden sm:inline">Voltar</span>
         </Button>
 
         {vapiCall.session && step === 'conversation' && (
-          <div className="flex items-center gap-4">
-            <Badge variant="secondary" className="bg-violet-600 text-white">
+          <div className="flex items-center gap-2 sm:gap-4">
+            <Badge variant="secondary" className="bg-violet-600 text-white text-xs sm:text-sm">
               {timer.formattedTime} / {formatTime(config.maxDurationMinutes * 60)}
             </Badge>
             <Badge
-              className={
+              className={`text-xs sm:text-sm ${
                 vapiCall.status === 'connected'
                   ? 'bg-green-600'
                   : vapiCall.status === 'connecting'
                   ? 'bg-yellow-600'
                   : 'bg-red-600'
-              }
+              }`}
             >
-              {vapiCall.status === 'connected'
-                ? 'Conectado'
-                : vapiCall.status === 'connecting'
-                ? 'Conectando'
-                : 'Desconectado'}
+              <span className="hidden sm:inline">
+                {vapiCall.status === 'connected'
+                  ? 'Conectado'
+                  : vapiCall.status === 'connecting'
+                  ? 'Conectando'
+                  : 'Desconectado'}
+              </span>
+              <span className="sm:hidden">
+                {vapiCall.status === 'connected'
+                  ? 'On'
+                  : vapiCall.status === 'connecting'
+                  ? '...'
+                  : 'Off'}
+              </span>
             </Badge>
           </div>
         )}
       </div>
 
       {/* Main Content */}
-      <div className="p-6">
+      <div className="p-3 sm:p-4 md:p-6">
         {step === 'setup' && renderSetupStep()}
         {step === 'conversation' && renderConversationStep()}
       </div>
