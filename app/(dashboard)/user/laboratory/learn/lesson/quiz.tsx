@@ -449,15 +449,15 @@ export const Quiz = ({
       />
       <div className="flex-1 transition-all duration-500 ease-in-out">
         <div className="h-full flex items-center justify-center">
-          <div className="lg:min-h-[350px] lg:w-[600px] w-full px-4 sm:px-6 lg:px-0 flex flex-col gap-y-8 sm:gap-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <h1 className="text-base sm:text-lg lg:text-3xl text-center lg:text-start font-bold text-white pt-16 sm:pt-20 animate-in fade-in slide-in-from-top-2 duration-700 delay-100 leading-tight">
+          <div className="lg:min-h-[350px] w-full max-w-[600px] px-3 sm:px-4 md:px-6 lg:px-0 flex flex-col gap-y-6 sm:gap-y-8 lg:gap-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <h1 className="text-sm sm:text-base md:text-lg lg:text-3xl text-center lg:text-start font-bold text-white pt-12 sm:pt-16 lg:pt-20 animate-in fade-in slide-in-from-top-2 duration-700 delay-100 leading-tight">
               {title}
             </h1>
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-200">
               {/* Show question below instruction for all types that have both */}
               {challenge.instruction && challenge.type !== "ASSIST" && (
-                <div className="mb-4 sm:mb-6 bg-customgreys-primarybg border border-violet-800/50 rounded-lg p-4 animate-in fade-in zoom-in-95 duration-300 delay-300">
-                  <p className="text-lg sm:text-xl text-blue-400 font-semibold text-center leading-relaxed">
+                <div className="mb-3 sm:mb-4 md:mb-6 bg-customgreys-primarybg border border-violet-800/50 rounded-lg p-3 sm:p-4 animate-in fade-in zoom-in-95 duration-300 delay-300">
+                  <p className="text-base sm:text-lg md:text-xl text-blue-400 font-semibold text-center leading-relaxed">
                     {challenge.question}
                   </p>
                 </div>

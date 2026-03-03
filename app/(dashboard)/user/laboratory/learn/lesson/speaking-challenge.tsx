@@ -320,42 +320,42 @@ export const SpeakingChallenge = ({
         };
 
         return (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
-                <div className="text-center bg-violet-900/30 rounded-lg p-3">
-                    <div className={cn("text-2xl font-bold", getScoreColor(pronunciation_score))}>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mt-3 sm:mt-4">
+                <div className="text-center bg-violet-900/30 rounded-lg p-2 sm:p-3">
+                    <div className={cn("text-lg sm:text-xl md:text-2xl font-bold", getScoreColor(pronunciation_score))}>
                         {pronunciation_score}%
                     </div>
-                    <div className="text-xs text-gray-400">Pronúncia</div>
+                    <div className="text-[10px] sm:text-xs text-gray-400">Pronúncia</div>
                 </div>
-                <div className="text-center bg-violet-900/30 rounded-lg p-3">
-                    <div className={cn("text-2xl font-bold", getScoreColor(fluency_score))}>
+                <div className="text-center bg-violet-900/30 rounded-lg p-2 sm:p-3">
+                    <div className={cn("text-lg sm:text-xl md:text-2xl font-bold", getScoreColor(fluency_score))}>
                         {fluency_score}%
                     </div>
-                    <div className="text-xs text-gray-400">Fluência</div>
+                    <div className="text-[10px] sm:text-xs text-gray-400">Fluência</div>
                 </div>
-                <div className="text-center bg-violet-900/30 rounded-lg p-3">
-                    <div className={cn("text-2xl font-bold", getScoreColor(clarity_score))}>
+                <div className="text-center bg-violet-900/30 rounded-lg p-2 sm:p-3">
+                    <div className={cn("text-lg sm:text-xl md:text-2xl font-bold", getScoreColor(clarity_score))}>
                         {clarity_score}%
                     </div>
-                    <div className="text-xs text-gray-400">Clareza</div>
+                    <div className="text-[10px] sm:text-xs text-gray-400">Clareza</div>
                 </div>
-                <div className="text-center bg-violet-900/30 rounded-lg p-3">
-                    <div className={cn("text-2xl font-bold", getScoreColor(overall_score))}>
+                <div className="text-center bg-violet-900/30 rounded-lg p-2 sm:p-3">
+                    <div className={cn("text-lg sm:text-xl md:text-2xl font-bold", getScoreColor(overall_score))}>
                         {overall_score}%
                     </div>
-                    <div className="text-xs text-gray-400">Geral</div>
+                    <div className="text-[10px] sm:text-xs text-gray-400">Geral</div>
                 </div>
             </div>
         );
     };
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
             {/* Target text to practice */}
-            <div className="bg-customgreys-primarybg border border-violet-800 rounded-lg p-6">
-                <div className="text-sm text-gray-400 mb-2">Leia em voz alta:</div>
-                <div className="text-xl text-blue-400 font-semibold text-center">
-                    "{targetText}"
+            <div className="bg-customgreys-primarybg border border-violet-800 rounded-lg p-4 sm:p-6">
+                <div className="text-xs sm:text-sm text-gray-400 mb-2">Leia em voz alta:</div>
+                <div className="text-base sm:text-lg md:text-xl text-blue-400 font-semibold text-center leading-relaxed">
+                    &ldquo;{targetText}&rdquo;
                 </div>
 
                 {/* Reference audio button */}
@@ -392,13 +392,13 @@ export const SpeakingChallenge = ({
             </div>
 
             {/* Recording controls */}
-            <div className="flex flex-col items-center gap-4">
+            <div className="flex flex-col items-center gap-3 sm:gap-4">
                 {/* Main recording button */}
                 <button
                     onClick={recordingState === 'recording' ? stopRecording : startRecording}
                     disabled={isRecordingDisabled}
                     className={cn(
-                        "relative w-24 h-24 rounded-full flex items-center justify-center transition-all",
+                        "relative w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center transition-all",
                         "focus:outline-none focus:ring-4 focus:ring-violet-500/50",
                         recordingState === 'idle' && !isLimitReached && "bg-violet-600 hover:bg-violet-700",
                         recordingState === 'idle' && isLimitReached && "bg-gray-600",
@@ -411,62 +411,64 @@ export const SpeakingChallenge = ({
                     aria-label={isLimitReached ? 'Limite de análises atingido' : recordingState === 'recording' ? 'Parar gravação' : 'Iniciar gravação'}
                 >
                     {recordingState === 'recording' ? (
-                        <MicOff className="w-10 h-10 text-white" />
+                        <MicOff className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
                     ) : recordingState === 'analyzing' ? (
-                        <Loader2 className="w-10 h-10 text-white animate-spin" />
+                        <Loader2 className="w-8 h-8 sm:w-10 sm:h-10 text-white animate-spin" />
                     ) : recordingState === 'recorded' && analysis?.ai_analysis?.is_acceptable ? (
-                        <Check className="w-10 h-10 text-white" />
+                        <Check className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
                     ) : (
-                        <Mic className="w-10 h-10 text-white" />
+                        <Mic className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
                     )}
 
                     {/* Recording duration indicator */}
                     {recordingState === 'recording' && (
-                        <div className="absolute -bottom-2 bg-red-600 text-white text-xs px-2 py-1 rounded-full">
+                        <div className="absolute -bottom-2 bg-red-600 text-white text-[10px] sm:text-xs px-2 py-0.5 sm:py-1 rounded-full">
                             {recordingDuration}s / {MAX_RECORDING_DURATION}s
                         </div>
                     )}
                 </button>
 
                 {/* Status text */}
-                <div className="text-center">
+                <div className="text-center px-4">
                     {recordingState === 'idle' && (
-                        <p className="text-gray-400">Clique para gravar sua pronúncia</p>
+                        <p className="text-gray-400 text-sm sm:text-base">Clique para gravar sua pronúncia</p>
                     )}
                     {recordingState === 'recording' && (
-                        <p className="text-red-400 animate-pulse">Gravando... Clique para parar</p>
+                        <p className="text-red-400 animate-pulse text-sm sm:text-base">Gravando... Clique para parar</p>
                     )}
                     {recordingState === 'recorded' && !analysis && (
-                        <p className="text-green-400">Gravação concluída!</p>
+                        <p className="text-green-400 text-sm sm:text-base">Gravação concluída!</p>
                     )}
                     {recordingState === 'recorded' && analysis && (
-                        <p className="text-green-400">✓ Análise concluída!</p>
+                        <p className="text-green-400 text-sm sm:text-base">✓ Análise concluída!</p>
                     )}
                     {recordingState === 'analyzing' && (
-                        <p className="text-violet-400 animate-pulse">Analisando com IA...</p>
+                        <p className="text-violet-400 animate-pulse text-sm sm:text-base">Analisando com IA...</p>
                     )}
                     {recordingState === 'error' && (
-                        <p className="text-red-400 flex items-center gap-2 justify-center">
-                            <AlertCircle className="w-4 h-4" />
-                            {error}
+                        <p className="text-red-400 flex items-center gap-2 justify-center text-sm sm:text-base">
+                            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                            <span className="text-left">{error}</span>
                         </p>
                     )}
                 </div>
 
                 {/* Action buttons */}
                 {recordingState === 'recorded' && !analysis && (
-                    <div className="flex gap-3">
+                    <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto px-4 sm:px-0">
                         <Button
                             onClick={resetRecording}
                             variant="outline"
-                            className="bg-transparent border-gray-600 text-gray-300 hover:bg-gray-800"
+                            size="sm"
+                            className="bg-transparent border-gray-600 text-gray-300 hover:bg-gray-800 w-full sm:w-auto"
                         >
                             <RotateCcw className="w-4 h-4 mr-2" />
                             Gravar Novamente
                         </Button>
                         <Button
                             onClick={analyzePronunciation}
-                            className="bg-green-600 hover:bg-green-700"
+                            size="sm"
+                            className="bg-green-600 hover:bg-green-700 w-full sm:w-auto"
                         >
                             <Check className="w-4 h-4 mr-2" />
                             Analisar com IA
@@ -490,30 +492,30 @@ export const SpeakingChallenge = ({
             {/* Analysis results */}
             {analysis && analysis.ai_analysis && (
                 <div className={cn(
-                    "border rounded-lg p-4 mt-4",
+                    "border rounded-lg p-3 sm:p-4 mt-3 sm:mt-4",
                     analysis.ai_analysis.is_acceptable
                         ? "bg-green-900/20 border-green-700"
                         : "bg-orange-900/20 border-orange-700"
                 )}>
                     {/* Header */}
-                    <div className="flex items-center gap-2 mb-3">
-                        <div className="w-6 h-6 bg-violet-600 rounded-full flex items-center justify-center">
-                            <span className="text-white text-xs font-bold">AI</span>
+                    <div className="flex items-center gap-2 mb-2 sm:mb-3">
+                        <div className="w-5 h-5 sm:w-6 sm:h-6 bg-violet-600 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span className="text-white text-[10px] sm:text-xs font-bold">AI</span>
                         </div>
-                        <h4 className="text-violet-400 font-medium">Análise de Pronúncia</h4>
+                        <h4 className="text-violet-400 font-medium text-sm sm:text-base">Análise de Pronúncia</h4>
                         <div className="flex-1" />
                         {analysis.points_earned !== undefined && (
-                            <span className="text-white font-bold">
+                            <span className="text-white font-bold text-sm sm:text-base">
                                 +{analysis.points_earned} pts
                             </span>
                         )}
                     </div>
 
                     {/* Transcription */}
-                    <div className="bg-customgreys-secondarybg rounded-lg p-3 mb-4">
-                        <div className="text-xs text-gray-400 mb-1">O que a IA ouviu:</div>
-                        <p className="text-white font-mono">
-                            "{analysis.ai_analysis.transcribed_text}"
+                    <div className="bg-customgreys-secondarybg rounded-lg p-2 sm:p-3 mb-3 sm:mb-4">
+                        <div className="text-[10px] sm:text-xs text-gray-400 mb-1">O que a IA ouviu:</div>
+                        <p className="text-white font-mono text-sm sm:text-base break-words">
+                            &ldquo;{analysis.ai_analysis.transcribed_text}&rdquo;
                         </p>
                     </div>
 
