@@ -163,12 +163,18 @@ const AllGradesPage = () => {
         } else if (response.status === 401) {
           router.push('/signin?redirect=/user/grades');
           return;
-        } else {
-          toast.error('Erro ao carregar notas');
+        } else if (response.status === 404) {
+          // Endpoint not implemented yet or no grades - show empty state
+          setGradesData(null);
+        } else if (response.status >= 500) {
+          // Only show error for server errors
+          console.error('Server error fetching grades:', response.status);
+          toast.error('Erro no servidor ao carregar notas');
         }
+        // For other status codes (403, etc.), just set empty state silently
       } catch (error) {
         console.error('Error fetching grades:', error);
-        toast.error('Erro ao carregar notas');
+        toast.error('Erro de conexão ao carregar notas');
       } finally {
         setIsLoading(false);
       }

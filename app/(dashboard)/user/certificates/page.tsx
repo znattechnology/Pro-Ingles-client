@@ -102,12 +102,18 @@ const CertificatesPage = () => {
         } else if (response.status === 401) {
           router.push('/signin?redirect=/user/certificates');
           return;
-        } else {
-          toast.error('Erro ao carregar certificados');
+        } else if (response.status === 404) {
+          // Endpoint not implemented yet or no certificates - show empty state
+          setCertificates([]);
+        } else if (response.status >= 500) {
+          // Only show error for server errors
+          console.error('Server error fetching certificates:', response.status);
+          toast.error('Erro no servidor ao carregar certificados');
         }
+        // For other status codes (403, etc.), just set empty state silently
       } catch (error) {
         console.error('Error fetching certificates:', error);
-        toast.error('Erro ao carregar certificados');
+        toast.error('Erro de conexão ao carregar certificados');
       } finally {
         setIsLoading(false);
       }
