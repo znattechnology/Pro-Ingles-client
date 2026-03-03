@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -32,7 +32,6 @@ import {
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import Loading from "@/components/course/Loading";
-import { useDjangoAuth } from "@/hooks/useDjangoAuth";
 
 interface SubscriptionPlan {
   id: string;
@@ -70,10 +69,8 @@ interface CurrentSubscription {
 }
 
 export default function UpgradePage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const preselectedPlanType = searchParams.get("plan"); // PREMIUM or PREMIUM_PLUS from landing page
-  const { isAuthenticated, isLoading: authLoading } = useDjangoAuth();
 
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [currentSubscription, setCurrentSubscription] = useState<CurrentSubscription | null>(null);
@@ -85,23 +82,6 @@ export default function UpgradePage() {
   const [promoCodeValid, setPromoCodeValid] = useState<boolean | null>(null);
   const [discount, setDiscount] = useState<number>(0);
   const [processing, setProcessing] = useState(false);
-  const [authChecked, setAuthChecked] = useState(false);
-
-  // Wait for auth to initialize
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setAuthChecked(true);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Redirect if not authenticated after auth check (only for protected endpoints)
-  useEffect(() => {
-    if (authChecked && !isAuthenticated && !authLoading) {
-      // Plans are public, but my-subscription requires auth
-      // We'll fetch plans anyway but not redirect - just won't show current subscription
-    }
-  }, [authChecked, isAuthenticated, authLoading, router]);
 
   // Fetch plans and current subscription
   const fetchData = async () => {
@@ -117,18 +97,17 @@ export default function UpgradePage() {
         setPlans(plansData);
       }
 
-      // Fetch current subscription (requires auth) - only if authenticated
-      if (isAuthenticated) {
-        const subscriptionResponse = await fetch('/api/v1/subscriptions?endpoint=my-subscription', {
-          credentials: 'include',
-        });
-        if (subscriptionResponse.ok) {
-          const subscriptionData = await subscriptionResponse.json();
-          setCurrentSubscription(subscriptionData);
-        } else if (subscriptionResponse.status === 404) {
-          // No subscription yet - that's OK
-          setCurrentSubscription(null);
-        }
+      // Fetch current subscription (requires auth)
+      // If 401, user is not logged in - that's OK, they can still view plans
+      const subscriptionResponse = await fetch('/api/v1/subscriptions?endpoint=my-subscription', {
+        credentials: 'include',
+      });
+      if (subscriptionResponse.ok) {
+        const subscriptionData = await subscriptionResponse.json();
+        setCurrentSubscription(subscriptionData);
+      } else if (subscriptionResponse.status === 401 || subscriptionResponse.status === 404) {
+        // Not authenticated or no subscription - that's OK for viewing plans
+        setCurrentSubscription(null);
       }
 
     } catch (err) {
@@ -138,11 +117,10 @@ export default function UpgradePage() {
     }
   };
 
-  // Fetch data only after auth is checked
+  // Fetch data on mount
   useEffect(() => {
-    if (!authChecked) return;
     fetchData();
-  }, [authChecked, isAuthenticated]);
+  }, []);
 
   // Helper function to get plan order (defined early for useEffect)
   const getPlanOrder = (planType: string) => {
@@ -287,8 +265,7 @@ export default function UpgradePage() {
     return targetPlanOrder > currentPlanOrder;
   };
 
-  // Show loading while checking auth or fetching data
-  if (!authChecked || loading) {
+  if (loading) {
     return (
       <Loading
         title="Upgrade Premium"

@@ -24,7 +24,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import Loading from "@/components/course/Loading";
-import { useDjangoAuth } from "@/hooks/useDjangoAuth";
 
 interface SubscriptionAnalytics {
   subscription: {
@@ -81,27 +80,10 @@ interface SubscriptionAnalytics {
 
 export default function MySubscriptionPage() {
   const router = useRouter();
-  const { isAuthenticated, isLoading: authLoading } = useDjangoAuth();
 
   const [analytics, setAnalytics] = useState<SubscriptionAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [authChecked, setAuthChecked] = useState(false);
-
-  // Wait for auth to initialize
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setAuthChecked(true);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Redirect if not authenticated after auth check
-  useEffect(() => {
-    if (authChecked && !isAuthenticated && !authLoading) {
-      router.push('/signin?redirect=/user/subscription');
-    }
-  }, [authChecked, isAuthenticated, authLoading, router]);
 
   const fetchAnalytics = async () => {
     try {
@@ -112,13 +94,15 @@ export default function MySubscriptionPage() {
       if (response.ok) {
         const data = await response.json();
         setAnalytics(data);
+        setError(null);
       } else if (response.status === 401) {
-        // Redirect to login on 401
+        // Session expired - redirect to login
         router.push('/signin?redirect=/user/subscription');
         return;
       } else if (response.status === 404) {
         // Endpoint not implemented - show empty state
         setAnalytics(null);
+        setError(null);
       } else if (response.status >= 500) {
         setError('Erro no servidor. Tente novamente mais tarde.');
       }
@@ -129,15 +113,10 @@ export default function MySubscriptionPage() {
     }
   };
 
-  // Fetch analytics only after auth is verified
+  // Fetch analytics on mount - let API response determine auth status
   useEffect(() => {
-    if (!authChecked) return;
-    if (!isAuthenticated) {
-      setLoading(false);
-      return;
-    }
     fetchAnalytics();
-  }, [authChecked, isAuthenticated]);
+  }, []);
 
   const getPlanBadgeColor = (planType: string) => {
     switch (planType) {
@@ -165,8 +144,7 @@ export default function MySubscriptionPage() {
     });
   };
 
-  // Show loading while checking auth or fetching data
-  if (!authChecked || loading) {
+  if (loading) {
     return (
       <Loading
         title="Minha Assinatura"
@@ -174,19 +152,6 @@ export default function MySubscriptionPage() {
         description="Carregando informações da sua assinatura..."
         icon={Crown}
         progress={60}
-      />
-    );
-  }
-
-  // If not authenticated after check, show loading (will redirect)
-  if (!isAuthenticated) {
-    return (
-      <Loading
-        title="Minha Assinatura"
-        subtitle="Planos & Benefícios"
-        description="A verificar sessão..."
-        icon={Crown}
-        progress={30}
       />
     );
   }
