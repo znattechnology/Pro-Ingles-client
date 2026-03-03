@@ -31,6 +31,9 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion } from "framer-motion";
 
+// API Base URL - call Django directly to ensure cookies are sent correctly
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 interface ReportData {
   overview: {
     total_revenue: string;
@@ -80,13 +83,16 @@ export default function AdminSubscriptionReportsPage() {
   const [error, setError] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState("last_30_days");
 
-  // Fetch report data
+  // Fetch report data - call Django directly for proper cookie handling
   const fetchReportData = async () => {
     try {
       setLoading(true);
-      
+
       // Fetch real data from Django backend
-      const response = await fetch('/api/v1/subscriptions?endpoint=admin-reports');
+      const response = await fetch(`${API_BASE_URL}/api/v1/subscriptions/admin/reports/`, {
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+      });
       
       if (response.ok) {
         const data = await response.json();

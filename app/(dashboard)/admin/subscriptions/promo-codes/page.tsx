@@ -62,6 +62,9 @@ import {
 } from "@/components/ui/dialog";
 import { motion } from "framer-motion";
 
+// API Base URL - call Django directly to ensure cookies are sent correctly
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 interface PromoCode {
   id: string;
   code: string;
@@ -117,13 +120,16 @@ export default function AdminPromoCodesPage() {
     applicable_plans: []
   });
 
-  // Fetch promo codes and usage data
+  // Fetch promo codes and usage data - call Django directly for proper cookie handling
   const fetchData = async () => {
     try {
       setLoading(true);
 
       // Fetch promo codes
-      const codesResponse = await fetch('/api/v1/subscriptions?endpoint=admin-promo-codes');
+      const codesResponse = await fetch(`${API_BASE_URL}/api/v1/subscriptions/admin/promo-codes/`, {
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+      });
       if (codesResponse.ok) {
         const codesData = await codesResponse.json();
         setPromoCodes(codesData.results || codesData || []);
@@ -132,13 +138,16 @@ export default function AdminPromoCodesPage() {
       }
 
       // Fetch promo code stats
-      const statsResponse = await fetch('/api/v1/subscriptions?endpoint=admin-promo-code-stats');
+      const statsResponse = await fetch(`${API_BASE_URL}/api/v1/subscriptions/admin/promo-code-stats/`, {
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+      });
       if (statsResponse.ok) {
         const statsData = await statsResponse.json();
         setStats(statsData);
       } else {
         console.error('Failed to fetch promo code stats:', statsResponse.status);
-        
+
         // Mock stats for fallback
         setStats({
           total_codes: 12,
@@ -213,12 +222,14 @@ export default function AdminPromoCodesPage() {
   const handleCreateCode = async () => {
     try {
       setSaving(true);
-      
-      const response = await fetch('/api/v1/subscriptions?endpoint=admin-promo-codes', {
+
+      // Call Django directly for proper cookie handling
+      const response = await fetch(`${API_BASE_URL}/api/v1/subscriptions/admin/promo-codes/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
           ...newCode,
           max_uses: parseInt(newCode.max_uses) || null,
@@ -254,12 +265,17 @@ export default function AdminPromoCodesPage() {
 
   const handleDeleteCode = async (codeId: string) => {
     if (!confirm('Tens a certeza que desejas eliminar este código promocional?')) return;
-    
+
     try {
-      const response = await fetch(`/api/v1/subscriptions/admin/promo-codes/${codeId}/`, {
-        method: 'DELETE'
+      // Call Django directly for proper cookie handling
+      const response = await fetch(`${API_BASE_URL}/api/v1/subscriptions/admin/promo-codes/${codeId}/`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include'
       });
-      
+
       if (response.ok) {
         await fetchData();
       } else {

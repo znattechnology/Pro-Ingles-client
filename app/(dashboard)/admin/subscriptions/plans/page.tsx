@@ -35,6 +35,9 @@ import {
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
+// API Base URL - call Django directly to ensure cookies are sent correctly
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 interface SubscriptionPlan {
   id: string;
   name: string;
@@ -104,11 +107,16 @@ export default function AdminSubscriptionPlansPage() {
     is_active: true
   };
 
-  // Fetch plans from API
+  // Fetch plans from API - call Django directly for proper cookie handling
   const fetchPlans = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/v1/subscriptions?endpoint=admin-plans');
+      const response = await fetch(`${API_BASE_URL}/api/v1/subscriptions/admin/plans/`, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include'
+      });
       if (response.ok) {
         const data = await response.json();
         setPlans(data);
@@ -160,7 +168,7 @@ export default function AdminSubscriptionPlansPage() {
 
     try {
       setSaving(true);
-      
+
       const planData = {
         ...editingPlan,
         // Convert null limits to 0 for unlimited features
@@ -169,17 +177,19 @@ export default function AdminSubscriptionPlansPage() {
         daily_listening_minutes: editingPlan.daily_listening_minutes || 0
       };
 
-      const url = showCreateForm 
-        ? '/api/v1/subscriptions/admin/plans/'
-        : `/api/v1/subscriptions/admin/plans/${editingPlan.id}/`;
-      
+      // Call Django directly for proper cookie handling
+      const url = showCreateForm
+        ? `${API_BASE_URL}/api/v1/subscriptions/admin/plans/`
+        : `${API_BASE_URL}/api/v1/subscriptions/admin/plans/${editingPlan.id}/`;
+
       const method = showCreateForm ? 'POST' : 'PUT';
-      
+
       const response = await fetch(url, {
         method,
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(planData)
       });
 
@@ -202,8 +212,12 @@ export default function AdminSubscriptionPlansPage() {
     if (!confirm('Tens a certeza que desejas eliminar este plano?')) return;
 
     try {
-      const response = await fetch(`/api/v1/subscriptions/admin/plans/${planId}/`, {
-        method: 'DELETE'
+      const response = await fetch(`${API_BASE_URL}/api/v1/subscriptions/admin/plans/${planId}/`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include'
       });
 
       if (response.ok) {

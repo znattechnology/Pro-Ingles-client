@@ -38,6 +38,9 @@ import { formatPrice } from "@/lib/utils";
 import { useDjangoAuth } from "@/hooks/useDjangoAuth";
 import Loading from "@/components/course/Loading";
 
+// API Base URL - call Django directly to ensure cookies are sent correctly
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 interface SubscriptionInfo {
   plan_name: string;
   plan_type: string;
@@ -99,11 +102,14 @@ const UserBilling = () => {
   const [paymentHistory, setPaymentHistory] = useState<SubscriptionPayment[]>([]);
   const [paymentHistoryLoading, setPaymentHistoryLoading] = useState(true);
 
-  // Fetch payment history from Django backend
+  // Fetch payment history from Django backend - call directly for proper cookie handling
   const fetchPaymentHistory = async () => {
     try {
       setPaymentHistoryLoading(true);
-      const response = await fetch('/api/v1/subscriptions?endpoint=payment-history', {
+      const response = await fetch(`${API_BASE_URL}/api/v1/subscriptions/payment-history/`, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
         credentials: 'include'
       });
       if (response.ok) {
@@ -315,7 +321,13 @@ const UserBilling = () => {
   const fetchSubscriptionInfo = async () => {
     try {
       setSubscriptionLoading(true);
-      const response = await fetch('/api/v1/subscriptions?endpoint=analytics');
+      // Call Django directly for proper cookie handling in production
+      const response = await fetch(`${API_BASE_URL}/api/v1/subscriptions/analytics/`, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include'
+      });
       if (response.ok) {
         const data = await response.json();
         if (data.subscription) {

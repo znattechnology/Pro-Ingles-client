@@ -56,6 +56,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+// API Base URL - call Django directly to ensure cookies are sent correctly
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 interface UserSubscription {
   id: string;
   user_name: string;
@@ -123,16 +126,17 @@ export default function AdminSubscriptionUsersPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // Fetch subscriptions and stats
+  // Fetch subscriptions and stats - call Django directly for proper cookie handling
   const fetchData = async () => {
     try {
       setLoading(true);
-      
+
       // Fetch subscriptions - filtering will be done on frontend for now
-      const subscriptionsUrl = '/api/v1/subscriptions?endpoint=admin-subscriptions';
-      
-      const subscriptionsResponse = await fetch(subscriptionsUrl);
-      
+      const subscriptionsResponse = await fetch(`${API_BASE_URL}/api/v1/subscriptions/admin/subscriptions/`, {
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+      });
+
       if (subscriptionsResponse.ok) {
         const subscriptionsData = await subscriptionsResponse.json();
         setSubscriptions(subscriptionsData.results || subscriptionsData);
@@ -143,7 +147,10 @@ export default function AdminSubscriptionUsersPage() {
 
       // Fetch stats (optional)
       try {
-        const statsResponse = await fetch('/api/v1/subscriptions?endpoint=admin-stats');
+        const statsResponse = await fetch(`${API_BASE_URL}/api/v1/subscriptions/admin/stats/`, {
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include'
+        });
         if (statsResponse.ok) {
           const statsData = await statsResponse.json();
           setStats(statsData);
