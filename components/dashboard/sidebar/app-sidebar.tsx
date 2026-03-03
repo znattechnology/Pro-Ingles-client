@@ -199,18 +199,19 @@ const navLinks = {
         // },
       ],
     },
-    {
-      title: "Definições",
-      url: "/user/settings",
-      icon:  Settings,
-      isActive: true,
-      items: [
-        {
-          title: "Definições",
-          url: "/user/settings",
-        },
-      ],
-    },
+    // TODO: Habilitar quando a funcionalidade de definições estiver pronta
+    // {
+    //   title: "Definições",
+    //   url: "/user/settings",
+    //   icon:  Settings,
+    //   isActive: true,
+    //   items: [
+    //     {
+    //       title: "Definições",
+    //       url: "/user/settings",
+    //     },
+    //   ],
+    // },
    
 
   ],
