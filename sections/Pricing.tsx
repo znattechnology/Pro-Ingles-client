@@ -129,7 +129,7 @@ const Pricing = () => {
             <span className="text-violet-300 font-semibold">Preços justos para Angola</span>
           </motion.div>
 
-          <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6">
             Planos que Cabem no Seu
             <span className="bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent"> Orçamento</span>
           </h2>
@@ -186,15 +186,15 @@ const Pricing = () => {
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setIsYearly(true)}
                   className={twMerge(
-                    "px-6 py-3 rounded-xl text-sm font-medium transition-all duration-300 flex items-center gap-2",
-                    isYearly 
-                      ? "bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-xl" 
+                    "px-4 sm:px-6 py-3 rounded-xl text-sm font-medium transition-all duration-300 flex items-center gap-1 sm:gap-2",
+                    isYearly
+                      ? "bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-xl"
                       : "text-gray-300 hover:text-white hover:bg-violet-900/20"
                   )}
                 >
-                  💰 Anual
-                  <span className="text-xs bg-green-600 px-2 py-1 rounded-full text-white font-bold">
-                    2 MESES GRÁTIS
+                  <span className="hidden sm:inline">💰</span> Anual
+                  <span className="text-[10px] sm:text-xs bg-green-600 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full text-white font-bold whitespace-nowrap">
+                    -2 MESES
                   </span>
                 </motion.button>
               </div>
@@ -244,7 +244,7 @@ const Pricing = () => {
                     ) : (
                       <div>
                         <div className="flex items-center justify-center gap-2">
-                          <span className="text-4xl lg:text-5xl font-bold text-white">
+                          <span className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white">
                             {formatPrice(currentPrice)}
                           </span>
                           <div className="text-left">

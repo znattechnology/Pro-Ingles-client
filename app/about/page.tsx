@@ -53,7 +53,7 @@ const AboutPage = () => {
               <span className="text-violet-300 font-semibold">Feito em Angola, para Angola</span>
             </div>
 
-            <h1 className="text-4xl lg:text-6xl font-bold text-white mb-6">
+            <h1 className="text-3xl sm:text-4xl lg:text-6xl font-bold text-white mb-6">
               A História da
               <span className="bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent"> ProEnglish</span>
             </h1>
@@ -113,7 +113,7 @@ const AboutPage = () => {
               <img
                 src="/about-1.jpg"
                 alt="ProEnglish Angola"
-                className="w-full h-[400px] object-cover rounded-3xl shadow-2xl"
+                className="w-full h-[280px] sm:h-[350px] lg:h-[400px] object-cover rounded-3xl shadow-2xl"
               />
 
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent rounded-3xl" />
@@ -152,7 +152,7 @@ const AboutPage = () => {
               Nossa plataforma está disponível para profissionais em todas as províncias de Angola,
               com conteúdo adaptado para as realidades locais.
             </p>
-            <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
               {angolaCities.map((city, index) => (
                 <motion.div
                   key={city}

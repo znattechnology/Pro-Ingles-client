@@ -126,8 +126,8 @@ const TenstimonialColumn = (props: {
     <section id="testimonials" className="py-24 relative overflow-hidden">
       {/* Background Effects */}
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-violet-900/5 to-transparent" />
-      <div className="absolute top-1/3 left-1/4 w-96 h-96 bg-violet-600/5 rounded-full blur-3xl" />
-      <div className="absolute bottom-1/3 right-1/4 w-96 h-96 bg-purple-600/5 rounded-full blur-3xl" />
+      <div className="absolute top-1/3 left-1/4 w-64 h-64 sm:w-96 sm:h-96 bg-violet-600/5 rounded-full blur-3xl" />
+      <div className="absolute bottom-1/3 right-1/4 w-64 h-64 sm:w-96 sm:h-96 bg-purple-600/5 rounded-full blur-3xl" />
 
       <div className="container relative z-10">
         <motion.div
@@ -145,7 +145,7 @@ const TenstimonialColumn = (props: {
             <span className="text-violet-300 font-semibold">🇦🇴 O que dizem os nossos alunos</span>
           </motion.div>
 
-          <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6">
             Experiências dos
             <span className="bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent"> Nossos Alunos</span>
           </h2>

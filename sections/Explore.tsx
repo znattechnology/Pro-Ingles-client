@@ -24,8 +24,8 @@ const Explore: React.FC = () => {
     <section className="py-24 relative overflow-hidden" id='service'>
       {/* Background Effects */}
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-violet-900/5 to-transparent" />
-      <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-violet-600/5 rounded-full blur-3xl" />
-      <div className="absolute bottom-1/4 right-1/3 w-96 h-96 bg-purple-600/5 rounded-full blur-3xl" />
+      <div className="absolute top-1/4 left-1/3 w-64 h-64 sm:w-96 sm:h-96 bg-violet-600/5 rounded-full blur-3xl" />
+      <div className="absolute bottom-1/4 right-1/3 w-64 h-64 sm:w-96 sm:h-96 bg-purple-600/5 rounded-full blur-3xl" />
 
       <div className="container relative z-10">
         {/* Header */}
@@ -45,7 +45,7 @@ const Explore: React.FC = () => {
             <span className="text-violet-300 font-semibold">Especializados para Angola</span>
           </motion.div>
 
-          <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6">
             Nossos
             <span className="bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent"> Serviços</span>
           </h2>
@@ -61,7 +61,7 @@ const Explore: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto"
+            className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6 max-w-4xl mx-auto"
           >
             {stats.map((stat, index) => (
               <motion.div

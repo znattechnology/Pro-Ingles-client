@@ -372,7 +372,7 @@ const Chatbot = () => {
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={toggleChat}
-            className="fixed bottom-6 right-6 z-50 w-16 h-16 bg-gradient-to-r from-violet-600 to-purple-600 rounded-full shadow-2xl flex items-center justify-center hover:shadow-violet-500/25 transition-all duration-300"
+            className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-r from-violet-600 to-purple-600 rounded-full shadow-2xl flex items-center justify-center hover:shadow-violet-500/25 transition-all duration-300"
           >
             <MessageCircle className="w-7 h-7 text-white" />
             <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
@@ -394,7 +394,7 @@ const Chatbot = () => {
               height: isMinimized ? "60px" : "600px",
             }}
             exit={{ opacity: 0, scale: 0.8, y: 20 }}
-            className={`fixed bottom-6 right-6 z-50 w-96 bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-2xl shadow-2xl flex flex-col overflow-hidden`}
+            className={`fixed bottom-4 right-4 left-4 sm:left-auto sm:right-6 sm:bottom-6 z-50 w-auto sm:w-96 max-w-[calc(100vw-32px)] bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-2xl shadow-2xl flex flex-col overflow-hidden`}
           >
             {/* Header */}
             <div className="bg-gradient-to-r from-violet-600 to-purple-600 p-4 flex items-center justify-between">

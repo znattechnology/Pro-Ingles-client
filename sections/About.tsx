@@ -31,7 +31,7 @@ const About = () => {
             <span className="text-violet-300 font-semibold">Feito em Angola, para Angola</span>
           </motion.div>
 
-          <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6">
             A História da
             <span className="bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent"> ProEnglish</span>
           </h2>
@@ -89,7 +89,7 @@ const About = () => {
                 <MapPin className="w-6 h-6 text-green-400" />
                 <h4 className="text-xl font-bold text-white">Presente em todo Angola</h4>
               </div>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {angolaCities.map((city, index) => (
                   <motion.div
                     key={city}
@@ -114,7 +114,7 @@ const About = () => {
               <img
                 src="/about-1.jpg"
                 alt="ProEnglish Angola"
-                className="w-full h-[500px] object-cover rounded-3xl shadow-2xl"
+                className="w-full h-[300px] sm:h-[400px] lg:h-[500px] object-cover rounded-3xl shadow-2xl"
               />
               
               {/* Overlay with stats */}

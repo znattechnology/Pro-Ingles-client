@@ -174,8 +174,8 @@ const Features = () => {
             <span className="text-violet-300 font-semibold">Por que escolher ProEnglish?</span>
           </motion.div>
 
-          <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
-            A Revolução do 
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6">
+            A Revolução do
             <span className="bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent"> Ensino de Inglês</span>
             <br />
             em Angola

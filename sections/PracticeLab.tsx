@@ -149,8 +149,8 @@ const PracticeLab = () => {
     <section className="py-24 relative overflow-hidden" id="practice-lab">
       {/* Background Effects */}
       <div className="absolute inset-0 bg-gradient-to-br from-violet-900/10 via-purple-900/5 to-transparent" />
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-violet-600/5 rounded-full blur-3xl" />
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-600/5 rounded-full blur-3xl" />
+      <div className="absolute top-1/4 left-1/4 w-64 h-64 sm:w-96 sm:h-96 bg-violet-600/5 rounded-full blur-3xl" />
+      <div className="absolute bottom-1/4 right-1/4 w-64 h-64 sm:w-96 sm:h-96 bg-purple-600/5 rounded-full blur-3xl" />
       
       <div className="container relative z-10">
         
@@ -171,7 +171,7 @@ const PracticeLab = () => {
             <span className="text-violet-300 font-semibold">Laboratório Exclusivo</span>
           </motion.div>
 
-          <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6">
             English Practice Lab
             <span className="bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent"> Inteligente</span>
           </h2>
@@ -186,7 +186,7 @@ const PracticeLab = () => {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto mb-12"
+            className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6 max-w-4xl mx-auto mb-12"
           >
             {labStats.map((stat, index) => (
               <motion.div
