@@ -154,7 +154,7 @@ const PracticeCoursesManagement = () => {
                   {getStatusText(course.status)}
                 </Badge>
               </div>
-              <CardDescription>{course.description}</CardDescription>
+              <CardDescription>{course.description?.replace(/<[^>]*>/g, '') || ''}</CardDescription>
               <div className="flex gap-2 mt-2">
                 <Badge variant="outline">{course.category}</Badge>
                 <Badge variant="outline">{course.level}</Badge>

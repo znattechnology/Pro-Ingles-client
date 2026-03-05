@@ -144,7 +144,7 @@ const TeacherCourseCard = ({
                     {course.title}
                   </h3>
                   <p className="text-sm text-gray-400 mt-1 line-clamp-1">
-                    {course.description || 'Sem descrição disponível'}
+                    {(course.description || 'Sem descrição disponível').replace(/<[^>]*>/g, '')}
                   </p>
                   
                   <div className="flex items-center gap-4 mt-3 text-sm text-gray-400">
@@ -306,7 +306,7 @@ const TeacherCourseCard = ({
           </CardTitle>
           
           <p className="text-sm text-customgreys-dirtyGrey line-clamp-2 mb-3">
-            {course.description || 'Sem descrição disponível'}
+            {(course.description || 'Sem descrição disponível').replace(/<[^>]*>/g, '')}
           </p>
           
           {/* Course Stats */}

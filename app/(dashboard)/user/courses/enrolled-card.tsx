@@ -158,7 +158,7 @@ export const EnrolledCard = ({title, id, imageSrc, template, description, catego
                                         {title}
                                     </h3>
                                     <p className="text-sm text-gray-400 mt-1 line-clamp-1">
-                                        {description}
+                                        {description?.replace(/<[^>]*>/g, '') || ''}
                                     </p>
                                     
                                     <div className="flex items-center gap-4 mt-3 text-sm text-gray-400">
@@ -315,7 +315,7 @@ export const EnrolledCard = ({title, id, imageSrc, template, description, catego
 
                         {/* Course Description */}
                         <p className="text-sm text-gray-400 line-clamp-2 leading-relaxed">
-                            {description}
+                            {description?.replace(/<[^>]*>/g, '') || ''}
                         </p>
 
                         {/* Teacher Info */}

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useRef, useState } from "react";
+import DOMPurify from 'dompurify';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -909,9 +910,10 @@ const Course = () => {
                 </div>
                 <div className="p-6 text-white/90">
                   <div className="prose prose-invert max-w-none">
-                    <p className="leading-relaxed text-lg mb-6">
-                      {currentChapter?.content}
-                    </p>
+                    <div
+                      className="leading-relaxed text-lg mb-6"
+                      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(currentChapter?.content || '') }}
+                    />
                     
                     {/* Enhanced Transcript Section */}
                     {currentChapter?.transcript && (
@@ -1102,7 +1104,7 @@ const Course = () => {
                                 English Practice Lab: {currentChapter.practice_lesson}
                               </h3>
                               <div className="text-gray-300 space-y-4">
-                                <p>{currentChapter?.content || 'Complete este exercício do English Practice Lab.'}</p>
+                                <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(currentChapter?.content || 'Complete este exercício do English Practice Lab.') }} />
                                 
                                 <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-4">
                                   <h4 className="text-emerald-300 font-medium mb-2">🚀 Exercício Interativo</h4>
@@ -1129,7 +1131,7 @@ const Course = () => {
                                 Exercício Prático
                               </h3>
                               <div className="text-gray-300 space-y-4">
-                                <p>{currentChapter?.content || 'Pratique os conceitos aprendidos neste capítulo.'}</p>
+                                <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(currentChapter?.content || 'Pratique os conceitos aprendidos neste capítulo.') }} />
                                 
                                 <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-4">
                                   <h4 className="text-emerald-300 font-medium mb-2">💡 Atividade Prática</h4>
@@ -1664,7 +1666,7 @@ const QuizQuestionsInterface = ({ quiz, onComplete, onCancel }: {
               {currentQuestion?.question || `Pergunta ${currentQuestionIndex + 1}`}
             </h4>
             {currentQuestion?.description && (
-              <p className="text-gray-300 text-sm">{currentQuestion.description}</p>
+              <div className="text-gray-300 text-sm" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(currentQuestion.description) }} />
             )}
           </div>
 

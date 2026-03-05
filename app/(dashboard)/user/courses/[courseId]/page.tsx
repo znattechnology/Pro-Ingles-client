@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import DOMPurify from 'dompurify';
 import { useParams, useRouter } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -69,11 +70,8 @@ const CourseDetailsPage = () => {
 
   // Check if user is enrolled by checking enrollment status
   const checkEnrollment = useCallback(async () => {
-    console.log('🚀 checkEnrollment called - isAuthenticated:', isAuthenticated, 'user:', !!user, 'courseId:', courseId);
-    
     if (!isAuthenticated || !user || !courseId) {
-      console.log('⚠️ Skipping enrollment check - missing requirements');
-      setIsEnrolled(false); // Ensure not enrolled state when not authenticated
+      setIsEnrolled(false);
       return;
     }
 
@@ -88,24 +86,15 @@ const CourseDetailsPage = () => {
         }
       });
       
-      console.log('🔍 Enrollment API response:', response.status);
-      
       if (response.ok) {
         const data = await response.json();
-        console.log('📋 Enrollment data:', data);
         const enrolled = data.data?.is_enrolled || false;
-        console.log('✅ Setting isEnrolled to:', enrolled);
         setIsEnrolled(enrolled);
-        console.log('🎯 State after setIsEnrolled:', enrolled);
       } else {
-        console.log('❌ API error, response:', response.status, response.statusText);
-        const errorText = await response.text();
-        console.log('❌ API error body:', errorText);
         setIsEnrolled(false);
       }
       
-    } catch (err) {
-      console.error('Error checking enrollment:', err);
+    } catch {
       setIsEnrolled(false);
     } finally {
       setCheckingEnrollment(false);
@@ -116,7 +105,6 @@ const CourseDetailsPage = () => {
   useEffect(() => {
     const fetchCourse = async () => {
       if (!courseId || courseId === 'undefined') {
-        console.error('Invalid courseId:', courseId);
         setError('ID do curso inválido');
         setIsLoading(false);
         return;
@@ -133,7 +121,6 @@ const CourseDetailsPage = () => {
         const data = await response.json();
         setCourse(data.data);
       } catch (err: any) {
-        console.error('Error fetching course:', err);
         setError(err.message || 'Erro ao carregar curso');
       } finally {
         setIsLoading(false);
@@ -143,10 +130,8 @@ const CourseDetailsPage = () => {
     fetchCourse();
   }, [courseId]);
 
-  // Check enrollment when user is authenticated 
+  // Check enrollment when user is authenticated
   useEffect(() => {
-    console.log('🔧 useEffect triggered - isAuthenticated:', isAuthenticated, 'user:', !!user, 'courseId:', courseId);
-    console.log('🔧 User details:', user ? `${user.name} (${user.id})` : 'No user');
     checkEnrollment();
   }, [checkEnrollment]);
 
@@ -338,9 +323,10 @@ const CourseDetailsPage = () => {
                     {course.title}
                   </h1>
                   
-                  <p className="text-gray-300 text-sm sm:text-base lg:text-lg leading-relaxed mb-4">
-                    {course.description}
-                  </p>
+                  <div
+                    className="text-gray-300 text-sm sm:text-base lg:text-lg leading-relaxed mb-4 prose prose-invert max-w-none prose-p:text-gray-300 prose-p:leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(course.description || '') }}
+                  />
 
                   {/* Course Stats */}
                   <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 text-xs sm:text-sm text-gray-400">
@@ -509,7 +495,7 @@ const CourseDetailsPage = () => {
                                       {chapterIndex + 1}. {chapter.title}
                                     </h4>
                                     <p className="text-xs sm:text-sm text-gray-400 line-clamp-2 mt-1 leading-relaxed">
-                                      {chapter.content}
+                                      {chapter.content?.replace(/<[^>]*>/g, '') || ''}
                                     </p>
                                   </div>
                                   <Badge 

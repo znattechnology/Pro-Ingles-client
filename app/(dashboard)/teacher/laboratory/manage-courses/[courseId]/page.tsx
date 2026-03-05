@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import DOMPurify from 'dompurify';
 import { useRouter } from "next/navigation";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -308,7 +309,7 @@ const ManageCourseDetailPage = () => {
                   {getStatusText(course.status)}
                 </Badge>
               </div>
-              <p className="text-base text-gray-300 mb-2">{course.description}</p>
+              <div className="text-base text-gray-300 mb-2 prose prose-invert max-w-none prose-p:text-gray-300" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(course.description || '') }} />
               <div className="flex items-center gap-4 text-sm text-gray-400">
                 <span className="flex items-center gap-1">
                   <Calendar className="h-4 w-4" />
@@ -596,7 +597,7 @@ const ManageCourseDetailPage = () => {
                   <BookOpen className="w-5 h-5 mr-2" />
                   Descrição do Curso
                 </h3>
-                <p className="text-gray-300 leading-relaxed">{course.description}</p>
+                <div className="text-gray-300 leading-relaxed prose prose-invert max-w-none prose-p:text-gray-300" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(course.description || '') }} />
               </div>
             )}
           </motion.div>

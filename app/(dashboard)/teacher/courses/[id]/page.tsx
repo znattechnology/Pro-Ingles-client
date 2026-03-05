@@ -1727,7 +1727,7 @@ const CourseEditor = () => {
                                   <div className="flex-1">
                                     <h5 className="text-white font-medium">{chapter.title}</h5>
                                     {chapter.description && (
-                                      <p className="text-gray-400 text-sm mt-1">{chapter.description}</p>
+                                      <p className="text-gray-400 text-sm mt-1">{chapter.description.replace(/<[^>]*>/g, '')}</p>
                                     )}
                                   </div>
                                 </div>

@@ -95,7 +95,7 @@ const TeacherPracticeCourseCard = ({
                     {course.title}
                   </h3>
                   <p className="text-sm text-gray-400 mt-1 line-clamp-1">
-                    {course.description || 'Curso de prática interativa'}
+                    {(course.description || 'Curso de prática interativa').replace(/<[^>]*>/g, '')}
                   </p>
                   
                   <div className="flex items-center gap-4 mt-3 text-sm text-gray-400">
@@ -287,7 +287,7 @@ const TeacherPracticeCourseCard = ({
           </CardTitle>
           
           <p className="text-sm text-customgreys-dirtyGrey line-clamp-2 mb-3">
-            {course.description || 'Curso de prática interativa com desafios gamificados'}
+            {(course.description || 'Curso de prática interativa com desafios gamificados').replace(/<[^>]*>/g, '')}
           </p>
           
           {/* Course Stats */}

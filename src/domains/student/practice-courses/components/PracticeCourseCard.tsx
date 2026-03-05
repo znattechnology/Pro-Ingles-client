@@ -89,7 +89,7 @@ export const PracticeCourseCard = ({
         
         {course.description && (
           <p className="text-gray-400 text-sm line-clamp-2">
-            {course.description}
+            {course.description.replace(/<[^>]*>/g, '')}
           </p>
         )}
 

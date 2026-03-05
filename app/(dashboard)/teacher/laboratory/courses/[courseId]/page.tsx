@@ -246,7 +246,7 @@ const CourseManagement = () => {
                     <CardTitle className="text-lg">{unit.title}</CardTitle>
                     <Badge>{unit.order}ª Unidade</Badge>
                   </div>
-                  <CardDescription>{unit.description}</CardDescription>
+                  <CardDescription>{unit.description?.replace(/<[^>]*>/g, '') || ''}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2 text-sm text-muted-foreground mb-4">
