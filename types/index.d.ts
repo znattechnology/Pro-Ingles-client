@@ -118,7 +118,8 @@ declare global {
     video?: string | File;
     freePreview?: boolean;
     type: "Text" | "Quiz" | "Video" | "Exercise";
-    
+    order?: number;
+
     // 🆕 PHASE 1 BRIDGE - Novos campos opcionais
     transcript?: string;
     quiz_enabled?: boolean;
@@ -166,6 +167,7 @@ declare global {
     sectionId: string;
     sectionTitle: string;
     sectionDescription?: string;
+    order?: number;
     chapters: Chapter[];
   }
 

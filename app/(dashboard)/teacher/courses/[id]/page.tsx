@@ -37,6 +37,8 @@ import React, { useEffect, useState, useRef } from "react";
 import { notifications } from "@/lib/toast";
 import { useForm } from "react-hook-form";
 import { motion } from "framer-motion";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import { GripVertical } from "lucide-react";
 import ChapterModal from "./ChapterModal";
 import SectionModal from "./SectionModal";
 import { RichTextEditor, QuizBuilder, QuizData, AdvancedPracticeCourseSelector, AdvancedPracticeSelection } from "@/src/domains/teacher/video-courses/components";
@@ -480,6 +482,13 @@ const CourseEditor = () => {
       try {
       const chapterId = generateUUID(); // Generate valid UUID
       
+      // Calculate next order based on existing chapters in this section
+      const currentSection = sections.find((s: any) => s.sectionId === sectionId);
+      const existingChapters = currentSection?.chapters || [];
+      const nextOrder = existingChapters.length > 0
+        ? Math.max(...existingChapters.map((c: any) => c.order || 0)) + 1
+        : 1;
+
       // Create chapter with uploaded video URL if available
       const newChapter = {
         chapterId,
@@ -490,6 +499,7 @@ const CourseEditor = () => {
         videoUrl: uploadedVideoUrl || "", // Use already uploaded video URL
         video: uploadedVideoUrl || "", // Django field - use already uploaded video URL
         type: newChapterType,
+        order: nextOrder,
         hasVideo: !!uploadedVideoUrl, // Set to true if we have video URL
         // Additional fields for different types
         transcript: "",
@@ -851,7 +861,30 @@ const CourseEditor = () => {
     notifications.success(`Seção "${sectionName}" removida com sucesso! 🗑️`);
   };
 
-  // Function to delete chapter  
+  // Function to reorder chapters via drag-and-drop
+  const handleChapterReorder = (result: any, sectionId: string) => {
+    if (!result.destination) return;
+    const startIndex = result.source.index;
+    const endIndex = result.destination.index;
+    if (startIndex === endIndex) return;
+
+    const updatedSections = sections.map((section: any) => {
+      if (section.sectionId === sectionId) {
+        const chapters = [...(section.chapters || [])];
+        const [moved] = chapters.splice(startIndex, 1);
+        chapters.splice(endIndex, 0, moved);
+        return {
+          ...section,
+          chapters: chapters.map((ch: any, idx: number) => ({ ...ch, order: idx + 1 })),
+        };
+      }
+      return section;
+    });
+
+    dispatch(setSections(updatedSections));
+  };
+
+  // Function to delete chapter
   const handleDeleteChapter = (sectionId: string, chapterId: string) => {
     // Find chapter name for toast
     const section = sections.find(s => s.sectionId === sectionId);
@@ -944,12 +977,14 @@ const CourseEditor = () => {
       console.log('💾 Current sections from Redux:', sections);
       
       // Use sections directly from Redux state (which comes from API after auto-save)
-      const sectionsWithVideoUrls = sections.map(section => ({
+      // Recalculate order values based on array positions to ensure consistency
+      const sectionsWithVideoUrls = sections.map((section, sectionIndex) => ({
         ...section,
-        chapters: section.chapters?.map(chapter => {
+        order: sectionIndex + 1,
+        chapters: section.chapters?.map((chapter, chapterIndex) => {
           // Ensure video field is string not null for Django
           const videoUrl = chapter.video || chapter.videoUrl || "";
-          
+
           console.log(`📹 Chapter ${chapter.chapterId} final data:`, {
             title: chapter.title,
             description: chapter.description,
@@ -966,6 +1001,7 @@ const CourseEditor = () => {
 
           return {
             ...chapter,
+            order: chapterIndex + 1,
             video: videoUrl, // Django expects 'video' field - ensure string not null
             videoUrl: videoUrl, // Keep both for compatibility
           };
@@ -1616,18 +1652,21 @@ const CourseEditor = () => {
                       </div>
                     </div>
 
-                    {/* Existing Chapters */}
+                    {/* Existing Chapters - with drag-and-drop reordering */}
                     {section.chapters?.length > 0 && (
-                      <div className="space-y-3 mb-6">
+                      <DragDropContext onDragEnd={(result) => handleChapterReorder(result, section.sectionId)}>
+                      <Droppable droppableId={`chapters-${section.sectionId}`}>
+                        {(droppableProvided) => (
+                      <div className="space-y-3 mb-6" ref={droppableProvided.innerRef} {...droppableProvided.droppableProps}>
                         {section.chapters.map((chapter: any, chapterIndex: number) => (
-                          <motion.div
-                            key={chapter.chapterId}
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: chapterIndex * 0.05 }}
+                          <Draggable key={chapter.chapterId} draggableId={chapter.chapterId} index={chapterIndex}>
+                            {(draggableProvided) => (
+                          <div
+                            ref={draggableProvided.innerRef}
+                            {...draggableProvided.draggableProps}
                             className={`bg-violet-500/10 border border-violet-500/20 rounded-lg p-4 transition-colors ${
-                              editingChapter?.chapterId === chapter.chapterId 
-                                ? "bg-violet-500/20 border-violet-400/40" 
+                              editingChapter?.chapterId === chapter.chapterId
+                                ? "bg-violet-500/20 border-violet-400/40"
                                 : "hover:bg-violet-500/15 cursor-pointer"
                             }`}
                             onClick={() => !editingChapter && handleEditChapter(section.sectionId, chapter.chapterId)}
@@ -1721,6 +1760,9 @@ const CourseEditor = () => {
                               // View Mode
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3 flex-1">
+                                  <div {...draggableProvided.dragHandleProps} className="cursor-grab active:cursor-grabbing" onClick={(e) => e.stopPropagation()}>
+                                    <GripVertical className="w-5 h-5 text-violet-400/60 hover:text-violet-300" />
+                                  </div>
                                   <div className="w-8 h-8 bg-violet-600 rounded-lg flex items-center justify-center">
                                     <Play className="w-4 h-4 text-white" />
                                   </div>
@@ -1783,9 +1825,15 @@ const CourseEditor = () => {
                                 </div>
                               </div>
                             )}
-                          </motion.div>
+                          </div>
+                            )}
+                          </Draggable>
                         ))}
+                        {droppableProvided.placeholder}
                       </div>
+                        )}
+                      </Droppable>
+                      </DragDropContext>
                     )}
 
                     {/* Inline Chapter Creation */}

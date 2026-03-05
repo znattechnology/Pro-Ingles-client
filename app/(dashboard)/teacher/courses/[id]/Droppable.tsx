@@ -25,7 +25,14 @@ export default function DroppableComponent() {
     const updatedSections = [...sections];
     const [reorderedSection] = updatedSections.splice(startIndex, 1);
     updatedSections.splice(endIndex, 0, reorderedSection);
-    dispatch(setSections(updatedSections));
+
+    // Recalculate order values based on new positions
+    const sectionsWithOrder = updatedSections.map((section, index) => ({
+      ...section,
+      order: index + 1,
+    }));
+
+    dispatch(setSections(sectionsWithOrder));
   };
 
   const handleChapterDragEnd = (result: any, sectionIndex: number) => {
@@ -38,7 +45,16 @@ export default function DroppableComponent() {
     const updatedChapters = [...updatedSections[sectionIndex].chapters];
     const [reorderedChapter] = updatedChapters.splice(startIndex, 1);
     updatedChapters.splice(endIndex, 0, reorderedChapter);
-    updatedSections[sectionIndex].chapters = updatedChapters;
+
+    // Recalculate order values based on new positions
+    updatedSections[sectionIndex] = {
+      ...updatedSections[sectionIndex],
+      chapters: updatedChapters.map((chapter, index) => ({
+        ...chapter,
+        order: index + 1,
+      })),
+    };
+
     dispatch(setSections(updatedSections));
   };
 
