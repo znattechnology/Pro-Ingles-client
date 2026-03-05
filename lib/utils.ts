@@ -361,9 +361,9 @@ export const uploadCourseImage = async (
       size: imageFile.size
     });
 
-    // Step 1: Get presigned URL from Django backend
+    // Step 1: Get presigned URL from Django backend (using teacher endpoint with proper decorators)
     const uploadUrlResponse = await fetch(
-      `${process.env.NEXT_PUBLIC_DJANGO_API_URL}/courses/${courseId}/get-image-upload-url/`,
+      `${process.env.NEXT_PUBLIC_DJANGO_API_URL}/teacher/video-courses/${courseId}/get-image-upload-url/`,
       {
         method: 'POST',
         headers: {
@@ -380,7 +380,9 @@ export const uploadCourseImage = async (
 
     if (!uploadUrlResponse.ok) {
       const errorData = await uploadUrlResponse.json();
-      throw new Error(errorData.message || 'Erro ao obter URL de upload');
+      const errorMessage = errorData.error || errorData.message || 'Erro ao obter URL de upload';
+      console.error('❌ Backend error:', errorData);
+      throw new Error(errorMessage);
     }
 
     const { data } = await uploadUrlResponse.json();
@@ -403,10 +405,10 @@ export const uploadCourseImage = async (
 
     console.log('✅ Image uploaded to S3 successfully');
 
-    // Step 3: Update course in database with new image URL
+    // Step 3: Update course in database with new image URL (using teacher endpoint)
     console.log('📝 Updating course in database...');
     const updateResponse = await fetch(
-      `${process.env.NEXT_PUBLIC_DJANGO_API_URL}/courses/${courseId}/update-image-url/`,
+      `${process.env.NEXT_PUBLIC_DJANGO_API_URL}/teacher/video-courses/${courseId}/update-image-url/`,
       {
         method: 'PUT',
         headers: {
@@ -421,7 +423,9 @@ export const uploadCourseImage = async (
 
     if (!updateResponse.ok) {
       const errorData = await updateResponse.json();
-      throw new Error(errorData.message || 'Erro ao atualizar curso no banco de dados');
+      const errorMessage = errorData.error || errorData.message || 'Erro ao atualizar curso no banco de dados';
+      console.error('❌ Update course error:', errorData);
+      throw new Error(errorMessage);
     }
 
     console.log('✅ Course updated in database successfully');
@@ -459,7 +463,9 @@ export const uploadAvatarToS3 = async (
 
     if (!uploadUrlResponse.ok) {
       const errorData = await uploadUrlResponse.json();
-      throw new Error(errorData.message || 'Erro ao obter URL de upload');
+      const errorMessage = errorData.error || errorData.message || 'Erro ao obter URL de upload do avatar';
+      console.error('❌ Avatar upload error:', errorData);
+      throw new Error(errorMessage);
     }
 
     const { data } = await uploadUrlResponse.json();
