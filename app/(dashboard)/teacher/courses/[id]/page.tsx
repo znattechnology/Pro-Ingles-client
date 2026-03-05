@@ -1598,11 +1598,8 @@ const CourseEditor = () => {
             {sections.length > 0 ? (
               <div className="space-y-6">
                 {sections.map((section: any, sectionIndex: number) => (
-                  <motion.div
+                  <div
                     key={section.sectionId}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: sectionIndex * 0.1 }}
                     className={`rounded-xl p-6 transition-all duration-200 ${
                       ui.selectedSectionId === section.sectionId
                         ? 'bg-violet-500/20 border-2 border-violet-400 shadow-lg shadow-violet-500/20'
@@ -1670,15 +1667,10 @@ const CourseEditor = () => {
                           <div
                             ref={draggableProvided.innerRef}
                             {...draggableProvided.draggableProps}
-                            style={{
-                              ...draggableProvided.draggableProps.style,
-                              transition: draggableSnapshot.isDragging
-                                ? 'none'
-                                : draggableProvided.draggableProps.style?.transition || 'transform 0.2s ease',
-                            }}
+                            style={draggableProvided.draggableProps.style}
                             className={`rounded-lg p-4 ${
                               draggableSnapshot.isDragging
-                                ? "bg-violet-500/30 border-2 border-violet-400 shadow-xl shadow-violet-500/30 ring-2 ring-violet-400/50 scale-[1.02]"
+                                ? "bg-violet-600/40 border-2 border-violet-400 shadow-2xl shadow-violet-500/40 z-50"
                                 : editingChapter?.chapterId === chapter.chapterId
                                   ? "bg-violet-500/20 border border-violet-400/40"
                                   : "bg-violet-500/10 border border-violet-500/20 hover:bg-violet-500/15 cursor-pointer"
@@ -2161,7 +2153,7 @@ const CourseEditor = () => {
                         </Button>
                       </div>
                     )}
-                  </motion.div>
+                  </div>
                 ))}
               </div>
             ) : (
