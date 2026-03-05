@@ -69,7 +69,7 @@ export interface StudentVideoChapter {
   chapterTitle?: string; // For compatibility
   description?: string;
   content?: string;
-  type: 'video' | 'text' | 'quiz' | 'exercise' | 'resource';
+  type: 'Video' | 'Text' | 'Quiz' | 'Exercise' | 'video' | 'text' | 'quiz' | 'exercise' | 'resource';
   videoUrl?: string;
   video?: string; // For compatibility
   duration?: number; // in seconds
