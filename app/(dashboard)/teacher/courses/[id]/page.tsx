@@ -1656,20 +1656,34 @@ const CourseEditor = () => {
                     {section.chapters?.length > 0 && (
                       <DragDropContext onDragEnd={(result) => handleChapterReorder(result, section.sectionId)}>
                       <Droppable droppableId={`chapters-${section.sectionId}`}>
-                        {(droppableProvided) => (
-                      <div className="space-y-3 mb-6" ref={droppableProvided.innerRef} {...droppableProvided.droppableProps}>
+                        {(droppableProvided, droppableSnapshot) => (
+                      <div
+                        className={`space-y-2 mb-6 rounded-lg transition-colors duration-200 ${
+                          droppableSnapshot.isDraggingOver ? 'bg-violet-500/5 p-2 -m-2' : ''
+                        }`}
+                        ref={droppableProvided.innerRef}
+                        {...droppableProvided.droppableProps}
+                      >
                         {section.chapters.map((chapter: any, chapterIndex: number) => (
                           <Draggable key={chapter.chapterId} draggableId={chapter.chapterId} index={chapterIndex}>
-                            {(draggableProvided) => (
+                            {(draggableProvided, draggableSnapshot) => (
                           <div
                             ref={draggableProvided.innerRef}
                             {...draggableProvided.draggableProps}
-                            className={`bg-violet-500/10 border border-violet-500/20 rounded-lg p-4 transition-colors ${
-                              editingChapter?.chapterId === chapter.chapterId
-                                ? "bg-violet-500/20 border-violet-400/40"
-                                : "hover:bg-violet-500/15 cursor-pointer"
+                            style={{
+                              ...draggableProvided.draggableProps.style,
+                              transition: draggableSnapshot.isDragging
+                                ? 'none'
+                                : draggableProvided.draggableProps.style?.transition || 'transform 0.2s ease',
+                            }}
+                            className={`rounded-lg p-4 ${
+                              draggableSnapshot.isDragging
+                                ? "bg-violet-500/30 border-2 border-violet-400 shadow-xl shadow-violet-500/30 ring-2 ring-violet-400/50 scale-[1.02]"
+                                : editingChapter?.chapterId === chapter.chapterId
+                                  ? "bg-violet-500/20 border border-violet-400/40"
+                                  : "bg-violet-500/10 border border-violet-500/20 hover:bg-violet-500/15 cursor-pointer"
                             }`}
-                            onClick={() => !editingChapter && handleEditChapter(section.sectionId, chapter.chapterId)}
+                            onClick={() => !editingChapter && !draggableSnapshot.isDragging && handleEditChapter(section.sectionId, chapter.chapterId)}
                           >
                             {editingChapter?.chapterId === chapter.chapterId ? (
                               // Edit Mode
@@ -1759,11 +1773,15 @@ const CourseEditor = () => {
                             ) : (
                               // View Mode
                               <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3 flex-1">
-                                  <div {...draggableProvided.dragHandleProps} className="cursor-grab active:cursor-grabbing" onClick={(e) => e.stopPropagation()}>
-                                    <GripVertical className="w-5 h-5 text-violet-400/60 hover:text-violet-300" />
+                                <div className="flex items-center gap-2 flex-1">
+                                  <div
+                                    {...draggableProvided.dragHandleProps}
+                                    className="flex items-center justify-center w-8 h-8 rounded-md cursor-grab active:cursor-grabbing hover:bg-violet-500/20 transition-colors"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <GripVertical className={`w-5 h-5 transition-colors ${draggableSnapshot.isDragging ? 'text-violet-300' : 'text-violet-400/50 hover:text-violet-300'}`} />
                                   </div>
-                                  <div className="w-8 h-8 bg-violet-600 rounded-lg flex items-center justify-center">
+                                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${draggableSnapshot.isDragging ? 'bg-violet-500' : 'bg-violet-600'}`}>
                                     <Play className="w-4 h-4 text-white" />
                                   </div>
                                   <div className="flex-1">
