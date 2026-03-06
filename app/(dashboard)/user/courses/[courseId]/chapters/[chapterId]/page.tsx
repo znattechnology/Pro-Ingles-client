@@ -28,6 +28,7 @@ import {
   Star,
   CheckCircle2,
   CheckCircle,
+  XCircle,
   Trophy,
   Target,
   TrendingUp,
@@ -1580,29 +1581,32 @@ const QuizQuestionsInterface = ({ quiz, onComplete, onCancel }: {
   onCancel: () => void;
 }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [selectedAnswers, setSelectedAnswers] = useState<{[key: number]: string}>({});
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const [isChecked, setIsChecked] = useState(false);
+  const [isCorrect, setIsCorrect] = useState(false);
   const [score, setScore] = useState(0);
   const [showResults, setShowResults] = useState(false);
 
   const currentQuestion = quiz.questions[currentQuestionIndex];
-  
+  const correctOption = currentQuestion?.options?.find((opt: any) => opt.is_correct);
+
   const handleAnswerSelect = (answerId: string) => {
-    setSelectedAnswers(prev => ({
-      ...prev,
-      [currentQuestionIndex]: answerId
-    }));
+    if (isChecked) return;
+    setSelectedAnswer(answerId);
   };
 
-  const handleNextQuestion = () => {
-    const selectedAnswer = selectedAnswers[currentQuestionIndex];
+  const handleCheck = () => {
     if (!selectedAnswer) return;
+    const correct = currentQuestion.options?.find((opt: any) => opt.id === selectedAnswer)?.is_correct;
+    setIsCorrect(!!correct);
+    if (correct) setScore(prev => prev + 1);
+    setIsChecked(true);
+  };
 
-    // Check if answer is correct (assuming the question has a correct_answer field)
-    const isCorrect = currentQuestion.options?.find((opt: any) => opt.id === selectedAnswer)?.is_correct;
-    if (isCorrect) {
-      setScore(prev => prev + 1);
-    }
-
+  const handleNext = () => {
+    setSelectedAnswer(null);
+    setIsChecked(false);
+    setIsCorrect(false);
     if (currentQuestionIndex < quiz.questions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
     } else {
@@ -1612,27 +1616,50 @@ const QuizQuestionsInterface = ({ quiz, onComplete, onCancel }: {
 
   const resetQuiz = () => {
     setCurrentQuestionIndex(0);
-    setSelectedAnswers({});
+    setSelectedAnswer(null);
+    setIsChecked(false);
+    setIsCorrect(false);
     setScore(0);
     setShowResults(false);
   };
 
   if (showResults) {
     const percentage = Math.round((score / quiz.questions.length) * 100);
+    const passed = percentage >= (quiz.passing_score || 70);
     return (
       <div className="space-y-6">
-        <div className="bg-gradient-to-r from-green-900/30 to-emerald-900/30 rounded-lg p-6 border border-green-500/20 text-center">
-          <CheckCircle2 className="w-16 h-16 text-green-400 mx-auto mb-4" />
-          <h3 className="text-white font-bold text-xl mb-2">Quiz Concluído!</h3>
-          <p className="text-gray-300 mb-4">
+        <div className={`rounded-lg p-6 border text-center ${
+          passed
+            ? 'bg-gradient-to-r from-green-900/30 to-emerald-900/30 border-green-500/20'
+            : 'bg-gradient-to-r from-red-900/30 to-orange-900/30 border-red-500/20'
+        }`}>
+          {passed ? (
+            <CheckCircle2 className="w-16 h-16 text-green-400 mx-auto mb-4" />
+          ) : (
+            <XCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
+          )}
+          <h3 className="text-white font-bold text-xl mb-2">
+            {passed ? 'Parabéns! Quiz Aprovado!' : 'Quiz Concluído'}
+          </h3>
+          <p className="text-gray-300 mb-2">
             Você acertou {score} de {quiz.questions.length} perguntas ({percentage}%)
           </p>
-          
+          {passed && quiz.points_reward && (
+            <p className="text-yellow-400 font-semibold mb-4">
+              +{quiz.points_reward} pontos ganhos!
+            </p>
+          )}
+          {!passed && (
+            <p className="text-gray-400 text-sm mb-4">
+              Mínimo para aprovação: {quiz.passing_score || 70}%
+            </p>
+          )}
+
           <div className="flex justify-center gap-3">
             <Button onClick={resetQuiz} variant="outline" className="text-white border-white/30">
               Refazer Quiz
             </Button>
-            <Button onClick={onComplete} className="bg-green-600 hover:bg-green-700">
+            <Button onClick={onComplete} className={passed ? "bg-green-600 hover:bg-green-700" : "bg-violet-600 hover:bg-violet-700"}>
               Finalizar
             </Button>
           </div>
@@ -1649,12 +1676,12 @@ const QuizQuestionsInterface = ({ quiz, onComplete, onCancel }: {
             Pergunta {currentQuestionIndex + 1} de {quiz.questions.length}
           </h3>
           <div className="text-gray-400 text-sm">
-            Pontuação: {score}/{currentQuestionIndex}
+            Pontuação: {score}/{currentQuestionIndex + (isChecked ? 1 : 0)}
           </div>
         </div>
-        
+
         <div className="w-full bg-gray-700 rounded-full h-2 mb-6">
-          <div 
+          <div
             className="bg-violet-500 h-2 rounded-full transition-all duration-300"
             style={{ width: `${((currentQuestionIndex + 1) / quiz.questions.length) * 100}%` }}
           />
@@ -1671,47 +1698,102 @@ const QuizQuestionsInterface = ({ quiz, onComplete, onCancel }: {
           </div>
 
           <div className="space-y-3">
-            {currentQuestion?.options?.map((option: any, index: number) => (
-              <button
-                key={option.id || index}
-                onClick={() => handleAnswerSelect(option.id || index)}
-                className={`w-full text-left p-4 rounded-lg border transition-all duration-200 ${
-                  selectedAnswers[currentQuestionIndex] === (option.id || index)
-                    ? 'border-violet-500 bg-violet-500/10 text-violet-300'
-                    : 'border-gray-600 bg-customgreys-primarybg/30 text-gray-300 hover:border-violet-500/50 hover:bg-violet-500/5'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <div className={`w-4 h-4 rounded-full border-2 ${
-                    selectedAnswers[currentQuestionIndex] === (option.id || index)
-                      ? 'border-violet-500 bg-violet-500'
-                      : 'border-gray-500'
-                  }`}>
-                    {selectedAnswers[currentQuestionIndex] === (option.id || index) && (
-                      <div className="w-full h-full rounded-full bg-white scale-50"></div>
-                    )}
+            {currentQuestion?.options?.map((option: any, index: number) => {
+              const optionId = option.id || String(index);
+              const isSelected = selectedAnswer === optionId;
+              const isOptionCorrect = option.is_correct;
+
+              let optionClass = 'border-gray-600 bg-customgreys-primarybg/30 text-gray-300';
+              if (isChecked) {
+                if (isOptionCorrect) {
+                  optionClass = 'border-green-500 bg-green-500/15 text-green-300';
+                } else if (isSelected && !isOptionCorrect) {
+                  optionClass = 'border-red-500 bg-red-500/15 text-red-300';
+                } else {
+                  optionClass = 'border-gray-700 bg-customgreys-primarybg/20 text-gray-500';
+                }
+              } else if (isSelected) {
+                optionClass = 'border-violet-500 bg-violet-500/10 text-violet-300';
+              } else {
+                optionClass += ' hover:border-violet-500/50 hover:bg-violet-500/5';
+              }
+
+              return (
+                <button
+                  key={optionId}
+                  onClick={() => handleAnswerSelect(optionId)}
+                  disabled={isChecked}
+                  className={`w-full text-left p-4 rounded-lg border transition-all duration-200 ${optionClass} ${isChecked ? 'cursor-default' : 'cursor-pointer'}`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                      isChecked && isOptionCorrect ? 'border-green-500 bg-green-500' :
+                      isChecked && isSelected && !isOptionCorrect ? 'border-red-500 bg-red-500' :
+                      isSelected ? 'border-violet-500 bg-violet-500' : 'border-gray-500'
+                    }`}>
+                      {isChecked && isOptionCorrect && (
+                        <CheckCircle2 className="w-3 h-3 text-white" />
+                      )}
+                      {isChecked && isSelected && !isOptionCorrect && (
+                        <XCircle className="w-3 h-3 text-white" />
+                      )}
+                      {!isChecked && isSelected && (
+                        <div className="w-full h-full rounded-full bg-white scale-50" />
+                      )}
+                    </div>
+                    <span className="font-medium">{option.text || `Opção ${index + 1}`}</span>
                   </div>
-                  <span>{option.text || `Opção ${index + 1}`}</span>
-                </div>
-              </button>
-            )) || (
+                </button>
+              );
+            }) || (
               <div className="text-gray-400 text-center py-4">
                 Nenhuma opção disponível para esta pergunta.
               </div>
             )}
           </div>
 
+          {/* Feedback after checking */}
+          {isChecked && (
+            <div className={`rounded-lg p-4 border ${
+              isCorrect
+                ? 'bg-green-900/20 border-green-500/30'
+                : 'bg-red-900/20 border-red-500/30'
+            }`}>
+              <div className="flex items-center gap-2 mb-1">
+                {isCorrect ? (
+                  <><CheckCircle2 className="w-5 h-5 text-green-400" /><span className="text-green-400 font-bold">Correcto!</span></>
+                ) : (
+                  <><XCircle className="w-5 h-5 text-red-400" /><span className="text-red-400 font-bold">Incorrecto</span></>
+                )}
+              </div>
+              {!isCorrect && correctOption && (
+                <p className="text-gray-300 text-sm">
+                  Resposta correcta: <span className="text-green-400 font-medium">{correctOption.text}</span>
+                </p>
+              )}
+            </div>
+          )}
+
           <div className="flex justify-between">
             <Button onClick={onCancel} variant="outline" className="text-white border-white/30">
               Cancelar
             </Button>
-            <Button
-              onClick={handleNextQuestion}
-              disabled={!selectedAnswers[currentQuestionIndex]}
-              className="bg-violet-600 hover:bg-violet-700 disabled:opacity-50"
-            >
-              {currentQuestionIndex === quiz.questions.length - 1 ? 'Finalizar' : 'Próxima'}
-            </Button>
+            {!isChecked ? (
+              <Button
+                onClick={handleCheck}
+                disabled={!selectedAnswer}
+                className="bg-violet-600 hover:bg-violet-700 disabled:opacity-50"
+              >
+                Verificar
+              </Button>
+            ) : (
+              <Button
+                onClick={handleNext}
+                className={isCorrect ? "bg-green-600 hover:bg-green-700" : "bg-orange-600 hover:bg-orange-700"}
+              >
+                {currentQuestionIndex === quiz.questions.length - 1 ? 'Ver Resultado' : 'Próxima'}
+              </Button>
+            )}
           </div>
         </div>
       </div>
