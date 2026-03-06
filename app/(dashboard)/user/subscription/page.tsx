@@ -198,13 +198,11 @@ export default function MySubscriptionPage() {
           </div>
           
           <div className="flex gap-3 w-full sm:w-auto">
-            <Link href="/user/upgrade" className="w-full sm:w-auto">
-              <Button className="bg-gradient-to-r from-purple-600 to-blue-600 w-full sm:w-auto">
-                <ArrowUp className="w-4 h-4 mr-2" />
-                <span className="hidden sm:inline">Fazer Upgrade</span>
-                <span className="sm:hidden">Upgrade</span>
-              </Button>
-            </Link>
+            <Button disabled className="bg-gradient-to-r from-purple-600 to-blue-600 w-full sm:w-auto opacity-50 cursor-not-allowed">
+              <ArrowUp className="w-4 h-4 mr-2" />
+              <span className="hidden sm:inline">Fazer Upgrade</span>
+              <span className="sm:hidden">Upgrade</span>
+            </Button>
           </div>
         </div>
 
@@ -477,13 +475,11 @@ export default function MySubscriptionPage() {
                 Faça upgrade para Premium e tenha acesso ilimitado a lições, 
                 prática de conversação, prática de audição e muito mais com o ProEnglish!
               </p>
-              <Link href="/user/upgrade">
-                <Button size="lg" className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 w-full sm:w-auto">
-                  <ArrowUp className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                  <span className="hidden sm:inline">Ver Planos Premium</span>
-                  <span className="sm:hidden">Planos Premium</span>
-                </Button>
-              </Link>
+              <Button disabled size="lg" className="bg-gradient-to-r from-purple-600 to-blue-600 w-full sm:w-auto opacity-50 cursor-not-allowed">
+                <ArrowUp className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                <span className="hidden sm:inline">Em breve</span>
+                <span className="sm:hidden">Em breve</span>
+              </Button>
             </CardContent>
           </Card>
         )}
