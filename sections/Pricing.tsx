@@ -33,10 +33,10 @@ const pricingTiers = [
   {
     title: "Premium",
     subtitle: "Aprendizagem sem limites",
-    monthlyPrice: 14950,
-    yearlyPrice: 149500,
-    discount: "2 meses grátis",
-    buttonText: "Fazer Upgrade",
+    monthlyPrice: -1,
+    yearlyPrice: -1,
+    discount: null,
+    buttonText: "Em breve",
     popular: true,
     inverse: true,
     icon: "⚡",
@@ -59,10 +59,10 @@ const pricingTiers = [
   {
     title: "Premium Plus",
     subtitle: "Experiência VIP completa",
-    monthlyPrice: 24950,
-    yearlyPrice: 249500,
-    discount: "2 meses grátis",
-    buttonText: "Ser VIP",
+    monthlyPrice: -1,
+    yearlyPrice: -1,
+    discount: null,
+    buttonText: "Em breve",
     popular: false,
     inverse: false,
     icon: "👑",
@@ -241,6 +241,11 @@ const Pricing = () => {
                   <div className="text-center mb-8">
                     {currentPrice === 0 ? (
                       <div className="text-4xl font-bold text-white">Gratuito</div>
+                    ) : currentPrice === -1 ? (
+                      <div>
+                        <div className="text-3xl sm:text-4xl font-bold text-white">Em breve</div>
+                        <div className="text-sm text-violet-300 mt-2">Preços a definir</div>
+                      </div>
                     ) : (
                       <div>
                         <div className="flex items-center justify-center gap-2">
@@ -252,7 +257,7 @@ const Pricing = () => {
                             <div className="text-xs text-white/50">/{isYearly ? 'ano' : 'mês'}</div>
                           </div>
                         </div>
-                        
+
                         {isYearly && tier.discount && (
                           <motion.div
                             initial={{ scale: 0 }}
@@ -275,46 +280,30 @@ const Pricing = () => {
                   
                   {/* CTA Button */}
                   <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                    whileHover={currentPrice !== -1 ? { scale: 1.05 } : {}}
+                    whileTap={currentPrice !== -1 ? { scale: 0.95 } : {}}
+                    disabled={currentPrice === -1}
                     className={twMerge(
                       "w-full py-4 rounded-xl font-bold text-lg transition-all duration-300 mb-8 flex items-center justify-center gap-2",
-                      tier.inverse
-                        ? "bg-white text-black hover:bg-gray-100 shadow-xl"
+                      currentPrice === -1
+                        ? "bg-gray-700 text-gray-400 cursor-not-allowed opacity-60"
                         : tier.title === "Gratuito"
                         ? "bg-gradient-to-r from-gray-600 to-gray-700 text-white hover:from-gray-500 hover:to-gray-600"
                         : "bg-gradient-to-r from-violet-600 to-purple-600 text-white hover:from-violet-700 hover:to-purple-700 shadow-xl"
                     )}
                     onClick={() => {
+                      if (currentPrice === -1) return;
                       const userIsAuthenticated = isAuthenticated();
 
                       if (userIsAuthenticated) {
-                        // Usuário autenticado - redirecionar diretamente para upgrade
-                        if (tier.title === "Gratuito") {
-                          window.location.href = "/user/courses";
-                        } else if (tier.title === "Premium") {
-                          window.location.href = "/user/upgrade?plan=PREMIUM";
-                        } else if (tier.title === "Premium Plus") {
-                          window.location.href = "/user/upgrade?plan=PREMIUM_PLUS";
-                        } else {
-                          window.location.href = "/user/courses";
-                        }
+                        window.location.href = "/user/courses";
                       } else {
-                        // Usuário não autenticado - redirecionar para signup
-                        if (tier.title === "Gratuito") {
-                          window.location.href = "/signup";
-                        } else if (tier.title === "Premium") {
-                          window.location.href = "/signup?plan=PREMIUM";
-                        } else if (tier.title === "Premium Plus") {
-                          window.location.href = "/signup?plan=PREMIUM_PLUS";
-                        } else {
-                          window.location.href = "/signup";
-                        }
+                        window.location.href = "/signup";
                       }
                     }}
                   >
                     {tier.buttonText}
-                    <ArrowRight className="w-5 h-5" />
+                    {currentPrice !== -1 && <ArrowRight className="w-5 h-5" />}
                   </motion.button>
 
                   {/* Features */}
