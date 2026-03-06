@@ -115,19 +115,19 @@ const Hero = () => {
               className="flex items-center gap-6 pt-8"
             >
               <div className="flex -space-x-2">
-                {[1, 2, 3, 4, 5].map((i) => (
+                {['A1', 'A2', 'B1', 'B2', 'C1'].map((level) => (
                   <div
-                    key={i}
+                    key={level}
                     className="w-12 h-12 rounded-full bg-gradient-to-r from-violet-600 to-purple-600 border-2 border-white flex items-center justify-center text-white font-bold text-sm"
                   >
-                    A{i}
+                    {level}
                   </div>
                 ))}
               </div>
 
               <div>
-                <p className="text-white font-semibold">Junte-se aos nossos alunos</p>
-                <p className="text-sm text-gray-400">Aprenda inglês especializado para sua carreira</p>
+                <p className="text-white font-semibold">Do A1 ao C1 + English for Specific Purposes</p>
+                <p className="text-sm text-gray-400">Níveis segundo o European Framework (CEFR)</p>
               </div>
             </motion.div>
 
